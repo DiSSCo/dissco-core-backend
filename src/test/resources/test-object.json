@@ -1,0 +1,17 @@
+{
+  "@type": "ODStypeV0.2-Test",
+  "ods:authoritative": {
+    "ods:midsLevel": 1,
+    "ods:curatedObjectID": "https://data.biodiversitydata.nl/naturalis/specimen/L.3527331",
+    "ods:physicalSpecimenId": "L.3527331@BRAHMS",
+    "ods:institution": "https://ror.org/0566bfb96",
+    "ods:institutionCode": "Naturalis Biodiversity Center",
+    "ods:materialType": "Herbarium sheet",
+    "ods:name": "Blechnum occidentale L."
+  },
+  "ods:images": [
+    {
+      "ods:imageURI": "https://medialib.naturalis.nl/file/id/L.3527331/format/large"
+    }
+  ]
+}
