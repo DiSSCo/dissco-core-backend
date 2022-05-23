@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import eu.dissco.backend.domain.Authoritative;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.Image;
+import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,6 +23,9 @@ public class TestUtils {
   public static final String MATERIAL_TYPE = "Herbarium sheet";
   public static final String NAME = "Blechnum occidentale L.";
   public static final String IMAGE_URL = "https://medialib.naturalis.nl/file/id/L.3527331/format/large";
+
+  public static final String ORGANISATION_NAME = "Natural History Museum Vienna";
+  public static final String ORGANISATION_ROR = "https://ror.org/01tv5y993";
 
 
   public static String loadResourceFileToString(String filename) throws IOException {
@@ -51,12 +55,25 @@ public class TestUtils {
     return ds;
   }
 
-  public static CordraObject givenCordraObject() throws IOException {
+  public static CordraObject givenCordraSpecimenObject() throws IOException {
     var cordraObject = new CordraObject();
     cordraObject.id = ID;
     cordraObject.type = TYPE;
     cordraObject.content = JsonParser.parseString(
-        loadResourceFileToString("test-object.json"));
+        loadResourceFileToString("test-specimen.json"));
+    return cordraObject;
+  }
+
+  public static OrganisationTuple givenOrganisationTuple() {
+    return new OrganisationTuple(ORGANISATION_NAME, ORGANISATION_ROR);
+  }
+
+  public static CordraObject givenCordraOrganisationObject() throws IOException {
+    var cordraObject = new CordraObject();
+    cordraObject.id = "Test/2202020";
+    cordraObject.type = "Organisation";
+    cordraObject.content = JsonParser.parseString(
+        loadResourceFileToString("test-organisation.json"));
     return cordraObject;
   }
 }

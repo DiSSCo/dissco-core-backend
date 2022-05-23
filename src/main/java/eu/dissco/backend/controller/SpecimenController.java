@@ -11,7 +11,6 @@ import net.cnri.cordra.api.CordraException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,7 +52,7 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<DigitalSpecimen>> searchQuery(@RequestParam String query,
+  public ResponseEntity<List<DigitalSpecimen>> searchSpecimen(@RequestParam String query,
       @RequestParam(defaultValue = "1") int pageNumber,
       @RequestParam(defaultValue = "10") int pageSize)
       throws CordraException, JsonProcessingException {
@@ -61,18 +60,5 @@ public class SpecimenController {
     var specimen = service.search(query, pageNumber, pageSize);
     return ResponseEntity.ok(specimen);
   }
-
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(CordraException.class)
-  public ResponseEntity<String> handleCordraException(CordraException ex) {
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-  }
-
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-  @ExceptionHandler(JsonProcessingException.class)
-  public ResponseEntity<String> handleJsonException(JsonProcessingException ex) {
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ex.getMessage());
-  }
-
 
 }

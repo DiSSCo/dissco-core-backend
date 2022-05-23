@@ -1,8 +1,11 @@
 package eu.dissco.backend.repository;
 
+import com.google.gson.JsonObject;
+import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.properties.CordraProperties;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.cnri.cordra.api.CordraClient;
@@ -37,4 +40,36 @@ public class CordraRepository {
     return cordraClient.search(encodedQuery, queryParams);
   }
 
+  public List<String> getOrganisationNames() throws CordraException {
+    return getOrganisations().stream().map(this::mapOrganisationToName).toList();
+  }
+
+  public List<OrganisationTuple> getOrganisationTuple() throws CordraException {
+    return getOrganisations().stream().map(this::mapOrganisationToTuple).toList();
+  }
+
+  private SearchResults<CordraObject> getOrganisations() throws CordraException {
+    return cordraClient.search("type:\"" + properties.getOrganisationType() + "\"");
+  }
+
+  private OrganisationTuple mapOrganisationToTuple(CordraObject cordraObject) {
+    var content = cordraObject.content.getAsJsonObject();
+    var name = content.get("organisation_name").getAsString();
+    String ror = getRor(content);
+    return new OrganisationTuple(name, ror);
+  }
+
+  private String getRor(JsonObject content) {
+    var identifiers = content.get("externalIdentifiers").getAsJsonObject();
+    if (identifiers != null && identifiers.has("ROR")) {
+      return identifiers.get("ROR").getAsJsonObject().get("url").getAsString();
+    } else {
+      log.warn("No ROR present, should be included in the Organisation object");
+      return null;
+    }
+  }
+
+  private String mapOrganisationToName(CordraObject cordraObject) {
+    return cordraObject.content.getAsJsonObject().get("organisation_name").getAsString();
+  }
 }

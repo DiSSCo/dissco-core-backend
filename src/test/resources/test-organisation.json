@@ -1,0 +1,42 @@
+{
+  "organisation_name": "Natural History Museum Vienna",
+  "website": "http://www.nhm-wien.ac.at/",
+  "description": "https://www.nhm-wien.ac.at",
+  "mainAddress": {
+    "country": {
+      "countryName": "Austria",
+      "countryCode": "AT"
+    },
+    "coordinates": {
+      "longitude": 16.359824,
+      "latitude": 48.205205
+    },
+    "city": "Vienna"
+  },
+  "coordinators": [
+    {
+      "firstName": "Heimo",
+      "lastName": "Rainer",
+      "type": "ADMINISTRATIVE_POINT_OF_CONTACT"
+    },
+    {
+      "firstName": "Heimo",
+      "lastName": "Rainer",
+      "type": "TECHNICAL_POINT_OF_CONTACT"
+    }
+  ],
+  "externalIdentifiers": {
+    "ROR": {
+      "identifier": "01tv5y993",
+      "url": "https://ror.org/01tv5y993"
+    },
+    "GBIF": {
+      "identifier": "4e11d750-bafb-11d9-8e53-b8a03c50a862",
+      "url": "https://www.gbif.org/publisher/4e11d750-bafb-11d9-8e53-b8a03c50a862"
+    },
+    "WIKIDATA": {
+      "identifier": "Q688704",
+      "url": "https://www.wikidata.org/wiki/Q688704"
+    }
+  }
+}
