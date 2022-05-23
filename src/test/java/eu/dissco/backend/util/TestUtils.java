@@ -68,12 +68,12 @@ public class TestUtils {
     return new OrganisationTuple(ORGANISATION_NAME, ORGANISATION_ROR);
   }
 
-  public static CordraObject givenCordraOrganisationObject() throws IOException {
+  public static CordraObject givenCordraOrganisationObject(String fileName) throws IOException {
     var cordraObject = new CordraObject();
     cordraObject.id = "Test/2202020";
     cordraObject.type = "Organisation";
     cordraObject.content = JsonParser.parseString(
-        loadResourceFileToString("test-organisation.json"));
+        loadResourceFileToString(fileName));
     return cordraObject;
   }
 }

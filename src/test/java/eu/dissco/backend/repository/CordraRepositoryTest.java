@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.properties.CordraProperties;
 import java.io.IOException;
 import java.util.List;
@@ -82,7 +83,8 @@ class CordraRepositoryTest {
   @Test
   void testGetOrganisationNames() throws CordraException, IOException {
     // Given
-    given(searchResults.stream()).willReturn(Stream.of(givenCordraOrganisationObject()));
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject("test-organisation.json")));
     given(client.search(anyString())).willReturn(searchResults);
 
     // When
@@ -95,7 +97,8 @@ class CordraRepositoryTest {
   @Test
   void testGetOrganisationTuples() throws CordraException, IOException {
     // Given
-    given(searchResults.stream()).willReturn(Stream.of(givenCordraOrganisationObject()));
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject("test-organisation.json")));
     given(client.search(anyString())).willReturn(searchResults);
 
     // When
@@ -103,6 +106,20 @@ class CordraRepositoryTest {
 
     // Then
     assertThat(result).isEqualTo(List.of(givenOrganisationTuple()));
+  }
+
+  @Test
+  void testGetOrganisationTuplesNoROR() throws CordraException, IOException {
+    // Given
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject("test-organisation-no-ror.json")));
+    given(client.search(anyString())).willReturn(searchResults);
+
+    // When
+    var result = repository.getOrganisationTuple();
+
+    // Then
+    assertThat(result).isEqualTo(List.of(new OrganisationTuple(ORGANISATION_NAME, null)));
   }
 
 }
