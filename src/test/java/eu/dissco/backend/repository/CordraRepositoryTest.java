@@ -1,15 +1,20 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.util.TestUtils.ID;
-import static eu.dissco.backend.util.TestUtils.givenCordraObject;
+import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
+import static eu.dissco.backend.util.TestUtils.givenCordraOrganisationObject;
+import static eu.dissco.backend.util.TestUtils.givenCordraSpecimenObject;
+import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.properties.CordraProperties;
-import eu.dissco.backend.util.TestUtils;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Stream;
 import net.cnri.cordra.api.CordraClient;
 import net.cnri.cordra.api.CordraException;
 import net.cnri.cordra.api.CordraObject;
@@ -18,6 +23,8 @@ import net.cnri.cordra.api.SearchResults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -53,7 +60,7 @@ class CordraRepositoryTest {
   @Test
   void testGetSpecimenById() throws CordraException, IOException {
     // Given
-    var cordraObject = givenCordraObject();
+    var cordraObject = givenCordraSpecimenObject();
     given(client.get(anyString())).willReturn(cordraObject);
 
     // When
@@ -73,6 +80,49 @@ class CordraRepositoryTest {
 
     // Then
     assertThat(result).isEqualTo(searchResults);
+  }
+
+  @Test
+  void testGetOrganisationNames() throws CordraException, IOException {
+    // Given
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject("test-organisation.json")));
+    given(client.search(anyString())).willReturn(searchResults);
+
+    // When
+    var result = repository.getOrganisationNames();
+
+    // Then
+    assertThat(result).isEqualTo(List.of(ORGANISATION_NAME));
+  }
+
+  @Test
+  void testGetOrganisationTuples() throws CordraException, IOException {
+    // Given
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject("test-organisation.json")));
+    given(client.search(anyString())).willReturn(searchResults);
+
+    // When
+    var result = repository.getOrganisationTuple();
+
+    // Then
+    assertThat(result).isEqualTo(List.of(givenOrganisationTuple()));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "test-organisation-no-ror.json", "test-organisation-no-external-identifiers.json" })
+  void testGetOrganisationTuplesNoROR(String filename) throws CordraException, IOException {
+    // Given
+    given(searchResults.stream()).willReturn(
+        Stream.of(givenCordraOrganisationObject(filename)));
+    given(client.search(anyString())).willReturn(searchResults);
+
+    // When
+    var result = repository.getOrganisationTuple();
+
+    // Then
+    assertThat(result).isEqualTo(List.of(new OrganisationTuple(ORGANISATION_NAME, null)));
   }
 
 }

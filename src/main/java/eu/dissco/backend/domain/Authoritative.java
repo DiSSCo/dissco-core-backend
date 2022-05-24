@@ -1,14 +1,11 @@
 package eu.dissco.backend.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class Authoritative {
 
-  @JsonIgnore
-  String id;
   @JsonProperty("ods:midsLevel")
   int midslevel;
   @JsonProperty("ods:curatedObjectID")

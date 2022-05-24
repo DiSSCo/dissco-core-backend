@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.util.TestUtils.ID;
-import static eu.dissco.backend.util.TestUtils.givenCordraObject;
+import static eu.dissco.backend.util.TestUtils.givenCordraSpecimenObject;
 import static eu.dissco.backend.util.TestUtils.loadResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -41,7 +41,7 @@ class SpecimenServiceTest {
   @Test
   void testGetSpecimen() throws CordraException, IOException {
     // Given
-    given(searchResults.iterator()).willReturn(List.of(givenCordraObject()).iterator());
+    given(searchResults.iterator()).willReturn(List.of(givenCordraSpecimenObject()).iterator());
     given(repository.getSpecimen(anyInt(), anyInt())).willReturn(searchResults);
     var expected = givenExpected();
 
@@ -55,7 +55,7 @@ class SpecimenServiceTest {
   @Test
   void testGetSpecimenById() throws CordraException, IOException {
     // Given
-    given(repository.getSpecimenById(anyString())).willReturn(givenCordraObject());
+    given(repository.getSpecimenById(anyString())).willReturn(givenCordraSpecimenObject());
     var expected = givenExpected();
 
     // When
@@ -68,7 +68,7 @@ class SpecimenServiceTest {
   @Test
   void testSearch() throws CordraException, IOException {
     // Given
-    given(searchResults.iterator()).willReturn(List.of(givenCordraObject()).iterator());
+    given(searchResults.iterator()).willReturn(List.of(givenCordraSpecimenObject()).iterator());
     given(repository.search(anyString(), anyInt(), anyInt())).willReturn(searchResults);
     var expected = givenExpected();
 
@@ -80,7 +80,7 @@ class SpecimenServiceTest {
   }
 
   private DigitalSpecimen givenExpected() throws IOException {
-    var expected = mapper.readValue(loadResourceFile("test-object.json"),
+    var expected = mapper.readValue(loadResourceFile("test-specimen.json"),
         DigitalSpecimen.class);
     expected.setId(ID);
     return expected;

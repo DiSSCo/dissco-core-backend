@@ -18,5 +18,7 @@ public class CordraProperties {
   private String password;
   @NotBlank
   private String type;
+  @NotBlank
+  private String organisationType = "Organisation";
 
 }
