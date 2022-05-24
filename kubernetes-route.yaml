@@ -18,7 +18,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`kubernetes.demo.nsidr.org`) && PathPrefix(`/api`)
+    - match: Host(`sandbox.dissco.tech`) && PathPrefix(`/api`)
       kind: Rule
       services:
         - name: dissco-backend-service

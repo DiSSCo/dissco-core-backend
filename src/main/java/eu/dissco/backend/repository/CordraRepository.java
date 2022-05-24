@@ -60,9 +60,9 @@ public class CordraRepository {
   }
 
   private String getRor(JsonObject content) {
-    var identifiers = content.get("externalIdentifiers").getAsJsonObject();
-    if (identifiers != null && identifiers.has("ROR")) {
-      return identifiers.get("ROR").getAsJsonObject().get("url").getAsString();
+    var identifiers = content.get("externalIdentifiers");
+    if (identifiers != null && identifiers.getAsJsonObject().has("ROR")) {
+      return identifiers.getAsJsonObject().get("ROR").getAsJsonObject().get("url").getAsString();
     } else {
       log.warn("No ROR present, should be included in the Organisation object");
       return null;
