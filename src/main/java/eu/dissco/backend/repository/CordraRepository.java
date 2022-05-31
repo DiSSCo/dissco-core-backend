@@ -36,8 +36,7 @@ public class CordraRepository {
   public SearchResults<CordraObject> search(String query, int pageNumber, int pageSize)
       throws CordraException {
     var queryParams = new QueryParams(pageNumber, pageSize);
-    var encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-    return cordraClient.search(encodedQuery, queryParams);
+    return cordraClient.search(query, queryParams);
   }
 
   public List<String> getOrganisationNames() throws CordraException {
