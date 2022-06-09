@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import eu.dissco.backend.domain.Authoritative;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.Image;
+import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -75,5 +76,20 @@ public class TestUtils {
     cordraObject.content = JsonParser.parseString(
         loadResourceFileToString(fileName));
     return cordraObject;
+  }
+
+  public static CordraObject givenCordraOrganisationDocument() {
+    var cordraObject = new CordraObject();
+    cordraObject.id = "test/123";
+    return cordraObject;
+  }
+
+  public static OrganisationDocument givenOrganisationDocument() {
+    var document = new OrganisationDocument();
+    document.setDocumentId("documentId");
+    document.setOrganisationId("roroId");
+    document.setDocumentType("Google form");
+    document.setDocumentTitle("This is a test document");
+    return document;
   }
 }
