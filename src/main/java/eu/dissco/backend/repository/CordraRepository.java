@@ -1,10 +1,11 @@
 package eu.dissco.backend.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.properties.CordraProperties;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class CordraRepository {
 
+  private final ObjectMapper mapper;
   private final CordraClient cordraClient;
   private final CordraProperties properties;
 
@@ -70,5 +72,13 @@ public class CordraRepository {
 
   private String mapOrganisationToName(CordraObject cordraObject) {
     return cordraObject.content.getAsJsonObject().get("organisation_name").getAsString();
+  }
+
+  public CordraObject createOrganisationDocument(OrganisationDocument document)
+      throws JsonProcessingException, CordraException {
+    CordraObject cordraObject = new CordraObject();
+    cordraObject.type = properties.getOrganisationDocumentType();
+    cordraObject.setContent(mapper.writeValueAsString(document));
+    return cordraClient.create(cordraObject);
   }
 }

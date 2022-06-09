@@ -20,5 +20,7 @@ public class CordraProperties {
   private String type;
   @NotBlank
   private String organisationType = "Organisation";
+  @NotBlank
+  private String organisationDocumentType = "OrganisationDocument";
 
 }

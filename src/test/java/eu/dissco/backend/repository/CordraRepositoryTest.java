@@ -2,14 +2,17 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.util.TestUtils.ID;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
+import static eu.dissco.backend.util.TestUtils.givenCordraOrganisationDocument;
 import static eu.dissco.backend.util.TestUtils.givenCordraOrganisationObject;
 import static eu.dissco.backend.util.TestUtils.givenCordraSpecimenObject;
+import static eu.dissco.backend.util.TestUtils.givenOrganisationDocument;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.properties.CordraProperties;
 import java.io.IOException;
@@ -31,6 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CordraRepositoryTest {
 
+  private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+
   @Mock
   private CordraClient client;
   @Mock
@@ -42,7 +47,7 @@ class CordraRepositoryTest {
 
   @BeforeEach
   void setup() {
-    this.repository = new CordraRepository(client, properties);
+    this.repository = new CordraRepository(mapper, client, properties);
   }
 
   @Test
@@ -111,7 +116,8 @@ class CordraRepositoryTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "test-organisation-no-ror.json", "test-organisation-no-external-identifiers.json" })
+  @ValueSource(strings = {"test-organisation-no-ror.json",
+      "test-organisation-no-external-identifiers.json"})
   void testGetOrganisationTuplesNoROR(String filename) throws CordraException, IOException {
     // Given
     given(searchResults.stream()).willReturn(
@@ -123,6 +129,19 @@ class CordraRepositoryTest {
 
     // Then
     assertThat(result).isEqualTo(List.of(new OrganisationTuple(ORGANISATION_NAME, null)));
+  }
+
+  @Test
+  void testCreateOrganisationDocument() throws CordraException, IOException {
+    // Given
+    var givenCordraObject = givenCordraOrganisationDocument();
+    given(client.create(any(CordraObject.class))).willReturn(givenCordraObject);
+
+    // When
+    var result = repository.createOrganisationDocument(givenOrganisationDocument());
+
+    // Then
+    assertThat(result).isEqualTo(givenCordraObject);
   }
 
 }

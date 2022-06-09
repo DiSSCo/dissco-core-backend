@@ -1,16 +1,17 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.util.TestUtils.NAME;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_ROR;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import eu.dissco.backend.domain.OrganisationTuple;
+import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.service.OrganisationService;
 import eu.dissco.backend.util.TestUtils;
 import java.util.List;
@@ -62,5 +63,32 @@ class OrganisationControllerTest {
         .andExpect(jsonPath("$.[0].name").value(ORGANISATION_NAME))
         .andExpect(jsonPath("$.[0].ror").value(ORGANISATION_ROR));
   }
+
+  @Test
+  void testCreateDocument() throws Exception {
+    // Given
+    given(service.createNewDocument(any(OrganisationDocument.class))).willReturn(
+        TestUtils.givenCordraOrganisationDocument());
+
+    // When
+    var result = this.mockMvc.perform(post("/api/v1/organisation/document").content("{\n"
+        + "    \"organisation_id\": \"ror-id\",\n"
+        + "    \"document_title\": \"form-title\",\n"
+        + "    \"document_id\": \"form_id\",\n"
+        + "    \"document_type\": \"google or surveyMonkey\",\n"
+        + "    \"document\": {\n"
+        + "        \"array\": [\n"
+        + "            {\n"
+        + "                \"field1\": \"Yes\"\n"
+        + "            }\n"
+        + "        ]\n"
+        + "    }\n"
+        + "}").contentType(MediaType.APPLICATION_JSON));
+
+    // Then
+    result.andExpect(status().isCreated())
+        .andExpect(content().string("test/123"));
+  }
+
 
 }
