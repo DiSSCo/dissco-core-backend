@@ -21,13 +21,15 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: cordra.host
-              value: http://cordra-service:8443
-            - name: cordra.username
+            - name: spring.datasource.url
               value:
-            - name: cordra.password
+            - name: spring.datasource.username
               value:
-            - name: cordra.type
+            - name: spring.datasource.password
+              value:
+            - name: elasticsearch.hostname
+              value:
+            - name: elasticsearch.port
               value: 
             - name: springdoc.api-docs.path
               value: /api/v3/api-docs
