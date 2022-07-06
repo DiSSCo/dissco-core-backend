@@ -14,7 +14,7 @@ public class TestUtils {
 
   public static final String ID = "test/eab36efab0bf0e60dfe0";
   public static final String TYPE = "ODStypeV0.2-Test";
-  public static final short MIDS_LEVEL = 1;
+  public static final int MIDS_LEVEL = 1;
   public static final String CURATED_OBJECT_ID = "https://data.biodiversitydata.nl/naturalis/specimen/L.3527331";
   public static final String PHYSICAL_SPECIMEN_ID = "L.3527331@BRAHMS";
   public static final String INSTITUTION = "https://ror.org/0566bfb96";

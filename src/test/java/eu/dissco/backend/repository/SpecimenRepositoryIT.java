@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
+import static eu.dissco.backend.util.TestUtils.*;
 import static eu.dissco.backend.util.TestUtils.ID;
 import static eu.dissco.backend.util.TestUtils.givenDigitalSpecimen;
 import static org.assertj.core.api.Assertions.as;
@@ -84,13 +85,13 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   private void fillDatabase(String id) throws JsonProcessingException {
     context.insertInto(DIGITAL_SPECIMEN)
         .set(DIGITAL_SPECIMEN.ID, id)
-        .set(DIGITAL_SPECIMEN.OBJECT_TYPE, TestUtils.TYPE)
-        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, TestUtils.NAME)
-        .set(DIGITAL_SPECIMEN.CURATED_OBJECT_ID, TestUtils.CURATED_OBJECT_ID)
+        .set(DIGITAL_SPECIMEN.OBJECT_TYPE, TYPE)
+        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, NAME)
+        .set(DIGITAL_SPECIMEN.CURATED_OBJECT_ID, CURATED_OBJECT_ID)
         .set(DIGITAL_SPECIMEN.CURATED_OBJECT_ID_TYPE, Curatedobjectidtypes.physicalSpecimenID)
-        .set(DIGITAL_SPECIMEN.MIDS_LEVEL, TestUtils.MIDS_LEVEL)
-        .set(DIGITAL_SPECIMEN.INSTITUTION_ID, TestUtils.INSTITUTION)
-        .set(DIGITAL_SPECIMEN.INSTITUTION_NAME, TestUtils.INSTITUTION_CODE)
+        .set(DIGITAL_SPECIMEN.MIDS_LEVEL, (short) MIDS_LEVEL)
+        .set(DIGITAL_SPECIMEN.INSTITUTION_ID, INSTITUTION)
+        .set(DIGITAL_SPECIMEN.INSTITUTION_NAME, INSTITUTION_CODE)
         .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(mapper.writeValueAsString(givenDigitalSpecimen())))
         .execute();
   }
