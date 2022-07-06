@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.repository.OrganisationRepository;

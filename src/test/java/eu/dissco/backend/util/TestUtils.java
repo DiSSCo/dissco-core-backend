@@ -1,16 +1,19 @@
 package eu.dissco.backend.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.Authoritative;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.Image;
 import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.springframework.core.io.ClassPathResource;
 
 public class TestUtils {
+
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   public static final String ID = "test/eab36efab0bf0e60dfe0";
   public static final String TYPE = "ODStypeV0.2-Test";
@@ -25,11 +28,6 @@ public class TestUtils {
 
   public static final String ORGANISATION_NAME = "Natural History Museum Vienna";
   public static final String ORGANISATION_ROR = "https://ror.org/01tv5y993";
-
-
-  public static String loadResourceFileToString(String filename) throws IOException {
-    return new String(loadResourceFile(filename), StandardCharsets.UTF_8);
-  }
 
   public static byte[] loadResourceFile(String fileName) throws IOException {
     return new ClassPathResource(fileName).getInputStream().readAllBytes();
@@ -60,10 +58,12 @@ public class TestUtils {
 
   public static OrganisationDocument givenOrganisationDocument() {
     var document = new OrganisationDocument();
-    document.setDocumentId("documentId");
-    document.setOrganisationId("roroId");
+    document.setDocumentId("test/123");
+    document.setOrganisationId(ORGANISATION_ROR);
     document.setDocumentType("Google form");
     document.setDocumentTitle("This is a test document");
+    document.setDocument(mapper.createObjectNode());
     return document;
   }
+
 }

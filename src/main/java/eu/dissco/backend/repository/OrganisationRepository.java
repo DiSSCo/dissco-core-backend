@@ -3,7 +3,6 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DOCUMENT;
 
-import eu.dissco.backend.database.jooq.Tables;
 import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import java.util.List;

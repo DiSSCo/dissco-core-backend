@@ -1,10 +1,15 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
+import static eu.dissco.backend.util.TestUtils.givenOrganisationDocument;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
+import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.repository.OrganisationRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,19 +55,15 @@ class OrganisationServiceTest {
     assertThat(result).isEqualTo(List.of(givenOrganisationTuple()));
   }
 
-//  @Test
-//  void testCreateNewDocument() throws CordraException, JsonProcessingException {
-//    // Given
-//    var givenCordraObject = givenCordraOrganisationDocument();
-//    given(repository.createOrganisationDocument(any(OrganisationDocument.class))).willReturn(
-//        givenCordraObject);
-//
-//    // When
-//    var result = service.createNewDocument(givenOrganisationDocument());
-//
-//    // Then
-//    assertThat(result).isEqualTo(givenCordraObject);
-//  }
+  @Test
+  void testCreateNewDocument() {
+    // Given
 
+    // When
+    var result = service.createNewDocument(givenOrganisationDocument());
+
+    // Then
+    then(repository).should().saveNewDocument(eq(givenOrganisationDocument()));
+  }
 
 }
