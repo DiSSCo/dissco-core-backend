@@ -1,6 +1,5 @@
 package eu.dissco.backend.util;
 
-import com.google.gson.JsonParser;
 import eu.dissco.backend.domain.Authoritative;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.Image;
@@ -9,14 +8,13 @@ import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import net.cnri.cordra.api.CordraObject;
 import org.springframework.core.io.ClassPathResource;
 
 public class TestUtils {
 
   public static final String ID = "test/eab36efab0bf0e60dfe0";
   public static final String TYPE = "ODStypeV0.2-Test";
-  public static final int MIDS_LEVEL = 1;
+  public static final short MIDS_LEVEL = 1;
   public static final String CURATED_OBJECT_ID = "https://data.biodiversitydata.nl/naturalis/specimen/L.3527331";
   public static final String PHYSICAL_SPECIMEN_ID = "L.3527331@BRAHMS";
   public static final String INSTITUTION = "https://ror.org/0566bfb96";
@@ -56,32 +54,8 @@ public class TestUtils {
     return ds;
   }
 
-  public static CordraObject givenCordraSpecimenObject() throws IOException {
-    var cordraObject = new CordraObject();
-    cordraObject.id = ID;
-    cordraObject.type = TYPE;
-    cordraObject.content = JsonParser.parseString(
-        loadResourceFileToString("test-specimen.json"));
-    return cordraObject;
-  }
-
   public static OrganisationTuple givenOrganisationTuple() {
     return new OrganisationTuple(ORGANISATION_NAME, ORGANISATION_ROR);
-  }
-
-  public static CordraObject givenCordraOrganisationObject(String fileName) throws IOException {
-    var cordraObject = new CordraObject();
-    cordraObject.id = "Test/2202020";
-    cordraObject.type = "Organisation";
-    cordraObject.content = JsonParser.parseString(
-        loadResourceFileToString(fileName));
-    return cordraObject;
-  }
-
-  public static CordraObject givenCordraOrganisationDocument() {
-    var cordraObject = new CordraObject();
-    cordraObject.id = "test/123";
-    return cordraObject;
   }
 
   public static OrganisationDocument givenOrganisationDocument() {

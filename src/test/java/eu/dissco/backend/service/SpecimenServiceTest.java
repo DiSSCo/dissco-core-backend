@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.util.TestUtils.ID;
-import static eu.dissco.backend.util.TestUtils.givenCordraSpecimenObject;
+import static eu.dissco.backend.util.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.util.TestUtils.loadResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -10,12 +10,10 @@ import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.repository.CordraRepository;
+import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
 import java.util.List;
-import net.cnri.cordra.api.CordraException;
-import net.cnri.cordra.api.CordraObject;
-import net.cnri.cordra.api.SearchResults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,22 +25,21 @@ class SpecimenServiceTest {
 
   private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
   @Mock
-  private CordraRepository repository;
+  private SpecimenRepository repository;
   @Mock
-  private SearchResults<CordraObject> searchResults;
+  private ElasticSearchRepository elasticSearchRepository;
 
   private SpecimenService service;
 
   @BeforeEach
   void setup() {
-    service = new SpecimenService(repository, mapper);
+    service = new SpecimenService(repository, elasticSearchRepository);
   }
 
   @Test
-  void testGetSpecimen() throws CordraException, IOException {
+  void testGetSpecimen() throws IOException {
     // Given
-    given(searchResults.iterator()).willReturn(List.of(givenCordraSpecimenObject()).iterator());
-    given(repository.getSpecimen(anyInt(), anyInt())).willReturn(searchResults);
+    given(repository.getSpecimen(anyInt(), anyInt())).willReturn(List.of(givenDigitalSpecimen()));
     var expected = givenExpected();
 
     // When
@@ -53,9 +50,9 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenById() throws CordraException, IOException {
+  void testGetSpecimenById() throws IOException {
     // Given
-    given(repository.getSpecimenById(anyString())).willReturn(givenCordraSpecimenObject());
+    given(repository.getSpecimenById(anyString())).willReturn(givenDigitalSpecimen());
     var expected = givenExpected();
 
     // When
@@ -66,10 +63,10 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearch() throws CordraException, IOException {
+  void testSearch() throws IOException {
     // Given
-    given(searchResults.iterator()).willReturn(List.of(givenCordraSpecimenObject()).iterator());
-    given(repository.search(anyString(), anyInt(), anyInt())).willReturn(searchResults);
+    given(elasticSearchRepository.search(anyString(), anyInt(), anyInt())).willReturn(
+        List.of(givenExpected()));
     var expected = givenExpected();
 
     // When
