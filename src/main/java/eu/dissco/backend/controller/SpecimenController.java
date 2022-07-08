@@ -1,13 +1,12 @@
 package eu.dissco.backend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.service.SpecimenService;
+import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.cnri.cordra.api.CordraException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +27,10 @@ public class SpecimenController {
   private final SpecimenService service;
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalSpecimen>> getSpecimen(
       @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize)
-      throws CordraException, JsonProcessingException {
+      @RequestParam(defaultValue = "10") int pageSize) {
     log.info("Received get request for specimen");
     var specimen = service.getSpecimen(pageNumber, pageSize);
     return ResponseEntity.ok(specimen);
@@ -41,8 +39,7 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/**", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DigitalSpecimen> getSpecimenById(HttpServletRequest request)
-      throws CordraException, JsonProcessingException {
+  public ResponseEntity<DigitalSpecimen> getSpecimenById(HttpServletRequest request) {
     var id = request.getRequestURI().split(request.getContextPath() + "/api/v1/specimen/")[1];
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenById(id);
@@ -55,7 +52,7 @@ public class SpecimenController {
   public ResponseEntity<List<DigitalSpecimen>> searchSpecimen(@RequestParam String query,
       @RequestParam(defaultValue = "1") int pageNumber,
       @RequestParam(defaultValue = "10") int pageSize)
-      throws CordraException, JsonProcessingException {
+      throws IOException {
     log.info("Received get request with query: {}", query);
     var specimen = service.search(query, pageNumber, pageSize);
     return ResponseEntity.ok(specimen);

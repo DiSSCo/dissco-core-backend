@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
-import net.cnri.cordra.api.CordraException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -78,18 +77,6 @@ class SpecimenControllerTest {
 
     // Then
     validateResult(result, "$.[0]");
-  }
-
-  @Test
-  void testCordraException() throws Exception {
-    // Given
-    given(service.search(anyString(), anyInt(), anyInt())).willThrow(CordraException.class);
-
-    // When
-    var result = this.mockMvc.perform(get("/api/v1/specimen/search?query=" + ID));
-
-    // Then
-    result.andExpect(status().isInternalServerError());
   }
 
   @Test

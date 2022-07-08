@@ -1,14 +1,11 @@
 package eu.dissco.backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
-import eu.dissco.backend.repository.CordraRepository;
+import eu.dissco.backend.repository.OrganisationRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.cnri.cordra.api.CordraException;
-import net.cnri.cordra.api.CordraObject;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,19 +13,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrganisationService {
 
-  private final CordraRepository repository;
+  private final OrganisationRepository repository;
 
-
-  public List<String> getNames() throws CordraException {
+  public List<String> getNames() {
     return repository.getOrganisationNames();
   }
 
-  public List<OrganisationTuple> getTuples() throws CordraException {
+  public List<OrganisationTuple> getTuples() {
     return repository.getOrganisationTuple();
   }
 
-  public CordraObject createNewDocument(OrganisationDocument document)
-      throws CordraException, JsonProcessingException {
-    return repository.createOrganisationDocument(document);
+  public OrganisationDocument createNewDocument(OrganisationDocument document) {
+    repository.saveNewDocument(document);
+    return document;
   }
 }

@@ -68,14 +68,14 @@ class OrganisationControllerTest {
   void testCreateDocument() throws Exception {
     // Given
     given(service.createNewDocument(any(OrganisationDocument.class))).willReturn(
-        TestUtils.givenCordraOrganisationDocument());
+        TestUtils.givenOrganisationDocument());
 
     // When
     var result = this.mockMvc.perform(post("/api/v1/organisation/document").content("{\n"
-        + "    \"organisation_id\": \"ror-id\",\n"
+        + "    \"organisation_id\": \"https://ror.org/01tv5y993\",\n"
         + "    \"document_title\": \"form-title\",\n"
         + "    \"document_id\": \"form_id\",\n"
-        + "    \"document_type\": \"google or surveyMonkey\",\n"
+        + "    \"document_type\": \"Google form\",\n"
         + "    \"document\": {\n"
         + "        \"array\": [\n"
         + "            {\n"
