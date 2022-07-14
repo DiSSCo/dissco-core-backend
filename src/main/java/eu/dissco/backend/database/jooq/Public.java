@@ -4,6 +4,7 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MediaObject;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
@@ -29,6 +30,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.annotation</code>.
+     */
+    public final Annotation ANNOTATION = Annotation.ANNOTATION;
 
     /**
      * The table <code>public.digital_specimen</code>.
@@ -66,6 +72,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
+            Annotation.ANNOTATION,
             DigitalSpecimen.DIGITAL_SPECIMEN,
             MediaObject.MEDIA_OBJECT,
             OrganisationDo.ORGANISATION_DO,

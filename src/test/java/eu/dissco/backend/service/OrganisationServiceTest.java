@@ -55,15 +55,4 @@ class OrganisationServiceTest {
     assertThat(result).isEqualTo(List.of(givenOrganisationTuple()));
   }
 
-  @Test
-  void testCreateNewDocument() {
-    // Given
-
-    // When
-    var result = service.createNewDocument(givenOrganisationDocument());
-
-    // Then
-    then(repository).should().saveNewDocument(eq(givenOrganisationDocument()));
-  }
-
 }

@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import eu.dissco.backend.domain.OrganisationDocument;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.repository.OrganisationRepository;
 import java.util.List;
@@ -23,8 +22,4 @@ public class OrganisationService {
     return repository.getOrganisationTuple();
   }
 
-  public OrganisationDocument createNewDocument(OrganisationDocument document) {
-    repository.saveNewDocument(document);
-    return document;
-  }
 }

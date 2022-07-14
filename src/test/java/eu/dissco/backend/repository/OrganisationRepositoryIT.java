@@ -1,10 +1,8 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
-import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DOCUMENT;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_ROR;
-import static eu.dissco.backend.util.TestUtils.givenOrganisationDocument;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.domain.OrganisationTuple;
@@ -50,21 +48,6 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(result).isEqualTo(
         List.of(new OrganisationTuple(ORGANISATION_NAME, ORGANISATION_ROR)));
-  }
-
-  @Test
-  void testSaveNewDocument() {
-    // Given
-    fillDatabase();
-
-    // When
-    repository.saveNewDocument(givenOrganisationDocument());
-
-    // Then
-    var result = context.select(ORGANISATION_DOCUMENT.asterisk())
-        .from(ORGANISATION_DOCUMENT)
-        .fetch().stream().toList();
-    assertThat(result).hasSize(1);
   }
 
   private void fillDatabase() {

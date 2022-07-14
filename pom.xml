@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.6.9</version>
+    <version>2.7.0</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>eu.dissco</groupId>
@@ -19,6 +19,8 @@
     <elasticsearch.version>8.3.1</elasticsearch.version>
     <jakarta.json.version>2.1.0</jakarta.json.version>
     <testcontainers.version>1.16.2</testcontainers.version>
+    <com.c4-soft.springaddons.version>4.5.0</com.c4-soft.springaddons.version>
+    <keycloak-adapter-bom.version>16.1.1</keycloak-adapter-bom.version>
     <sonar.organization>dissco</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.coverage.jacoco.xmlReportPaths>../app-it/target/site/jacoco-aggregate/jacoco.xml
@@ -31,6 +33,13 @@
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
         <version>${testcontainers.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak.bom</groupId>
+        <artifactId>keycloak-adapter-bom</artifactId>
+        <version>${keycloak-adapter-bom.version}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -80,6 +89,14 @@
       <artifactId>jakarta.json-api</artifactId>
       <version>${jakarta.json.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -91,9 +108,27 @@
       <artifactId>lombok</artifactId>
       <optional>true</optional>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.c4-soft.springaddons</groupId>
+      <artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+      <version>${com.c4-soft.springaddons.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.c4-soft.springaddons</groupId>
+      <artifactId>spring-addons-keycloak</artifactId>
+      <version>${com.c4-soft.springaddons.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

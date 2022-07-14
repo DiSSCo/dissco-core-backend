@@ -4,6 +4,7 @@ import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -49,5 +50,6 @@ public class SpecimenRepository {
       return null;
     }
   }
+
 
 }

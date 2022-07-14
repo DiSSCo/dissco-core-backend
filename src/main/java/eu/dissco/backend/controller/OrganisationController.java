@@ -42,14 +42,4 @@ public class OrganisationController {
     return ResponseEntity.ok(tuples);
   }
 
-  @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(value = "/document", consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> createDocument(@RequestBody OrganisationDocument document) {
-    log.info("Received new document for organisation: {}", document.getOrganisationId());
-    var result = service.createNewDocument(document);
-    log.info("Successfully store a document, create handle: {}", result.getDocumentId());
-    return ResponseEntity.status(HttpStatus.CREATED).body(result.getDocumentId());
-  }
-
 }

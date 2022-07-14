@@ -35,3 +35,14 @@ CREATE TABLE public.organisation_document (
 	CONSTRAINT organisation_document_pkey PRIMARY KEY (document_id),
 	CONSTRAINT fk_organisation FOREIGN KEY (organisation_id) REFERENCES public.organisation_do(id)
 );
+
+CREATE TABLE public.annotation (
+	id text NOT NULL,
+	"type" text NOT NULL,
+	body jsonb NULL,
+	target text NOT NULL,
+	last_updated timestamptz NOT NULL,
+	creator text NULL,
+	CONSTRAINT annotation_pkey PRIMARY KEY (id)
+);
+CREATE INDEX annotation_creator_idx ON public.annotation USING btree (creator);
