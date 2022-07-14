@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.util.TestUtils.ID;
+import static eu.dissco.backend.util.TestUtils.givenAnnotation;
 import static eu.dissco.backend.util.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.util.TestUtils.loadResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,8 +9,10 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
@@ -28,12 +31,14 @@ class SpecimenServiceTest {
   private SpecimenRepository repository;
   @Mock
   private ElasticSearchRepository elasticSearchRepository;
+  @Mock
+  private AnnotationRepository annotationRepository;
 
   private SpecimenService service;
 
   @BeforeEach
   void setup() {
-    service = new SpecimenService(repository, elasticSearchRepository);
+    service = new SpecimenService(repository, annotationRepository, elasticSearchRepository);
   }
 
   @Test
@@ -83,5 +88,16 @@ class SpecimenServiceTest {
     return expected;
   }
 
+  @Test
+  void testGetAnnotations() throws JsonProcessingException {
+    // Given
+    given(annotationRepository.getAnnotations(anyString())).willReturn(List.of(givenAnnotation()));
+
+    // When
+    var result = service.getAnnotations(ID);
+
+    // Then
+    assertThat(result).isEqualTo(List.of(givenAnnotation()));
+  }
 
 }

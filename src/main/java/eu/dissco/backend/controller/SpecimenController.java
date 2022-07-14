@@ -1,16 +1,17 @@
 package eu.dissco.backend.controller;
 
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -34,17 +35,26 @@ public class SpecimenController {
     log.info("Received get request for specimen");
     var specimen = service.getSpecimen(pageNumber, pageSize);
     return ResponseEntity.ok(specimen);
-
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/**", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DigitalSpecimen> getSpecimenById(HttpServletRequest request) {
-    var id = request.getRequestURI().split(request.getContextPath() + "/api/v1/specimen/")[1];
+  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DigitalSpecimen> getSpecimenById(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenById(id);
     return ResponseEntity.ok(specimen);
+  }
 
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<AnnotationResponse>> getSpecimenAnnotations(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for annotations of specimen with id: {}", id);
+    var specimen = service.getAnnotations(id);
+    return ResponseEntity.ok(specimen);
   }
 
   @ResponseStatus(HttpStatus.OK)

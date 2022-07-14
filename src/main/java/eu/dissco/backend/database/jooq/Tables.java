@@ -4,6 +4,7 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MediaObject;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
@@ -15,6 +16,11 @@ import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>public.annotation</code>.
+     */
+    public static final Annotation ANNOTATION = Annotation.ANNOTATION;
 
     /**
      * The table <code>public.digital_specimen</code>.
