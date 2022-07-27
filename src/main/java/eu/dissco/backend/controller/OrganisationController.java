@@ -1,6 +1,6 @@
 package eu.dissco.backend.controller;
 
-import eu.dissco.backend.domain.OrganisationDocument;
+import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.service.OrganisationService;
 import java.util.List;
@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +38,14 @@ public class OrganisationController {
     log.info("Received get request for organisation tuples");
     var tuples = service.getTuples();
     return ResponseEntity.ok(tuples);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/countries", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Country>> getOrganisationCountries() {
+    log.info("Received get request for organisation countries");
+    var countries = service.getCountries();
+    return ResponseEntity.ok(countries);
   }
 
 }

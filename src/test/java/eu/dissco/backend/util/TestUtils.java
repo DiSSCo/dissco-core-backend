@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.Authoritative;
+import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.Image;
 import eu.dissco.backend.domain.OrganisationDocument;
@@ -12,6 +13,7 @@ import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.core.io.ClassPathResource;
 
 public class TestUtils {
@@ -35,6 +37,10 @@ public class TestUtils {
   public static final String ANNOTATION_CREATOR = "e2befba6-9324-4bb4-9f41-d7dfae4a44b0";
   public static final Instant ANNOTATION_LAST_UPDATED = Instant.parse("2022-06-14T11:28:00.00Z");
   public static final String ANNOTATION_BODY = "{\"text\": \"This is an annotation\"}";
+
+  public static final String COUNTRY_NAME = "Greece";
+  public static final String COUNTRY_CODE = "GR";
+
   private static final ObjectMapper mapper = new ObjectMapper();
 
   public static byte[] loadResourceFile(String fileName) throws IOException {
@@ -82,5 +88,9 @@ public class TestUtils {
   public static AnnotationRequest givenAnnotationRequest() throws JsonProcessingException {
     return new AnnotationRequest(ANNOTATION_ID, ANNOTATION_TYPE, mapper.readTree(ANNOTATION_BODY),
         ANNOTATION_TARGET);
+  }
+
+  public static Country givenCountry() {
+    return new Country(COUNTRY_NAME, COUNTRY_CODE);
   }
 }

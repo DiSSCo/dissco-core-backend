@@ -1,7 +1,10 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.util.TestUtils.COUNTRY_CODE;
+import static eu.dissco.backend.util.TestUtils.COUNTRY_NAME;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_ROR;
+import static eu.dissco.backend.util.TestUtils.givenCountry;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -67,6 +70,22 @@ class OrganisationControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(jsonPath("$.[0].name").value(ORGANISATION_NAME))
         .andExpect(jsonPath("$.[0].ror").value(ORGANISATION_ROR));
+  }
+
+  @Test
+  void testGetOrganisationCountries() throws Exception {
+    // Given
+    given(service.getCountries()).willReturn(
+        List.of(givenCountry()));
+
+    // When
+    var result = this.mockMvc.perform(get("/api/v1/organisation/countries"));
+
+    // Then
+    result.andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(jsonPath("$.[0].country").value(COUNTRY_NAME))
+        .andExpect(jsonPath("$.[0].countryCode").value(COUNTRY_CODE));
   }
 
 //  @Test
