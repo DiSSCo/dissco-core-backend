@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 
+import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,4 +35,12 @@ public class OrganisationRepository {
         dbRecord.get(ORGANISATION_DO.ID));
   }
 
+  public List<Country> getCountries() {
+    return context.selectDistinct(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE).from(ORGANISATION_DO).groupBy(ORGANISATION_DO.COUNTRY,
+        ORGANISATION_DO.COUNTRY_CODE).fetch(this::mapCountry);
+  }
+
+  private Country mapCountry(Record2<String, String> dbRecord) {
+    return new Country(dbRecord.value1(), dbRecord.value2());
+  }
 }

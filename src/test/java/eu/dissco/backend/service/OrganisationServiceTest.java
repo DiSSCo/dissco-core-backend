@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.util.TestUtils.ORGANISATION_NAME;
+import static eu.dissco.backend.util.TestUtils.givenCountry;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationDocument;
 import static eu.dissco.backend.util.TestUtils.givenOrganisationTuple;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,6 +54,18 @@ class OrganisationServiceTest {
 
     // Then
     assertThat(result).isEqualTo(List.of(givenOrganisationTuple()));
+  }
+
+  @Test
+  void testGetCountries() {
+    // Given
+    given(repository.getCountries()).willReturn(List.of(givenCountry()));
+
+    // When
+    var result = service.getCountries();
+
+    // Then
+    assertThat(result).isEqualTo(List.of(givenCountry()));
   }
 
 }

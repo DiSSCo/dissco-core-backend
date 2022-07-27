@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
 import eu.dissco.backend.repository.OrganisationRepository;
 import java.util.List;
@@ -22,4 +23,7 @@ public class OrganisationService {
     return repository.getOrganisationTuple();
   }
 
+  public List<Country> getCountries() {
+    return repository.getCountries();
+  }
 }
