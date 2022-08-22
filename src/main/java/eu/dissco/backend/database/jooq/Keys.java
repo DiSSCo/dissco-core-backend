@@ -34,7 +34,6 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<AnnotationRecord> ANNOTATION_PKEY = Internal.createUniqueKey(Annotation.ANNOTATION, DSL.name("annotation_pkey"), new TableField[] { Annotation.ANNOTATION.ID }, true);
-    public static final UniqueKey<AnnotationRecord> TARGET_CREATOR = Internal.createUniqueKey(Annotation.ANNOTATION, DSL.name("target_creator"), new TableField[] { Annotation.ANNOTATION.TARGET, Annotation.ANNOTATION.CREATOR }, true);
     public static final UniqueKey<DigitalSpecimenRecord> DIGITAL_SPECIMEN_PKEY = Internal.createUniqueKey(DigitalSpecimen.DIGITAL_SPECIMEN, DSL.name("digital_specimen_pkey"), new TableField[] { DigitalSpecimen.DIGITAL_SPECIMEN.ID }, true);
     public static final UniqueKey<MediaObjectRecord> MEDIA_OBJECT_PKEY = Internal.createUniqueKey(MediaObject.MEDIA_OBJECT, DSL.name("media_object_pkey"), new TableField[] { MediaObject.MEDIA_OBJECT.ID }, true);
     public static final UniqueKey<OrganisationDoRecord> ORGANISATION_DO_PKEY = Internal.createUniqueKey(OrganisationDo.ORGANISATION_DO, DSL.name("organisation_do_pkey"), new TableField[] { OrganisationDo.ORGANISATION_DO.ID }, true);

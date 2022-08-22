@@ -24,24 +24,29 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public void saveAnnotation(AnnotationRequest annotation, String userId) {
-    context.insertInto(ANNOTATION)
+  public AnnotationResponse saveAnnotation(AnnotationRequest annotation, String userId) {
+    return context.insertInto(ANNOTATION)
         .set(ANNOTATION.ID, "test/" + UUID.randomUUID().toString())
         .set(ANNOTATION.TYPE, annotation.type())
         .set(ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
         .set(ANNOTATION.TARGET, annotation.target())
         .set(ANNOTATION.CREATOR, userId)
         .set(ANNOTATION.LAST_UPDATED, Instant.now())
-        .execute();
+        .set(ANNOTATION.CREATED, Instant.now())
+        .returningResult(ANNOTATION.asterisk()).fetchOne().map(this::mapToAnnotation);
   }
 
   public List<AnnotationResponse> getAnnotationsForUser(String userId) {
     return context.select(ANNOTATION.asterisk()).from(ANNOTATION)
-        .where(ANNOTATION.CREATOR.eq(userId)).fetch(this::mapToAnnotation);
+        .where(ANNOTATION.CREATOR.eq(userId))
+        .orderBy(ANNOTATION.CREATED)
+        .fetch(this::mapToAnnotation);
   }
 
   public List<AnnotationResponse> getAnnotations(String id) {
-    return context.select(ANNOTATION.asterisk()).from(ANNOTATION).where(ANNOTATION.TARGET.eq(id))
+    return context.select(ANNOTATION.asterisk()).from(ANNOTATION)
+        .where(ANNOTATION.TARGET.eq(id))
+        .orderBy(ANNOTATION.CREATED)
         .fetch(this::mapToAnnotation);
   }
 
@@ -53,7 +58,8 @@ public class AnnotationRepository {
           mapper.readTree(dbRecord.get(ANNOTATION.BODY).toString()),
           dbRecord.get(ANNOTATION.TARGET),
           dbRecord.get(ANNOTATION.LAST_UPDATED),
-          dbRecord.get(ANNOTATION.CREATOR)
+          dbRecord.get(ANNOTATION.CREATOR),
+          dbRecord.get(ANNOTATION.CREATED)
       );
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
@@ -61,15 +67,15 @@ public class AnnotationRepository {
     }
   }
 
-  public void updateAnnotation(AnnotationRequest annotation, String userId) {
-    context.update(ANNOTATION)
+  public AnnotationResponse updateAnnotation(AnnotationRequest annotation, String userId) {
+    return context.update(ANNOTATION)
         .set(ANNOTATION.TYPE, annotation.type())
         .set(ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
         .set(ANNOTATION.TARGET, annotation.target())
         .set(ANNOTATION.CREATOR, userId)
         .set(ANNOTATION.LAST_UPDATED, Instant.now())
         .where(ANNOTATION.ID.eq(annotation.id()))
-        .execute();
+        .returningResult(ANNOTATION.asterisk()).fetchOne().map(this::mapToAnnotation);
   }
 
   public AnnotationResponse getAnnotation(String id) {

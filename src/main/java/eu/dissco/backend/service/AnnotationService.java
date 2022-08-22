@@ -15,16 +15,16 @@ public class AnnotationService {
 
   private final AnnotationRepository repository;
 
-  public void persistAnnotation(AnnotationRequest annotation, String userId) {
-    repository.saveAnnotation(annotation, userId);
+  public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {
+    return repository.saveAnnotation(annotation, userId);
   }
 
   public List<AnnotationResponse> getAnnotationsForUser(String userId) {
     return repository.getAnnotationsForUser(userId);
   }
 
-  public void updateAnnotation(AnnotationRequest annotation, String userId) {
-    repository.updateAnnotation(annotation, userId);
+  public AnnotationResponse updateAnnotation(AnnotationRequest annotation, String userId) {
+    return repository.updateAnnotation(annotation, userId);
   }
 
   public AnnotationResponse getAnnotation(String id) {

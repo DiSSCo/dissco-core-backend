@@ -13,7 +13,6 @@ import eu.dissco.backend.domain.OrganisationTuple;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.core.io.ClassPathResource;
 
 public class TestUtils {
@@ -36,6 +35,7 @@ public class TestUtils {
   public static final String ANNOTATION_TARGET = "test/a89d7de4-9bbf-4023-bf6c-e4a17176e090";
   public static final String ANNOTATION_CREATOR = "e2befba6-9324-4bb4-9f41-d7dfae4a44b0";
   public static final Instant ANNOTATION_LAST_UPDATED = Instant.parse("2022-06-14T11:28:00.00Z");
+  public static final Instant ANNOTATION_CREATED = Instant.parse("2022-06-14T11:28:00.00Z");
   public static final String ANNOTATION_BODY = "{\"text\": \"This is an annotation\"}";
 
   public static final String COUNTRY_NAME = "Greece";
@@ -82,7 +82,7 @@ public class TestUtils {
 
   public static AnnotationResponse givenAnnotation() throws JsonProcessingException {
     return new AnnotationResponse(ANNOTATION_ID, ANNOTATION_TYPE, mapper.readTree(ANNOTATION_BODY),
-        ANNOTATION_TARGET, ANNOTATION_LAST_UPDATED, ANNOTATION_CREATOR);
+        ANNOTATION_TARGET, ANNOTATION_LAST_UPDATED, ANNOTATION_CREATOR, ANNOTATION_CREATED);
   }
 
   public static AnnotationRequest givenAnnotationRequest() throws JsonProcessingException {

@@ -48,27 +48,27 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> createDocument(Authentication authentication,
+  public ResponseEntity<AnnotationResponse> createDocument(Authentication authentication,
       @RequestBody AnnotationRequest annotation) {
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
-    service.persistAnnotation(annotation, userId);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+    var annotationResponse = service.persistAnnotation(annotation, userId);
+    return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
   }
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{postfix}", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> updateDocument(Authentication authentication,
+  public ResponseEntity<AnnotationResponse> updateDocument(Authentication authentication,
       @RequestBody AnnotationRequest annotation,
       @PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     var userId = getNameFromToken(authentication);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    service.updateAnnotation(annotation, userId);
-    return ResponseEntity.status(HttpStatus.OK).build();
+    var annotationResponse = service.updateAnnotation(annotation, userId);
+    return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
   }
 
   @PreAuthorize("isAuthenticated()")

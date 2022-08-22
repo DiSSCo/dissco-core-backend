@@ -3,7 +3,6 @@ package eu.dissco.backend.domain;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import lombok.Data;
@@ -12,7 +11,7 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class DigitalSpecimen {
 
-  @JsonProperty(value = "@id", access = Access.READ_ONLY)
+  @JsonProperty("@id")
   private String id;
   @JsonProperty("@type")
   private String type;
