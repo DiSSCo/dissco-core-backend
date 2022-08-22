@@ -4,6 +4,7 @@
 package eu.dissco.backend.database.jooq.tables;
 
 
+import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
@@ -14,10 +15,11 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -79,6 +81,11 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      */
     public final TableField<AnnotationRecord, String> CREATOR = createField(DSL.name("creator"), SQLDataType.CLOB, this, "");
 
+    /**
+     * The column <code>public.annotation.created</code>.
+     */
+    public final TableField<AnnotationRecord, Instant> CREATED = createField(DSL.name("created"), SQLDataType.INSTANT.nullable(false).defaultValue(DSL.field("now()", SQLDataType.INSTANT)), this, "");
+
     private Annotation(Name alias, Table<AnnotationRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -118,13 +125,18 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.ANNOTATION_CREATOR_IDX);
+    }
+
+    @Override
     public UniqueKey<AnnotationRecord> getPrimaryKey() {
         return Keys.ANNOTATION_PKEY;
     }
 
     @Override
     public List<UniqueKey<AnnotationRecord>> getKeys() {
-        return Arrays.<UniqueKey<AnnotationRecord>>asList(Keys.ANNOTATION_PKEY, Keys.TARGET_CREATOR);
+        return Arrays.<UniqueKey<AnnotationRecord>>asList(Keys.ANNOTATION_PKEY);
     }
 
     @Override
@@ -154,11 +166,11 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<String, String, JSONB, String, Instant, String> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<String, String, JSONB, String, Instant, String, Instant> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 }

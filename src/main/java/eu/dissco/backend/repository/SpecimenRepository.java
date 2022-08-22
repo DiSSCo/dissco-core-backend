@@ -27,7 +27,8 @@ public class SpecimenRepository {
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber-1));
     }
-    return context.select(DIGITAL_SPECIMEN.ID, DIGITAL_SPECIMEN.DATA).from(DIGITAL_SPECIMEN)
+    return context.select(DIGITAL_SPECIMEN.ID, DIGITAL_SPECIMEN.DATA)
+        .from(DIGITAL_SPECIMEN)
         .offset(offset)
         .limit(pageSize)
         .fetch(this::mapper);

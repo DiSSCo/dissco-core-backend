@@ -43,6 +43,7 @@ CREATE TABLE public.annotation (
 	target text NOT NULL,
 	last_updated timestamptz NOT NULL,
 	creator text NULL,
+	created timestamptz NOT NULL,
 	CONSTRAINT annotation_pkey PRIMARY KEY (id)
 );
 CREATE INDEX annotation_creator_idx ON public.annotation USING btree (creator);
