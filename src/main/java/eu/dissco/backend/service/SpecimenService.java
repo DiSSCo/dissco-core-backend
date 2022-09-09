@@ -21,11 +21,11 @@ public class SpecimenService {
   private final ElasticSearchRepository elasticRepository;
 
   public List<DigitalSpecimen> getSpecimen(int pageNumber, int pageSize) {
-    return repository.getSpecimen(pageNumber, pageSize);
+    return repository.getSpecimensLatest(pageNumber, pageSize);
   }
 
   public DigitalSpecimen getSpecimenById(String id) {
-    return repository.getSpecimenById(id);
+    return repository.getLatestSpecimenById(id);
   }
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
@@ -34,6 +34,14 @@ public class SpecimenService {
   }
 
   public List<AnnotationResponse> getAnnotations(String id) {
-    return annotationRepository.getAnnotations(id);
+    return annotationRepository.getAnnotationsForSpecimen(id);
+  }
+
+  public DigitalSpecimen getSpecimenByVersion(String id, int version) {
+    return repository.getSpecimenByVersion(id, version);
+  }
+
+  public List<Integer> getSpecimenVersions(String id) {
+    return repository.getSpecimenVersions(id);
   }
 }

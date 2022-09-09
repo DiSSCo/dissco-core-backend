@@ -18,6 +18,8 @@
     <java.version>17</java.version>
     <elasticsearch.version>8.3.1</elasticsearch.version>
     <jakarta.json.version>2.1.0</jakarta.json.version>
+    <spring-cloud-starter-openfeign.version>3.1.4</spring-cloud-starter-openfeign.version>
+    <feign-okhttp.version>11.9.1</feign-okhttp.version>
     <testcontainers.version>1.16.2</testcontainers.version>
     <com.c4-soft.springaddons.version>4.5.0</com.c4-soft.springaddons.version>
     <keycloak-adapter-bom.version>16.1.1</keycloak-adapter-bom.version>
@@ -96,6 +98,16 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
+      <version>${spring-cloud-starter-openfeign.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-okhttp</artifactId>
+      <version>${feign-okhttp.version}</version>
     </dependency>
 
     <dependency>

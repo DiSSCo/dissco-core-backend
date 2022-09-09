@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/api/v1/specimen")
+@RequestMapping("/api/v1/specimens")
 @RequiredArgsConstructor
 public class SpecimenController {
 
@@ -48,8 +48,29 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DigitalSpecimen> getSpecimenByVersion(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix, @PathVariable("version") int version) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for specimen with id and version: {}", id);
+    var specimen = service.getSpecimenByVersion(id, version);
+    return ResponseEntity.ok(specimen);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Integer>> getSpecimenByVersion(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for specimen with id and version: {}", id);
+    var versions = service.getSpecimenVersions(id);
+    return ResponseEntity.ok(versions);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AnnotationResponse>> getSpecimenAnnotations(@PathVariable("prefix") String prefix,
+  public ResponseEntity<List<AnnotationResponse>> getSpecimenAnnotations(
+      @PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotations of specimen with id: {}", id);

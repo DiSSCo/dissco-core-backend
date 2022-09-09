@@ -1,18 +1,14 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
+import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
-import org.jooq.JSONB;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
@@ -24,42 +20,56 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public AnnotationResponse saveAnnotation(AnnotationRequest annotation, String userId) {
-    return context.insertInto(ANNOTATION)
-        .set(ANNOTATION.ID, "test/" + UUID.randomUUID().toString())
-        .set(ANNOTATION.TYPE, annotation.type())
-        .set(ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
-        .set(ANNOTATION.TARGET, annotation.target())
-        .set(ANNOTATION.CREATOR, userId)
-        .set(ANNOTATION.LAST_UPDATED, Instant.now())
-        .set(ANNOTATION.CREATED, Instant.now())
-        .returningResult(ANNOTATION.asterisk()).fetchOne().map(this::mapToAnnotation);
-  }
-
   public List<AnnotationResponse> getAnnotationsForUser(String userId) {
-    return context.select(ANNOTATION.asterisk()).from(ANNOTATION)
-        .where(ANNOTATION.CREATOR.eq(userId))
-        .orderBy(ANNOTATION.CREATED)
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
         .fetch(this::mapToAnnotation);
   }
 
-  public List<AnnotationResponse> getAnnotations(String id) {
-    return context.select(ANNOTATION.asterisk()).from(ANNOTATION)
-        .where(ANNOTATION.TARGET.eq(id))
-        .orderBy(ANNOTATION.CREATED)
+  public List<AnnotationResponse> getAnnotationsForSpecimen(String id) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
         .fetch(this::mapToAnnotation);
   }
+
+  public AnnotationResponse getAnnotation(String id) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
+        .fetchOne(this::mapToAnnotation);
+  }
+
+  public AnnotationResponse getAnnotationVersion(String id, int version) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .and(NEW_ANNOTATION.VERSION.eq(version))
+        .fetchOne(this::mapToAnnotation);
+  }
+
 
   private AnnotationResponse mapToAnnotation(Record dbRecord) {
     try {
       return new AnnotationResponse(
-          dbRecord.get(ANNOTATION.ID),
-          dbRecord.get(ANNOTATION.TYPE),
-          mapper.readTree(dbRecord.get(ANNOTATION.BODY).toString()),
-          dbRecord.get(ANNOTATION.TARGET),
-          dbRecord.get(ANNOTATION.LAST_UPDATED),
-          dbRecord.get(ANNOTATION.CREATOR),
-          dbRecord.get(ANNOTATION.CREATED)
+          dbRecord.get(NEW_ANNOTATION.ID),
+          dbRecord.get(NEW_ANNOTATION.VERSION),
+          dbRecord.get(NEW_ANNOTATION.TYPE),
+          dbRecord.get(NEW_ANNOTATION.MOTIVATION),
+          mapper.readTree(dbRecord.get(NEW_ANNOTATION.TARGET_BODY).data()),
+          mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()),
+          dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE),
+          dbRecord.get(NEW_ANNOTATION.CREATOR),
+          dbRecord.get(NEW_ANNOTATION.CREATED),
+          mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()),
+          dbRecord.get(NEW_ANNOTATION.GENERATED)
       );
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
@@ -67,23 +77,5 @@ public class AnnotationRepository {
     }
   }
 
-  public AnnotationResponse updateAnnotation(AnnotationRequest annotation, String userId) {
-    return context.update(ANNOTATION)
-        .set(ANNOTATION.TYPE, annotation.type())
-        .set(ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
-        .set(ANNOTATION.TARGET, annotation.target())
-        .set(ANNOTATION.CREATOR, userId)
-        .set(ANNOTATION.LAST_UPDATED, Instant.now())
-        .where(ANNOTATION.ID.eq(annotation.id()))
-        .returningResult(ANNOTATION.asterisk()).fetchOne().map(this::mapToAnnotation);
-  }
 
-  public AnnotationResponse getAnnotation(String id) {
-    return context.select(ANNOTATION.asterisk()).from(ANNOTATION).where(ANNOTATION.ID.eq(id))
-        .fetchOne(this::mapToAnnotation);
-  }
-
-  public void deleteAnnotation(String id) {
-    context.delete(ANNOTATION).where(ANNOTATION.ID.eq(id)).execute();
-  }
 }
