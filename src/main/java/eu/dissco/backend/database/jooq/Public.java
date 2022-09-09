@@ -4,9 +4,9 @@
 package eu.dissco.backend.database.jooq;
 
 
-import eu.dissco.backend.database.jooq.tables.Annotation;
-import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
-import eu.dissco.backend.database.jooq.tables.MediaObject;
+import eu.dissco.backend.database.jooq.tables.NewAnnotation;
+import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
+import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
@@ -32,19 +32,19 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.annotation</code>.
+     * The table <code>public.new_annotation</code>.
      */
-    public final Annotation ANNOTATION = Annotation.ANNOTATION;
+    public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
     /**
-     * The table <code>public.digital_specimen</code>.
+     * The table <code>public.new_digital_media_object</code>.
      */
-    public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
+    public final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
 
     /**
-     * The table <code>public.media_object</code>.
+     * The table <code>public.new_digital_specimen</code>.
      */
-    public final MediaObject MEDIA_OBJECT = MediaObject.MEDIA_OBJECT;
+    public final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
 
     /**
      * The table <code>public.organisation_do</code>.
@@ -72,9 +72,9 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
-            Annotation.ANNOTATION,
-            DigitalSpecimen.DIGITAL_SPECIMEN,
-            MediaObject.MEDIA_OBJECT,
+            NewAnnotation.NEW_ANNOTATION,
+            NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
+            NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
             OrganisationDo.ORGANISATION_DO,
             OrganisationDocument.ORGANISATION_DOCUMENT);
     }

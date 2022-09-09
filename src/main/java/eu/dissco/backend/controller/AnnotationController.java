@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,11 +43,22 @@ public class AnnotationController {
     return ResponseEntity.ok(annotation);
   }
 
+  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<AnnotationResponse> getAnnotation(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix,
+      @PathVariable("version") int version) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for annotation: {} with version: {}", id, version);
+    var annotation = service.getAnnotationVersion(id, version);
+    return ResponseEntity.ok(annotation);
+  }
+
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> createDocument(Authentication authentication,
+  public ResponseEntity<AnnotationResponse> createAnnotation(Authentication authentication,
       @RequestBody AnnotationRequest annotation) {
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
@@ -60,7 +70,7 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{postfix}", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> updateDocument(Authentication authentication,
+  public ResponseEntity<AnnotationResponse> updateAnnotation(Authentication authentication,
       @RequestBody AnnotationRequest annotation,
       @PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {
@@ -82,18 +92,18 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @PreAuthorize("isAuthenticated()")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @DeleteMapping(value = "/{prefix}/{postfix}")
-  public ResponseEntity<String> deleteDocument(Authentication authentication,
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
-    var id = prefix + '/' + postfix;
-    var userId = getNameFromToken(authentication);
-    log.info("Received delete for annotation: {} from user: {}", id, userId);
-    service.deleteAnnotation(id);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-  }
+//  @PreAuthorize("isAuthenticated()")
+//  @ResponseStatus(HttpStatus.NO_CONTENT)
+//  @DeleteMapping(value = "/{prefix}/{postfix}")
+//  public ResponseEntity<String> deleteDocument(Authentication authentication,
+//      @PathVariable("prefix") String prefix,
+//      @PathVariable("postfix") String postfix) {
+//    var id = prefix + '/' + postfix;
+//    var userId = getNameFromToken(authentication);
+//    log.info("Received delete for annotation: {} from user: {}", id, userId);
+//    service.deleteAnnotation(id);
+//    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+//  }
 
 
   private String getNameFromToken(Authentication authentication) {
