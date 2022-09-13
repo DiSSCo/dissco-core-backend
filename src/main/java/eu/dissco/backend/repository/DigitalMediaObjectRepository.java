@@ -69,4 +69,13 @@ public class DigitalMediaObjectRepository {
         .and(NEW_DIGITAL_MEDIA_OBJECT.VERSION.eq(version))
         .fetchOne(this::mapToMultiMediaObject);
   }
+
+  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
+    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
+        .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
+        .from(NEW_DIGITAL_MEDIA_OBJECT)
+        .where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
+        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
+        .fetch(this::mapToMultiMediaObject);
+  }
 }

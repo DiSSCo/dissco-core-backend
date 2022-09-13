@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -53,5 +54,9 @@ public class SpecimenService {
     var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
     var annotation = annotationService.getAnnotationForTarget(id);
     return new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation);
+  }
+
+  public List<DigitalMediaObject> getDigitalMedia(String id) {
+    return digitalMediaObjectService.getDigitalMediaForSpecimen(id);
   }
 }

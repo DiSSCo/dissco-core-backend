@@ -36,4 +36,8 @@ public class DigitalMediaObjectService {
   public DigitalMediaObject getDigitalMediaVersion(String id, int version) {
     return repository.getDigitalMediaByVersion(id, version);
   }
+
+  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
+    return repository.getDigitalMediaForSpecimen(id);
+  }
 }
