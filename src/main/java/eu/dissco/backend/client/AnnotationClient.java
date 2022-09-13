@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "annotations", url = "localhost:8082/")
+@FeignClient(name = "annotations", url = "${feign.annotations}")
 public interface AnnotationClient {
 
   @PostMapping(value = "")
