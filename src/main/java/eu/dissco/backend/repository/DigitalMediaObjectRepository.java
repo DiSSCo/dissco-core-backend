@@ -28,18 +28,18 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToMultiMediaObject);
   }
 
-  private DigitalMediaObject mapToMultiMediaObject(Record record) {
+  private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
     try {
       return new DigitalMediaObject(
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.FORMAT),
-          record.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
-          mapper.readTree(record.get(NEW_DIGITAL_MEDIA_OBJECT.DATA).data()),
-          mapper.readTree(record.get(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data())
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.FORMAT),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
+          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DATA).data()),
+          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data())
       );
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
