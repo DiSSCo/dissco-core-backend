@@ -27,7 +27,7 @@ public class ElasticSearchRepository {
     }
     SearchRequest searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
-        .q("digitalSpecimen :* and " + query)
+        .q("_exists_:digitalSpecimen AND " + query)
         .from(offset)
         .size(pageSize)
         .build();

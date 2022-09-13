@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -19,6 +20,8 @@ public class SpecimenService {
   private final SpecimenRepository repository;
   private final AnnotationRepository annotationRepository;
   private final ElasticSearchRepository elasticRepository;
+  private final DigitalMediaObjectService digitalMediaObjectService;
+  private final AnnotationService annotationService;
 
   public List<DigitalSpecimen> getSpecimen(int pageNumber, int pageSize) {
     return repository.getSpecimensLatest(pageNumber, pageSize);
@@ -34,7 +37,7 @@ public class SpecimenService {
   }
 
   public List<AnnotationResponse> getAnnotations(String id) {
-    return annotationRepository.getAnnotationsForSpecimen(id);
+    return annotationRepository.getForTarget(id);
   }
 
   public DigitalSpecimen getSpecimenByVersion(String id, int version) {
@@ -43,5 +46,12 @@ public class SpecimenService {
 
   public List<Integer> getSpecimenVersions(String id) {
     return repository.getSpecimenVersions(id);
+  }
+
+  public DigitalSpecimenFull getSpecimenByIdFull(String id) {
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
+    var annotation = annotationService.getAnnotationForTarget(id);
+    return new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation);
   }
 }

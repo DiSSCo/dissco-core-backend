@@ -179,7 +179,7 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
 
     @Override
     public List<UniqueKey<NewDigitalSpecimenRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewDigitalSpecimenRecord>>asList(Keys.NEW_DIGITAL_SPECIMEN_PKEY, Keys.NEW_DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_KEY);
+        return Arrays.<UniqueKey<NewDigitalSpecimenRecord>>asList(Keys.NEW_DIGITAL_SPECIMEN_PKEY);
     }
 
     @Override

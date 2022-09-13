@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -92,18 +93,31 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-//  @PreAuthorize("isAuthenticated()")
-//  @ResponseStatus(HttpStatus.NO_CONTENT)
-//  @DeleteMapping(value = "/{prefix}/{postfix}")
-//  public ResponseEntity<String> deleteDocument(Authentication authentication,
-//      @PathVariable("prefix") String prefix,
-//      @PathVariable("postfix") String postfix) {
-//    var id = prefix + '/' + postfix;
-//    var userId = getNameFromToken(authentication);
-//    log.info("Received delete for annotation: {} from user: {}", id, userId);
-//    service.deleteAnnotation(id);
-//    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-//  }
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Integer>> getAnnotationByVersion(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for versions of annotation with id: {}", id);
+    var versions = service.getAnnotationVersions(id);
+    return ResponseEntity.ok(versions);
+  }
+
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping(value = "/{prefix}/{postfix}")
+  public ResponseEntity<Void> deleteAnnotation(Authentication authentication,
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var userId = getNameFromToken(authentication);
+    log.info("Received delete for annotation: {} from user: {}", (prefix + postfix), userId);
+    var success = service.deleteAnnotation(prefix, postfix, getNameFromToken(authentication));
+    if (success){
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    } else {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+  }
 
 
   private String getNameFromToken(Authentication authentication) {

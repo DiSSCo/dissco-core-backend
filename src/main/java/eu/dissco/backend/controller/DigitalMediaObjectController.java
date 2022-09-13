@@ -1,7 +1,9 @@
 package eu.dissco.backend.controller;
 
-import eu.dissco.backend.domain.MultiMediaObject;
+import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.service.DigitalMediaObjectService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,12 +27,33 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<MultiMediaObject> getMultiMediaById(@PathVariable("prefix") String prefix,
+  public ResponseEntity<DigitalMediaObject> getMultiMediaById(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for multiMedia with id: {}", id);
-    var multiMedia = service.getMultiMediaById(id);
+    var multiMedia = service.getDigitalMediaById(id);
     return ResponseEntity.ok(multiMedia);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Integer>> getDigitalMediaVersions(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for versions of digital media with id: {}", id);
+    var versions = service.getDigitalMediaVersions(id);
+    return ResponseEntity.ok(versions);
+  }
+
+  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DigitalMediaObject> getDigitalMediaObject(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix,
+      @PathVariable("version") int version) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for digital media: {} with version: {}", id, version);
+    var digitalMedia = service.getDigitalMediaVersion(id, version);
+    return ResponseEntity.ok(digitalMedia);
   }
 
 }
