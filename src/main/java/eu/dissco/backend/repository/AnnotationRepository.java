@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -25,15 +26,6 @@ public class AnnotationRepository {
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
-        .fetch(this::mapToAnnotation);
-  }
-
-  public List<AnnotationResponse> getAnnotationsForSpecimen(String id) {
-    return context.select(NEW_ANNOTATION.asterisk())
-        .distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
         .fetch(this::mapToAnnotation);
   }
@@ -78,4 +70,29 @@ public class AnnotationRepository {
   }
 
 
+  public List<AnnotationResponse> getForTarget(String id) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
+        .fetch(this::mapToAnnotation);
+  }
+
+  public List<Integer> getAnnotationVersions(String id) {
+    return context.select(NEW_ANNOTATION.VERSION).from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id)).fetch(
+            Record1::value1).stream().toList();
+  }
+
+  public int getAnnotationForUser(String id, String userId) {
+    return context.select(NEW_ANNOTATION.ID)
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .and(NEW_ANNOTATION.CREATOR.eq(userId))
+        .and(NEW_ANNOTATION.DELETED.isNull())
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
+        .fetch().size();
+  }
 }

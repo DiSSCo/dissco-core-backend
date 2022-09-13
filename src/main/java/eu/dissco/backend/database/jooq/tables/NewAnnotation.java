@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row15;
+import org.jooq.Row16;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -124,6 +124,11 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
      */
     public final TableField<NewAnnotationRecord, Instant> LAST_CHECKED = createField(DSL.name("last_checked"), SQLDataType.INSTANT.nullable(false), this, "");
 
+    /**
+     * The column <code>public.new_annotation.deleted</code>.
+     */
+    public final TableField<NewAnnotationRecord, Instant> DELETED = createField(DSL.name("deleted"), SQLDataType.INSTANT, this, "");
+
     private NewAnnotation(Name alias, Table<NewAnnotationRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -199,11 +204,11 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row15 type methods
+    // Row16 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row15<String, Integer, String, String, String, String, JSONB, JSONB, Integer, String, Instant, String, JSONB, Instant, Instant> fieldsRow() {
-        return (Row15) super.fieldsRow();
+    public Row16<String, Integer, String, String, String, String, JSONB, JSONB, Integer, String, Instant, String, JSONB, Instant, Instant, Instant> fieldsRow() {
+        return (Row16) super.fieldsRow();
     }
 }

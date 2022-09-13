@@ -3,7 +3,6 @@ package eu.dissco.backend.repository;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
@@ -27,7 +26,7 @@ public class ElasticSearchRepository {
     }
     SearchRequest searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
-        .q("digitalSpecimen :* and " + query)
+        .q("_exists_:digitalSpecimen AND " + query)
         .from(offset)
         .size(pageSize)
         .build();
