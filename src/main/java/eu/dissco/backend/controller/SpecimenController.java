@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.service.SpecimenService;
@@ -85,8 +86,19 @@ public class SpecimenController {
       @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotations of specimen with id: {}", id);
-    var specimen = service.getAnnotations(id);
-    return ResponseEntity.ok(specimen);
+    var annotations = service.getAnnotations(id);
+    return ResponseEntity.ok(annotations);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<DigitalMediaObject>> getSpecimenDigitalMedia(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for digitalmedia of specimen with id: {}", id);
+    var digitalMedia = service.getDigitalMedia(id);
+    return ResponseEntity.ok(digitalMedia);
   }
 
   @ResponseStatus(HttpStatus.OK)
