@@ -45,13 +45,10 @@ public class AnnotationService {
   public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {
     var event = mapAnnotationRequestToEvent(annotation, userId);
     var response = annotationClient.postAnnotation(event);
-    return mapResponseToAnnotationResponse(response);
-  }
-
-  public AnnotationResponse updateAnnotation(AnnotationRequest annotation, String userId) {
-    var event = mapAnnotationRequestToEvent(annotation, userId);
-    var response = annotationClient.postAnnotation(event);
-    return mapResponseToAnnotationResponse(response);
+    if (response != null) {
+      return mapResponseToAnnotationResponse(response);
+    }
+    return null;
   }
 
   private AnnotationResponse mapResponseToAnnotationResponse(JsonNode response) {

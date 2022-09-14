@@ -64,7 +64,11 @@ public class AnnotationController {
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId);
-    return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
+    if (annotationResponse != null){
+      return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
+    } else {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
   }
 
   @PreAuthorize("isAuthenticated()")
@@ -78,8 +82,12 @@ public class AnnotationController {
     var id = prefix + '/' + postfix;
     var userId = getNameFromToken(authentication);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(annotation, userId);
-    return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
+    var annotationResponse = service.persistAnnotation(annotation, userId);
+    if (annotationResponse != null){
+      return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
+    } else {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
   }
 
   @PreAuthorize("isAuthenticated()")
