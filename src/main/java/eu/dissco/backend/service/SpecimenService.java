@@ -4,7 +4,6 @@ import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
-import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 public class SpecimenService {
 
   private final SpecimenRepository repository;
-  private final AnnotationRepository annotationRepository;
   private final ElasticSearchRepository elasticRepository;
   private final DigitalMediaObjectService digitalMediaObjectService;
   private final AnnotationService annotationService;
@@ -38,7 +36,7 @@ public class SpecimenService {
   }
 
   public List<AnnotationResponse> getAnnotations(String id) {
-    return annotationRepository.getForTarget(id);
+    return annotationService.getAnnotationForTarget(id);
   }
 
   public DigitalSpecimen getSpecimenByVersion(String id, int version) {
