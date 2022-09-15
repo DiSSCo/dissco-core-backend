@@ -14,5 +14,6 @@ public record AnnotationResponse(
     String creator,
     Instant created,
     JsonNode generator,
-    Instant generated) {
+    Instant generated,
+    Instant deleted_on) {
 }

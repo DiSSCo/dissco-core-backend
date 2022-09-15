@@ -5,6 +5,7 @@ import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import java.time.Instant;
 import java.util.List;
@@ -64,7 +65,8 @@ public class AnnotationService {
         annotation.get("creator").asText(),
         Instant.ofEpochSecond(annotation.get("created").asLong()),
         annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get("generated").asLong())
+        Instant.ofEpochSecond(annotation.get("generated").asLong()),
+        null
     );
   }
 
@@ -81,7 +83,8 @@ public class AnnotationService {
     return repository.getAnnotationVersions(id);
   }
 
-  public boolean deleteAnnotation(String prefix, String postfix, String userId) {
+  public boolean deleteAnnotation(String prefix, String postfix, String userId)
+      throws NoAnnotationFoundException {
     var id = prefix + "/" + postfix;
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
@@ -89,7 +92,18 @@ public class AnnotationService {
       return true;
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
-      return false;
+      throw new NoAnnotationFoundException("No active annotation with id: " + id + " was found for user");
+    }
+  }
+
+  public AnnotationResponse updateAnnotation(String id, AnnotationRequest annotation, String userId)
+      throws NoAnnotationFoundException {
+    var result = repository.getAnnotationForUser(id, userId);
+    if (result > 0) {
+      return persistAnnotation(annotation, userId);
+    } else {
+      log.info("No active annotation with id: {} found for user: {}", id, userId);
+      throw new NoAnnotationFoundException("No active annotation with id: " + id + " was found for user");
     }
   }
 }

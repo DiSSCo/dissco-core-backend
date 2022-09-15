@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,11 +80,11 @@ public class AnnotationController {
   public ResponseEntity<AnnotationResponse> updateAnnotation(Authentication authentication,
       @RequestBody AnnotationRequest annotation,
       @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+      @PathVariable("postfix") String postfix) throws NoAnnotationFoundException {
     var id = prefix + '/' + postfix;
     var userId = getNameFromToken(authentication);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.persistAnnotation(annotation, userId);
+    var annotationResponse = service.updateAnnotation(id, annotation, userId);
     if (annotationResponse != null){
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {
@@ -116,7 +118,7 @@ public class AnnotationController {
   @DeleteMapping(value = "/{prefix}/{postfix}")
   public ResponseEntity<Void> deleteAnnotation(Authentication authentication,
       @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+      @PathVariable("postfix") String postfix) throws NoAnnotationFoundException {
     var userId = getNameFromToken(authentication);
     log.info("Received delete for annotation: {} from user: {}", (prefix + postfix), userId);
     var success = service.deleteAnnotation(prefix, postfix, getNameFromToken(authentication));
@@ -125,6 +127,11 @@ public class AnnotationController {
     } else {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+  }
+
+  @ExceptionHandler(NoAnnotationFoundException.class)
+  public ResponseEntity<String> handleException(NoAnnotationFoundException e) {
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
 
