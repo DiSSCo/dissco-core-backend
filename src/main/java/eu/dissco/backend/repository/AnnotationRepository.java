@@ -61,7 +61,8 @@ public class AnnotationRepository {
           dbRecord.get(NEW_ANNOTATION.CREATOR),
           dbRecord.get(NEW_ANNOTATION.CREATED),
           mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()),
-          dbRecord.get(NEW_ANNOTATION.GENERATED)
+          dbRecord.get(NEW_ANNOTATION.GENERATED),
+          dbRecord.get(NEW_ANNOTATION.DELETED)
       );
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
@@ -75,6 +76,7 @@ public class AnnotationRepository {
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.TARGET_ID.eq(id))
+        .and(NEW_ANNOTATION.DELETED.isNull())
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
         .fetch(this::mapToAnnotation);
   }
