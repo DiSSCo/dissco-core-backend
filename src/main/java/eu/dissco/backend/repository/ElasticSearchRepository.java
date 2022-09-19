@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -30,7 +31,9 @@ public class ElasticSearchRepository {
         .from(offset)
         .size(pageSize)
         .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .filter(Objects::isNull)
         .map(this::mapToDigitalSpecimen).toList();
   }
 
