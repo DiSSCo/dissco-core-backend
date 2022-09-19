@@ -7,6 +7,8 @@ package eu.dissco.backend.database.jooq;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
+import eu.dissco.backend.database.jooq.tables.NewMapping;
+import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
@@ -47,6 +49,16 @@ public class Public extends SchemaImpl {
     public final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
 
     /**
+     * The table <code>public.new_mapping</code>.
+     */
+    public final NewMapping NEW_MAPPING = NewMapping.NEW_MAPPING;
+
+    /**
+     * The table <code>public.new_source_system</code>.
+     */
+    public final NewSourceSystem NEW_SOURCE_SYSTEM = NewSourceSystem.NEW_SOURCE_SYSTEM;
+
+    /**
      * The table <code>public.organisation_do</code>.
      */
     public final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
@@ -75,6 +87,8 @@ public class Public extends SchemaImpl {
             NewAnnotation.NEW_ANNOTATION,
             NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
             NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
+            NewMapping.NEW_MAPPING,
+            NewSourceSystem.NEW_SOURCE_SYSTEM,
             OrganisationDo.ORGANISATION_DO,
             OrganisationDocument.ORGANISATION_DOCUMENT);
     }
