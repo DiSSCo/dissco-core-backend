@@ -3,6 +3,7 @@ package eu.dissco.backend.repository;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
@@ -33,7 +34,6 @@ public class ElasticSearchRepository {
         .build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
         .map(Hit::source)
-        .filter(Objects::isNull)
         .map(this::mapToDigitalSpecimen).toList();
   }
 
@@ -43,17 +43,26 @@ public class ElasticSearchRepository {
         json.get("id").asText(),
         json.get("midsLevel").asInt(),
         json.get("version").asInt(),
-        digitalSpecimen.get("type").asText(),
-        digitalSpecimen.get("physicalSpecimenId").asText(),
-        digitalSpecimen.get("physicalSpecimenIdType").asText(),
-        digitalSpecimen.get("specimenName").asText(),
-        digitalSpecimen.get("organizationId").asText(),
-        digitalSpecimen.get("datasetId").asText(),
-        digitalSpecimen.get("physicalSpecimenCollection").asText(),
-        digitalSpecimen.get("sourceSystemId").asText(),
+        getText(digitalSpecimen, "type"),
+        getText(digitalSpecimen, "physicalSpecimenId"),
+        getText(digitalSpecimen, "physicalSpecimenIdType"),
+        getText(digitalSpecimen, "specimenName"),
+        getText(digitalSpecimen, "organizationId"),
+        getText(digitalSpecimen, "datasetId"),
+        getText(digitalSpecimen, "physicalSpecimenCollection"),
+        getText(digitalSpecimen, "sourceSystemId"),
         digitalSpecimen.get("data"),
         digitalSpecimen.get("originalData"),
-        digitalSpecimen.get("dwcaId").asText()
+        getText(digitalSpecimen, "dwcaId")
     );
+  }
+
+  private String getText(JsonNode digitalSpecimen, String element) {
+    var jsonNode =  digitalSpecimen.get(element);
+    if (jsonNode != null){
+      return jsonNode.asText();
+    } else {
+      return null;
+    }
   }
 }
