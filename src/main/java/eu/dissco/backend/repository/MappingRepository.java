@@ -27,16 +27,16 @@ public class MappingRepository {
         .fetchOne(this::mapToMappingRecord);
   }
 
-  private MappingRecord mapToMappingRecord(Record record) {
+  private MappingRecord mapToMappingRecord(Record dbRecord) {
     try {
       return new MappingRecord(
-          record.get(NEW_MAPPING.ID),
-          record.get(NEW_MAPPING.VERSION),
-          record.get(NEW_MAPPING.CREATED),
-          record.get(NEW_MAPPING.CREATOR),
-          record.get(NEW_MAPPING.NAME),
-          record.get(NEW_MAPPING.DESCRIPTION),
-          mapper.readTree(record.get(NEW_MAPPING.MAPPING).data())
+          dbRecord.get(NEW_MAPPING.ID),
+          dbRecord.get(NEW_MAPPING.VERSION),
+          dbRecord.get(NEW_MAPPING.CREATED),
+          dbRecord.get(NEW_MAPPING.CREATOR),
+          dbRecord.get(NEW_MAPPING.NAME),
+          dbRecord.get(NEW_MAPPING.DESCRIPTION),
+          mapper.readTree(dbRecord.get(NEW_MAPPING.MAPPING).data())
       );
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);

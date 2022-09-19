@@ -2,9 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_SOURCE_SYSTEM;
 
-import eu.dissco.backend.database.jooq.Tables;
 import eu.dissco.backend.domain.SourceSystemRecord;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -23,14 +21,14 @@ public class SourceSystemRepository {
         .fetchOne(this::mapToSourceSystemRecord);
   }
 
-  private SourceSystemRecord mapToSourceSystemRecord(Record record) {
+  private SourceSystemRecord mapToSourceSystemRecord(Record dbRecord) {
     return new SourceSystemRecord(
-        record.get(NEW_SOURCE_SYSTEM.ID),
-        record.get(NEW_SOURCE_SYSTEM.CREATED),
-        record.get(NEW_SOURCE_SYSTEM.NAME),
-        record.get(NEW_SOURCE_SYSTEM.ENDPOINT),
-        record.get(NEW_SOURCE_SYSTEM.DESCRIPTION),
-        record.get(NEW_SOURCE_SYSTEM.MAPPING_ID)
+        dbRecord.get(NEW_SOURCE_SYSTEM.ID),
+        dbRecord.get(NEW_SOURCE_SYSTEM.CREATED),
+        dbRecord.get(NEW_SOURCE_SYSTEM.NAME),
+        dbRecord.get(NEW_SOURCE_SYSTEM.ENDPOINT),
+        dbRecord.get(NEW_SOURCE_SYSTEM.DESCRIPTION),
+        dbRecord.get(NEW_SOURCE_SYSTEM.MAPPING_ID)
     );
   }
 }
