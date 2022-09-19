@@ -13,7 +13,14 @@
     <database>
       <name>org.jooq.meta.postgres.PostgresDatabase</name>
       <inputSchema>public</inputSchema>
-      <includes> new_digital_specimen | new_digital_media_object | organisation_do | organisation_document | new_annotation</includes>
+      <includes>new_digital_specimen |
+        new_digital_media_object |
+        organisation_do |
+        organisation_document |
+        new_annotation |
+        new_mapping |
+        new_source_system
+      </includes>
       <forcedTypes>
         <forcedType>
           <name>INSTANT</name>

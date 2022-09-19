@@ -57,4 +57,5 @@ public class SpecimenService {
   public List<DigitalMediaObject> getDigitalMedia(String id) {
     return digitalMediaObjectService.getDigitalMediaForSpecimen(id);
   }
+
 }
