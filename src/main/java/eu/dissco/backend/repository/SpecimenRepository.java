@@ -48,6 +48,7 @@ public class SpecimenRepository {
           dbRecord.get(NEW_DIGITAL_SPECIMEN.ID),
           dbRecord.get(NEW_DIGITAL_SPECIMEN.MIDSLEVEL),
           dbRecord.get(NEW_DIGITAL_SPECIMEN.VERSION),
+          dbRecord.get(NEW_DIGITAL_SPECIMEN.CREATED),
           dbRecord.get(NEW_DIGITAL_SPECIMEN.TYPE),
           dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID),
           dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE),
