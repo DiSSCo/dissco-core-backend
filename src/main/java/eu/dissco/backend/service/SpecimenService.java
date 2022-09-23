@@ -58,4 +58,7 @@ public class SpecimenService {
     return digitalMediaObjectService.getDigitalMediaForSpecimen(id);
   }
 
+  public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
+    return elasticRepository.getLatestSpecimen();
+  }
 }

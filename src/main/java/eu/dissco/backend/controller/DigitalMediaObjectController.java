@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
+import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -24,6 +26,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class DigitalMediaObjectController {
 
   private final DigitalMediaObjectService service;
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<DigitalMediaObject>> getDigitalMediaObjects(
+      @RequestParam(defaultValue = "1") int pageNumber,
+      @RequestParam(defaultValue = "10") int pageSize) {
+    log.info("Received get request for digital media objects");
+    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize);
+    return ResponseEntity.ok(digitalMedia);
+  }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)

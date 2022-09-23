@@ -4,6 +4,7 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,13 @@ public class AnnotationController {
     log.info("Received get request for annotation: {}", id);
     var annotation = service.getAnnotation(id);
     return ResponseEntity.ok(annotation);
+  }
+
+  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations() throws IOException {
+    log.info("Received get request for latest annotations");
+    var annotations = service.getLatestAnnotation();
+    return ResponseEntity.ok(annotations);
   }
 
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)

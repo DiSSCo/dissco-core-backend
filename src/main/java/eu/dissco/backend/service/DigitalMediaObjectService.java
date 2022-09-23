@@ -40,4 +40,8 @@ public class DigitalMediaObjectService {
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return repository.getDigitalMediaForSpecimen(id);
   }
+
+  public List<DigitalMediaObject> getDigitalMediaObjects(int pageNumber, int pageSize) {
+    return repository.getDigitalMediaObject(pageNumber, pageSize);
+  }
 }

@@ -78,4 +78,16 @@ public class DigitalMediaObjectRepository {
         .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
         .fetch(this::mapToMultiMediaObject);
   }
+
+  public List<DigitalMediaObject> getDigitalMediaObject(int pageNumber, int pageSize) {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
+        .from(NEW_DIGITAL_MEDIA_OBJECT)
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::mapToMultiMediaObject);
+  }
 }

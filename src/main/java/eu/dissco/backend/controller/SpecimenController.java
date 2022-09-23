@@ -39,6 +39,13 @@ public class SpecimenController {
     return ResponseEntity.ok(specimen);
   }
 
+  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<DigitalSpecimen>> getLatestSpecimen() throws IOException {
+    log.info("Received get request for latest digital specimen");
+    var specimens = service.getLatestSpecimen();
+    return ResponseEntity.ok(specimens);
+  }
+
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DigitalSpecimen> getSpecimenById(@PathVariable("prefix") String prefix,
