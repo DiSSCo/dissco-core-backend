@@ -33,6 +33,7 @@ public class DigitalMediaObjectRepository {
       return new DigitalMediaObject(
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.CREATED),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),

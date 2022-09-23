@@ -69,6 +69,7 @@ public class ElasticSearchRepository {
         json.get("id").asText(),
         json.get("midsLevel").asInt(),
         json.get("version").asInt(),
+        Instant.ofEpochSecond(json.get("created").asLong()),
         getText(digitalSpecimen, "type"),
         getText(digitalSpecimen, "physicalSpecimenId"),
         getText(digitalSpecimen, "physicalSpecimenIdType"),
