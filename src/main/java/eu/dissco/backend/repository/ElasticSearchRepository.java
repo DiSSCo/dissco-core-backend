@@ -1,14 +1,16 @@
 package eu.dissco.backend.repository;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -26,7 +28,7 @@ public class ElasticSearchRepository {
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
-    SearchRequest searchRequest = new SearchRequest.Builder()
+    var searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
         .q("_exists_:digitalSpecimen AND " + query)
         .from(offset)
@@ -35,6 +37,30 @@ public class ElasticSearchRepository {
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
         .map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
+    var searchRequest = new SearchRequest.Builder()
+        .index("new-dissco")
+        .q("_exists_:digitalSpecimen ")
+        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
+        .size(10)
+        .build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public List<AnnotationResponse> getLatestAnnotation() throws IOException {
+    var searchRequest = new SearchRequest.Builder()
+        .index("new-dissco")
+        .q("_exists_:annotation ")
+        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
+        .size(10)
+        .build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .map(this::mapToAnnotationResponse).toList();
   }
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
@@ -57,12 +83,31 @@ public class ElasticSearchRepository {
     );
   }
 
+  private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
+    var annotation = json.get("annotation");
+    return new AnnotationResponse(
+        json.get("id").asText(),
+        json.get("version").asInt(),
+        getText(annotation, "type"),
+        getText(annotation, "motivation"),
+        annotation.get("target"),
+        annotation.get("body"),
+        annotation.get("preferenceScore").asInt(),
+        getText(annotation, "creator"),
+        Instant.ofEpochSecond(annotation.get("created").asLong()),
+        annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get("generated").asLong()),
+        null
+    );
+  }
+
   private String getText(JsonNode digitalSpecimen, String element) {
-    var jsonNode =  digitalSpecimen.get(element);
-    if (jsonNode != null){
+    var jsonNode = digitalSpecimen.get(element);
+    if (jsonNode != null) {
       return jsonNode.asText();
     } else {
       return null;
     }
   }
+
 }

@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
@@ -7,6 +8,8 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
+import eu.dissco.backend.repository.ElasticSearchRepository;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class AnnotationService {
 
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
+  private final ElasticSearchRepository elasticRepository;
 
   @NotNull
   private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
@@ -105,5 +109,9 @@ public class AnnotationService {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException("No active annotation with id: " + id + " was found for user");
     }
+  }
+
+  public List<AnnotationResponse> getLatestAnnotation() throws IOException {
+    return elasticRepository.getLatestAnnotation();
   }
 }
