@@ -7,6 +7,7 @@ public record MappingRecord(
     String id,
     int version,
     Instant created,
+    String type,
     String creator,
     String name,
     String description,
