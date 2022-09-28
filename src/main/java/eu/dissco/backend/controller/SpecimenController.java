@@ -4,6 +4,7 @@ import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
+import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
 import java.util.List;
@@ -53,6 +54,16 @@ public class SpecimenController {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenById(id);
+    return ResponseEntity.ok(specimen);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/jsonld", produces = "application/ld+json")
+  public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for jsonld view of specimen with id: {}", id);
+    var specimen = service.getSpecimenByIdJsonLD(id);
     return ResponseEntity.ok(specimen);
   }
 

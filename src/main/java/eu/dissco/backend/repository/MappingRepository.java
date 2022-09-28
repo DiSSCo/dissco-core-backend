@@ -33,6 +33,7 @@ public class MappingRepository {
           dbRecord.get(NEW_MAPPING.ID),
           dbRecord.get(NEW_MAPPING.VERSION),
           dbRecord.get(NEW_MAPPING.CREATED),
+          "Mapping",
           dbRecord.get(NEW_MAPPING.CREATOR),
           dbRecord.get(NEW_MAPPING.NAME),
           dbRecord.get(NEW_MAPPING.DESCRIPTION),

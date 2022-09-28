@@ -4,6 +4,7 @@ import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,5 +44,9 @@ public class DigitalMediaObjectService {
 
   public List<DigitalMediaObject> getDigitalMediaObjects(int pageNumber, int pageSize) {
     return repository.getDigitalMediaObject(pageNumber, pageSize);
+  }
+
+  public List<String> getDigitalMediaIdsForSpecimen(String id) {
+    return repository.getDigitalMediaIdsForSpecimen(id);
   }
 }

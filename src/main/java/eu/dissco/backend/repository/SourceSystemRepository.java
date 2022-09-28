@@ -25,6 +25,7 @@ public class SourceSystemRepository {
     return new SourceSystemRecord(
         dbRecord.get(NEW_SOURCE_SYSTEM.ID),
         dbRecord.get(NEW_SOURCE_SYSTEM.CREATED),
+        "SourceSystem",
         dbRecord.get(NEW_SOURCE_SYSTEM.NAME),
         dbRecord.get(NEW_SOURCE_SYSTEM.ENDPOINT),
         dbRecord.get(NEW_SOURCE_SYSTEM.DESCRIPTION),

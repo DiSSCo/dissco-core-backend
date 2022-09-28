@@ -91,4 +91,13 @@ public class DigitalMediaObjectRepository {
         .limit(pageSize)
         .fetch(this::mapToMultiMediaObject);
   }
+
+  public List<String> getDigitalMediaIdsForSpecimen(String id) {
+    return context.select(NEW_DIGITAL_MEDIA_OBJECT.ID)
+        .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
+        .from(NEW_DIGITAL_MEDIA_OBJECT)
+        .where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
+        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
+        .fetch(Record1::value1);
+  }
 }
