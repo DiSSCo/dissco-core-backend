@@ -4,7 +4,6 @@ import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
