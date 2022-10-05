@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;

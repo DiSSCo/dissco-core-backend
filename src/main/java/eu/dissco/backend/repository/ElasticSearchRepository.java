@@ -30,7 +30,7 @@ public class ElasticSearchRepository {
     }
     var searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
-        .q("_exists_:digitalSpecimen AND " + query)
+        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query)
         .from(offset)
         .size(pageSize)
         .build();
@@ -42,7 +42,7 @@ public class ElasticSearchRepository {
   public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
     var searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
-        .q("_exists_:digitalSpecimen ")
+        .q("_exists_:digitalSpecimen.physicalSpecimenId ")
         .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
         .size(10)
         .build();
@@ -54,7 +54,7 @@ public class ElasticSearchRepository {
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
     var searchRequest = new SearchRequest.Builder()
         .index("new-dissco")
-        .q("_exists_:annotation ")
+        .q("_exists_:annotation.type ")
         .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
         .size(10)
         .build();
