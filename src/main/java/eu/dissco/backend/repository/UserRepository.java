@@ -21,7 +21,6 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class UserRepository {
 
-  private final ObjectMapper mapper;
   private final DSLContext context;
   private final Map<String, TableField<NewUserRecord, String>> attributeMapping = Map.of(
       "firstName", NEW_USER.FIRST_NAME,
