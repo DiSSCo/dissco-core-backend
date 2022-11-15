@@ -9,6 +9,7 @@ import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewMapping;
 import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
+import eu.dissco.backend.database.jooq.tables.NewUser;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
@@ -59,6 +60,11 @@ public class Public extends SchemaImpl {
     public final NewSourceSystem NEW_SOURCE_SYSTEM = NewSourceSystem.NEW_SOURCE_SYSTEM;
 
     /**
+     * The table <code>public.new_user</code>.
+     */
+    public final NewUser NEW_USER = NewUser.NEW_USER;
+
+    /**
      * The table <code>public.organisation_do</code>.
      */
     public final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
@@ -89,6 +95,7 @@ public class Public extends SchemaImpl {
             NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
             NewMapping.NEW_MAPPING,
             NewSourceSystem.NEW_SOURCE_SYSTEM,
+            NewUser.NEW_USER,
             OrganisationDo.ORGANISATION_DO,
             OrganisationDocument.ORGANISATION_DOCUMENT);
     }

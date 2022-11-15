@@ -142,7 +142,6 @@ public class AnnotationController {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
-
   private String getNameFromToken(Authentication authentication) {
     KeycloakPrincipal<? extends KeycloakSecurityContext> principal =
         (KeycloakPrincipal<?>) authentication.getPrincipal();

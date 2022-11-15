@@ -11,7 +11,9 @@ import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SpecimenService {
+
+  private final Map<String, String> prefixMap = Map.of("dct", "http://purl.org/dc/terms/", "dwc",
+      "http://rs.tdwg.org/dwc/terms/", "abcd", "https://abcd.tdwg.org/terms/", "abcd-efg",
+      "https://terms.tdwg.org/wiki/ABCD_EFG/");
 
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
@@ -74,7 +80,7 @@ public class SpecimenService {
     return new DigitalSpecimenJsonLD(
         "hdl:" + digitalSpecimen.id(),
         digitalSpecimen.type(),
-        generateContext(),
+        generateContext(digitalSpecimen.data()),
         generatePrimaryData(digitalSpecimen),
         "hdl:" + digitalSpecimen.sourceSystemId(),
         digitalMediaObjects
@@ -96,17 +102,25 @@ public class SpecimenService {
     return primarySpecimenData;
   }
 
-  private JsonNode generateContext() {
+  private JsonNode generateContext(JsonNode data) {
+    var prefixes = determinePrefixes(data);
     var node = mapper.createObjectNode();
     node.put("ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/");
-    node.put("hls", "https://hdl.handle.net/");
-    node.put("doi", "https://doi.org/");
-    node.put("dct", "http://purl.org/dc/terms/");
-    node.put("dwc", "http://rs.tdwg.org/dwc/terms/");
+    node.put("hdl", "https://hdl.handle.net/");
+    prefixes.forEach(prefix -> node.put(prefix, prefixMap.get(prefix)));
     node.set("ods:organizationId", generateIdNode());
     node.set("ods:sourceSystemId", generateIdNode());
     node.set("ods:hasSpecimenMedia", generateMediaNode());
     return node;
+  }
+
+  private List<String> determinePrefixes(JsonNode data) {
+    var prefixes = new ArrayList<String>();
+    data.fields().forEachRemaining(field -> {
+      var prefix = field.getKey().substring(0, field.getKey().indexOf(':'));
+      prefixes.add(prefix);
+    });
+    return prefixes;
   }
 
   private JsonNode generateMediaNode() {

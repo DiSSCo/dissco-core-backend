@@ -9,6 +9,7 @@ import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewMapping;
 import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
+import eu.dissco.backend.database.jooq.tables.NewUser;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
@@ -43,6 +44,11 @@ public class Tables {
      * The table <code>public.new_source_system</code>.
      */
     public static final NewSourceSystem NEW_SOURCE_SYSTEM = NewSourceSystem.NEW_SOURCE_SYSTEM;
+
+    /**
+     * The table <code>public.new_user</code>.
+     */
+    public static final NewUser NEW_USER = NewUser.NEW_USER;
 
     /**
      * The table <code>public.organisation_do</code>.
