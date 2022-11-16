@@ -62,7 +62,7 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
     /**
      * The column <code>public.new_digital_media_object.type</code>.
      */
-    public final TableField<NewDigitalMediaObjectRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<NewDigitalMediaObjectRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.new_digital_media_object.digital_specimen_id</code>.
