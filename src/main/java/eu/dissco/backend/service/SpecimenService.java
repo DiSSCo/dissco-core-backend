@@ -23,9 +23,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SpecimenService {
 
-  private final Map<String, String> prefixMap = Map.of("dct", "http://purl.org/dc/terms/", "dwc",
-      "http://rs.tdwg.org/dwc/terms/", "abcd", "https://abcd.tdwg.org/terms/", "abcd-efg",
-      "https://terms.tdwg.org/wiki/ABCD_EFG/");
+  private final Map<String, String> prefixMap = Map.of(
+      "dct", "http://purl.org/dc/terms/",
+      "dwc", "http://rs.tdwg.org/dwc/terms/",
+      "abcd", "https://abcd.tdwg.org/terms/",
+      "abcd-efg", "https://terms.tdwg.org/wiki/ABCD_EFG/",
+      "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
+      "hdl", "https://hdl.handle.net/");
 
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
@@ -105,12 +109,10 @@ public class SpecimenService {
   private JsonNode generateContext(JsonNode data) {
     var prefixes = determinePrefixes(data);
     var node = mapper.createObjectNode();
-    node.put("ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/");
-    node.put("hdl", "https://hdl.handle.net/");
-    prefixes.forEach(prefix -> node.put(prefix, prefixMap.get(prefix)));
     node.set("ods:organizationId", generateIdNode());
     node.set("ods:sourceSystemId", generateIdNode());
     node.set("ods:hasSpecimenMedia", generateMediaNode());
+    prefixes.forEach(prefix -> node.put(prefix, prefixMap.get(prefix)));
     return node;
   }
 

@@ -69,9 +69,9 @@ public class NewUser extends TableImpl<NewUserRecord> {
     public final TableField<NewUserRecord, String> EMAIL = createField(DSL.name("email"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.new_user.orchid</code>.
+     * The column <code>public.new_user.orcid</code>.
      */
-    public final TableField<NewUserRecord, String> ORCHID = createField(DSL.name("orchid"), SQLDataType.CLOB, this, "");
+    public final TableField<NewUserRecord, String> ORCID = createField(DSL.name("orcid"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.new_user.organization</code>.
@@ -133,7 +133,7 @@ public class NewUser extends TableImpl<NewUserRecord> {
 
     @Override
     public List<UniqueKey<NewUserRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewUserRecord>>asList(Keys.NEW_USER_PKEY, Keys.NEW_USER_ORCHID_KEY);
+        return Arrays.<UniqueKey<NewUserRecord>>asList(Keys.NEW_USER_PKEY, Keys.NEW_USER_ORCID_KEY);
     }
 
     @Override

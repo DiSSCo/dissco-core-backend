@@ -90,7 +90,7 @@ public class UserController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> deleteUser(Authentication authentication,
-      @PathVariable("id") String id) throws NotFoundException, ForbiddenException {
+      @PathVariable("id") String id) throws ForbiddenException, NotFoundException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to delete user information of: {}",
         getNameFromToken(authentication), id);

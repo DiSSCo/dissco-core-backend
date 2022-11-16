@@ -80,16 +80,16 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
     }
 
     /**
-     * Setter for <code>public.new_user.orchid</code>.
+     * Setter for <code>public.new_user.orcid</code>.
      */
-    public void setOrchid(String value) {
+    public void setOrcid(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>public.new_user.orchid</code>.
+     * Getter for <code>public.new_user.orcid</code>.
      */
-    public String getOrchid() {
+    public String getOrcid() {
         return (String) get(4);
     }
 
@@ -180,7 +180,7 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
 
     @Override
     public Field<String> field5() {
-        return NewUser.NEW_USER.ORCHID;
+        return NewUser.NEW_USER.ORCID;
     }
 
     @Override
@@ -220,7 +220,7 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
 
     @Override
     public String component5() {
-        return getOrchid();
+        return getOrcid();
     }
 
     @Override
@@ -260,7 +260,7 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
 
     @Override
     public String value5() {
-        return getOrchid();
+        return getOrcid();
     }
 
     @Override
@@ -304,7 +304,7 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
 
     @Override
     public NewUserRecord value5(String value) {
-        setOrchid(value);
+        setOrcid(value);
         return this;
     }
 
@@ -353,14 +353,14 @@ public class NewUserRecord extends UpdatableRecordImpl<NewUserRecord> implements
     /**
      * Create a detached, initialised NewUserRecord
      */
-    public NewUserRecord(String id, String firstName, String lastName, String email, String orchid, String organization, Instant created, Instant updated) {
+    public NewUserRecord(String id, String firstName, String lastName, String email, String orcid, String organization, Instant created, Instant updated) {
         super(NewUser.NEW_USER);
 
         setId(id);
         setFirstName(firstName);
         setLastName(lastName);
         setEmail(email);
-        setOrchid(orchid);
+        setOrcid(orcid);
         setOrganization(organization);
         setCreated(created);
         setUpdated(updated);

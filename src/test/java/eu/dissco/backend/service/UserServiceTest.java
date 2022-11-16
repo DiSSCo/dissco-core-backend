@@ -154,7 +154,7 @@ class UserServiceTest {
   }
 
   @Test
-  void testDeleteUserNoUser() throws NotFoundException {
+  void testDeleteUserNoUser() {
     // Given
     given(repository.find(USER_ID_TOKEN)).willReturn(Optional.empty());
 

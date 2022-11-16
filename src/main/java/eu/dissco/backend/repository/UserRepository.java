@@ -3,7 +3,6 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
 import eu.dissco.backend.domain.User;
 import java.time.Instant;
@@ -26,7 +25,7 @@ public class UserRepository {
       "firstName", NEW_USER.FIRST_NAME,
       "lastName", NEW_USER.LAST_NAME,
       "email", NEW_USER.EMAIL,
-      "orchid", NEW_USER.ORCHID,
+      "orcid", NEW_USER.ORCID,
       "organization", NEW_USER.ORGANIZATION
   );
 
@@ -37,7 +36,7 @@ public class UserRepository {
         .set(NEW_USER.FIRST_NAME, requestUser.firstName())
         .set(NEW_USER.LAST_NAME, requestUser.lastName())
         .set(NEW_USER.EMAIL, requestUser.email())
-        .set(NEW_USER.ORCHID, requestUser.orchid())
+        .set(NEW_USER.ORCID, requestUser.orcid())
         .set(NEW_USER.ORGANIZATION, requestUser.organization())
         .set(NEW_USER.CREATED, createdTimestamp)
         .set(NEW_USER.UPDATED, createdTimestamp)
@@ -49,7 +48,7 @@ public class UserRepository {
         dbRecord.get(NEW_USER.FIRST_NAME),
         dbRecord.get(NEW_USER.LAST_NAME),
         dbRecord.get(NEW_USER.EMAIL),
-        dbRecord.get(NEW_USER.ORCHID),
+        dbRecord.get(NEW_USER.ORCID),
         dbRecord.get(NEW_USER.ORGANIZATION)
     );
   }

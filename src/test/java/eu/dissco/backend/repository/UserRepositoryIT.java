@@ -73,13 +73,13 @@ class UserRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(result.lastName()).isEqualTo("updatedLastName");
     assertThat(result.firstName()).isEqualTo("Test");
-    assertThat(result.orchid()).isEqualTo("updatedOrchid");
+    assertThat(result.orcid()).isEqualTo("updatedOrcid");
   }
 
   private JsonNode givenAttributes() {
     return MAPPER.createObjectNode()
         .put("lastName", "updatedLastName")
-        .put("orchid", "updatedOrchid")
+        .put("orcid", "updatedOrcid")
         .put("randomKey", "randomValue");
   }
 

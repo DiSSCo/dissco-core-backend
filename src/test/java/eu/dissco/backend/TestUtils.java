@@ -48,7 +48,7 @@ public class TestUtils {
         "User",
         "test@gmail.com",
         "https://orcid.org/0000-0002-XXXX-XXXX",
-        "https://ror.org/0566bfb96"
+        "https://ror.org/XXXXXXXXX"
     );
   }
 }
