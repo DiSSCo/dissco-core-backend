@@ -68,7 +68,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
     var updatedAttributes = givenAttributes();
 
     // When
-    var result = repository.updateUser(updatedAttributes);
+    var result = repository.updateUser(USER_ID_TOKEN, updatedAttributes);
 
     // Then
     assertThat(result.lastName()).isEqualTo("updatedLastName");

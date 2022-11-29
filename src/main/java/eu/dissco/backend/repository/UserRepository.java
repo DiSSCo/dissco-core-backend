@@ -57,7 +57,7 @@ public class UserRepository {
     return context.selectFrom(NEW_USER).where(NEW_USER.ID.eq(id)).fetchOptional(this::mapToUser);
   }
 
-  public User updateUser(JsonNode attributes) {
+  public User updateUser(String id, JsonNode attributes) {
     var updateQuery = context.update(NEW_USER)
         .set(NEW_USER.UPDATED, Instant.now());
     attributes.fields().forEachRemaining(field -> {
@@ -67,7 +67,7 @@ public class UserRepository {
         log.warn("Could not map field: {} on a user attribute", field.getKey());
       }
     });
-    return updateQuery.returning().fetchOne().map(this::mapToUser);
+    return updateQuery.where(NEW_USER.ID.eq(id)).returning().fetchOne().map(this::mapToUser);
   }
 
   public void deleteUser(String id) {

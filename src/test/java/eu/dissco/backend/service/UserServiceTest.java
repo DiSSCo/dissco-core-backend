@@ -102,10 +102,11 @@ class UserServiceTest {
   }
 
   @Test
-  void testUpdateUser() throws Exception{
+  void testUpdateUser() throws Exception {
     // Given
     given(repository.find(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
-    given(repository.updateUser(MAPPER.valueToTree(givenUser()))).willReturn(givenUser());
+    given(repository.updateUser(USER_ID_TOKEN, MAPPER.valueToTree(givenUser()))).willReturn(
+        givenUser());
 
     // When
     var result = service.updateUser(USER_ID_TOKEN, givenUserRequest());
