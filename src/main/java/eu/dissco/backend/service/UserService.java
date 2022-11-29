@@ -63,7 +63,7 @@ public class UserService {
     if (id.equals(request.data().id())) {
       var optionalUser = repository.find(id);
       if (optionalUser.isPresent()) {
-        var user = repository.updateUser(request.data().attributes());
+        var user = repository.updateUser(id, request.data().attributes());
         return new JsonApiData(id, TYPE, mapper.valueToTree(user));
       } else {
         log.warn("No user with id: {} is present in the database", id);

@@ -7,6 +7,5 @@ CREATE TABLE public.new_user (
 	organization text NULL,
 	created timestamptz NOT NULL,
 	updated timestamptz NOT NULL,
-	CONSTRAINT new_user_orcid_key UNIQUE (orcid),
 	CONSTRAINT new_user_pkey PRIMARY KEY (id)
 );
