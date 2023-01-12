@@ -52,9 +52,10 @@ public class AnnotationController {
   public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations(
       @PathVariable(value = "pageNumber", required = false) Integer pNumber,
       @PathVariable(value = "pageSize", required = false) Integer pSize) throws IOException {
-    log.info("Received get request for latest annotations");
     int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pNumber;
+    int pageSize = (pSize == null) ? 10 : pSize;
+
+    log.info("Received get request for latest paginated annotations. Page number: {}, page size {}", pNumber, pSize);
 
     var annotations = service.getLatestAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
@@ -77,11 +78,11 @@ public class AnnotationController {
       @PathVariable(value = "pageSize", required = false) Integer pSize) {
     log.info("Received get request for paginated annotations. Page number: {}, page size {}", pNumber, pSize);
     int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pNumber;
+    int pageSize = (pSize == null) ? 10 : pSize;
+
     var annotations = service.getAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
-
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)

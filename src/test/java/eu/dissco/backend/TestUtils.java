@@ -2,6 +2,7 @@ package eu.dissco.backend;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiWrapper;
@@ -51,4 +52,23 @@ public class TestUtils {
         "https://ror.org/XXXXXXXXX"
     );
   }
+
+  public static AnnotationResponse givenAnnotationResponse(){
+    return new AnnotationResponse(
+        "id",
+        1,
+        "type",
+        "motivation",
+        null,
+        null,
+        1,
+        "creator",
+        null,
+        null,
+        null,
+        null
+    );
+  }
+
+
 }
