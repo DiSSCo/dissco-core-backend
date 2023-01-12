@@ -21,12 +21,14 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public List<AnnotationResponse> getAnnotationsForUser(String userId) {
+  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber, int pageSize) {
     return context.select(NEW_ANNOTATION.asterisk())
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
+        .limit(pageSize)
+        .offset(pageNumber)
         .fetch(this::mapToAnnotation);
   }
 
@@ -37,6 +39,14 @@ public class AnnotationRepository {
         .where(NEW_ANNOTATION.ID.eq(id))
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
         .fetchOne(this::mapToAnnotation);
+  }
+
+  public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .limit(pageSize)
+        .offset(pageNumber)
+        .fetch(this::mapToAnnotation);
   }
 
   public AnnotationResponse getAnnotationVersion(String id, int version) {

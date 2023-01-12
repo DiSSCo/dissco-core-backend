@@ -37,6 +37,7 @@ public class AnnotationController {
 
   private final AnnotationService service;
 
+
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<AnnotationResponse> getAnnotation(
       @PathVariable("prefix") String prefix,
@@ -48,9 +49,14 @@ public class AnnotationController {
   }
 
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations() throws IOException {
+  public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations(
+      @PathVariable(value = "pageNumber", required = false) Integer pNumber,
+      @PathVariable(value = "pageSize", required = false) Integer pSize) throws IOException {
     log.info("Received get request for latest annotations");
-    var annotations = service.getLatestAnnotation();
+    int pageNumber = (pNumber == null) ? 0 : pNumber;
+    int pageSize = (pSize == null) ? 10 : pNumber;
+
+    var annotations = service.getLatestAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
 
@@ -64,6 +70,18 @@ public class AnnotationController {
     var annotation = service.getAnnotationVersion(id, version);
     return ResponseEntity.ok(annotation);
   }
+
+  @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<AnnotationResponse>> getAnnotations(
+      @PathVariable(value = "pageNumber", required = false) Integer pNumber,
+      @PathVariable(value = "pageSize", required = false) Integer pSize) {
+    log.info("Received get request for paginated annotations. Page number: {}, page size {}", pNumber, pSize);
+    int pageNumber = (pNumber == null) ? 0 : pNumber;
+    int pageSize = (pSize == null) ? 10 : pNumber;
+    var annotations = service.getAnnotations(pageNumber, pageSize);
+    return ResponseEntity.ok(annotations);
+  }
+
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
@@ -104,10 +122,15 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AnnotationResponse>> getAnnotationsForUser(
+      @PathVariable(name="pageNumber", required = false) Integer pNumber,
+      @PathVariable(name="pageSize", required = false) Integer pSize,
       Authentication authentication) {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
-    var annotations = service.getAnnotationsForUser(userId);
+    int pageNumber = (pNumber == null) ? 0 : pNumber;
+    int pageSize = (pSize == null) ? 10 : pNumber;
+
+    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
 

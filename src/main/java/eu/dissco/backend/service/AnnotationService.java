@@ -11,7 +11,6 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -39,12 +38,21 @@ public class AnnotationService {
     );
   }
 
-  public List<AnnotationResponse> getAnnotationsForUser(String userId) {
-    return repository.getAnnotationsForUser(userId);
+  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber, int pageSize) {
+    return repository.getAnnotationsForUser(userId, pageNumber, pageSize);
   }
 
   public AnnotationResponse getAnnotation(String id) {
     return repository.getAnnotation(id);
+  }
+
+  public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize){
+    return repository.getAnnotations(pageNumber, pageSize);
+  }
+
+  public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
+      throws IOException {
+    return elasticRepository.getLatestAnnotations(pageNumber, pageSize);
   }
 
   public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {

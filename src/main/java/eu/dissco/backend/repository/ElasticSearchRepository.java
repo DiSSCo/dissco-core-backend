@@ -20,7 +20,11 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
+  private static final String INDEX = "new-dissco";
+  private static final String FIELD_CREATED = "created";
+
   private final ElasticsearchClient client;
+
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
       throws IOException {
@@ -29,7 +33,7 @@ public class ElasticSearchRepository {
       offset = offset + (pageSize * (pageNumber - 1));
     }
     var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
+        .index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query)
         .from(offset)
         .size(pageSize)
@@ -41,9 +45,9 @@ public class ElasticSearchRepository {
 
   public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
     var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
+        .index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId ")
-        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .size(10)
         .build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
@@ -51,11 +55,29 @@ public class ElasticSearchRepository {
         .map(this::mapToDigitalSpecimen).toList();
   }
 
+  public List<AnnotationResponse> getLatestAnnotations (int pageNumber, int pageSize) throws IOException {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+
+    var searchRequest = new SearchRequest.Builder()
+        .index(INDEX)
+        .q("_exists_:annotation.type ")
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
+        .from(offset)
+        .size(pageSize)
+        .build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .map(this::mapToAnnotationResponse).toList();
+  }
+
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
     var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
+        .index(INDEX)
         .q("_exists_:annotation.type ")
-        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .size(10)
         .build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
@@ -69,7 +91,7 @@ public class ElasticSearchRepository {
         json.get("id").asText(),
         json.get("midsLevel").asInt(),
         json.get("version").asInt(),
-        Instant.ofEpochSecond(json.get("created").asLong()),
+        Instant.ofEpochSecond(json.get(FIELD_CREATED).asLong()),
         getText(digitalSpecimen, "type"),
         getText(digitalSpecimen, "physicalSpecimenId"),
         getText(digitalSpecimen, "physicalSpecimenIdType"),
@@ -95,7 +117,7 @@ public class ElasticSearchRepository {
         annotation.get("body"),
         annotation.get("preferenceScore").asInt(),
         getText(annotation, "creator"),
-        Instant.ofEpochSecond(annotation.get("created").asLong()),
+        Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong()),
         annotation.get("generator"),
         Instant.ofEpochSecond(annotation.get("generated").asLong()),
         null
