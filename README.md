@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/494444176.svg)](https://zenodo.org/badge/latestdoi/494444176)
+
 # Backend DiSSCo
 The backend provides the backend API's for the frontend.
 It handles the logic and preprocesses the items for frontend optimization.
