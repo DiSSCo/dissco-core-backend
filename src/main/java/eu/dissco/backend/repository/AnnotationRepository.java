@@ -1,14 +1,22 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
+import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static org.jooq.impl.DSL.val;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.JsonApiData;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.jooq.JSON;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
@@ -32,6 +40,19 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
+  public List<JsonApiData> getAnnotationsForUserWithName(String userId, int pageNumber, int pageSize){
+
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
+        .limit(pageSize)
+        .offset(pageNumber)
+        .fetch(this::mapToJsonApiData);
+  }
+
   public AnnotationResponse getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .distinctOn(NEW_ANNOTATION.ID)
@@ -41,6 +62,27 @@ public class AnnotationRepository {
         .fetchOne(this::mapToAnnotation);
   }
 
+  public JsonApiData getAnnotationWithSpeciesName(String id) {
+    log.info("incoming");
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
+        .fetchOne(this::mapToJsonApiData);
+  }
+
+  public JsonApiData getAnnotationsWithName(List<String> ids){
+    return context.select(NEW_ANNOTATION.asterisk())
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
+        .where(NEW_ANNOTATION.ID.in(ids))
+        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
+        .fetchOne(this::mapToJsonApiData);
+  }
+
   public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
@@ -48,6 +90,8 @@ public class AnnotationRepository {
         .offset(pageNumber)
         .fetch(this::mapToAnnotation);
   }
+
+
 
   public AnnotationResponse getAnnotationVersion(String id, int version) {
     return context.select(NEW_ANNOTATION.asterisk())
@@ -79,6 +123,32 @@ public class AnnotationRepository {
       return null;
     }
   }
+
+  private JsonApiData mapToJsonApiData(Record dbRecord){
+    ObjectNode dataNode = mapper.createObjectNode();
+    log.info(dbRecord.toString());
+    try {
+      dataNode.put("id", dbRecord.get(NEW_ANNOTATION.ID));
+      dataNode.put("version", dbRecord.get(NEW_ANNOTATION.VERSION));
+      dataNode.put("type", dbRecord.get(NEW_ANNOTATION.TYPE));
+      dataNode.put("motivation", dbRecord.get(NEW_ANNOTATION.MOTIVATION));
+      dataNode.set("target", mapper.readTree(dbRecord.get(NEW_ANNOTATION.TARGET_BODY).data()));
+      dataNode.set("body", mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()));
+      dataNode.put("preferenceScore", dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE));
+      dataNode.put("creator", dbRecord.get(NEW_ANNOTATION.CREATOR));
+      dataNode.put("created",String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
+      dataNode.put("created", String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
+      dataNode.set("generator", mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
+      dataNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
+      dataNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
+      //dataNode.put("specimenName", dbRecord.get(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME));
+    } catch (JsonProcessingException e) {
+      log.error("Failed to parse annotation body to Json", e);
+      return null;
+    }
+    return new JsonApiData(dbRecord.get(NEW_ANNOTATION.ID), dbRecord.get(NEW_ANNOTATION.TYPE), dataNode);
+  }
+
 
 
   public List<AnnotationResponse> getForTarget(String id) {

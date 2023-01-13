@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
@@ -37,7 +38,6 @@ public class AnnotationController {
 
   private final AnnotationService service;
 
-
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<AnnotationResponse> getAnnotation(
       @PathVariable("prefix") String prefix,
@@ -45,6 +45,16 @@ public class AnnotationController {
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotation: {}", id);
     var annotation = service.getAnnotation(id);
+    return ResponseEntity.ok(annotation);
+  }
+
+  @GetMapping(value = "/name/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getAnnotationWithSpeciesName(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for annotation: {}", id);
+    var annotation = service.getAnnotationWithSpeciesName(id);
     return ResponseEntity.ok(annotation);
   }
 

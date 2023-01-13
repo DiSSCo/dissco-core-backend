@@ -1,10 +1,14 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.JsonApiLinks;
+import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -24,6 +28,7 @@ public class AnnotationService {
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
+  private final ObjectMapper mapper;
 
   @NotNull
   private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
@@ -38,12 +43,23 @@ public class AnnotationService {
     );
   }
 
+
   public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber, int pageSize) {
     return repository.getAnnotationsForUser(userId, pageNumber, pageSize);
   }
 
   public AnnotationResponse getAnnotation(String id) {
     return repository.getAnnotation(id);
+  }
+
+  public JsonApiWrapper getAnnotationWithSpeciesName(String id){
+    log.info("querying repo");
+    JsonApiData dataNode = repository.getAnnotationWithSpeciesName(id);
+    log.info("repo queried");
+    String annotationLink = "https://hdl.handle.net/" + dataNode.attributes().get("id").asText();
+    JsonApiLinks linkNode = new JsonApiLinks(annotationLink);
+
+    return new JsonApiWrapper(dataNode, linkNode);
   }
 
   public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize){
@@ -122,4 +138,5 @@ public class AnnotationService {
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
     return elasticRepository.getLatestAnnotation();
   }
+
 }

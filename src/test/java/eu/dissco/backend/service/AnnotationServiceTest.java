@@ -4,6 +4,9 @@ import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -28,10 +31,14 @@ class AnnotationServiceTest {
   @Mock
   private ElasticSearchRepository elasticRepository;
   private AnnotationService service;
+  private ObjectMapper mapper;
 
   @BeforeEach
   void setup(){
-    service = new AnnotationService(repository, annotationClient, elasticRepository);
+    mapper = new ObjectMapper().findAndRegisterModules();
+    mapper.setDefaultPropertyInclusion(Include.ALWAYS);
+
+    service = new AnnotationService(repository, annotationClient, elasticRepository, mapper);
   }
 
   @Test
@@ -85,6 +92,19 @@ class AnnotationServiceTest {
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testAnnotationNode() {
+    // Given
+    String id = "123";
+    AnnotationResponse annotation = givenAnnotationResponse();
+    given(repository.getAnnotation(id)).willReturn(annotation);
+
+    // When
+    //service.getAnnotationAndSpeciesName(id);
+
+
   }
 
 }
