@@ -2,21 +2,20 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.val;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
-import org.jooq.JSON;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
@@ -40,18 +39,26 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
-  public List<JsonApiData> getAnnotationsForUserWithName(String userId, int pageNumber, int pageSize){
+  public Map<Integer, List<JsonApiData>>  getAnnotationsForUserWithCount (String userId, int pageNumber, int pageSize) {
+    int totalRecords = context.selectCount()
+        .from(NEW_ANNOTATION)
+        .fetchOne(0, int.class);
+    Integer pageCount = totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
 
-    return context.select(NEW_ANNOTATION.asterisk())
+    var annotations = context.select(NEW_ANNOTATION.asterisk())
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
-        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
         .limit(pageSize)
         .offset(pageNumber)
         .fetch(this::mapToJsonApiData);
+    HashMap<Integer, List<JsonApiData>> pair = new HashMap<>();
+
+    pair.put(pageCount, annotations);
+    return pair;
   }
+
 
   public AnnotationResponse getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
@@ -63,22 +70,14 @@ public class AnnotationRepository {
   }
 
   public JsonApiData getAnnotationWithSpeciesName(String id) {
+
+    // This doesn't work because we don't know if we need to query the digital_specimen table or the media_object table
     log.info("incoming");
     return context.select(NEW_ANNOTATION.asterisk())
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
         .where(NEW_ANNOTATION.ID.eq(id))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
-        .fetchOne(this::mapToJsonApiData);
-  }
-
-  public JsonApiData getAnnotationsWithName(List<String> ids){
-    return context.select(NEW_ANNOTATION.asterisk())
-        .distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION)
-        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
-        .where(NEW_ANNOTATION.ID.in(ids))
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
         .fetchOne(this::mapToJsonApiData);
   }
@@ -91,6 +90,23 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
+  public Map<Integer, List<JsonApiData>> getAnnotationsWithCount(int pageNumber, int pageSize) {
+    int totalRecords = context.selectCount()
+        .from(NEW_ANNOTATION)
+        .fetchOne(0, int.class);
+    Integer pageCount = totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
+
+    var annotations = context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .limit(pageSize)
+        .offset(pageNumber)
+        .fetch(this::mapToJsonApiData);
+
+    HashMap<Integer, List<JsonApiData>> pair = new HashMap<>();
+
+    pair.put(pageCount, annotations);
+    return pair;
+  }
 
 
   public AnnotationResponse getAnnotationVersion(String id, int version) {

@@ -53,7 +53,7 @@ public class AnnotationController {
       @PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
-    log.info("Received get request for annotation: {}", id);
+    log.info("Received get request for annotation (with target name): {}", id);
     var annotation = service.getAnnotationWithSpeciesName(id);
     return ResponseEntity.ok(annotation);
   }
