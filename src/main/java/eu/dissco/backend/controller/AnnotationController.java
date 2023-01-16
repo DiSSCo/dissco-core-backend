@@ -63,6 +63,19 @@ public class AnnotationController {
     var annotations = service.getLatestAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
+//id": "20.5000.1025/9C9-C2L-UF9"
+  @GetMapping(value = "/latest/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiMetaWrapper> getLatestAnnotationsJsonResponse(
+      @RequestParam(value = "pageNumber", required = false) Integer pNumber,
+      @RequestParam(value = "pageSize", required = false) Integer pSize) throws IOException {
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pNumber < 0) ? 10 : pSize;
+
+    log.info("Received get request for latest paginated annotations. Page number: {}, page size {}", pNumber, pSize);
+    String path = "sandbox.dissco.tech/api/v1/annotations/latest/json";
+    var annotations = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
+    return ResponseEntity.ok(annotations);
+  }
 
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<AnnotationResponse> getAnnotation(
@@ -93,7 +106,7 @@ public class AnnotationController {
     log.info("Received get request for json paginated annotations. Page number: {}, page size {}", pNumber, pSize);
     int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
     int pageSize = (pSize == null || pNumber < 0) ? 10 : pSize;
-    String path = "sandbox.dissco.tech/api/v1/annotations/all/json/";
+    String path = "sandbox.dissco.tech/api/v1/annotations/all/json";
     var annotations = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }
@@ -160,7 +173,7 @@ public class AnnotationController {
     log.info("Received get request to show all annotations for user: {}", userId);
     int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
     int pageSize = (pSize == null || pSize < 0) ? 10 : pNumber;
-    String path = "sandbox.dissco.tech/api/v1/annotations/creator/json/";
+    String path = "sandbox.dissco.tech/api/v1/annotations/creator/json";
     var annotations = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }

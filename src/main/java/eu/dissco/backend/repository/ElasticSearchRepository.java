@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.JsonApiData;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -73,6 +74,25 @@ public class ElasticSearchRepository {
         .map(this::mapToAnnotationResponse).toList();
   }
 
+  public List<JsonApiData> getLatestAnnotationsJsonResponse(int pageNumber, int pageSize)
+      throws IOException {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+
+    var searchRequest = new SearchRequest.Builder()
+        .index(INDEX)
+        .q("_exists_:annotation.type ")
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
+        .from(offset)
+        .size(pageSize)
+        .build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .map(this::mapToJsonApiData).toList();
+  }
+
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
     var searchRequest = new SearchRequest.Builder()
         .index(INDEX)
@@ -122,6 +142,12 @@ public class ElasticSearchRepository {
         Instant.ofEpochSecond(annotation.get("generated").asLong()),
         null
     );
+  }
+
+  private JsonApiData mapToJsonApiData(ObjectNode json){
+    ObjectNode annotation = (ObjectNode) json.get("annotation");
+    annotation.put("id", json.get("id").asText());
+    return new JsonApiData(json.get("id").asText(), annotation.get("type").asText(), annotation);
   }
 
   private String getText(JsonNode digitalSpecimen, String element) {
