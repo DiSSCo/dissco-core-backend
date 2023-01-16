@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -52,10 +53,10 @@ public class AnnotationController {
 
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations(
-      @PathVariable(value = "pageNumber", required = false) Integer pNumber,
-      @PathVariable(value = "pageSize", required = false) Integer pSize) throws IOException {
-    int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pSize;
+      @RequestParam(value = "pageNumber", required = false) Integer pNumber,
+      @RequestParam(value = "pageSize", required = false) Integer pSize) throws IOException {
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pNumber < 0) ? 10 : pSize;
 
     log.info("Received get request for latest paginated annotations. Page number: {}, page size {}", pNumber, pSize);
 
@@ -76,22 +77,22 @@ public class AnnotationController {
 
   @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AnnotationResponse>> getAnnotations(
-      @PathVariable(value = "pageNumber", required = false) Integer pNumber,
-      @PathVariable(value = "pageSize", required = false) Integer pSize) {
+      @RequestParam(value = "pageNumber", required = false) Integer pNumber,
+      @RequestParam(value = "pageSize", required = false) Integer pSize) {
     log.info("Received get request for paginated annotations. Page number: {}, page size {}", pNumber, pSize);
-    int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pSize;
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pNumber < 0) ? 10 : pSize;
     var annotations = service.getAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
 
   @GetMapping(value = "/all/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getAnnotationsJsonResponse(
-      @PathVariable(value = "pageNumber", required = false) Integer pNumber,
-      @PathVariable(value = "pageSize", required = false) Integer pSize) {
+      @RequestParam(value = "pageNumber", required = false) Integer pNumber,
+      @RequestParam(value = "pageSize", required = false) Integer pSize) {
     log.info("Received get request for json paginated annotations. Page number: {}, page size {}", pNumber, pSize);
-    int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pSize;
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pNumber < 0) ? 10 : pSize;
     String path = "sandbox.dissco.tech/api/v1/annotations/all/json/";
     var annotations = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
@@ -136,13 +137,13 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AnnotationResponse>> getAnnotationsForUser(
-      @PathVariable(name="pageNumber", required = false) Integer pNumber,
-      @PathVariable(name="pageSize", required = false) Integer pSize,
+      @RequestParam(name="pageNumber", required = false) Integer pNumber,
+      @RequestParam(name="pageSize", required = false) Integer pSize,
       Authentication authentication) {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
-    int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pNumber;
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pNumber < 0) ? 10 : pNumber;
 
     var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
@@ -152,13 +153,13 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getAnnotationsForUserJsonResponse(
-      @PathVariable(name="pageNumber", required = false) Integer pNumber,
-      @PathVariable(name="pageSize", required = false) Integer pSize,
+      @RequestParam(name="pageNumber", required = false) Integer pNumber,
+      @RequestParam(name="pageSize", required = false) Integer pSize,
       Authentication authentication) {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
-    int pageNumber = (pNumber == null) ? 0 : pNumber;
-    int pageSize = (pSize == null) ? 10 : pNumber;
+    int pageNumber = (pNumber == null || pNumber < 0) ? 0 : pNumber;
+    int pageSize = (pSize == null || pSize < 0) ? 10 : pNumber;
     String path = "sandbox.dissco.tech/api/v1/annotations/creator/json/";
     var annotations = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);

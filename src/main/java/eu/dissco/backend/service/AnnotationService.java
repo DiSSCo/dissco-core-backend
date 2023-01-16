@@ -12,6 +12,7 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
+import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
@@ -60,9 +61,19 @@ public class AnnotationService {
     var dataNode = annotations.stream()
         .map(this::mapAnnotationToJsonDataNode)
         .toList();
-    JsonApiLinks linksNode = new JsonApiLinks(path + "?pageNumber="+pageNumber+"&pageSize="+pageSize);
-    JsonApiMeta metaNode = new JsonApiMeta(repository.getAnnotationsCountForUser(userId, pageSize));
+    int totalPageCount = repository.getAnnotationsCountForUser(userId, pageSize);
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
     return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
+  }
+
+  private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize, int totalPageCount ){
+    String self = path + "?pageNumber="+pageNumber+"&pageSize="+pageSize;
+    String first = path + "?pageNumber=0&pageSize="+pageSize;
+    String last = path + "?pageNumber="+totalPageCount+"&pageSize="+pageSize;
+    String prev = (pageNumber == 0) ? null : path + "?pageNumber="+(pageNumber-1)+"&pageSize="+pageSize;
+    String next = (pageNumber == totalPageCount) ? null : path + "?pageNumber="+(pageNumber+1)+"&pageSize="+pageSize;
+    return new JsonApiLinksFull(self, first, last, prev, next);
   }
 
   private JsonApiData mapAnnotationToJsonDataNode(AnnotationResponse annotation) {
@@ -99,8 +110,9 @@ public class AnnotationService {
     var dataNode = annotations.stream()
         .map(this::mapAnnotationToJsonDataNode)
         .toList();
-    JsonApiLinks linksNode = new JsonApiLinks(path + "?pageNumber="+pageNumber+"&pageSize="+pageSize);
-    JsonApiMeta metaNode = new JsonApiMeta(repository.getAnnotationsCountGlobal(pageSize));
+    int totalPageCount = repository.getAnnotationsCountGlobal(pageSize);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
     return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
   }
 
