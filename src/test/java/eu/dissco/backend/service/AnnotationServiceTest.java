@@ -1,5 +1,7 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -61,6 +63,39 @@ class AnnotationServiceTest {
   }
 
   @Test
+  void testGetAnnotationsForUserJsonResponse(){
+    // Given
+    String userId = "userId";
+    int pageNumber = 1;
+    int pageSize = 15;
+    int totalPageCount = 100;
+    String path = "sandbox.dissco.tech/api/v1/annotations/creator/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
+    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    given(repository.getAnnotationsCountForUser(userId, pageSize)).willReturn(totalPageCount);
+
+    // When
+    var receivedResponse = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize, path);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetAnnotation(){
+    // Given
+    String id = "id";
+    var expectedResponse = givenAnnotationResponse();
+    given(repository.getAnnotation(id)).willReturn(expectedResponse);
+
+    // When
+    var receivedResponse = service.getAnnotation(id);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
   void testGetAnnotations(){
     int pageNumber = 1;
     int pageSize = 15;
@@ -72,6 +107,23 @@ class AnnotationServiceTest {
 
     // When
     var receivedResponse = service.getAnnotations(pageNumber, pageSize);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetAnnotationsJsonResponse(){
+    int pageNumber = 1;
+    int pageSize = 15;
+    int totalPageCount = 100;
+    String path = "sandbox.dissco.tech/api/v1/annotations/all/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
+
+    // When
+    var receivedResponse = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -95,16 +147,20 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testAnnotationNode() {
-    // Given
-    String id = "123";
-    AnnotationResponse annotation = givenAnnotationResponse();
-    given(repository.getAnnotation(id)).willReturn(annotation);
+  void testGetLatestAnnotationsJsonResponse() throws IOException {
+    int pageNumber = 1;
+    int pageSize = 15;
+    int totalPageCount = 100;
+    String path = "sandbox.dissco.tech/api/v1/annotations/latest/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
 
     // When
-    //service.getAnnotationAndSpeciesName(id);
+    var receivedResponse = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
 
-
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
 }

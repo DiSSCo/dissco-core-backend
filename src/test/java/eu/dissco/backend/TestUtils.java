@@ -1,12 +1,20 @@
 package eu.dissco.backend;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
+import eu.dissco.backend.domain.JsonApiLinksFull;
+import eu.dissco.backend.domain.JsonApiMeta;
+import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 public class TestUtils {
 
@@ -57,7 +65,7 @@ public class TestUtils {
     return new AnnotationResponse(
         "id",
         1,
-        "type",
+        "Annotation",
         "motivation",
         null,
         null,
@@ -68,6 +76,35 @@ public class TestUtils {
         null,
         null
     );
+  }
+
+  public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount){
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
+    var dataNodes = givenAnnotationJsonApiData(pageSize);
+    return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
+  }
+
+  public static List<JsonApiData> givenAnnotationJsonApiData(int pageSize){
+    List<JsonApiData> dataNodes = new ArrayList<>();
+    for (int i = 0; i<pageSize; i++){
+      dataNodes.add(new JsonApiData("id", "Annotation", MAPPER.valueToTree(givenAnnotationResponse())));
+    }
+    return dataNodes;
+  }
+
+  private static JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
+      int totalPageCount) {
+    String pn = "?pageNumber=";
+    String ps = "&pageSize=";
+    String self = path + pn + pageNumber + ps + pageSize;
+    String first = path + "?pageNumber=0&pageSize=" + pageSize;
+    String last = path + pn + totalPageCount + ps + pageSize;
+    String prev = (pageNumber == 0) ? null
+        : path + pn + (pageNumber - 1) + ps + pageSize;
+    String next = (pageNumber >= totalPageCount) ? null
+        : path + pn + (pageNumber + 1) + ps + pageSize;
+    return new JsonApiLinksFull(self, first, last, prev, next);
   }
 
 

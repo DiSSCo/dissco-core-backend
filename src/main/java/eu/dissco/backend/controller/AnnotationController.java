@@ -63,7 +63,7 @@ public class AnnotationController {
     var annotations = service.getLatestAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }
-//id": "20.5000.1025/9C9-C2L-UF9"
+
   @GetMapping(value = "/latest/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getLatestAnnotationsJsonResponse(
       @RequestParam(value = "pageNumber", required = false) Integer pNumber,
