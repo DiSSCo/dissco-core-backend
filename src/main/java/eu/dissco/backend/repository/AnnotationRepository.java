@@ -2,14 +2,13 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.val;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
+import jakarta.json.Json;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +38,8 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
-  public Map<Integer, List<JsonApiData>>  getAnnotationsForUserWithCount (String userId, int pageNumber, int pageSize) {
-    int totalRecords = context.selectCount()
-        .from(NEW_ANNOTATION)
-        .fetchOne(0, int.class);
-    Integer pageCount = totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
-
-    var annotations = context.select(NEW_ANNOTATION.asterisk())
+  public List<JsonApiData> getAnnotationsForUserJsonResponse(String userId, int pageNumber, int pageSize) {
+    return context.select(NEW_ANNOTATION.asterisk())
         .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
@@ -53,12 +47,15 @@ public class AnnotationRepository {
         .limit(pageSize)
         .offset(pageNumber)
         .fetch(this::mapToJsonApiData);
-    HashMap<Integer, List<JsonApiData>> pair = new HashMap<>();
-
-    pair.put(pageCount, annotations);
-    return pair;
   }
 
+  public Integer getAnnotationsCountForUser(String userId, int pageSize){
+    int totalRecords = context.selectCount()
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .fetchOne(0, int.class);
+    return totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
+  }
 
   public AnnotationResponse getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
@@ -69,19 +66,6 @@ public class AnnotationRepository {
         .fetchOne(this::mapToAnnotation);
   }
 
-  public JsonApiData getAnnotationWithSpeciesName(String id) {
-
-    // This doesn't work because we don't know if we need to query the digital_specimen table or the media_object table
-    log.info("incoming");
-    return context.select(NEW_ANNOTATION.asterisk())
-        .distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION)
-        .join(NEW_DIGITAL_SPECIMEN).on((NEW_ANNOTATION.TARGET_ID).contains(NEW_DIGITAL_SPECIMEN.ID))
-        .where(NEW_ANNOTATION.ID.eq(id))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
-        .fetchOne(this::mapToJsonApiData);
-  }
-
   public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
@@ -90,24 +74,12 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
-  public Map<Integer, List<JsonApiData>> getAnnotationsWithCount(int pageNumber, int pageSize) {
+  public Integer getAnnotationsCountGlobal(int pageSize){
     int totalRecords = context.selectCount()
         .from(NEW_ANNOTATION)
         .fetchOne(0, int.class);
-    Integer pageCount = totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
-
-    var annotations = context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .limit(pageSize)
-        .offset(pageNumber)
-        .fetch(this::mapToJsonApiData);
-
-    HashMap<Integer, List<JsonApiData>> pair = new HashMap<>();
-
-    pair.put(pageCount, annotations);
-    return pair;
+    return totalRecords/pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
   }
-
 
   public AnnotationResponse getAnnotationVersion(String id, int version) {
     return context.select(NEW_ANNOTATION.asterisk())
@@ -157,15 +129,12 @@ public class AnnotationRepository {
       dataNode.set("generator", mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
       dataNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
       dataNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
-      //dataNode.put("specimenName", dbRecord.get(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME));
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
       return null;
     }
     return new JsonApiData(dbRecord.get(NEW_ANNOTATION.ID), dbRecord.get(NEW_ANNOTATION.TYPE), dataNode);
   }
-
-
 
   public List<AnnotationResponse> getForTarget(String id) {
     return context.select(NEW_ANNOTATION.asterisk())

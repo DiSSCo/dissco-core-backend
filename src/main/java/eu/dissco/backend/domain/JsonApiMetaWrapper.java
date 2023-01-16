@@ -1,5 +1,7 @@
 package eu.dissco.backend.domain;
 
-public record JsonApiMetaWrapper (JsonApiData data, JsonApiLinks links, JsonApiMeta pageCount) {
+import java.util.List;
+
+public record JsonApiMetaWrapper (List<JsonApiData> data, JsonApiLinks links, JsonApiMeta meta) {
 
 }

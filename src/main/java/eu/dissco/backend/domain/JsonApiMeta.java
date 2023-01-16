@@ -1,5 +1,7 @@
 package eu.dissco.backend.domain;
 
-public record JsonApiMeta(int totalPages) {
+import com.fasterxml.jackson.databind.JsonNode;
+
+public record JsonApiMeta(int pageCount) {
 
 }
