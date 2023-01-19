@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
@@ -22,6 +23,10 @@ public class DigitalMediaObjectService {
 
   public DigitalMediaObject getDigitalMediaById(String id) {
     return repository.getLatestDigitalMediaById(id);
+  }
+
+  public List<JsonApiData> getDigitalMediaByIdJsonResponse(String id){
+    return repository.getLatestDigitalMediaObjectByIdJsonResponse(id);
   }
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {

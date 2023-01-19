@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
@@ -49,6 +50,7 @@ public class DigitalMediaObjectController {
     return ResponseEntity.ok(digitalMedia);
   }
 
+
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DigitalMediaObject> getMultiMediaById(@PathVariable("prefix") String prefix,
@@ -56,6 +58,16 @@ public class DigitalMediaObjectController {
     var id = prefix + '/' + postfix;
     log.info("Received get request for multiMedia with id: {}", id);
     var multiMedia = service.getDigitalMediaById(id);
+    return ResponseEntity.ok(multiMedia);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/json/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<JsonApiData>> getMultiMediaByIdJsonResponse(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for multiMedia with id: {}", id);
+    var multiMedia = service.getDigitalMediaByIdJsonResponse(id);
     return ResponseEntity.ok(multiMedia);
   }
 
