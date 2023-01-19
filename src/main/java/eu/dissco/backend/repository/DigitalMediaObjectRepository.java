@@ -36,6 +36,7 @@ public class DigitalMediaObjectRepository {
 
   public List<JsonApiData> getLatestDigitalMediaObjectByIdJsonResponse(String id){
 
+    log.info("media id: " + id);
     Field<Integer> maxSpeciesVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxSpeciesVersion");
 
     var specimenRecentVersions = context
@@ -56,8 +57,11 @@ public class DigitalMediaObjectRepository {
         .join(specimenRecentVersions)
         .on(NEW_DIGITAL_SPECIMEN.ID.eq(specimenRecentVersions.field(NEW_DIGITAL_SPECIMEN.ID)))
         .and(NEW_DIGITAL_SPECIMEN.VERSION.eq(specimenRecentVersions.field(maxSpeciesVersion)))
-        .join(mediaRecentVersions)
-        .on(NEW_DIGITAL_SPECIMEN.ID.eq(mediaRecentVersions.field(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID)))
+        .join(NEW_DIGITAL_MEDIA_OBJECT)
+        .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
+        .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
+        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
+        .limit(1)
         .fetch(this::mapToJsonApiData);
   }
 
@@ -130,7 +134,6 @@ public class DigitalMediaObjectRepository {
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
-
     Field<Integer> maxVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxVersion");
 
     var specimenRecentVersions = context
