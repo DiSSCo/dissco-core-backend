@@ -38,6 +38,16 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<DigitalMediaObject>> getDigitalMediaObjectsJsonResponse(
+      @RequestParam(defaultValue = "1") int pageNumber,
+      @RequestParam(defaultValue = "10") int pageSize) {
+    log.info("Received get request for digital media objects");
+    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize);
+    return ResponseEntity.ok(digitalMedia);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DigitalMediaObject> getMultiMediaById(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) {

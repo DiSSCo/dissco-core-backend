@@ -1,22 +1,34 @@
 package eu.dissco.backend.controller;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.mockito.BDDMockito.given;
 
 
+import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
+import eu.dissco.backend.service.UserService;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.AccessToken;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +37,13 @@ class AnnotationControllerTest {
 
   @Mock
   private AnnotationService service;
+  @Mock
+  private KeycloakPrincipal<KeycloakSecurityContext> principal;
+  @Mock
+  private KeycloakSecurityContext securityContext;
+  @Mock
+  private AccessToken accessToken;
+  private Authentication authentication;
   private AnnotationController controller;
 
   @BeforeEach
@@ -60,27 +79,6 @@ class AnnotationControllerTest {
 
     // When
     var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetLatestAnnotationsDefaultPagination() throws IOException {
-    // Given
-    int pageNumberDefault = 0;
-    int pageSizeDefault = 10;
-    List<AnnotationResponse> expectedResponseList = new ArrayList<>();
-    int annotationCount = 10;
-    for (int i = 0; i < annotationCount; i++){
-      expectedResponseList.add(givenAnnotationResponse());
-    }
-
-    given(service.getLatestAnnotations(pageNumberDefault, pageSizeDefault)).willReturn(expectedResponseList);
-    var expectedResponse = ResponseEntity.ok(expectedResponseList);
-
-    // When
-    var receivedResponse = controller.getLatestAnnotations(null, null);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -158,24 +156,107 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsDefault(){
+  void testCreateAnnotation(){
     // Given
-    int pageNumberDefault = 0;
-    int pageSizeDefault = 10;
-    List<AnnotationResponse> expectedResponseList = new ArrayList<>();
-    int annotationCount = 10;
-    for (int i = 0; i < annotationCount; i++){
-      expectedResponseList.add(givenAnnotationResponse());
-    }
-
-    given(service.getAnnotations(pageNumberDefault, pageSizeDefault)).willReturn(expectedResponseList);
-    var expectedResponse = ResponseEntity.ok(expectedResponseList);
+    givenAuthentication(USER_ID_TOKEN);
+    AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
+    given(service.persistAnnotation(request, USER_ID_TOKEN)).willReturn(givenAnnotationResponse());
 
     // When
-    var receivedResponse = controller.getAnnotations(null, null);
+    var receivedResponse = controller.createAnnotation(authentication, request);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
   }
+
+  @Test
+  void testUpdateAnnotation() throws NoAnnotationFoundException {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    String prefix = "20.5000.1025";
+    String postfix = "ABC-123-DEF";
+    AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
+    // When
+    var receivedResponse = controller.updateAnnotation(authentication, request, prefix, postfix);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetAnnotationsForUser(){
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    int pageNumber = 0;
+    int pageSize = 10;
+    List<AnnotationResponse> annotations = Collections.nCopies(pageSize, givenAnnotationResponse());
+    given(service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize)).willReturn(annotations);
+
+    // When
+    var receivedResponse  = controller.getAnnotationsForUser(pageNumber, pageSize, authentication);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(receivedResponse.getBody()).isEqualTo(annotations);
+  }
+
+  @Test
+  void testGetAnnotationsForUserJsonResponse(){
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+
+    // When
+    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, authentication);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetAnnotationsByVersion(){
+    // When
+    var receivedResponse = controller.getAnnotationByVersion("1", "1");
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testDeleteAnnotationSuccess() throws NoAnnotationFoundException {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    String prefix = "20.5000.1025";
+    String postfix = "ABC-123-DEF";
+    given(service.deleteAnnotation(prefix, postfix, USER_ID_TOKEN)).willReturn(true);
+
+    // When
+    var receivedResponse = controller.deleteAnnotation(authentication, prefix, postfix);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+  }
+
+  @Test
+  void testDeleteAnnotationFailure() throws NoAnnotationFoundException {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    String prefix = "20.5000.1025";
+    String postfix = "ABC-123-DEF";
+    given(service.deleteAnnotation(prefix, postfix, USER_ID_TOKEN)).willReturn(false);
+
+    // When
+    var receivedResponse = controller.deleteAnnotation(authentication, prefix, postfix);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  private void givenAuthentication(String userId) {
+    authentication = new TestingAuthenticationToken(principal, null);
+    given(principal.getKeycloakSecurityContext()).willReturn(securityContext);
+    given(securityContext.getToken()).willReturn(accessToken);
+    given(accessToken.getSubject()).willReturn(userId);
+  }
+
 
 }

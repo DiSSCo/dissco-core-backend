@@ -4,6 +4,8 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.TotalHits;
+import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
@@ -103,6 +105,42 @@ public class ElasticSearchRepository {
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
         .map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
+  }
+
+  //k port-forward service/kibana-kibana 5601, leucine qL
+  //"_exists_:annotation.type " AND annotation.target.id:"abc"
+  //https://www.elastic.co/guide/en/elasticsearch/reference/8.6/query-dsl-query-string-query.html#query-string-syntax
+
+
+  public List<ObjectNode> getLatestSpecimenName(String digitalSpecimenId) throws IOException {
+    String dsid = "https://hdl.handle.net/20.5000.1025/XN2-36P-RLF";
+    log.info("searching for " + dsid);
+
+    var searchRequest = new SearchRequest.Builder()
+        .index(INDEX)
+        .query(q-> q
+            .match(t -> t
+                .field("id")
+                .query(digitalSpecimenId)
+        ))
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
+        .size(10)
+        .build();
+
+    var response = client.search(searchRequest, ObjectNode.class);
+    TotalHits total = response.hits().total();
+    boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
+
+    if (isExactResult) {
+      log.info("There are " + total.value() + " results");
+    } else {
+      log.info("There are more than " + total.value() + " results");
+    }
+
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
+        .map(Hit::source)
+        .toList();
+
   }
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {

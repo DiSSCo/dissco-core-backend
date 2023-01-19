@@ -2,17 +2,14 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static org.jooq.impl.DSL.select;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
-import jakarta.json.Json;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -134,7 +131,6 @@ public class AnnotationRepository {
       attributeNode.set("body", mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()));
       attributeNode.put("preferenceScore", dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE));
       attributeNode.put("creator", dbRecord.get(NEW_ANNOTATION.CREATOR));
-      attributeNode.put("created",String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
       attributeNode.put("created", String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
       attributeNode.set("generator", mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
       attributeNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
@@ -172,4 +168,5 @@ public class AnnotationRepository {
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc())
         .fetch().size();
   }
+
 }

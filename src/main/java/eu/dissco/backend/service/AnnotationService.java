@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -92,7 +93,7 @@ public class AnnotationService {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
     String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + "?pageNumber=0&pageSize=" + pageSize;
+    String first = path + pn + "0" + ps + pageSize;
     String last = path + pn + totalPageCount + ps + pageSize;
     String prev = (pageNumber == 0) ? null
         : path + pn + (pageNumber - 1) + ps + pageSize;
@@ -104,6 +105,7 @@ public class AnnotationService {
   public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {
     var event = mapAnnotationRequestToEvent(annotation, userId);
     var response = annotationClient.postAnnotation(event);
+    log.info(response.toString());
     if (response != null) {
       return mapResponseToAnnotationResponse(response);
     }
@@ -153,6 +155,10 @@ public class AnnotationService {
       throw new NoAnnotationFoundException(
           "No active annotation with id: " + id + " was found for user");
     }
+  }
+
+  public List<ObjectNode> getSpecimenName() throws IOException {
+    return elasticRepository.getLatestSpecimenName("20.5000.1025/XN2-36P-RLF");
   }
 
   public AnnotationResponse updateAnnotation(String id, AnnotationRequest annotation, String

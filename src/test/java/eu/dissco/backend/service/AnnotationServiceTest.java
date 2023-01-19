@@ -1,10 +1,17 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenAnnotationEvent;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
+import static eu.dissco.backend.TestUtils.givenAnnotationRequest;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,6 +21,9 @@ import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +45,8 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   private AnnotationService service;
   private ObjectMapper mapper;
+  private MockedStatic<Instant> mockedStatic;
+  private Instant instant;
 
   @BeforeEach
   void setup(){
