@@ -157,9 +157,6 @@ public class AnnotationService {
     }
   }
 
-  public List<ObjectNode> getSpecimenName() throws IOException {
-    return elasticRepository.getLatestSpecimenName("20.5000.1025/XN2-36P-RLF");
-  }
 
   public AnnotationResponse updateAnnotation(String id, AnnotationRequest annotation, String
       userId)

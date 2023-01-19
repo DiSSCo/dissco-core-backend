@@ -104,12 +104,6 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @GetMapping(value = "/name")
-  public ResponseEntity<List<ObjectNode>> getSpecimenName() throws IOException {
-    log.info("searching for name");
-    return ResponseEntity.ok(service.getSpecimenName());
-  }
-
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,

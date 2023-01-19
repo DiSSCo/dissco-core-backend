@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +40,15 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<DigitalMediaObject>> getDigitalMediaObjectsJsonResponse(
+  public ResponseEntity<JsonApiMetaWrapper> getDigitalMediaObjectsNameJsonResponse(
       @RequestParam(defaultValue = "1") int pageNumber,
       @RequestParam(defaultValue = "10") int pageSize) {
-    log.info("Received get request for digital media objects");
-    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize);
+    log.info("Received get request for digital media objects in json format");
+    String path = "sandbox.dissco.tech/api/v1/digitalmedia/name/json";
+    var digitalMedia = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);
     return ResponseEntity.ok(digitalMedia);
   }
+
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)

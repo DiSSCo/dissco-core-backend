@@ -1,5 +1,8 @@
 package eu.dissco.backend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiData;
@@ -7,13 +10,17 @@ import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
+import jakarta.json.Json;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DigitalMediaObjectService {
 
   private final DigitalMediaObjectRepository repository;
@@ -55,7 +62,7 @@ public class DigitalMediaObjectService {
     var linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
     var metaNode = new JsonApiMeta(totalPageCount);
 
-    return null;
+    return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
   }
 
   private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
