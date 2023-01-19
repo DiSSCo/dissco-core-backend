@@ -65,7 +65,6 @@ public class SpecimenRepository {
     }
   }
 
-
   public DigitalSpecimen getSpecimenByVersion(String id, int version) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)

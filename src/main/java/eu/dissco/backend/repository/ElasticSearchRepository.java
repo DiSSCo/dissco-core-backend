@@ -4,8 +4,6 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.search.TotalHits;
-import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
@@ -24,6 +22,7 @@ import org.springframework.stereotype.Repository;
 public class ElasticSearchRepository {
 
   private static final String INDEX = "new-dissco";
+  private static final String ANNOTATION_QUERY = "_exists_:annotation.type ";
   private static final String FIELD_CREATED = "created";
 
   private final ElasticsearchClient client;
@@ -66,7 +65,7 @@ public class ElasticSearchRepository {
 
     var searchRequest = new SearchRequest.Builder()
         .index(INDEX)
-        .q("_exists_:annotation.type ")
+        .q(ANNOTATION_QUERY)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .from(offset)
         .size(pageSize)
@@ -85,7 +84,7 @@ public class ElasticSearchRepository {
 
     var searchRequest = new SearchRequest.Builder()
         .index(INDEX)
-        .q("_exists_:annotation.type ")
+        .q(ANNOTATION_QUERY)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .from(offset)
         .size(pageSize)
@@ -98,7 +97,7 @@ public class ElasticSearchRepository {
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
     var searchRequest = new SearchRequest.Builder()
         .index(INDEX)
-        .q("_exists_:annotation.type ")
+        .q(ANNOTATION_QUERY)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .size(10)
         .build();
