@@ -1,29 +1,22 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.CREATED;
-import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationEvent;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
-import static eu.dissco.backend.TestUtils.givenAnnotationRequest;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import java.io.IOException;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -78,13 +71,16 @@ class AnnotationServiceTest {
   @Test
   void testGetAnnotationsForUserJsonResponse(){
     // Given
-    String userId = "userId";
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
     int pageNumber = 1;
     int pageSize = 15;
     int totalPageCount = 100;
     String path = "sandbox.dissco.tech/api/v1/annotations/creator/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
-    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        userId, annotationId);
+    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
     given(repository.getAnnotationsCountForUser(userId, pageSize)).willReturn(totalPageCount);
 
     // When
@@ -130,9 +126,13 @@ class AnnotationServiceTest {
     int pageNumber = 1;
     int pageSize = 15;
     int totalPageCount = 100;
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
     String path = "sandbox.dissco.tech/api/v1/annotations/all/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
-    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        userId, annotationId);
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
     given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
 
     // When
@@ -165,8 +165,10 @@ class AnnotationServiceTest {
     int pageSize = 15;
     int totalPageCount = 100;
     String path = "sandbox.dissco.tech/api/v1/annotations/latest/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
-    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(givenAnnotationJsonApiData(pageSize));
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        USER_ID_TOKEN, "123");
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, "123"));
     given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
 
     // When

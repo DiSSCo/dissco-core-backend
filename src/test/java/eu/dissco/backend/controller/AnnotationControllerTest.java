@@ -7,10 +7,8 @@ import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
-import eu.dissco.backend.service.UserService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,7 +89,9 @@ class AnnotationControllerTest {
     int pageNumber = 1;
     int pageSize = 11;
     int totalPageCount = 100;
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, userId, annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 
@@ -124,7 +124,10 @@ class AnnotationControllerTest {
     int pageSize = 11;
     int totalPageCount = 100;
     String path = "sandbox.dissco.tech/api/v1/annotations/all/json";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount);
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, userId,
+        annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 

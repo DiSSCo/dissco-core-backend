@@ -5,6 +5,7 @@ import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -92,4 +93,15 @@ public class DigitalMediaObjectController {
     return ResponseEntity.ok(digitalMedia);
   }
 
+  @GetMapping(value = "/json/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectJsonResponse(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix,
+      @PathVariable("version") int version) {
+    var id = prefix + '/' + postfix;
+    log.info("Received get request for digital media: {} with version: {}", id, version);
+    String path = "sandbox.dissco.tech/digitalmedia/json/"+id+"/"+version;
+    var digitalMedia = service.getDigitalMediaVersionJsonResponse(id, version,path);
+    return ResponseEntity.ok(digitalMedia);
+  }
 }

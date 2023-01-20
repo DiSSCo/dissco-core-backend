@@ -3,9 +3,11 @@ package eu.dissco.backend.service;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +47,12 @@ public class DigitalMediaObjectService {
 
   public DigitalMediaObject getDigitalMediaVersion(String id, int version) {
     return repository.getDigitalMediaByVersion(id, version);
+  }
+
+  public JsonApiWrapper getDigitalMediaVersionJsonResponse(String id, int version, String path){
+    var dataNode = repository.getDigitalMediaByVersionJsonResponse(id, version);
+    var linksNode = new JsonApiLinks(path);
+    return new JsonApiWrapper(dataNode, linksNode);
   }
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {

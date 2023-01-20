@@ -93,9 +93,9 @@ public class AnnotationService {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
     String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + pn + "0" + ps + pageSize;
+    String first = path + pn + "1" + ps + pageSize;
     String last = path + pn + totalPageCount + ps + pageSize;
-    String prev = (pageNumber == 0) ? null
+    String prev = (pageNumber <= 1) ? null
         : path + pn + (pageNumber - 1) + ps + pageSize;
     String next = (pageNumber >= totalPageCount) ? null
         : path + pn + (pageNumber + 1) + ps + pageSize;

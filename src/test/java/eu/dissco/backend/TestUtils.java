@@ -3,6 +3,7 @@ package eu.dissco.backend;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -15,8 +16,12 @@ import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 
 public class TestUtils {
 
@@ -80,12 +85,12 @@ public class TestUtils {
   }
 
   public static AnnotationResponse givenAnnotationResponse(){
-    return givenAnnotationResponse(USER_ID_TOKEN);
+    return givenAnnotationResponse(USER_ID_TOKEN, "id");
   }
 
-  public static AnnotationResponse givenAnnotationResponse(String userId){
+  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId){
     return new AnnotationResponse(
-        "id",
+        annotationId,
         1,
         "Annotation",
         "motivation",
@@ -100,14 +105,15 @@ public class TestUtils {
     );
   }
 
-  private static JsonNode givenAnnotationTarget(){
+
+  public static JsonNode givenAnnotationTarget(){
     ObjectNode target = MAPPER.createObjectNode();
     target.put("id", "targetId");
     target.put("type", "digitalSpecimen");
     return target;
   }
 
-  private static JsonNode givenAnnotationBody(){
+  public static JsonNode givenAnnotationBody(){
     ObjectNode body = MAPPER.createObjectNode();
     ObjectNode bodyValues = MAPPER.createObjectNode();
     bodyValues.put("class", "leaf");
@@ -117,25 +123,67 @@ public class TestUtils {
     return body;
   }
 
-  private static JsonNode givenAnnotationGenerator(){
+  public static JsonNode givenAnnotationGenerator(){
     ObjectNode generator = MAPPER.createObjectNode();
     generator.put("id", "generatorId");
     generator.put("name", "annotation processing service");
     return generator;
   }
 
-  public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount){
+  public static JsonApiMetaWrapper givenMediaJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount){
     JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
     JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
-    var dataNodes = givenAnnotationJsonApiData(pageSize);
+
+    return null;
+
+  }
+
+  public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount,
+      String userId, String annotationId){
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+
+    var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
+
     return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
   }
 
-  public static List<JsonApiData> givenAnnotationJsonApiData(int pageSize){
-    return Collections.nCopies(pageSize, new JsonApiData("id", "Annotation", MAPPER.valueToTree(givenAnnotationResponse())));
+  public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount,
+      String userId, List<String> annotationIds){
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+
+    var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
+    return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
   }
-  public static List<JsonApiData> givenAnnotationJsonApiData(int pageSize, String userId){
-    return Collections.nCopies(pageSize, new JsonApiData("id", "Annotation", MAPPER.valueToTree(givenAnnotationResponse(userId))));
+
+
+  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId, String annotationId) {
+    return Collections.nCopies(pageSize, new JsonApiData("id", "Annotation", MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
+  }
+
+  public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId, List<String> annotationIds) {
+    List<JsonApiData> dataNodes = new ArrayList<>();
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
+        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    for (String annotationId : annotationIds){
+      ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
+      annotation.put("deleted", annotation.get("deleted_on").asText());
+      annotation.remove("deleted_on");
+      dataNodes.add(new JsonApiData(annotationId, "Annotation", annotation));
+    }
+    return dataNodes;
+  }
+
+  public static JsonApiData givenAnnotationJsonApiData(String userId, String annotationId){
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
+        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
+    dataNode.put("deleted", dataNode.get("deleted_on").asText());
+    dataNode.remove("deleted_on");
+    return new JsonApiData(annotationId, "Annotation", dataNode);
   }
 
   private static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
@@ -143,9 +191,9 @@ public class TestUtils {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
     String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + pn + "0" + ps + pageSize;
+    String first = path + pn + "1" + ps + pageSize;
     String last = path + pn + totalPageCount + ps + pageSize;
-    String prev = (pageNumber == 0) ? null
+    String prev = (pageNumber <= 1) ? null
         : path + pn + (pageNumber - 1) + ps + pageSize;
     String next = (pageNumber >= totalPageCount) ? null
         : path + pn + (pageNumber + 1) + ps + pageSize;

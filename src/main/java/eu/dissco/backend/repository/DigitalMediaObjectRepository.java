@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,6 +11,7 @@ import eu.dissco.backend.domain.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -36,20 +38,12 @@ public class DigitalMediaObjectRepository {
 
   public List<JsonApiData> getLatestDigitalMediaObjectByIdJsonResponse(String id){
 
-    log.info("media id: " + id);
     Field<Integer> maxSpeciesVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxSpeciesVersion");
 
     var specimenRecentVersions = context
         .select(NEW_DIGITAL_SPECIMEN.ID, maxSpeciesVersion)
         .from(NEW_DIGITAL_SPECIMEN)
         .groupBy(NEW_DIGITAL_SPECIMEN.ID)
-        .asTable();
-
-    var mediaRecentVersions = context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(NEW_DIGITAL_MEDIA_OBJECT)
-        .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
-        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
-        .limit(1)
         .asTable();
 
     return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION, NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk())
@@ -106,6 +100,27 @@ public class DigitalMediaObjectRepository {
         .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
         .and(NEW_DIGITAL_MEDIA_OBJECT.VERSION.eq(version))
         .fetchOne(this::mapToMultiMediaObject);
+  }
+
+  public JsonApiData getDigitalMediaByVersionJsonResponse(String id, int version){
+
+    Field<Integer> maxSpeciesVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxSpeciesVersion");
+    var specimenRecentVersions = context
+        .select(NEW_DIGITAL_SPECIMEN.ID, maxSpeciesVersion)
+        .from(NEW_DIGITAL_SPECIMEN)
+        .groupBy(NEW_DIGITAL_SPECIMEN.ID)
+        .asTable();
+
+    return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION, NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk())
+        .from(NEW_DIGITAL_SPECIMEN)
+        .join(specimenRecentVersions)
+        .on(NEW_DIGITAL_SPECIMEN.ID.eq(specimenRecentVersions.field(NEW_DIGITAL_SPECIMEN.ID)))
+        .and(NEW_DIGITAL_SPECIMEN.VERSION.eq(specimenRecentVersions.field(maxSpeciesVersion)))
+        .join(NEW_DIGITAL_MEDIA_OBJECT)
+        .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
+        .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
+        .and(NEW_DIGITAL_MEDIA_OBJECT.VERSION.eq(version))
+        .fetchOne(this::mapToJsonApiData);
   }
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
