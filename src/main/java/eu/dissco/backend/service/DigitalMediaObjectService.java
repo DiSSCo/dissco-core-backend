@@ -34,7 +34,7 @@ public class DigitalMediaObjectService {
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
     var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
-    var digitalMedia = repository.getForDigitalSpecimen(id);
+    var digitalMedia = repository.getDigitalMediaForSpecimen(id);
     for (var digitalMediaObject : digitalMedia) {
       var annotation = annotationService.getAnnotationForTarget(digitalMediaObject.id());
       digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));

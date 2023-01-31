@@ -82,7 +82,7 @@ class DigitalMediaObjectServiceTest {
       responseExpected.add(new DigitalMediaObjectFull(mediaObject, List.of(annotation)));
       given(annotationService.getAnnotationForTarget(String.valueOf(id))).willReturn(List.of(annotation));
     }
-    given(repository.getForDigitalSpecimen(ID)).willReturn(mediaObjects);
+    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(mediaObjects);
 
     // When
     var responseReceived = service.getDigitalMediaObjectFull(ID);

@@ -78,7 +78,7 @@ public class DigitalMediaObjectRepository {
     }
   }
 
-  public List<DigitalMediaObject> getForDigitalSpecimen(String id) {
+  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
         .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
         .from(NEW_DIGITAL_MEDIA_OBJECT)
@@ -123,16 +123,6 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
-
-  // TODO is this the same as getForDigitalSpecimen(String id)
-  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
-    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
-        .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
-        .from(NEW_DIGITAL_MEDIA_OBJECT)
-        .where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
-        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
-        .fetch(this::mapToMultiMediaObject);
-  }
 
   public List<DigitalMediaObject> getDigitalMediaObject(int pageNumber, int pageSize) {
     var offset = 0;

@@ -56,9 +56,7 @@ public class AnnotationController {
   public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations(
       @RequestParam(defaultValue = "1") int pageNumber,
       @RequestParam(defaultValue = "10") int pageSize) throws IOException {
-
     log.info("Received get request for latest paginated annotations. Page number: {}, page size {}", pageNumber, pageSize);
-
     var annotations = service.getLatestAnnotations(pageNumber, pageSize);
     return ResponseEntity.ok(annotations);
   }

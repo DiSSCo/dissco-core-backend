@@ -99,7 +99,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetForDigitalSpecimen() {
+  void testGetDigitalMediaForDigitalSpecimen() {
     // Given
     String specimenId = ID_ALT;
     var firstMediaObject = givenDigitalMediaObject(ID, specimenId);
@@ -110,7 +110,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     postDigitalSpecimen(specimen);
 
     // When
-    var receivedResponse = repository.getForDigitalSpecimen(specimenId);
+    var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
