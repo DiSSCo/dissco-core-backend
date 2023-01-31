@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -43,6 +44,7 @@ class AnnotationControllerTest {
   private AccessToken accessToken;
   private Authentication authentication;
   private AnnotationController controller;
+  private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
   @BeforeEach
   void setup() { controller = new AnnotationController(service); }
@@ -85,18 +87,21 @@ class AnnotationControllerTest {
   @Test
   void testGetLatestAnnotationsJsonResponse() throws IOException {
     // Given
-    String path = "sandbox.dissco.tech/api/v1/annotations/latest/json";
+    String requestUri = "api/v1/annotations/latest/json";
+    String path = SANDBOX_URI +  requestUri;
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRequestURI(requestUri);
+
     int pageNumber = 1;
     int pageSize = 11;
     int totalPageCount = 100;
-    String userId = USER_ID_TOKEN;
     String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, userId, annotationId);
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN, annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 
     // When
-    var receivedResponse = controller.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
+    var receivedResponse = controller.getLatestAnnotationsJsonResponse(pageNumber, pageSize, request);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -120,19 +125,25 @@ class AnnotationControllerTest {
 
   @Test
   void testGetAnnotationsJsonResponse(){
+    String requestUri = "api/v1/annotations/latest/json";
+    String path = SANDBOX_URI +  requestUri;
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRequestURI(requestUri);
+
     int pageNumber = 1;
     int pageSize = 11;
     int totalPageCount = 100;
-    String path = "sandbox.dissco.tech/api/v1/annotations/all/json";
-    String userId = USER_ID_TOKEN;
     String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, userId,
+    MockHttpServletRequest r = new MockHttpServletRequest();
+    r.setRequestURI("");
+
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN,
         annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 
     // When
-    var receivedResponse = controller.getAnnotationsJsonResponse(pageNumber, pageSize);
+    var receivedResponse = controller.getAnnotationsJsonResponse(pageNumber, pageSize, request);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -208,8 +219,12 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
 
+    String requestUri = "api/v1/annotations/latest/json";
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRequestURI(requestUri);
+
     // When
-    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, authentication);
+    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, request, authentication);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -260,6 +275,4 @@ class AnnotationControllerTest {
     given(securityContext.getToken()).willReturn(accessToken);
     given(accessToken.getSubject()).willReturn(userId);
   }
-
-
 }
