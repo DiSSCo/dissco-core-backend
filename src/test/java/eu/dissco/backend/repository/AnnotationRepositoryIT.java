@@ -88,7 +88,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testgetAnnotationsCountForUser() {
+  void testGetAnnotationsCountForUser() {
     // Given
     String userId = USER_ID_TOKEN;
     int userAnnotationsCount = 10;
@@ -158,6 +158,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(annotationsP1).hasSize(pageSize);
     assertThat(annotationsP2).hasSize(pageSize);
+    assertThat(annotationsReceivedAll).hasSameElementsAs(annotationsAll);
   }
 
   @Test

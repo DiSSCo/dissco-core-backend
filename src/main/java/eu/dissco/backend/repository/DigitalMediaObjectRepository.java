@@ -123,7 +123,8 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
-  // **** \\
+
+  // TODO is this the same as getForDigitalSpecimen(String id)
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
         .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
