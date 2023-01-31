@@ -8,6 +8,7 @@ import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class DigitalMediaObjectController {
 
   private final DigitalMediaObjectService service;
+  private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -44,13 +46,13 @@ public class DigitalMediaObjectController {
   @GetMapping(value = "/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getDigitalMediaObjectsNameJsonResponse(
       @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize) {
+      @RequestParam(defaultValue = "10") int pageSize,
+      HttpServletRequest request) {
     log.info("Received get request for digital media objects in json format");
-    String path = "sandbox.dissco.tech/api/v1/digitalmedia/name/json";
+    String path = SANDBOX_URI + request.getRequestURI();
     var digitalMedia = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);
     return ResponseEntity.ok(digitalMedia);
   }
-
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -64,11 +66,14 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/json/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<JsonApiData>> getMultiMediaByIdJsonResponse(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  public ResponseEntity<JsonApiWrapper> getMultiMediaByIdJsonResponse(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix,
+      HttpServletRequest request) {
     var id = prefix + '/' + postfix;
+    String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for multiMedia with id: {}", id);
-    var multiMedia = service.getDigitalMediaByIdJsonResponse(id);
+    var multiMedia = service.getDigitalMediaByIdJsonResponse(id, path);
     return ResponseEntity.ok(multiMedia);
   }
 
@@ -97,10 +102,11 @@ public class DigitalMediaObjectController {
   public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectJsonResponse(
       @PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix,
-      @PathVariable("version") int version) {
+      @PathVariable("version") int version,
+      HttpServletRequest request) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
-    String path = "sandbox.dissco.tech/digitalmedia/json/"+id+"/"+version;
+    String path = SANDBOX_URI + request.getRequestURI();
     var digitalMedia = service.getDigitalMediaVersionJsonResponse(id, version,path);
     return ResponseEntity.ok(digitalMedia);
   }

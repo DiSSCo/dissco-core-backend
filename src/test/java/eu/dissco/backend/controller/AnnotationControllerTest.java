@@ -1,4 +1,5 @@
 package eu.dissco.backend.controller;
+import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
@@ -44,7 +45,6 @@ class AnnotationControllerTest {
   private AccessToken accessToken;
   private Authentication authentication;
   private AnnotationController controller;
-  private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
   @BeforeEach
   void setup() { controller = new AnnotationController(service); }

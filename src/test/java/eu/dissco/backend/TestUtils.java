@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiLinksFull;
@@ -32,6 +33,7 @@ public class TestUtils {
 
   public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
+  public static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
   public static JsonApiWrapper givenUserResponse() {
     return new JsonApiWrapper(givenJsonApiData(),
@@ -130,14 +132,6 @@ public class TestUtils {
     return generator;
   }
 
-  public static JsonApiMetaWrapper givenMediaJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount){
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
-
-    return null;
-
-  }
-
   public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount,
       String userId, String annotationId){
     JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
@@ -200,5 +194,49 @@ public class TestUtils {
     return new JsonApiLinksFull(self, first, last, prev, next);
   }
 
+  // Digital Media Objects
+  public static DigitalMediaObject givenDigitalMediaObject(String id){
+    return new DigitalMediaObject(
+        id,
+        1,
+        CREATED,
+        "2DImageObject",
+        "20.5000.1025/460-A7R-QMJ",
+        "https://dissco.com",
+        "image/jpeg",
+        "20.5000.1025/GW0-TYL-YRU",
+        givenDigitalMediaObjectData(),
+        givenDigitalMediaObjectOrigintalData()
+    );
+  }
+  private static JsonNode givenDigitalMediaObjectData() {
+    ObjectNode data = MAPPER.createObjectNode();
+    data.put("dcterms:title", "19942272");
+    data.put("dcterms:publisher", "Royal Botanic Garden Edinburg");
+    return data;
+  }
 
+  private static JsonNode givenDigitalMediaObjectOrigintalData() {
+    ObjectNode originalData = MAPPER.createObjectNode();
+    originalData.put("dcterms:title", "19942272");
+    originalData.put("dcterms:type", "StillImage");
+    return originalData;
+  }
+
+  public static JsonApiMetaWrapper givenMediaJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount, List<String> mediaIds){
+    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+    List<JsonApiData> dataNode = new ArrayList<>();
+    for (String id: mediaIds){
+      var mediaObject = givenDigitalMediaObject(id);
+      dataNode.add(new JsonApiData(id, "2dImageObject", MAPPER.valueToTree(mediaObject)));
+    }
+    return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
+  }
+
+  public static JsonApiWrapper givenMediaJsonResponse(String path, String mediaId){
+    JsonApiLinks linksNode = new JsonApiLinks(path);
+    JsonApiData dataNode = new JsonApiData(mediaId, "2dImageObject", MAPPER.valueToTree(givenDigitalMediaObject(mediaId)));
+    return new JsonApiWrapper(dataNode, linksNode);
+  }
 }

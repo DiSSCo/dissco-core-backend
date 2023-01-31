@@ -36,7 +36,7 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToMultiMediaObject);
   }
 
-  public List<JsonApiData> getLatestDigitalMediaObjectByIdJsonResponse(String id){
+  public JsonApiData getLatestDigitalMediaObjectByIdJsonResponse(String id){
 
     Field<Integer> maxSpeciesVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxSpeciesVersion");
 
@@ -55,8 +55,7 @@ public class DigitalMediaObjectRepository {
         .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
         .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
         .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
-        .limit(1)
-        .fetch(this::mapToJsonApiData);
+        .fetchOne(this::mapToJsonApiData);
   }
 
   private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
