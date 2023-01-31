@@ -9,6 +9,7 @@ import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
+import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiLinksFull;
@@ -27,9 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 public class TestUtils {
 
   public static final String USER_ID_TOKEN = "e2befba6-9324-4bb4-9f41-d7dfae4a44b0";
-  public final static String TYPE = "users";
-  public final static String FORBIDDEN_MESSAGE =
+  public static final String TYPE = "users";
+  public static  final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
+  public static final String PREFIX = "20.5000.1025";
+  public static final String POSTFIX = "ABC-123-XYZ";
+  public static final String ID = PREFIX + "/" + POSTFIX;
 
   public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
@@ -180,7 +184,7 @@ public class TestUtils {
     return new JsonApiData(annotationId, "Annotation", dataNode);
   }
 
-  private static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
+  public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
       int totalPageCount) {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
@@ -209,6 +213,16 @@ public class TestUtils {
         givenDigitalMediaObjectOrigintalData()
     );
   }
+
+  public static DigitalMediaObjectFull givenDigitalMediaObjectFull(String mediaId, List<String> annotationIds){
+    var mediaObject = givenDigitalMediaObject(mediaId);
+    List<AnnotationResponse> annotations = new ArrayList<>();
+    for (String annotationId : annotationIds){
+      annotations.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
+    }
+    return new DigitalMediaObjectFull(mediaObject, annotations);
+  }
+
   private static JsonNode givenDigitalMediaObjectData() {
     ObjectNode data = MAPPER.createObjectNode();
     data.put("dcterms:title", "19942272");
@@ -223,7 +237,7 @@ public class TestUtils {
     return originalData;
   }
 
-  public static JsonApiMetaWrapper givenMediaJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount, List<String> mediaIds){
+  public static JsonApiMetaWrapper givenDigitalMediaJsonResponse(String path, int pageNumber, int pageSize, int totalPageCount, List<String> mediaIds){
     JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
     JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
     List<JsonApiData> dataNode = new ArrayList<>();
@@ -234,9 +248,13 @@ public class TestUtils {
     return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
   }
 
-  public static JsonApiWrapper givenMediaJsonResponse(String path, String mediaId){
+  public static JsonApiWrapper givenDigitalMediaJsonResponse(String path, String mediaId){
     JsonApiLinks linksNode = new JsonApiLinks(path);
     JsonApiData dataNode = new JsonApiData(mediaId, "2dImageObject", MAPPER.valueToTree(givenDigitalMediaObject(mediaId)));
     return new JsonApiWrapper(dataNode, linksNode);
+  }
+
+  public static JsonApiData givenDigitalMediaJsonApiData(String id){
+    return new JsonApiData(id, "2dImageObject", MAPPER.valueToTree(givenDigitalMediaObject(id)));
   }
 }

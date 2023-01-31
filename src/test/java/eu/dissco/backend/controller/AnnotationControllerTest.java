@@ -1,4 +1,7 @@
 package eu.dissco.backend.controller;
+import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.POSTFIX;
+import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
@@ -52,14 +55,11 @@ class AnnotationControllerTest {
   @Test
   void testGetAnnotation(){
     // Given
-    String prefix = "20.5000.1025";
-    String postfix = "ABC-123-DEF";
-    String id = prefix + "/" + postfix;
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotation(id)).willReturn(givenAnnotationResponse());
+    given(service.getAnnotation(ID)).willReturn(givenAnnotationResponse());
 
     // When
-    var receivedResponse = controller.getAnnotation(prefix, postfix);
+    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -109,15 +109,12 @@ class AnnotationControllerTest {
 
   @Test
   void testGetAnnotationVersion() {
-    String prefix = "20.5000.1025";
-    String postfix = "ABC-123-DEF";
     int version = 1;
-    String id = prefix + "/" + postfix;
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotationVersion(id, version)).willReturn(givenAnnotationResponse());
+    given(service.getAnnotationVersion(ID, version)).willReturn(givenAnnotationResponse());
 
     // When
-    var receivedResponse = controller.getAnnotation(prefix, postfix, version);
+    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX, version);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -133,12 +130,11 @@ class AnnotationControllerTest {
     int pageNumber = 1;
     int pageSize = 11;
     int totalPageCount = 100;
-    String annotationId = "123";
     MockHttpServletRequest r = new MockHttpServletRequest();
     r.setRequestURI("");
 
     var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN,
-        annotationId);
+        ID);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 
@@ -187,11 +183,9 @@ class AnnotationControllerTest {
   void testUpdateAnnotation() throws NoAnnotationFoundException {
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    String prefix = "20.5000.1025";
-    String postfix = "ABC-123-DEF";
     AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
     // When
-    var receivedResponse = controller.updateAnnotation(authentication, request, prefix, postfix);
+    var receivedResponse = controller.updateAnnotation(authentication, request, PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -233,7 +227,7 @@ class AnnotationControllerTest {
   @Test
   void testGetAnnotationsByVersion(){
     // When
-    var receivedResponse = controller.getAnnotationByVersion("1", "1");
+    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -243,12 +237,10 @@ class AnnotationControllerTest {
   void testDeleteAnnotationSuccess() throws NoAnnotationFoundException {
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    String prefix = "20.5000.1025";
-    String postfix = "ABC-123-DEF";
-    given(service.deleteAnnotation(prefix, postfix, USER_ID_TOKEN)).willReturn(true);
+    given(service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN)).willReturn(true);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, prefix, postfix);
+    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
@@ -258,12 +250,10 @@ class AnnotationControllerTest {
   void testDeleteAnnotationFailure() throws NoAnnotationFoundException {
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    String prefix = "20.5000.1025";
-    String postfix = "ABC-123-DEF";
-    given(service.deleteAnnotation(prefix, postfix, USER_ID_TOKEN)).willReturn(false);
+    given(service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN)).willReturn(false);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, prefix, postfix);
+    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);

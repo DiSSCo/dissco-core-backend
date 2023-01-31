@@ -39,9 +39,6 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   private AnnotationService service;
   private ObjectMapper mapper;
-  private MockedStatic<Instant> mockedStatic;
-  private Instant instant;
-
   @BeforeEach
   void setup(){
     mapper = new ObjectMapper().findAndRegisterModules();
