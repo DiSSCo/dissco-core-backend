@@ -5,7 +5,6 @@ package eu.dissco.backend.database.jooq;
 
 
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
-
 import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;

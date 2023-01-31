@@ -1,24 +1,17 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;

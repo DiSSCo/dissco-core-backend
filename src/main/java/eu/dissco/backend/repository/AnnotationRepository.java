@@ -1,8 +1,6 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-import static org.jooq.impl.DSL.select;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

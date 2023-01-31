@@ -1,40 +1,25 @@
 package eu.dissco.backend.repository;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationBody;
-import static eu.dissco.backend.TestUtils.givenAnnotationGenerator;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
-import static eu.dissco.backend.TestUtils.givenAnnotationTarget;
 import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.database.jooq.Tables;
-import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiData;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
 import org.jooq.JSONB;
 import org.jooq.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
 class AnnotationRepositoryIT extends BaseRepositoryIT {
 
   private AnnotationRepository repository;
@@ -71,7 +56,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(expectedResponse);
     // When
     var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
-    log.info("Received " + receivedResponse.size() + " results");
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);

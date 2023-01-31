@@ -1,5 +1,14 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.POSTFIX;
+import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SANDBOX_URI;
+import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
+import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.BDDMockito.given;
+
 import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
@@ -11,15 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
-
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.POSTFIX;
-import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaObjectControllerTest {

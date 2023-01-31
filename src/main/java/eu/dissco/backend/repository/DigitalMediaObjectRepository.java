@@ -11,7 +11,6 @@ import eu.dissco.backend.domain.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -26,6 +25,7 @@ public class DigitalMediaObjectRepository {
 
   private final ObjectMapper mapper;
   private final DSLContext context;
+
 
   public DigitalMediaObject getLatestDigitalMediaById(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
@@ -55,6 +55,7 @@ public class DigitalMediaObjectRepository {
         .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
         .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
         .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
+        .limit(1)
         .fetchOne(this::mapToJsonApiData);
   }
 
@@ -122,6 +123,7 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
+  // **** \\
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
         .distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
@@ -141,31 +143,6 @@ public class DigitalMediaObjectRepository {
         .offset(offset)
         .limit(pageSize)
         .fetch(this::mapToMultiMediaObject);
-  }
-
-  public List<JsonApiData> getLatestDigitalMediaObjectJsonResponse(int pageNumber, int pageSize){
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
-    Field<Integer> maxVersion = DSL.max(NEW_DIGITAL_SPECIMEN.VERSION).as("maxVersion");
-
-    var specimenRecentVersions = context
-        .select(NEW_DIGITAL_SPECIMEN.ID, maxVersion)
-        .from(NEW_DIGITAL_SPECIMEN)
-        .groupBy(NEW_DIGITAL_SPECIMEN.ID)
-        .asTable();
-
-    return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION, NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(NEW_DIGITAL_SPECIMEN)
-        .join(specimenRecentVersions)
-        .on(NEW_DIGITAL_SPECIMEN.ID.eq(specimenRecentVersions.field(NEW_DIGITAL_SPECIMEN.ID)))
-        .and(NEW_DIGITAL_SPECIMEN.VERSION.eq(specimenRecentVersions.field(maxVersion)))
-        .join(NEW_DIGITAL_MEDIA_OBJECT)
-        .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
-        .offset(offset)
-        .limit(pageSize)
-        .fetch(this::mapToJsonApiData);
   }
 
   public List<JsonApiData> getDigitalMediaObjectJsonResponse(int pageNumber, int pageSize) {

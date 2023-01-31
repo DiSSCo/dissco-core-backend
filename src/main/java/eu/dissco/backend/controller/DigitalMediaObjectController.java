@@ -1,9 +1,6 @@
 package eu.dissco.backend.controller;
 
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
