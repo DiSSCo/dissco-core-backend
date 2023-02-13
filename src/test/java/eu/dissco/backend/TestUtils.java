@@ -1,10 +1,6 @@
 package eu.dissco.backend;
 
 
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -13,7 +9,6 @@ import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
@@ -43,6 +38,7 @@ public class TestUtils {
 
   public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
+
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
   public static JsonApiWrapper givenUserResponse() {
@@ -189,7 +185,6 @@ public class TestUtils {
   public static JsonApiData givenAnnotationJsonApiData(String userId, String annotationId) {
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
         SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
     ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
     dataNode.put("deleted", dataNode.get("deleted_on").asText());
     dataNode.remove("deleted_on");

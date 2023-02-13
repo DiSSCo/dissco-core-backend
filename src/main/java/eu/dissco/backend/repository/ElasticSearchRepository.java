@@ -24,12 +24,15 @@ public class ElasticSearchRepository {
   private static final String INDEX = "new-dissco";
   private static final String ANNOTATION_QUERY = "_exists_:annotation.type ";
   private static final String FIELD_CREATED = "created";
+  private static final String FIELD_GENERATED = "generated";
 
   private final ElasticsearchClient client;
 
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
       throws IOException {
+    query = query.replace("/", "//");
+
     var offset = 0;
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
@@ -45,12 +48,17 @@ public class ElasticSearchRepository {
         .map(this::mapToDigitalSpecimen).toList();
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
+  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
     var searchRequest = new SearchRequest.Builder()
         .index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId ")
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .size(10)
+        .from(offset)
+        .size(pageSize)
         .build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
         .map(Hit::source)
@@ -106,11 +114,9 @@ public class ElasticSearchRepository {
         .map(this::mapToAnnotationResponse).toList();
   }
 
-  //k port-forward service/kibana-kibana 5601, leucine qL
-  //"_exists_:annotation.type " AND annotation.target.id:"abc"
-  //https://www.elastic.co/guide/en/elasticsearch/reference/8.6/query-dsl-query-string-query.html#query-string-syntax
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
+
     var digitalSpecimen = json.get("digitalSpecimen");
     return new DigitalSpecimen(
         json.get("id").asText(),
@@ -144,14 +150,18 @@ public class ElasticSearchRepository {
         getText(annotation, "creator"),
         Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong()),
         annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get("generated").asLong()),
+        Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong()),
         null
     );
   }
 
-  private JsonApiData mapToJsonApiData(ObjectNode json){
+  private JsonApiData mapToJsonApiData(ObjectNode json) {
     ObjectNode annotation = (ObjectNode) json.get("annotation");
+    var created = Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong());
+    var generated = Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong());
     annotation.put("id", json.get("id").asText());
+    annotation.put(FIELD_CREATED, String.valueOf(created));
+    annotation.put(FIELD_GENERATED, String.valueOf(generated));
     return new JsonApiData(json.get("id").asText(), annotation.get("type").asText(), annotation);
   }
 

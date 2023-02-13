@@ -41,9 +41,12 @@ public class SpecimenController {
   }
 
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<DigitalSpecimen>> getLatestSpecimen() throws IOException {
+  public ResponseEntity<List<DigitalSpecimen>> getLatestSpecimen(
+      @RequestParam(defaultValue = "1") int pageNumber,
+      @RequestParam(defaultValue = "10") int pageSize
+  ) throws IOException {
     log.info("Received get request for latest digital specimen");
-    var specimens = service.getLatestSpecimen();
+    var specimens = service.getLatestSpecimen(pageNumber, pageSize);
     return ResponseEntity.ok(specimens);
   }
 

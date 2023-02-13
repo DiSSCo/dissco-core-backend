@@ -73,8 +73,8 @@ public class SpecimenService {
     return digitalMediaObjectService.getDigitalMediaForSpecimen(id);
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
-    return elasticRepository.getLatestSpecimen();
+  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+    return elasticRepository.getLatestSpecimen(pageNumber, pageSize);
   }
 
   public DigitalSpecimenJsonLD getSpecimenByIdJsonLD(String id) {
