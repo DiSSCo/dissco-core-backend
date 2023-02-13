@@ -104,7 +104,6 @@ public class AnnotationService {
   public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {
     var event = mapAnnotationRequestToEvent(annotation, userId);
     var response = annotationClient.postAnnotation(event);
-    log.info(response.toString());
     if (response != null) {
       return mapResponseToAnnotationResponse(response);
     }

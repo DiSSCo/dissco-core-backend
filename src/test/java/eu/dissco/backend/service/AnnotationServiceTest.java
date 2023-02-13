@@ -17,7 +17,6 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@Slf4j
 class AnnotationServiceTest {
   @Mock
   private AnnotationRepository repository;

@@ -18,7 +18,6 @@ import eu.dissco.backend.domain.JsonApiData;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.jooq.JSONB;
 import org.jooq.Query;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
 class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
   private DigitalMediaObjectRepository repository;
@@ -243,8 +241,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
     // When
     var pageOne = repository.getDigitalMediaObjectJsonResponse(pageNum1, pageSize);
-    log.info(pageOne.toString());
-
     var pageTwo = repository.getDigitalMediaObjectJsonResponse(pageNum2, pageSize);
     mediaObjectsReceived.addAll(pageOne);
     mediaObjectsReceived.addAll(pageTwo);

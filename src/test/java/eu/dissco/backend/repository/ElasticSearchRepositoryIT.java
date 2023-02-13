@@ -30,7 +30,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -47,12 +46,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
-@Slf4j
 class ElasticSearchRepositoryIT {
-
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
       "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.6.1");
-
   private static final String INDEX = "new-dissco";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
