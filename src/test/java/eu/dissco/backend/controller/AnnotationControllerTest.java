@@ -47,10 +47,12 @@ class AnnotationControllerTest {
   private AnnotationController controller;
 
   @BeforeEach
-  void setup() { controller = new AnnotationController(service); }
+  void setup() {
+    controller = new AnnotationController(service);
+  }
 
   @Test
-  void testGetAnnotation(){
+  void testGetAnnotation() {
     // Given
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
     given(service.getAnnotation(ID)).willReturn(givenAnnotationResponse());
@@ -64,11 +66,12 @@ class AnnotationControllerTest {
 
   @Test
   void testGetLatestAnnotations() throws IOException {
+    // Given
     int pageNumber = 1;
     int pageSize = 30;
     List<AnnotationResponse> expectedResponseList = new ArrayList<>();
     int annotationCount = pageNumber * pageSize;
-    for (int i = 0; i < annotationCount; i++){
+    for (int i = 0; i < annotationCount; i++) {
       expectedResponseList.add(givenAnnotationResponse());
     }
     given(service.getLatestAnnotations(pageNumber, pageSize)).willReturn(expectedResponseList);
@@ -85,7 +88,7 @@ class AnnotationControllerTest {
   void testGetLatestAnnotationsJsonResponse() throws IOException {
     // Given
     String requestUri = "api/v1/annotations/latest/json";
-    String path = SANDBOX_URI +  requestUri;
+    String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
 
@@ -93,12 +96,15 @@ class AnnotationControllerTest {
     int pageSize = 11;
     int totalPageCount = 100;
     String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN, annotationId);
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        USER_ID_TOKEN, annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
+    given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(
+        expectedJson);
 
     // When
-    var receivedResponse = controller.getLatestAnnotationsJsonResponse(pageNumber, pageSize, request);
+    var receivedResponse = controller.getLatestAnnotationsJsonResponse(pageNumber, pageSize,
+        request);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -106,6 +112,7 @@ class AnnotationControllerTest {
 
   @Test
   void testGetAnnotationVersion() {
+    // Given
     int version = 1;
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
     given(service.getAnnotationVersion(ID, version)).willReturn(givenAnnotationResponse());
@@ -118,9 +125,10 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsJsonResponse(){
+  void testGetAnnotationsJsonResponse() {
+    // Given
     String requestUri = "api/v1/annotations/latest/json";
-    String path = SANDBOX_URI +  requestUri;
+    String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
 
@@ -130,8 +138,8 @@ class AnnotationControllerTest {
     MockHttpServletRequest r = new MockHttpServletRequest();
     r.setRequestURI("");
 
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN,
-        ID);
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        USER_ID_TOKEN, ID);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 
@@ -143,13 +151,13 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotations(){
+  void testGetAnnotations() {
     // Given
     int pageNumber = 1;
     int pageSize = 30;
     List<AnnotationResponse> expectedResponseList = new ArrayList<>();
     int annotationCount = pageNumber * pageSize;
-    for (int i = 0; i < annotationCount; i++){
+    for (int i = 0; i < annotationCount; i++) {
       expectedResponseList.add(givenAnnotationResponse());
     }
 
@@ -163,7 +171,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testCreateAnnotation(){
+  void testCreateAnnotation() {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
@@ -189,16 +197,17 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsForUser(){
+  void testGetAnnotationsForUser() {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     int pageNumber = 0;
     int pageSize = 10;
     List<AnnotationResponse> annotations = Collections.nCopies(pageSize, givenAnnotationResponse());
-    given(service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize)).willReturn(annotations);
+    given(service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize)).willReturn(
+        annotations);
 
     // When
-    var receivedResponse  = controller.getAnnotationsForUser(pageNumber, pageSize, authentication);
+    var receivedResponse = controller.getAnnotationsForUser(pageNumber, pageSize, authentication);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -206,7 +215,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsForUserJsonResponse(){
+  void testGetAnnotationsForUserJsonResponse() {
     // Given
     givenAuthentication(USER_ID_TOKEN);
 
@@ -215,14 +224,17 @@ class AnnotationControllerTest {
     request.setRequestURI(requestUri);
 
     // When
-    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, request, authentication);
+    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, request,
+        authentication);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
-  void testGetAnnotationsByVersion(){
+  void testGetAnnotationsByVersion() {
+    // Given
+
     // When
     var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX);
 

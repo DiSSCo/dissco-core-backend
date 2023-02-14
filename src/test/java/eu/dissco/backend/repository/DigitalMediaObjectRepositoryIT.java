@@ -7,7 +7,6 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -16,9 +15,7 @@ import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.checkerframework.checker.units.qual.A;
 import org.jooq.JSONB;
 import org.jooq.Query;
 import org.junit.jupiter.api.AfterEach;
@@ -46,18 +43,11 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetLatestDigitalMediaById() {
     // Given
     var firstMediaObject = givenDigitalMediaObject(ID);
-    var secondMediaObject = new DigitalMediaObject(
-        firstMediaObject.id(),
-        firstMediaObject.version() + 1,
-        firstMediaObject.created(),
-        firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(),
-        firstMediaObject.format(),
-        firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(),
-        firstMediaObject.originalData()
-    );
+    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
+        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
+        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
+        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
+        firstMediaObject.originalData());
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
 
     // When
@@ -70,18 +60,11 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetLatestDigitalMediaObjectByIdJsonResponse() {
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(
-        firstMediaObject.id(),
-        firstMediaObject.version() + 1,
-        firstMediaObject.created(),
-        firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(),
-        firstMediaObject.format(),
-        firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(),
-        firstMediaObject.originalData()
-    );
+    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
+        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
+        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
+        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
+        firstMediaObject.originalData());
 
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
     var specimen = givenDigitalSpecimen(ID_ALT);
@@ -118,18 +101,11 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetDigitalMediaVersions() {
     // Given
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(
-        firstMediaObject.id(),
-        firstMediaObject.version() + 1,
-        firstMediaObject.created(),
-        firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(),
-        firstMediaObject.format(),
-        firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(),
-        firstMediaObject.originalData()
-    );
+    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
+        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
+        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
+        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
+        firstMediaObject.originalData());
     List<Integer> expectedResponse = List.of(1, 2);
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
 
@@ -144,18 +120,10 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetDigitalMediaByVersion() {
     int targetVersion = 2;
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var expectedResponse = new DigitalMediaObject(
-        firstMediaObject.id(),
-        targetVersion,
-        firstMediaObject.created(),
-        firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(),
-        firstMediaObject.format(),
-        firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(),
-        firstMediaObject.originalData()
-    );
+    var expectedResponse = new DigitalMediaObject(firstMediaObject.id(), targetVersion,
+        firstMediaObject.created(), firstMediaObject.type(), firstMediaObject.digitalSpecimenId(),
+        firstMediaObject.mediaUrl(), firstMediaObject.format(), firstMediaObject.sourceSystemId(),
+        firstMediaObject.data(), firstMediaObject.originalData());
     postMediaObjects(List.of(firstMediaObject, expectedResponse));
 
     // When
@@ -169,18 +137,10 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetDigitalMediaByVersionJsonResponse() {
     int targetVersion = 2;
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(
-        firstMediaObject.id(),
-        targetVersion,
-        firstMediaObject.created(),
-        firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(),
-        firstMediaObject.format(),
-        firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(),
-        firstMediaObject.originalData()
-    );
+    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(), targetVersion,
+        firstMediaObject.created(), firstMediaObject.type(), firstMediaObject.digitalSpecimenId(),
+        firstMediaObject.mediaUrl(), firstMediaObject.format(), firstMediaObject.sourceSystemId(),
+        firstMediaObject.data(), firstMediaObject.originalData());
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
 
     var specimen = givenDigitalSpecimen(ID_ALT);
@@ -222,6 +182,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
   @Test
   void testGetDigitalMediaObjectJsonResponse() {
+    // Given
     int pageNum1 = 1;
     int pageNum2 = 2;
     int pageSize = 10;
@@ -276,10 +237,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = "specimenId";
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObject> mediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject(ID_ALT, specimenId)
-    );
+    List<DigitalMediaObject> mediaObjects = List.of(givenDigitalMediaObject(ID, specimenId),
+        givenDigitalMediaObject(ID_ALT, specimenId));
     postMediaObjects(mediaObjects);
 
     // When
@@ -311,8 +270,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   private void postDigitalSpecimen(DigitalSpecimen specimen) {
-    context.insertInto(NEW_DIGITAL_SPECIMEN)
-        .set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())
+    context.insertInto(NEW_DIGITAL_SPECIMEN).set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())
         .set(NEW_DIGITAL_SPECIMEN.VERSION, specimen.version())
         .set(NEW_DIGITAL_SPECIMEN.TYPE, specimen.type())
         .set(NEW_DIGITAL_SPECIMEN.MIDSLEVEL, (short) specimen.midsLevel())
@@ -328,7 +286,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         .set(NEW_DIGITAL_SPECIMEN.LAST_CHECKED, specimen.created())
         .set(NEW_DIGITAL_SPECIMEN.DATA, JSONB.jsonb(specimen.data().toString()))
         .set(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimen.originalData().toString()))
-        .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId())
-        .execute();
+        .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId()).execute();
   }
 }

@@ -29,12 +29,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class SpecimenController {
 
   private final SpecimenService service;
+  private static final String DEFAULT_PAGE_NUM = "1";
+  private static final String DEFAULT_PAGE_SIZE = "10";
+
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalSpecimen>> getSpecimen(
-      @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize) {
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) {
     log.info("Received get request for specimen");
     var specimen = service.getSpecimen(pageNumber, pageSize);
     return ResponseEntity.ok(specimen);
@@ -42,9 +45,8 @@ public class SpecimenController {
 
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalSpecimen>> getLatestSpecimen(
-      @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize
-  ) throws IOException {
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) throws IOException {
     log.info("Received get request for latest digital specimen");
     var specimens = service.getLatestSpecimen(pageNumber, pageSize);
     return ResponseEntity.ok(specimens);
@@ -62,8 +64,8 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/jsonld", produces = "application/ld+json")
-  public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for jsonld view of specimen with id: {}", id);
     var specimen = service.getSpecimenByIdJsonLD(id);
@@ -72,8 +74,8 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DigitalSpecimenFull> getSpecimenByIdFull(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  public ResponseEntity<DigitalSpecimenFull> getSpecimenByIdFull(
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenByIdFull(id);
@@ -103,8 +105,7 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AnnotationResponse>> getSpecimenAnnotations(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotations of specimen with id: {}", id);
     var annotations = service.getAnnotations(id);
@@ -114,8 +115,7 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalMediaObject>> getSpecimenDigitalMedia(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for digitalmedia of specimen with id: {}", id);
     var digitalMedia = service.getDigitalMedia(id);
@@ -125,9 +125,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalSpecimen>> searchSpecimen(@RequestParam String query,
-      @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize)
-      throws IOException {
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) throws IOException {
     log.info("Received get request with query: {}", query);
     var specimen = service.search(query, pageNumber, pageSize);
     return ResponseEntity.ok(specimen);

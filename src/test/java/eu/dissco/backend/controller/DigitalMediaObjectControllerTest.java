@@ -23,15 +23,18 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaObjectControllerTest {
+
   @Mock
   private DigitalMediaObjectService service;
   private DigitalMediaObjectController controller;
 
   @BeforeEach
-  void setup() { controller = new DigitalMediaObjectController(service); }
+  void setup() {
+    controller = new DigitalMediaObjectController(service);
+  }
 
   @Test
-  void testGetDigitalMediaObject(){
+  void testGetDigitalMediaObject() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -46,10 +49,10 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetDigitalMediaObjectsNameJsonResponse(){
+  void testGetDigitalMediaObjectsNameJsonResponse() {
     // Given
     String requestUri = "api/v1/digitalMedia/json";
-    String path = SANDBOX_URI +  requestUri;
+    String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
     int pageNumber = 1;
@@ -57,17 +60,18 @@ class DigitalMediaObjectControllerTest {
     int totalPageCount = 10;
     List<String> mediaIds = Collections.nCopies(pageSize, ID);
     given(service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path)).willReturn(
-        TestUtils.givenDigitalMediaJsonResponse(
-        path, pageNumber, pageSize, totalPageCount, mediaIds));
+        TestUtils.givenDigitalMediaJsonResponse(path, pageNumber, pageSize, totalPageCount,
+            mediaIds));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectsNameJsonResponse(pageNumber, pageSize, request);
+    var responseReceived = controller.getDigitalMediaObjectsNameJsonResponse(pageNumber, pageSize,
+        request);
 
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
-  void testGetMultiMediaById(){
+  void testGetMultiMediaById() {
     // Given
     given(service.getDigitalMediaById(ID)).willReturn(givenDigitalMediaObject(ID));
 
@@ -79,10 +83,10 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectByIdJsonResponse(){
+  void testGetLatestDigitalMediaObjectByIdJsonResponse() {
     // Given
     String requestUri = "api/v1/digitalMedia/json/" + ID;
-    String path = SANDBOX_URI +  requestUri;
+    String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
     given(service.getDigitalMediaByIdJsonResponse(ID, path)).willReturn(
@@ -96,7 +100,7 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetDigitalMediaVersions(){
+  void testGetDigitalMediaVersions() {
     // Given
     List<Integer> versions = List.of(1, 2, 3);
     given(service.getDigitalMediaVersions(ID)).willReturn(versions);
@@ -109,7 +113,7 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetDigitalMediaObjectVersion(){
+  void testGetDigitalMediaObjectVersion() {
     // Given
     int version = 1;
     given(service.getDigitalMediaVersion(ID, version)).willReturn(givenDigitalMediaObject(ID));
@@ -122,18 +126,19 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetDigitalMediaObjectJsonResponse(){
+  void testGetDigitalMediaObjectJsonResponse() {
     // Given
     int version = 1;
     String requestUri = "api/v1/digitalMedia/json/" + ID;
-    String path = SANDBOX_URI +  requestUri;
+    String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
     given(service.getDigitalMediaVersionJsonResponse(ID, version, path)).willReturn(
         givenDigitalMediaJsonResponse(path, ID));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectJsonResponse(PREFIX, POSTFIX, version, request);
+    var responseReceived = controller.getDigitalMediaObjectJsonResponse(PREFIX, POSTFIX, version,
+        request);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);

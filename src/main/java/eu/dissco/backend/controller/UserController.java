@@ -52,20 +52,19 @@ public class UserController {
       @RequestBody JsonApiWrapper request)
       throws JsonProcessingException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
-    log.info("User: {} has requested to update user information of: {}",
-        tokenId, request.data().id());
+    log.info("User: {} has requested to update user information of: {}", tokenId,
+        request.data().id());
     checkAuthorisation(tokenId, request.data().id());
     var response = service.createNewUser(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(new JsonApiWrapper(response,
-        new JsonApiLinks(SELF_LINK + request.data().id())));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.data().id())));
   }
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> getUser(Authentication authentication,
-      @PathVariable("id") String id)
-      throws NotFoundException {
+      @PathVariable("id") String id) throws NotFoundException {
     log.info("User: {} has requested user information of: {}", getNameFromToken(authentication),
         id);
     var response = service.findUser(id);
@@ -76,8 +75,7 @@ public class UserController {
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> updateUser(Authentication authentication,
-      @PathVariable("id") String id,
-      @RequestBody JsonApiWrapper request)
+      @PathVariable("id") String id, @RequestBody JsonApiWrapper request)
       throws NotFoundException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId, id);
@@ -115,8 +113,7 @@ public class UserController {
   }
 
   private String getNameFromToken(Authentication authentication) {
-    KeycloakPrincipal<? extends KeycloakSecurityContext> principal =
-        (KeycloakPrincipal<?>) authentication.getPrincipal();
+    KeycloakPrincipal<? extends KeycloakSecurityContext> principal = (KeycloakPrincipal<?>) authentication.getPrincipal();
     AccessToken token = principal.getKeycloakSecurityContext().getToken();
     return token.getSubject();
   }

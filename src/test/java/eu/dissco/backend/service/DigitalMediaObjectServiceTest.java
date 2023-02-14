@@ -33,17 +33,17 @@ class DigitalMediaObjectServiceTest {
   @Mock
   private DigitalMediaObjectRepository repository;
   @Mock
-  private  AnnotationService annotationService;
+  private AnnotationService annotationService;
 
   private DigitalMediaObjectService service;
 
   @BeforeEach
-  void setup(){
+  void setup() {
     service = new DigitalMediaObjectService(repository, annotationService);
   }
 
   @Test
-  void testGetDigitalMediaById(){
+  void testGetDigitalMediaById() {
     // Given
     var responseExpected = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaById(ID)).willReturn(responseExpected);
@@ -56,7 +56,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaByIJsonResponse(){
+  void testGetDigitalMediaByIJsonResponse() {
     // Given
     String path = SANDBOX_URI + "/json/" + ID;
     var dataNode = givenDigitalMediaJsonApiData(ID);
@@ -71,18 +71,19 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaByIdJsonResponse(){
+  void testGetDigitalMediaByIdJsonResponse() {
     // Given
     List<String> mediaIds = List.of("1", "2", "3");
     List<DigitalMediaObject> mediaObjects = new ArrayList<>();
     List<DigitalMediaObjectFull> responseExpected = new ArrayList<>();
 
-    for (String id: mediaIds){
+    for (String id : mediaIds) {
       var mediaObject = givenDigitalMediaObject(id);
       mediaObjects.add(mediaObject);
       var annotation = givenAnnotationResponse();
       responseExpected.add(new DigitalMediaObjectFull(mediaObject, List.of(annotation)));
-      given(annotationService.getAnnotationForTarget(String.valueOf(id))).willReturn(List.of(annotation));
+      given(annotationService.getAnnotationForTarget(String.valueOf(id))).willReturn(
+          List.of(annotation));
     }
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(mediaObjects);
 
@@ -94,7 +95,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersions(){
+  void testGetDigitalMediaVersions() {
     // Given
     List<Integer> responseExpected = List.of(1, 2);
     given(repository.getDigitalMediaVersions(ID)).willReturn(responseExpected);
@@ -107,7 +108,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersion(){
+  void testGetDigitalMediaVersion() {
     // Given
     int version = 1;
     var responseExpected = givenDigitalMediaObject(ID);
@@ -121,7 +122,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersionJsonResponse(){
+  void testGetDigitalMediaVersionJsonResponse() {
     // Given
     int version = 1;
     String path = SANDBOX_URI + "/json/" + ID + "/" + String.valueOf(version);
@@ -137,7 +138,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaForSpecimen(){
+  void testGetDigitalMediaForSpecimen() {
     // Given
     var responseExpected = List.of(givenDigitalMediaObject(ID));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(responseExpected);
@@ -150,7 +151,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaObjects(){
+  void testGetDigitalMediaObjects() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -166,7 +167,7 @@ class DigitalMediaObjectServiceTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 10})
-  void testGetDigitalMediaObjectsJsonResponse(int pageNumber){
+  void testGetDigitalMediaObjectsJsonResponse(int pageNumber) {
     // Given
     int pageSize = 10;
     int totalPageCount = 10;
@@ -189,7 +190,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaIdsForSpecimen(){
+  void testGetDigitalMediaIdsForSpecimen() {
     // Given
     List<String> responseExpected = List.of("1, 2");
     given(repository.getDigitalMediaIdsForSpecimen(ID)).willReturn(responseExpected);

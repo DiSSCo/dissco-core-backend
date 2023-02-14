@@ -47,15 +47,15 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 class ElasticSearchRepositoryIT {
+
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
       "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.6.1");
   private static final String INDEX = "new-dissco";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
-  private static final ElasticsearchContainer container = new ElasticsearchContainer(ELASTIC_IMAGE)
-      .withExposedPorts(9200)
-      .withPassword(ELASTICSEARCH_PASSWORD);
+  private static final ElasticsearchContainer container = new ElasticsearchContainer(
+      ELASTIC_IMAGE).withExposedPorts(9200).withPassword(ELASTICSEARCH_PASSWORD);
   private static ElasticsearchClient client;
   private static RestClient restClient;
   private ElasticSearchRepository repository;
@@ -66,18 +66,13 @@ class ElasticSearchRepositoryIT {
     container.start();
 
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-    credentialsProvider.setCredentials(
-        AuthScope.ANY,
-        new UsernamePasswordCredentials(ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD)
-    );
+    credentialsProvider.setCredentials(AuthScope.ANY,
+        new UsernamePasswordCredentials(ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD));
 
-    restClient =
-        RestClient
-            .builder(HttpHost.create(container.getHttpHostAddress()))
-            .setHttpClientConfigCallback(httpClientBuilder -> {
-              return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            })
-            .build();
+    restClient = RestClient.builder(HttpHost.create(container.getHttpHostAddress()))
+        .setHttpClientConfigCallback(httpClientBuilder -> {
+          return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+        }).build();
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -158,11 +153,10 @@ class ElasticSearchRepositoryIT {
       responseExpected.add(specimen);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
-    for (int i = pageSize; i < pageSize*2; i++) {
+    for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
     }
-
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
     specimenTestRecords.addAll(specimenTestRecordsLatest);
     specimenTestRecords.addAll(specimenTestRecordsOlder);
@@ -172,8 +166,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize)
-        .hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -188,12 +181,11 @@ class ElasticSearchRepositoryIT {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
-    for (int i = pageSize; i < pageSize*2; i++) {
+    for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenOlderSpecimen(PREFIX + "/" + i);
       responseExpected.add(specimen);
       specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
     }
-
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
     specimenTestRecords.addAll(specimenTestRecordsLatest);
     specimenTestRecords.addAll(specimenTestRecordsOlder);
@@ -201,13 +193,11 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
-    var allElems = repository.getLatestAnnotations(1, pageSize*2);
+    var allElems = repository.getLatestAnnotations(1, pageSize * 2);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize)
-        .hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
-
 
   @Test
   void testGetLatestAnnotations() throws IOException {
@@ -226,7 +216,6 @@ class ElasticSearchRepositoryIT {
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
-
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
@@ -236,8 +225,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize)
-        .hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -254,11 +242,10 @@ class ElasticSearchRepositoryIT {
       responseExpected.add(givenAnnotationJsonApiData(id));
       annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
     }
-    for (int i = 11; i < pageSize*2; i++) {
+    for (int i = 11; i < pageSize * 2; i++) {
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
-
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
@@ -268,8 +255,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize)
-        .hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -285,13 +271,12 @@ class ElasticSearchRepositoryIT {
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
     }
-    for (int i = pageSize; i < pageSize*2; i++) {
+    for (int i = pageSize; i < pageSize * 2; i++) {
       String id = PREFIX + "/" + i;
       responseExpected.add(givenAnnotationJsonApiData(id));
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
-
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
@@ -301,62 +286,33 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize)
-        .hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
   private DigitalSpecimenTestRecord givenDigitalSpecimenTestRecord(DigitalSpecimen specimen) {
-    return new DigitalSpecimenTestRecord(
-        specimen.id(),
-        1,
-        1,
-        CREATED,
-        specimen
-    );
+    return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, CREATED, specimen);
   }
 
   private DigitalSpecimenTestRecord givenOlderDigitalSpecimenTestRecord(DigitalSpecimen specimen) {
     Instant created = Instant.parse("2022-09-02T09:59:24Z");
-    return new DigitalSpecimenTestRecord(
-        specimen.id(),
-        1,
-        1,
-        created,
-        specimen
-    );
+    return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, created, specimen);
   }
 
-  private DigitalSpecimen givenOlderSpecimen(String id){
+  private DigitalSpecimen givenOlderSpecimen(String id) {
     var spec = givenDigitalSpecimen(id);
-    return new DigitalSpecimen(
-        spec.id(),
-        spec.midsLevel(),
-        spec.version(),
-        Instant.parse(CREATED_ALT),
-        spec.type(),
-        spec.physicalSpecimenId(),
-        spec.physicalSpecimenIdType(),
-        spec.specimenName(),
-        spec.organizationId(),
-        spec.datasetId(),
-        spec.physicalSpecimenCollection(),
-        spec.sourceSystemId(),
-        spec.data(),
-        spec.originalData(),
-        spec.dwcaId()
-    );
+    return new DigitalSpecimen(spec.id(), spec.midsLevel(), spec.version(),
+        Instant.parse(CREATED_ALT), spec.type(), spec.physicalSpecimenId(),
+        spec.physicalSpecimenIdType(), spec.specimenName(), spec.organizationId(), spec.datasetId(),
+        spec.physicalSpecimenCollection(), spec.sourceSystemId(), spec.data(), spec.originalData(),
+        spec.dwcaId());
   }
 
   public BulkResponse postDigitalSpecimens(Collection<DigitalSpecimenTestRecord> digitalSpecimens)
       throws IOException {
     var bulkRequest = new BulkRequest.Builder();
     for (var digitalSpecimen : digitalSpecimens) {
-      bulkRequest.operations(op ->
-          op.index(idx -> idx
-              .index(INDEX)
-              .id(digitalSpecimen.id())
-              .document(digitalSpecimen))
-      );
+      bulkRequest.operations(op -> op.index(
+          idx -> idx.index(INDEX).id(digitalSpecimen.id()).document(digitalSpecimen)));
     }
     var response = client.bulk(bulkRequest.build());
     client.indices().refresh(b -> b.index(INDEX));
@@ -365,29 +321,19 @@ class ElasticSearchRepositoryIT {
 
 
   private AnnotationTestRecord givenAnnotationTestRecord(AnnotationResponse annotation) {
-    return new AnnotationTestRecord(annotation.id(),
-        annotation.version(),
-        CREATED,
-        annotation);
+    return new AnnotationTestRecord(annotation.id(), annotation.version(), CREATED, annotation);
   }
 
   private AnnotationTestRecord givenOlderAnnotationTestRecord(AnnotationResponse annotation) {
     Instant created = Instant.parse(CREATED_ALT);
-    return new AnnotationTestRecord(annotation.id(),
-        annotation.version(),
-        created,
-        annotation);
+    return new AnnotationTestRecord(annotation.id(), annotation.version(), created, annotation);
   }
 
   private BulkResponse postAnnotations(List<AnnotationTestRecord> annotations) throws IOException {
     var bulkRequest = new BulkRequest.Builder();
     for (var annotation : annotations) {
-      bulkRequest.operations(op ->
-          op.index(idx -> idx
-              .index(INDEX)
-              .id(annotation.id())
-              .document(annotation))
-      );
+      bulkRequest.operations(
+          op -> op.index(idx -> idx.index(INDEX).id(annotation.id()).document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());
     client.indices().refresh(b -> b.index(INDEX));
@@ -395,8 +341,8 @@ class ElasticSearchRepositoryIT {
   }
 
   private static JsonApiData givenAnnotationJsonApiData(String annotationId) {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
-        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.setSerializationInclusion(Include.NON_NULL);
 
     ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, annotationId));

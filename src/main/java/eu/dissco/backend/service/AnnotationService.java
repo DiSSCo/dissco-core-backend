@@ -33,14 +33,8 @@ public class AnnotationService {
   @NotNull
   private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
       String userId) {
-    return new AnnotationEvent(
-        annotation.type(),
-        annotation.motivation(),
-        userId,
-        Instant.now(),
-        annotation.target(),
-        annotation.body()
-    );
+    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
+        annotation.target(), annotation.body());
   }
 
   public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
@@ -78,8 +72,8 @@ public class AnnotationService {
     return elasticRepository.getLatestAnnotations(pageNumber, pageSize);
   }
 
-  public JsonApiMetaWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize, String path)
-      throws IOException {
+  public JsonApiMetaWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize,
+      String path) throws IOException {
     var annotations = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
     int totalPageCount = repository.getAnnotationsCountGlobal(pageSize);
     JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
@@ -94,10 +88,9 @@ public class AnnotationService {
     String self = path + pn + pageNumber + ps + pageSize;
     String first = path + pn + "1" + ps + pageSize;
     String last = path + pn + totalPageCount + ps + pageSize;
-    String prev = (pageNumber <= 1) ? null
-        : path + pn + (pageNumber - 1) + ps + pageSize;
-    String next = (pageNumber >= totalPageCount) ? null
-        : path + pn + (pageNumber + 1) + ps + pageSize;
+    String prev = (pageNumber <= 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
+    String next =
+        (pageNumber >= totalPageCount) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
     return new JsonApiLinksFull(self, first, last, prev, next);
   }
 
@@ -112,20 +105,12 @@ public class AnnotationService {
 
   private AnnotationResponse mapResponseToAnnotationResponse(JsonNode response) {
     var annotation = response.get("annotation");
-    return new AnnotationResponse(
-        response.get("id").asText(),
-        response.get("version").asInt(),
-        annotation.get("type").asText(),
-        annotation.get("motivation").asText(),
-        annotation.get("target"),
-        annotation.get("body"),
-        annotation.get("preferenceScore").asInt(),
+    return new AnnotationResponse(response.get("id").asText(), response.get("version").asInt(),
+        annotation.get("type").asText(), annotation.get("motivation").asText(),
+        annotation.get("target"), annotation.get("body"), annotation.get("preferenceScore").asInt(),
         annotation.get("creator").asText(),
-        Instant.ofEpochSecond(annotation.get("created").asLong()),
-        annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get("generated").asLong()),
-        null
-    );
+        Instant.ofEpochSecond(annotation.get("created").asLong()), annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get("generated").asLong()), null);
   }
 
   public AnnotationResponse getAnnotationVersion(String id, int version) {
@@ -156,8 +141,7 @@ public class AnnotationService {
   }
 
 
-  public AnnotationResponse updateAnnotation(String id, AnnotationRequest annotation, String
-      userId)
+  public AnnotationResponse updateAnnotation(String id, AnnotationRequest annotation, String userId)
       throws NoAnnotationFoundException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {

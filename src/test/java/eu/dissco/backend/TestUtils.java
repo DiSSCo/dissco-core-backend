@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
@@ -38,6 +37,7 @@ public class TestUtils {
 
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
 
+  // Users
   public static JsonApiWrapper givenUserResponse() {
     return new JsonApiWrapper(givenJsonApiData(),
         new JsonApiLinks("https://sandbox.dissco.tech/api/v1/users/" + USER_ID_TOKEN));
@@ -65,29 +65,14 @@ public class TestUtils {
   }
 
   public static User givenUser() {
-    return new User(
-        "Test",
-        "User",
-        "test@gmail.com",
-        "https://orcid.org/0000-0002-XXXX-XXXX",
-        "https://ror.org/XXXXXXXXX"
-    );
+    return new User("Test", "User", "test@gmail.com", "https://orcid.org/0000-0002-XXXX-XXXX",
+        "https://ror.org/XXXXXXXXX");
   }
 
+  // Annotation
   public static AnnotationRequest givenAnnotationRequest() {
     return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(),
         givenAnnotationBody());
-  }
-
-  public static AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation) {
-    return new AnnotationEvent(
-        annotation.type(),
-        annotation.motivation(),
-        USER_ID_TOKEN,
-        CREATED,
-        annotation.target(),
-        annotation.body()
-    );
   }
 
   public static AnnotationResponse givenAnnotationResponse() {
@@ -95,22 +80,10 @@ public class TestUtils {
   }
 
   public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
-    return new AnnotationResponse(
-        annotationId,
-        1,
-        "Annotation",
-        "motivation",
-        givenAnnotationTarget(),
-        givenAnnotationBody(),
-        100,
-        userId,
-        CREATED,
-        givenAnnotationGenerator(),
-        CREATED,
-        null
-    );
+    return new AnnotationResponse(annotationId, 1, "Annotation", "motivation",
+        givenAnnotationTarget(), givenAnnotationBody(), 100, userId, CREATED,
+        givenAnnotationGenerator(), CREATED, null);
   }
-
 
   public static JsonNode givenAnnotationTarget() {
     ObjectNode target = MAPPER.createObjectNode();
@@ -137,26 +110,21 @@ public class TestUtils {
   }
 
   public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, int totalPageCount,
-      String userId, String annotationId) {
+      int pageSize, int totalPageCount, String userId, String annotationId) {
     JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
     JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
-
     var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
-
     return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
   }
 
   public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, int totalPageCount,
-      String userId, List<String> annotationIds) {
+      int pageSize, int totalPageCount, String userId, List<String> annotationIds) {
     JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
     JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
 
     var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
     return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
   }
-
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
@@ -167,8 +135,8 @@ public class TestUtils {
   public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId,
       List<String> annotationIds) {
     List<JsonApiData> dataNodes = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
-        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     for (String annotationId : annotationIds) {
       ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
@@ -180,14 +148,15 @@ public class TestUtils {
   }
 
   public static JsonApiData givenAnnotationJsonApiData(String userId, String annotationId) {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().configure(
-        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
     dataNode.put("deleted", dataNode.get("deleted_on").asText());
     dataNode.remove("deleted_on");
     return new JsonApiData(annotationId, "Annotation", dataNode);
   }
 
+  // General
   public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
       int totalPageCount) {
     String pn = "?pageNumber=";
@@ -195,42 +164,23 @@ public class TestUtils {
     String self = path + pn + pageNumber + ps + pageSize;
     String first = path + pn + "1" + ps + pageSize;
     String last = path + pn + totalPageCount + ps + pageSize;
-    String prev = (pageNumber <= 1) ? null
-        : path + pn + (pageNumber - 1) + ps + pageSize;
-    String next = (pageNumber >= totalPageCount) ? null
-        : path + pn + (pageNumber + 1) + ps + pageSize;
+    String prev = (pageNumber <= 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
+    String next =
+        (pageNumber >= totalPageCount) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
     return new JsonApiLinksFull(self, first, last, prev, next);
   }
 
   // Digital Media Objects
   public static DigitalMediaObject givenDigitalMediaObject(String id) {
-    return new DigitalMediaObject(
-        id,
-        1,
-        CREATED,
-        "2DImageObject",
-        "20.5000.1025/460-A7R-QMJ",
-        "https://dissco.com",
-        "image/jpeg",
-        "20.5000.1025/GW0-TYL-YRU",
-        givenDigitalMediaObjectData(),
-        givenDigitalMediaObjectOrigintalData()
-    );
+    return new DigitalMediaObject(id, 1, CREATED, "2DImageObject", "20.5000.1025/460-A7R-QMJ",
+        "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
+        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }
 
   public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId) {
-    return new DigitalMediaObject(
-        mediaId,
-        1,
-        CREATED,
-        "2DImageObject",
-        specimenId,
-        "https://dissco.com",
-        "image/jpeg",
-        "20.5000.1025/GW0-TYL-YRU",
-        givenDigitalMediaObjectData(),
-        givenDigitalMediaObjectOrigintalData()
-    );
+    return new DigitalMediaObject(mediaId, 1, CREATED, "2DImageObject", specimenId,
+        "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
+        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }
 
   private static JsonNode givenDigitalMediaObjectData() {
@@ -240,7 +190,7 @@ public class TestUtils {
     return data;
   }
 
-  private static JsonNode givenDigitalMediaObjectOrigintalData() {
+  private static JsonNode givenDigitalMediaObjectOriginalData() {
     ObjectNode originalData = MAPPER.createObjectNode();
     originalData.put("dcterms:title", "19942272");
     originalData.put("dcterms:type", "StillImage");
@@ -293,23 +243,13 @@ public class TestUtils {
         attributeNode);
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id){
-    return new DigitalSpecimen(
-        id,
-        1,
-        1,
-        CREATED,
-        "BotanySpecimen",
-        "123",
-        "cetaf",
-        "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-        "https://ror.org/0349vqz63",
+  // Digital Specimen
+  public static DigitalSpecimen givenDigitalSpecimen(String id) {
+    return new DigitalSpecimen(id, 1, 1, CREATED, "BotanySpecimen", "123", "cetaf",
+        "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.", "https://ror.org/0349vqz63",
         "Royal Botanic Garden Edinburgh Herbarium",
-        "http://biocol.org/urn:lsid:biocol.org:col:15670",
-        "20.5000.1025/3XA-8PT-SAY",
-        givenDigitalMediaObjectData(),
-        givenDigitalMediaObjectOrigintalData(),
-        "http://data.rbge.org.uk/herb/E00586417"
-    );
+        "http://biocol.org/urn:lsid:biocol.org:col:15670", "20.5000.1025/3XA-8PT-SAY",
+        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData(),
+        "http://data.rbge.org.uk/herb/E00586417");
   }
 }

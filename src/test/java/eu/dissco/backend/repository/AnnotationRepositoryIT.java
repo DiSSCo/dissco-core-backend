@@ -19,7 +19,6 @@ import org.jooq.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 
 class AnnotationRepositoryIT extends BaseRepositoryIT {
 
@@ -47,8 +46,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
         givenAnnotationResponse("test", "test"));
     postAnnotations(annotationsNonTarget);
 
-    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed()
+        .map(Object::toString).toList();
     List<AnnotationResponse> expectedResponse = new ArrayList<>();
 
     for (String id : annotationIds) {
@@ -71,15 +70,14 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     List<AnnotationResponse> annotationsNonTarget = List.of(
         givenAnnotationResponse("test", "test"));
     postAnnotations(annotationsNonTarget);
-
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize*2) - 1).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2) - 1).boxed()
+        .map(Object::toString).toList();
     List<AnnotationResponse> annotations = new ArrayList<>();
-
     for (String id : annotationIds) {
       annotations.add(givenAnnotationResponse(userId, id));
     }
     postAnnotations(annotations);
+
     // When
     var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
 
@@ -93,12 +91,10 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     String userId = USER_ID_TOKEN;
     int pageNumber = 1;
     int pageSize = 11;
-    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed().map(
-        Object::toString).toList();
-
+    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed()
+        .map(Object::toString).toList();
     List<AnnotationResponse> userAnnotations = new ArrayList<>();
     List<JsonApiData> expectedResponse = new ArrayList<>();
-
     for (String annotationId : annotationIds) {
       userAnnotations.add(givenAnnotationResponse(userId, annotationId));
       expectedResponse.add(givenAnnotationJsonApiData(userId, annotationId));
@@ -119,8 +115,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     String userId = USER_ID_TOKEN;
     int pageNumber = 2;
     int pageSize = 11;
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize*2) - 1).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2) - 1).boxed()
+        .map(Object::toString).toList();
 
     List<AnnotationResponse> userAnnotations = new ArrayList<>();
 
@@ -148,8 +144,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
         givenAnnotationResponse("test", "test"));
     postAnnotations(annotationsNonTarget);
     List<AnnotationResponse> userAnnotations = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, userAnnotationsCount - 1).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, userAnnotationsCount - 1).boxed()
+        .map(Object::toString).toList();
     for (String annotationId : annotationIds) {
       userAnnotations.add(givenAnnotationResponse(userId, annotationId));
     }
@@ -168,8 +164,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     String userId = USER_ID_TOKEN;
     String targetId = "2";
     List<AnnotationResponse> annotations = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, 10).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, 10).boxed().map(Object::toString)
+        .toList();
     for (String annotationId : annotationIds) {
       annotations.add(givenAnnotationResponse(userId, annotationId));
     }
@@ -192,8 +188,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var annotationsReceivedAll = new ArrayList<>();
 
     List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2 - 1)).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2 - 1)).boxed()
+        .map(Object::toString).toList();
     for (String annotationId : annotationIds) {
       annotationsAll.add(givenAnnotationResponse(userId, annotationId));
     }
@@ -219,8 +215,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     String userId = USER_ID_TOKEN;
 
     List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed().map(
-        Object::toString).toList();
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed()
+        .map(Object::toString).toList();
     for (String annotationId : annotationIds) {
       annotationsAll.add(givenAnnotationResponse(userId, annotationId));
     }
@@ -242,8 +238,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     String userId = USER_ID_TOKEN;
     List<AnnotationResponse> annotationsAll = new ArrayList<>();
     List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * expectedPageCount - 1))
-        .boxed().map(
-            Object::toString).toList();
+        .boxed().map(Object::toString).toList();
     for (String annotationId : annotationIds) {
       annotationsAll.add(givenAnnotationResponse(userId, annotationId));
     }
@@ -264,20 +259,10 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     int targetVersion = 2;
     List<AnnotationResponse> annotationsAll = new ArrayList<>();
     AnnotationResponse version1 = givenAnnotationResponse(userId, annotationId);
-    AnnotationResponse version2 = new AnnotationResponse(
-        version1.id(),
-        targetVersion,
-        version1.type(),
-        version1.motivation(),
-        version1.target(),
-        version1.body(),
-        version1.preferenceScore(),
-        version1.creator(),
-        version1.created(),
-        version1.generator(),
-        version1.generated(),
-        version1.deleted_on()
-    );
+    AnnotationResponse version2 = new AnnotationResponse(version1.id(), targetVersion,
+        version1.type(), version1.motivation(), version1.target(), version1.body(),
+        version1.preferenceScore(), version1.creator(), version1.created(), version1.generator(),
+        version1.generated(), version1.deleted_on());
     annotationsAll.add(version1);
     annotationsAll.add(version2);
     postAnnotations(annotationsAll);
@@ -292,8 +277,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   private void postAnnotations(List<AnnotationResponse> annotations) {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {
-      var query = context.insertInto(NEW_ANNOTATION)
-          .set(NEW_ANNOTATION.ID, annotation.id())
+      var query = context.insertInto(NEW_ANNOTATION).set(NEW_ANNOTATION.ID, annotation.id())
           .set(NEW_ANNOTATION.VERSION, annotation.version())
           .set(NEW_ANNOTATION.TYPE, annotation.type())
           .set(NEW_ANNOTATION.MOTIVATION, annotation.motivation())

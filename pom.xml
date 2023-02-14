@@ -86,7 +86,6 @@
       <artifactId>elasticsearch-java</artifactId>
       <version>${elasticsearch.version}</version>
     </dependency>
-
     <dependency>
       <groupId>jakarta.json</groupId>
       <artifactId>jakarta.json-api</artifactId>

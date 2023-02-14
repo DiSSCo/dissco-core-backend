@@ -28,12 +28,14 @@ public class DigitalMediaObjectController {
 
   private final DigitalMediaObjectService service;
   private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
+  private static final String DEFAULT_PAGE_NUM = "1";
+  private static final String DEFAULT_PAGE_SIZE = "10";
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalMediaObject>> getDigitalMediaObjects(
-      @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize) {
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) {
     log.info("Received get request for digital media objects");
     var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize);
     return ResponseEntity.ok(digitalMedia);
@@ -42,9 +44,8 @@ public class DigitalMediaObjectController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getDigitalMediaObjectsNameJsonResponse(
-      @RequestParam(defaultValue = "1") int pageNumber,
-      @RequestParam(defaultValue = "10") int pageSize,
-      HttpServletRequest request) {
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for digital media objects in json format");
     String path = SANDBOX_URI + request.getRequestURI();
     var digitalMedia = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);
@@ -62,10 +63,9 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/json/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{postfix}/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getMultiMediaByIdJsonResponse(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix,
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       HttpServletRequest request) {
     var id = prefix + '/' + postfix;
     String path = SANDBOX_URI + request.getRequestURI();
@@ -76,8 +76,8 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Integer>> getDigitalMediaVersions(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  public ResponseEntity<List<Integer>> getDigitalMediaVersions(
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for versions of digital media with id: {}", id);
     var versions = service.getDigitalMediaVersions(id);
@@ -86,8 +86,7 @@ public class DigitalMediaObjectController {
 
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DigitalMediaObject> getDigitalMediaObject(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix,
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       @PathVariable("version") int version) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
@@ -95,16 +94,14 @@ public class DigitalMediaObjectController {
     return ResponseEntity.ok(digitalMedia);
   }
 
-  @GetMapping(value = "/json/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{postfix}/{version}/json", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectJsonResponse(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix,
-      @PathVariable("version") int version,
-      HttpServletRequest request) {
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
+      @PathVariable("version") int version, HttpServletRequest request) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
     String path = SANDBOX_URI + request.getRequestURI();
-    var digitalMedia = service.getDigitalMediaVersionJsonResponse(id, version,path);
+    var digitalMedia = service.getDigitalMediaVersionJsonResponse(id, version, path);
     return ResponseEntity.ok(digitalMedia);
   }
 }

@@ -20,12 +20,10 @@ import org.springframework.stereotype.Repository;
 public class ElasticSearchRepository {
 
   private static final String INDEX = "new-dissco";
-  private static final String ANNOTATION_QUERY = "_exists_:annotation.type ";
+  private static final String ANNOTATION_EXISTS_QUERY = "_exists_:annotation.type ";
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_GENERATED = "generated";
-
   private final ElasticsearchClient client;
-
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
       throws IOException {
@@ -35,14 +33,10 @@ public class ElasticSearchRepository {
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
-    var searchRequest = new SearchRequest.Builder()
-        .index(INDEX)
-        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query)
-        .from(offset)
-        .size(pageSize)
+    var searchRequest = new SearchRequest.Builder().index(INDEX)
+        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query).from(offset).size(pageSize)
         .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
   }
 
@@ -51,33 +45,25 @@ public class ElasticSearchRepository {
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
-    var searchRequest = new SearchRequest.Builder()
-        .index(INDEX)
+    var searchRequest = new SearchRequest.Builder().index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId ")
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .from(offset)
-        .size(pageSize)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
   }
 
-  public List<AnnotationResponse> getLatestAnnotations (int pageNumber, int pageSize) throws IOException {
+  public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
+      throws IOException {
     var offset = 0;
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
 
-    var searchRequest = new SearchRequest.Builder()
-        .index(INDEX)
-        .q(ANNOTATION_QUERY)
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .from(offset)
-        .size(pageSize)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
   }
 
@@ -88,27 +74,17 @@ public class ElasticSearchRepository {
       offset = offset + (pageSize * (pageNumber - 1));
     }
 
-    var searchRequest = new SearchRequest.Builder()
-        .index(INDEX)
-        .q(ANNOTATION_QUERY)
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .from(offset)
-        .size(pageSize)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToJsonApiData).toList();
   }
 
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
-    var searchRequest = new SearchRequest.Builder()
-        .index(INDEX)
-        .q(ANNOTATION_QUERY)
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .size(10)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).size(10).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
   }
 
@@ -116,41 +92,25 @@ public class ElasticSearchRepository {
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
 
     var digitalSpecimen = json.get("digitalSpecimen");
-    return new DigitalSpecimen(
-        json.get("id").asText(),
-        json.get("midsLevel").asInt(),
-        json.get("version").asInt(),
-        Instant.ofEpochSecond(json.get(FIELD_CREATED).asLong()),
-        getText(digitalSpecimen, "type"),
-        getText(digitalSpecimen, "physicalSpecimenId"),
+    return new DigitalSpecimen(json.get("id").asText(), json.get("midsLevel").asInt(),
+        json.get("version").asInt(), Instant.ofEpochSecond(json.get(FIELD_CREATED).asLong()),
+        getText(digitalSpecimen, "type"), getText(digitalSpecimen, "physicalSpecimenId"),
         getText(digitalSpecimen, "physicalSpecimenIdType"),
-        getText(digitalSpecimen, "specimenName"),
-        getText(digitalSpecimen, "organizationId"),
+        getText(digitalSpecimen, "specimenName"), getText(digitalSpecimen, "organizationId"),
         getText(digitalSpecimen, "datasetId"),
         getText(digitalSpecimen, "physicalSpecimenCollection"),
-        getText(digitalSpecimen, "sourceSystemId"),
-        digitalSpecimen.get("data"),
-        digitalSpecimen.get("originalData"),
-        getText(digitalSpecimen, "dwcaId")
-    );
+        getText(digitalSpecimen, "sourceSystemId"), digitalSpecimen.get("data"),
+        digitalSpecimen.get("originalData"), getText(digitalSpecimen, "dwcaId"));
   }
 
   private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
     var annotation = json.get("annotation");
-    return new AnnotationResponse(
-        json.get("id").asText(),
-        json.get("version").asInt(),
-        getText(annotation, "type"),
-        getText(annotation, "motivation"),
-        annotation.get("target"),
-        annotation.get("body"),
-        annotation.get("preferenceScore").asInt(),
+    return new AnnotationResponse(json.get("id").asText(), json.get("version").asInt(),
+        getText(annotation, "type"), getText(annotation, "motivation"), annotation.get("target"),
+        annotation.get("body"), annotation.get("preferenceScore").asInt(),
         getText(annotation, "creator"),
-        Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong()),
-        annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong()),
-        null
-    );
+        Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong()), annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong()), null);
   }
 
   private JsonApiData mapToJsonApiData(ObjectNode json) {
@@ -171,5 +131,4 @@ public class ElasticSearchRepository {
       return null;
     }
   }
-
 }

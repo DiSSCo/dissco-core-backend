@@ -1,9 +1,9 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationRequest;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
@@ -30,7 +30,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +39,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@Slf4j
 class AnnotationServiceTest {
 
   @Mock
@@ -56,14 +54,13 @@ class AnnotationServiceTest {
   void setup() {
     mapper = new ObjectMapper().findAndRegisterModules();
     mapper.setDefaultPropertyInclusion(Include.ALWAYS);
-
     service = new AnnotationService(repository, annotationClient, elasticRepository, mapper);
   }
 
   @Test
   void testGetAnnotationsForUser() {
     // Given
-    String userId = "userId";
+    String userId = USER_ID_TOKEN;
     int pageNumber = 1;
     int pageSize = 15;
     List<AnnotationResponse> expectedResponse = new ArrayList<>();
@@ -216,12 +213,9 @@ class AnnotationServiceTest {
 
     //When
     var responseReceived = service.persistAnnotation(annotationRequest, USER_ID_TOKEN);
-    log.info("RESPONSE RECEIVED: " + responseReceived.toString());
 
     // Then
     assertThat(responseReceived).isEqualTo(annotationResponse);
-
-
   }
 
   private AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation, String userId) {
