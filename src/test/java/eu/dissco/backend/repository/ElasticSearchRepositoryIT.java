@@ -52,6 +52,7 @@ class ElasticSearchRepositoryIT {
   private static final String INDEX = "new-dissco";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
+  private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
   private static final ElasticsearchContainer container = new ElasticsearchContainer(ELASTIC_IMAGE)
       .withExposedPorts(9200)
       .withPassword(ELASTICSEARCH_PASSWORD);
@@ -123,6 +124,26 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).contains(targetSpecimen);
   }
 
+  @Test
+  void testSearchSecondPage() throws IOException {
+    // Given
+    int pageNumber = 2;
+    int pageSize = 5;
+    List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
+
+    for (int i = 0; i < 10; i++) {
+      var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
+      specimenTestRecords.add(givenDigitalSpecimenTestRecord(specimen));
+    }
+    postDigitalSpecimens(specimenTestRecords);
+
+    // When
+    var responseReceived = repository.search(PREFIX, pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived).hasSize(pageSize);
+  }
+
 
   @Test
   void testGetLatestSpecimen() throws IOException {
@@ -132,12 +153,12 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
     List<DigitalSpecimen> responseExpected = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       responseExpected.add(specimen);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
-    for (int i = 11; i < 15; i++) {
+    for (int i = pageSize; i < pageSize*2; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
     }
@@ -154,6 +175,39 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).hasSize(pageSize)
         .hasSameElementsAs(responseExpected);
   }
+
+  @Test
+  void testGetLatestSpecimenSecondPage() throws IOException {
+    // Given
+    int pageSize = 10;
+    int pageNumber = 2;
+    List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
+    List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
+    List<DigitalSpecimen> responseExpected = new ArrayList<>();
+    for (int i = 0; i < pageSize; i++) {
+      var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
+      specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
+    }
+    for (int i = pageSize; i < pageSize*2; i++) {
+      var specimen = givenOlderSpecimen(PREFIX + "/" + i);
+      responseExpected.add(specimen);
+      specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
+    }
+
+    List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
+    specimenTestRecords.addAll(specimenTestRecordsLatest);
+    specimenTestRecords.addAll(specimenTestRecordsOlder);
+    postDigitalSpecimens(specimenTestRecords);
+
+    // When
+    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
+    var allElems = repository.getLatestAnnotations(1, pageSize*2);
+
+    // Then
+    assertThat(responseReceived).hasSize(pageSize)
+        .hasSameElementsAs(responseExpected);
+  }
+
 
   @Test
   void testGetLatestAnnotations() throws IOException {
@@ -194,14 +248,47 @@ class ElasticSearchRepositoryIT {
     List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
     List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
     List<JsonApiData> responseExpected = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < pageSize; i++) {
       String id = PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       responseExpected.add(givenAnnotationJsonApiData(id));
       annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
     }
-    for (int i = 11; i < 15; i++) {
+    for (int i = 11; i < pageSize*2; i++) {
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
+      annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
+    }
+
+    List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
+    annotationTestRecords.addAll(annotationTestRecordsLatest);
+    annotationTestRecords.addAll(annotationTestRecordsOlder);
+    var responsePost = postAnnotations(annotationTestRecords);
+
+    // When
+    var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived).hasSize(pageSize)
+        .hasSameElementsAs(responseExpected);
+  }
+
+  @Test
+  void testGetLatestAnnotationsJsonResponseSecondPage() throws IOException {
+    // Given
+    int pageNumber = 2;
+    int pageSize = 10;
+    List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
+    List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
+    List<JsonApiData> responseExpected = new ArrayList<>();
+    for (int i = 0; i < pageSize; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
+      annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
+    }
+    for (int i = pageSize; i < pageSize*2; i++) {
+      String id = PREFIX + "/" + i;
+      responseExpected.add(givenAnnotationJsonApiData(id));
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
 
@@ -239,6 +326,27 @@ class ElasticSearchRepositoryIT {
     );
   }
 
+  private DigitalSpecimen givenOlderSpecimen(String id){
+    var spec = givenDigitalSpecimen(id);
+    return new DigitalSpecimen(
+        spec.id(),
+        spec.midsLevel(),
+        spec.version(),
+        Instant.parse(CREATED_ALT),
+        spec.type(),
+        spec.physicalSpecimenId(),
+        spec.physicalSpecimenIdType(),
+        spec.specimenName(),
+        spec.organizationId(),
+        spec.datasetId(),
+        spec.physicalSpecimenCollection(),
+        spec.sourceSystemId(),
+        spec.data(),
+        spec.originalData(),
+        spec.dwcaId()
+    );
+  }
+
   public BulkResponse postDigitalSpecimens(Collection<DigitalSpecimenTestRecord> digitalSpecimens)
       throws IOException {
     var bulkRequest = new BulkRequest.Builder();
@@ -264,7 +372,7 @@ class ElasticSearchRepositoryIT {
   }
 
   private AnnotationTestRecord givenOlderAnnotationTestRecord(AnnotationResponse annotation) {
-    Instant created = Instant.parse("2022-09-02T09:59:24Z");
+    Instant created = Instant.parse(CREATED_ALT);
     return new AnnotationTestRecord(annotation.id(),
         annotation.version(),
         created,

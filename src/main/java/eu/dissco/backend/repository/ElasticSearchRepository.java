@@ -13,10 +13,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
