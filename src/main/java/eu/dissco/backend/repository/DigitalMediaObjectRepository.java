@@ -1,5 +1,6 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 
@@ -54,22 +55,21 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
-  private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
-    try {
-      return new DigitalMediaObject(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.CREATED),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.FORMAT),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
-          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DATA).data()),
-          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data()));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+  public List<JsonApiData> getAnnotationsOnDigitalMediaObject(String mediaId){
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(mediaId))
+        .fetch(this::mapToAnnotationJsonApiData);
   }
+
+  public int getAnnotationPageCountOnMediaObject(String mediaId, int pageSize){
+    int totalRecords = context.selectCount()
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(mediaId))
+        .fetchOne(0, int.class);
+    return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
+  }
+
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
@@ -143,6 +143,54 @@ public class DigitalMediaObjectRepository {
     return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
   }
 
+  public List<String> getDigitalMediaIdsForSpecimen(String id) {
+    return context.select(NEW_DIGITAL_MEDIA_OBJECT.ID).distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
+        .from(NEW_DIGITAL_MEDIA_OBJECT).where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
+        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
+        .fetch(Record1::value1);
+  }
+
+  private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
+    try {
+      return new DigitalMediaObject(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.CREATED),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.FORMAT),
+          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
+          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DATA).data()),
+          mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data()));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private JsonApiData mapToAnnotationJsonApiData(Record dbRecord) {
+    ObjectNode attributeNode = mapper.createObjectNode();
+    try {
+      attributeNode.put("id", dbRecord.get(NEW_ANNOTATION.ID));
+      attributeNode.put("version", dbRecord.get(NEW_ANNOTATION.VERSION));
+      attributeNode.put("type", dbRecord.get(NEW_ANNOTATION.TYPE));
+      attributeNode.put("motivation", dbRecord.get(NEW_ANNOTATION.MOTIVATION));
+      attributeNode.set("target", mapper.readTree(dbRecord.get(NEW_ANNOTATION.TARGET_BODY).data()));
+      attributeNode.set("body", mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()));
+      attributeNode.put("preferenceScore", dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE));
+      attributeNode.put("creator", dbRecord.get(NEW_ANNOTATION.CREATOR));
+      attributeNode.put("created", String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
+      attributeNode.set("generator",
+          mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
+      attributeNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
+      attributeNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
+    } catch (JsonProcessingException e) {
+      log.error("Failed to parse annotation body to Json", e);
+      return null;
+    }
+    return new JsonApiData(dbRecord.get(NEW_ANNOTATION.ID), dbRecord.get(NEW_ANNOTATION.TYPE),
+        attributeNode);
+  }
+
   private JsonApiData mapToJsonApiData(Record dbRecord) {
     ObjectNode attributeNode = mapper.createObjectNode();
     ObjectNode specimenNode = mapper.createObjectNode();
@@ -173,12 +221,5 @@ public class DigitalMediaObjectRepository {
     }
     return new JsonApiData(attributeNode.get("id").asText(), attributeNode.get("type").asText(),
         attributeNode);
-  }
-
-  public List<String> getDigitalMediaIdsForSpecimen(String id) {
-    return context.select(NEW_DIGITAL_MEDIA_OBJECT.ID).distinctOn(NEW_DIGITAL_MEDIA_OBJECT.ID)
-        .from(NEW_DIGITAL_MEDIA_OBJECT).where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
-        .orderBy(NEW_DIGITAL_MEDIA_OBJECT.ID, NEW_DIGITAL_MEDIA_OBJECT.VERSION.desc())
-        .fetch(Record1::value1);
   }
 }

@@ -75,6 +75,20 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{postfix}/annotations/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiMetaWrapper> getAnnotationsByIdJsonResponse(
+      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      HttpServletRequest request) {
+    var id = prefix + '/' + postfix;
+    String path = SANDBOX_URI + request.getRequestURI();
+    log.info("Received get request for annotations on digitalMedia with id: {}", id);
+    var annotations = service.getAnnotationsOnDigitalMediaObject(id, path, pageNumber, pageSize);
+    return ResponseEntity.ok(annotations);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Integer>> getDigitalMediaVersions(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix) {
