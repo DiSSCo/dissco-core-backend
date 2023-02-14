@@ -40,7 +40,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   void testGetAnnotationsForUser() {
     // Given
     String userId = USER_ID_TOKEN;
-    int pageNumber = 0;
+    int pageNumber = 1;
     int pageSize = 11;
     List<AnnotationResponse> annotationsNonTarget = List.of(
         givenAnnotationResponse("test", "test"));
@@ -62,10 +62,35 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetAnnotationsForUserSecondPage() {
+    // Given
+    String userId = USER_ID_TOKEN;
+    int pageNumber = 2;
+    int pageSize = 11;
+    List<AnnotationResponse> annotationsNonTarget = List.of(
+        givenAnnotationResponse("test", "test"));
+    postAnnotations(annotationsNonTarget);
+
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize*2) - 1).boxed().map(
+        Object::toString).toList();
+    List<AnnotationResponse> annotations = new ArrayList<>();
+
+    for (String id : annotationIds) {
+      annotations.add(givenAnnotationResponse(userId, id));
+    }
+    postAnnotations(annotations);
+    // When
+    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
+
+    // Then
+    assertThat(receivedResponse).hasSize(pageSize);
+  }
+
+  @Test
   void testGetAnnotationsForUserJsonResponse() {
     // Given
     String userId = USER_ID_TOKEN;
-    int pageNumber = 0;
+    int pageNumber = 1;
     int pageSize = 11;
     List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed().map(
         Object::toString).toList();
@@ -85,6 +110,30 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
+  }
+
+  @Test
+  void testGetAnnotationsForUserJsonResponseSecondPage() {
+    // Given
+    String userId = USER_ID_TOKEN;
+    int pageNumber = 2;
+    int pageSize = 11;
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize*2) - 1).boxed().map(
+        Object::toString).toList();
+
+    List<AnnotationResponse> userAnnotations = new ArrayList<>();
+
+    for (String annotationId : annotationIds) {
+      userAnnotations.add(givenAnnotationResponse(userId, annotationId));
+    }
+    postAnnotations(userAnnotations);
+
+    // When
+    var receivedResponse = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
+        pageSize);
+
+    // Then
+    assertThat(receivedResponse).hasSize(pageSize);
   }
 
   @Test

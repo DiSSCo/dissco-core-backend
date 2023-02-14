@@ -22,6 +22,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -162,10 +164,10 @@ class DigitalMediaObjectServiceTest {
     assertThat(responseReceived).isEqualTo(responseExpected);
   }
 
-  @Test
-  void testGetDigitalMediaObjectsJsonResponse(){
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 10})
+  void testGetDigitalMediaObjectsJsonResponse(int pageNumber){
     // Given
-    int pageNumber = 1;
     int pageSize = 10;
     int totalPageCount = 10;
     String path = SANDBOX_URI + "json";
