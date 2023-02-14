@@ -2,15 +2,21 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
+import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.database.jooq.Tables;
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
@@ -213,6 +219,27 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetAnnotationsOnDigitalMediaObject(){
+    // Given
+    String annotationId = "annotationId";
+    var annotation = givenAnnotationResponse(USER_ID_TOKEN, annotationId);
+    String mediaId = annotation.target().get("id").asText();
+    var mediaObject = givenDigitalMediaObject(mediaId, ID);
+    postAnnotation(annotation, mediaId);
+    postMediaObjects(List.of(mediaObject));
+
+    var responseExpected = List.of(givenAnnotationJsonApiData(USER_ID_TOKEN, annotationId));
+
+    var annotations = context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION).fetch().stream().toList();
+    var medias = context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_MEDIA_OBJECT).fetch().stream().toList();
+
+    // When
+    var responseReceived = repository.getAnnotationsOnDigitalMediaObject(mediaId);
+
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
   void testGetMediaObjectCount() {
     // Given
     int pageSize = 5;
@@ -286,6 +313,25 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         .set(NEW_DIGITAL_SPECIMEN.LAST_CHECKED, specimen.created())
         .set(NEW_DIGITAL_SPECIMEN.DATA, JSONB.jsonb(specimen.data().toString()))
         .set(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimen.originalData().toString()))
-        .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId()).execute();
+        .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId())
+        .execute();
+  }
+
+  private void postAnnotation(AnnotationResponse annotation, String targetId) {
+      context.insertInto(NEW_ANNOTATION).set(NEW_ANNOTATION.ID, annotation.id())
+          .set(NEW_ANNOTATION.VERSION, annotation.version())
+          .set(NEW_ANNOTATION.TYPE, annotation.type())
+          .set(NEW_ANNOTATION.MOTIVATION, annotation.motivation())
+          .set(NEW_ANNOTATION.TARGET_ID, targetId)
+          .set(NEW_ANNOTATION.TARGET_BODY, JSONB.jsonb(annotation.target().toString()))
+          .set(NEW_ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
+          .set(NEW_ANNOTATION.PREFERENCE_SCORE, annotation.preferenceScore())
+          .set(NEW_ANNOTATION.CREATOR, annotation.creator())
+          .set(NEW_ANNOTATION.CREATED, annotation.created())
+          .set(NEW_ANNOTATION.GENERATOR_ID, annotation.generator().get("id").toString())
+          .set(NEW_ANNOTATION.GENERATOR_BODY, JSONB.jsonb(annotation.generator().toString()))
+          .set(NEW_ANNOTATION.GENERATED, annotation.generated())
+          .set(NEW_ANNOTATION.LAST_CHECKED, annotation.created())
+          .execute();
   }
 }

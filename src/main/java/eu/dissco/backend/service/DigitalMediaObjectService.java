@@ -30,14 +30,13 @@ public class DigitalMediaObjectService {
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
-  public JsonApiMetaWrapper getAnnotationsOnDigitalMediaObject(String id, String path, int pageNumber, int pageSize){
-
-    String mediaId = "https://hdl.handle.net/"+id;
+  public JsonApiMetaWrapper getAnnotationsOnDigitalMediaObject(String id, String path,
+      int pageNumber, int pageSize) {
+    String mediaId = "https://hdl.handle.net/" + id;
     var annotations = repository.getAnnotationsOnDigitalMediaObject(mediaId);
     int totalPageCount = repository.getAnnotationPageCountOnMediaObject(mediaId, pageSize);
     var metaNode = new JsonApiMeta(totalPageCount);
     var linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
-
     return new JsonApiMetaWrapper(annotations, linksNode, metaNode);
   }
 

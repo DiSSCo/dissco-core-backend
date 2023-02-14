@@ -59,7 +59,7 @@ public class DigitalMediaObjectRepository {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.TARGET_ID.eq(mediaId))
-        .fetch(this::mapToAnnotationJsonApiData);
+        .fetch(this::mapAnnotationToJsonApiData);
   }
 
   public int getAnnotationPageCountOnMediaObject(String mediaId, int pageSize){
@@ -167,7 +167,7 @@ public class DigitalMediaObjectRepository {
     }
   }
 
-  private JsonApiData mapToAnnotationJsonApiData(Record dbRecord) {
+  private JsonApiData mapAnnotationToJsonApiData(Record dbRecord) {
     ObjectNode attributeNode = mapper.createObjectNode();
     try {
       attributeNode.put("id", dbRecord.get(NEW_ANNOTATION.ID));

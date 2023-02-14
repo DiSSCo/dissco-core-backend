@@ -2,6 +2,10 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
+import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
@@ -145,6 +149,28 @@ class DigitalMediaObjectServiceTest {
 
     // When
     var responseReceived = service.getDigitalMediaForSpecimen(ID);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetAnnotationsOnMediaObject(){
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    String path = SANDBOX_URI + ID + "/json";
+    String mediaId = "https://hdl.handle.net/" + ID;
+    String annotationId = "123";
+    int totalPageCount = 1;
+    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, annotationId);
+    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN, annotationId);
+
+    given(repository.getAnnotationsOnDigitalMediaObject(mediaId)).willReturn(expectedAnnotation);
+    given(repository.getAnnotationPageCountOnMediaObject(mediaId, pageSize)).willReturn(1);
+
+    // When
+    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);
