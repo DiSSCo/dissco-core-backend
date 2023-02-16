@@ -240,24 +240,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMediaObjectCount() {
-    // Given
-    int pageSize = 5;
-    int totalPageCount = 2;
-    List<DigitalMediaObject> mediaObjectsAll = new ArrayList<>();
-    for (int i = 0; i < pageSize * totalPageCount; i++) {
-      mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i)));
-    }
-    postMediaObjects(mediaObjectsAll);
-
-    // When
-    int receivedResponse = repository.getMediaObjectCount(pageSize);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(totalPageCount);
-  }
-
-  @Test
   void testGetDigitalMediaIdsForSpecimen() {
     // Given
     List<String> expectedResponse = List.of(ID, ID_ALT);

@@ -84,13 +84,11 @@ class AnnotationServiceTest {
     String annotationId = "123";
     int pageNumber = 1;
     int pageSize = 15;
-    int totalPageCount = 100;
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId);
     given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
-    given(repository.getAnnotationsCountForUser(userId, pageSize)).willReturn(totalPageCount);
 
     // When
     var receivedResponse = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize,
@@ -135,15 +133,13 @@ class AnnotationServiceTest {
   void testGetAnnotationsJsonResponse() {
     int pageNumber = 1;
     int pageSize = 15;
-    int totalPageCount = 100;
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId);
     given(repository.getAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
-    given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
 
     // When
     var receivedResponse = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
@@ -174,13 +170,11 @@ class AnnotationServiceTest {
   @ValueSource(ints = {1, 2, 100})
   void testGetLatestAnnotationsJsonResponse(int pageNumber) throws IOException {
     int pageSize = 15;
-    int totalPageCount = 100;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, "123");
     given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, "123"));
-    given(repository.getAnnotationsCountGlobal(pageSize)).willReturn(totalPageCount);
 
     // When
     var receivedResponse = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);

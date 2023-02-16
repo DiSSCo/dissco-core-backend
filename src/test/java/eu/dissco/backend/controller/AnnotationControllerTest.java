@@ -94,9 +94,8 @@ class AnnotationControllerTest {
 
     int pageNumber = 1;
     int pageSize = 11;
-    int totalPageCount = 100;
     String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, annotationId);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(
@@ -134,11 +133,10 @@ class AnnotationControllerTest {
 
     int pageNumber = 1;
     int pageSize = 11;
-    int totalPageCount = 100;
     MockHttpServletRequest r = new MockHttpServletRequest();
     r.setRequestURI("");
 
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount,
+    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);

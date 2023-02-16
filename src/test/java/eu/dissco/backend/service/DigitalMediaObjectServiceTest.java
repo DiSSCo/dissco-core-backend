@@ -3,7 +3,6 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
@@ -16,7 +15,6 @@ import static org.mockito.BDDMockito.given;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
@@ -164,10 +162,9 @@ class DigitalMediaObjectServiceTest {
     String annotationId = "123";
     int totalPageCount = 1;
     var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, annotationId);
-    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, totalPageCount, USER_ID_TOKEN, annotationId);
+    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN, annotationId);
 
     given(repository.getAnnotationsOnDigitalMediaObject(mediaId)).willReturn(expectedAnnotation);
-    given(repository.getAnnotationPageCountOnMediaObject(mediaId, pageSize)).willReturn(1);
 
     // When
     var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber, pageSize);
@@ -200,13 +197,11 @@ class DigitalMediaObjectServiceTest {
     String path = SANDBOX_URI + "json";
 
     var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
-    var metaNode = new JsonApiMeta(totalPageCount);
+    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
 
     given(repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize)).willReturn(dataNode);
-    given(repository.getMediaObjectCount(pageSize)).willReturn(totalPageCount);
 
-    var responseExpected = new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
+    var responseExpected = new JsonApiMetaWrapper(dataNode, linksNode);
 
     // When
     var responseReceived = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);

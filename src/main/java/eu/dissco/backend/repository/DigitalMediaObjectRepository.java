@@ -62,14 +62,6 @@ public class DigitalMediaObjectRepository {
         .fetch(this::mapAnnotationToJsonApiData);
   }
 
-  public int getAnnotationPageCountOnMediaObject(String mediaId, int pageSize){
-    int totalRecords = context.selectCount()
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.TARGET_ID.eq(mediaId))
-        .fetchOne(0, int.class);
-    return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
-  }
-
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
@@ -136,11 +128,6 @@ public class DigitalMediaObjectRepository {
         .join(NEW_DIGITAL_MEDIA_OBJECT)
         .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID)).offset(offset)
         .limit(pageSize).fetch(this::mapToJsonApiData);
-  }
-
-  public int getMediaObjectCount(int pageSize) {
-    int totalRecords = context.selectCount().from(NEW_DIGITAL_MEDIA_OBJECT).fetchOne(0, int.class);
-    return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
   }
 
   public List<String> getDigitalMediaIdsForSpecimen(String id) {

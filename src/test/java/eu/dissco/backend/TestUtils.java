@@ -12,7 +12,6 @@ import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
@@ -110,20 +109,18 @@ public class TestUtils {
   }
 
   public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, int totalPageCount, String userId, String annotationId) {
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+      int pageSize, String userId, String annotationId) {
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
     var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
-    return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
+    return new JsonApiMetaWrapper(dataNodes, linksNode);
   }
 
   public static JsonApiMetaWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, int totalPageCount, String userId, List<String> annotationIds) {
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+      int pageSize, String userId, List<String> annotationIds) {
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
 
     var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
-    return new JsonApiMetaWrapper(dataNodes, linksNode, metaNode);
+    return new JsonApiMetaWrapper(dataNodes, linksNode);
   }
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
@@ -158,16 +155,15 @@ public class TestUtils {
 
   // General
   public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
-      int totalPageCount) {
+      boolean hasNextPage) {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
     String self = path + pn + pageNumber + ps + pageSize;
     String first = path + pn + "1" + ps + pageSize;
-    String last = path + pn + totalPageCount + ps + pageSize;
     String prev = (pageNumber <= 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
     String next =
-        (pageNumber >= totalPageCount) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
-    return new JsonApiLinksFull(self, first, last, prev, next);
+        (hasNextPage) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
+    return new JsonApiLinksFull(self, first, prev, next);
   }
 
   // Digital Media Objects
@@ -198,15 +194,14 @@ public class TestUtils {
   }
 
   public static JsonApiMetaWrapper givenDigitalMediaJsonResponse(String path, int pageNumber,
-      int pageSize, int totalPageCount, List<String> mediaIds) {
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, totalPageCount);
+      int pageSize, List<String> mediaIds) {
+    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
     List<JsonApiData> dataNode = new ArrayList<>();
     for (String id : mediaIds) {
       var mediaObject = givenDigitalMediaObject(id);
       dataNode.add(new JsonApiData(id, "2dImageObject", MAPPER.valueToTree(mediaObject)));
     }
-    return new JsonApiMetaWrapper(dataNode, linksNode, metaNode);
+    return new JsonApiMetaWrapper(dataNode, linksNode);
   }
 
   public static JsonApiWrapper givenDigitalMediaJsonResponse(String path, String mediaId) {

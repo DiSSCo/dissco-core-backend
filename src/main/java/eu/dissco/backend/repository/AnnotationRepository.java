@@ -76,17 +76,6 @@ public class AnnotationRepository {
         .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
   }
 
-  public Integer getAnnotationsCountForUser(String userId, int pageSize) {
-    int totalRecords = context.selectCount().from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.CREATOR.eq(userId)).fetchOne(0, int.class);
-    return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
-  }
-
-  public Integer getAnnotationsCountGlobal(int pageSize) {
-    int totalRecords = context.selectCount().from(NEW_ANNOTATION).fetchOne(0, int.class);
-    return totalRecords / pageSize + ((totalRecords % pageSize == 0) ? 0 : 1);
-  }
-
   public AnnotationResponse getAnnotationVersion(String id, int version) {
     return context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.ID.eq(id)).and(NEW_ANNOTATION.VERSION.eq(version))

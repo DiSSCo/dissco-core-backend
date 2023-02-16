@@ -60,10 +60,9 @@ class DigitalMediaObjectControllerTest {
     request.setRequestURI(requestUri);
     int pageNumber = 1;
     int pageSize = 10;
-    int totalPageCount = 10;
     List<String> mediaIds = Collections.nCopies(pageSize, ID);
     given(service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path)).willReturn(
-        TestUtils.givenDigitalMediaJsonResponse(path, pageNumber, pageSize, totalPageCount,
+        TestUtils.givenDigitalMediaJsonResponse(path, pageNumber, pageSize,
             mediaIds));
 
     // When
@@ -152,11 +151,10 @@ class DigitalMediaObjectControllerTest {
     // Given
     int pageNum = 1;
     int pageSize = 10;
-    int totalPageCount = 1;
     String requestUri = "api/v1/digitalMedia/" + ID + "/annotations/json";
     String path = SANDBOX_URI + requestUri;
     JsonApiMetaWrapper responseExpected = givenAnnotationJsonResponse(path, pageNum, pageSize,
-        totalPageCount, USER_ID_TOKEN, "123");
+        USER_ID_TOKEN, "123");
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
     given(service.getAnnotationsOnDigitalMediaObject(ID, path, pageNum, pageSize)).willReturn(

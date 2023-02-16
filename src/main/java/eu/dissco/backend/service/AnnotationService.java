@@ -7,7 +7,6 @@ import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiMeta;
 import eu.dissco.backend.domain.JsonApiMetaWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -45,10 +44,8 @@ public class AnnotationService {
   public JsonApiMetaWrapper getAnnotationsForUserJsonResponse(String userId, int pageNumber,
       int pageSize, String path) {
     var annotations = repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize);
-    int totalPageCount = repository.getAnnotationsCountForUser(userId, pageSize);
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
-    return new JsonApiMetaWrapper(annotations, linksNode, metaNode);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
+    return new JsonApiMetaWrapper(annotations, linksNode);
   }
 
   public AnnotationResponse getAnnotation(String id) {
@@ -61,10 +58,8 @@ public class AnnotationService {
 
   public JsonApiMetaWrapper getAnnotationsJsonResponse(int pageNumber, int pageSize, String path) {
     var annotations = repository.getAnnotationsJsonResponse(pageNumber, pageSize);
-    int totalPageCount = repository.getAnnotationsCountGlobal(pageSize);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    return new JsonApiMetaWrapper(annotations, linksNode, metaNode);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
+    return new JsonApiMetaWrapper(annotations, linksNode);
   }
 
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
@@ -75,23 +70,21 @@ public class AnnotationService {
   public JsonApiMetaWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize,
       String path) throws IOException {
     var annotations = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
-    int totalPageCount = repository.getAnnotationsCountGlobal(pageSize);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, totalPageCount);
-    JsonApiMeta metaNode = new JsonApiMeta(totalPageCount);
-    return new JsonApiMetaWrapper(annotations, linksNode, metaNode);
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
+    return new JsonApiMetaWrapper(annotations, linksNode);
   }
 
   private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
-      int totalPageCount) {
+      boolean hasNextPage) {
     String pn = "?pageNumber=";
     String ps = "&pageSize=";
     String self = path + pn + pageNumber + ps + pageSize;
     String first = path + pn + "1" + ps + pageSize;
-    String last = path + pn + totalPageCount + ps + pageSize;
     String prev = (pageNumber <= 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
+
     String next =
-        (pageNumber >= totalPageCount) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
-    return new JsonApiLinksFull(self, first, last, prev, next);
+        (hasNextPage) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
+    return new JsonApiLinksFull(self, first, prev, next);
   }
 
   public AnnotationResponse persistAnnotation(AnnotationRequest annotation, String userId) {

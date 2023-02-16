@@ -134,6 +134,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSize(pageSize);
   }
 
+  /*
   @Test
   void testGetAnnotationsCountForUser() {
     // Given
@@ -157,7 +158,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedCount).isEqualTo(expectedCount);
-  }
+  } */
 
   @Test
   void testGetAnnotation() {
@@ -229,27 +230,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
-  void testGetAnnotationsCountGlobal() {
-    // Given
-    int pageSize = 5;
-    int expectedPageCount = 2;
-    String userId = USER_ID_TOKEN;
-    List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * expectedPageCount - 1))
-        .boxed().map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      annotationsAll.add(givenAnnotationResponse(userId, annotationId));
-    }
-    postAnnotations(annotationsAll);
-
-    // When
-    int receivedPageCount = repository.getAnnotationsCountGlobal(pageSize);
-
-    // Then
-    assertThat(receivedPageCount).isEqualTo(expectedPageCount);
   }
 
   @Test

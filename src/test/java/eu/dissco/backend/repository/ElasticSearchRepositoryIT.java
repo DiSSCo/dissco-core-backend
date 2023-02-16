@@ -15,12 +15,10 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
@@ -135,7 +133,6 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived).hasSize(pageSize);
   }
-
 
   @Test
   void testGetLatestSpecimen() throws IOException {
@@ -316,7 +313,6 @@ class ElasticSearchRepositoryIT {
     return response;
   }
 
-
   private AnnotationTestRecord givenAnnotationTestRecord(AnnotationResponse annotation) {
     return new AnnotationTestRecord(annotation.id(), annotation.version(), CREATED, annotation);
   }
@@ -345,7 +341,5 @@ class ElasticSearchRepositoryIT {
     ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
     return new JsonApiData(annotationId, "Annotation", dataNode);
   }
-
-
 }
 
