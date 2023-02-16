@@ -86,8 +86,29 @@ class AnnotationServiceTest {
     int pageSize = 15;
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        userId, annotationId);
-    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize)).willReturn(
+        userId, annotationId, true);
+    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, userId, annotationId));
+
+    // When
+    var receivedResponse = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize,
+        path);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetAnnotationsForUserJsonResponseLastPage() {
+    // Given
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
+    int pageNumber = 1;
+    int pageSize = 15;
+    String path = SANDBOX_URI + "api/v1/annotations/creator/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+        userId, annotationId, false);
+    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
 
     // When
@@ -129,16 +150,35 @@ class AnnotationServiceTest {
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void testGetAnnotationsJsonResponse(int pageNumber) {
+    int pageSize = 15;
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
+    String path = SANDBOX_URI + "api/v1/annotations/all/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+        userId, annotationId, true);
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, userId, annotationId));
+
+    // When
+    var receivedResponse = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
   @Test
-  void testGetAnnotationsJsonResponse() {
+  void testGetAnnotationsJsonResponseLastPage() {
     int pageNumber = 1;
     int pageSize = 15;
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        userId, annotationId);
-    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
+        userId, annotationId, false);
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
 
     // When
@@ -166,14 +206,31 @@ class AnnotationServiceTest {
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
-  @ParameterizedTest
-  @ValueSource(ints = {1, 2, 100})
-  void testGetLatestAnnotationsJsonResponse(int pageNumber) throws IOException {
+  @Test
+  void testGetLatestAnnotationsJsonResponse() throws IOException {
     int pageSize = 15;
+    int pageNumber = 1;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, "123");
-    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize)).willReturn(
+        USER_ID_TOKEN, "123", true);
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, USER_ID_TOKEN, "123"));
+
+    // When
+    var receivedResponse = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetLatestAnnotationsJsonResponseLastPage() throws IOException {
+    int pageSize = 15;
+    int pageNumber = 1;
+    String path = SANDBOX_URI + "api/v1/annotations/latest/json";
+    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+        USER_ID_TOKEN, "123", false);
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, "123"));
 
     // When

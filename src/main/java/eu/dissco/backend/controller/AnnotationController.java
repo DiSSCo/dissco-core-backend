@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class AnnotationController {
   }
 
   @GetMapping(value = "/latest/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiMetaWrapper> getLatestAnnotationsJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotationsJsonResponse(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
       throws IOException {
@@ -94,7 +94,7 @@ public class AnnotationController {
   }
 
   @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiMetaWrapper> getAnnotationsJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsJsonResponse(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for json paginated annotations. Page number: {}, page size {}",
@@ -151,7 +151,7 @@ public class AnnotationController {
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiMetaWrapper> getAnnotationsForUserJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUserJsonResponse(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
       Authentication authentication) {

@@ -96,7 +96,7 @@ class AnnotationControllerTest {
     int pageSize = 11;
     String annotationId = "123";
     var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, annotationId);
+        USER_ID_TOKEN, annotationId, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(
         expectedJson);
@@ -137,7 +137,7 @@ class AnnotationControllerTest {
     r.setRequestURI("");
 
     var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, ID);
+        USER_ID_TOKEN, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
 

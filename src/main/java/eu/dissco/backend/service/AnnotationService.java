@@ -6,8 +6,9 @@ import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -41,11 +42,20 @@ public class AnnotationService {
     return repository.getAnnotationsForUser(userId, pageNumber, pageSize);
   }
 
-  public JsonApiMetaWrapper getAnnotationsForUserJsonResponse(String userId, int pageNumber,
+  public JsonApiListResponseWrapper getAnnotationsForUserJsonResponse(String userId, int pageNumber,
       int pageSize, String path) {
-    var annotations = repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
-    return new JsonApiMetaWrapper(annotations, linksNode);
+    var annotationsPlusOne = repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1);
+    boolean hasNextPage;
+    List<JsonApiData> annotations;
+    if (annotationsPlusOne.size() > pageSize ){
+      hasNextPage = true;
+      annotations = annotationsPlusOne.subList(0, pageSize);
+    } else {
+      hasNextPage = false;
+      annotations = annotationsPlusOne;
+    }
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
+    return new JsonApiListResponseWrapper(annotations, linksNode);
   }
 
   public AnnotationResponse getAnnotation(String id) {
@@ -56,10 +66,20 @@ public class AnnotationService {
     return repository.getAnnotations(pageNumber, pageSize);
   }
 
-  public JsonApiMetaWrapper getAnnotationsJsonResponse(int pageNumber, int pageSize, String path) {
-    var annotations = repository.getAnnotationsJsonResponse(pageNumber, pageSize);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
-    return new JsonApiMetaWrapper(annotations, linksNode);
+  public JsonApiListResponseWrapper getAnnotationsJsonResponse(int pageNumber, int pageSize, String path) {
+    var annotationsPlusOne = repository.getAnnotationsJsonResponse(pageNumber, pageSize+1);
+    boolean hasNextPage;
+    List<JsonApiData> annotations;
+    if (annotationsPlusOne.size() > pageSize ){
+      hasNextPage = true;
+      annotations = annotationsPlusOne.subList(0, pageSize);
+    } else {
+      hasNextPage = false;
+      annotations = annotationsPlusOne;
+    }
+    
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
+    return new JsonApiListResponseWrapper(annotations, linksNode);
   }
 
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
@@ -67,11 +87,21 @@ public class AnnotationService {
     return elasticRepository.getLatestAnnotations(pageNumber, pageSize);
   }
 
-  public JsonApiMetaWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize,
+  public JsonApiListResponseWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize,
       String path) throws IOException {
-    var annotations = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, true);
-    return new JsonApiMetaWrapper(annotations, linksNode);
+    var annotationsPlusOne = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1);
+    boolean hasNextPage;
+    List<JsonApiData> annotations;
+    if (annotationsPlusOne.size() > pageSize ){
+      hasNextPage = true;
+      annotations = annotationsPlusOne.subList(0, pageSize);
+    } else {
+      hasNextPage = false;
+      annotations = annotationsPlusOne;
+    }
+    
+    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
+    return new JsonApiListResponseWrapper(annotations, linksNode);
   }
 
   private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,

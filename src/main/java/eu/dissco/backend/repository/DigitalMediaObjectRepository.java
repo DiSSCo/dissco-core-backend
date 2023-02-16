@@ -55,10 +55,17 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
-  public List<JsonApiData> getAnnotationsOnDigitalMediaObject(String mediaId){
+  public List<JsonApiData> getAnnotationsOnDigitalMediaObject(String mediaId, int pageNumber, int pageSize){
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.TARGET_ID.eq(mediaId))
+        .offset(offset)
+        .limit(pageSize)
         .fetch(this::mapAnnotationToJsonApiData);
   }
 

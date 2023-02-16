@@ -12,7 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.TestUtils;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
 import java.util.List;
@@ -153,8 +153,8 @@ class DigitalMediaObjectControllerTest {
     int pageSize = 10;
     String requestUri = "api/v1/digitalMedia/" + ID + "/annotations/json";
     String path = SANDBOX_URI + requestUri;
-    JsonApiMetaWrapper responseExpected = givenAnnotationJsonResponse(path, pageNum, pageSize,
-        USER_ID_TOKEN, "123");
+    JsonApiListResponseWrapper responseExpected = givenAnnotationJsonResponse(path, pageNum, pageSize,
+        USER_ID_TOKEN, "123", true);
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
     given(service.getAnnotationsOnDigitalMediaObject(ID, path, pageNum, pageSize)).willReturn(

@@ -15,12 +15,13 @@ import static org.mockito.BDDMockito.given;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -153,21 +154,49 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetAnnotationsOnMediaObject(){
+  void testGetAnnotationsOnMediaObject() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
     String path = SANDBOX_URI + ID + "/json";
     String mediaId = "https://hdl.handle.net/" + ID;
     String annotationId = "123";
-    int totalPageCount = 1;
-    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, annotationId);
-    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN, annotationId);
+    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize + 1, USER_ID_TOKEN,
+        annotationId);
+    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN,
+        annotationId,
+        true);
 
-    given(repository.getAnnotationsOnDigitalMediaObject(mediaId)).willReturn(expectedAnnotation);
+    given(repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber,
+        pageSize + 1)).willReturn(expectedAnnotation);
 
     // When
-    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber, pageSize);
+    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber,
+        pageSize);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetAnnotationsOnMediaObjectLastPage() {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    String path = SANDBOX_URI + ID + "/json";
+    String mediaId = "https://hdl.handle.net/" + ID;
+    String annotationId = "123";
+    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, annotationId);
+    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN,
+        annotationId,
+        false);
+
+    given(repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber,
+        pageSize + 1)).willReturn(expectedAnnotation);
+
+    // When
+    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber,
+        pageSize);
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);
@@ -189,19 +218,42 @@ class DigitalMediaObjectServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {1, 2, 10})
+  @ValueSource(ints = {1, 2})
   void testGetDigitalMediaObjectsJsonResponse(int pageNumber) {
     // Given
     int pageSize = 10;
-    int totalPageCount = 10;
+    String path = SANDBOX_URI + "json";
+
+    var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
+    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
+
+    given(repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize + 1)).willReturn(
+        dataNodePlusOne);
+
+    var dataNode = dataNodePlusOne.subList(0, pageSize);
+    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
+
+    // When
+    var responseReceived = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetDigitalMediaObjectsJsonResponseLastPage() {
+    // Given
+    int pageSize = 10;
+    int pageNumber = 1;
     String path = SANDBOX_URI + "json";
 
     var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
+    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, false);
 
-    given(repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize)).willReturn(dataNode);
+    given(repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize + 1)).willReturn(
+        dataNode);
 
-    var responseExpected = new JsonApiMetaWrapper(dataNode, linksNode);
+    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
 
     // When
     var responseReceived = service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path);

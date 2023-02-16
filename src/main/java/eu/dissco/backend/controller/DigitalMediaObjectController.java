@@ -1,7 +1,7 @@
 package eu.dissco.backend.controller;
 
 import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.JsonApiMetaWrapper;
+import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.List;
@@ -43,7 +43,7 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiMetaWrapper> getDigitalMediaObjectsNameJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjectsNameJsonResponse(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for digital media objects in json format");
@@ -76,7 +76,7 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiMetaWrapper> getAnnotationsById(
+  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsById(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,

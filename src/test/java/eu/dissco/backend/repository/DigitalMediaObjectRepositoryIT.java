@@ -227,14 +227,16 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     var mediaObject = givenDigitalMediaObject(mediaId, ID);
     postAnnotation(annotation, mediaId);
     postMediaObjects(List.of(mediaObject));
+    int pageNumber = 1;
+    int pageSize = 1;
 
     var responseExpected = List.of(givenAnnotationJsonApiData(USER_ID_TOKEN, annotationId));
 
-    var annotations = context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION).fetch().stream().toList();
-    var medias = context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_MEDIA_OBJECT).fetch().stream().toList();
+//    var annotations = context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION).fetch().stream().toList();
+//    var medias = context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_MEDIA_OBJECT).fetch().stream().toList();
 
     // When
-    var responseReceived = repository.getAnnotationsOnDigitalMediaObject(mediaId);
+    var responseReceived = repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber, pageSize);
 
     assertThat(responseReceived).isEqualTo(responseExpected);
   }
