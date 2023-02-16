@@ -54,6 +54,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
       expectedResponse.add(givenAnnotationResponse(userId, id));
     }
     postAnnotations(expectedResponse);
+
     // When
     var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
 

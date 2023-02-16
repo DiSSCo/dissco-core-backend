@@ -70,9 +70,6 @@ public class AnnotationController {
     log.info("Received get request for latest paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
     String path = SANDBOX_URI + request.getRequestURI();
-    log.info(request.getRequestURI());
-    log.info(path);
-
     var annotations = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }
@@ -96,7 +93,7 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @GetMapping(value = "/all/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getAnnotationsJsonResponse(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {

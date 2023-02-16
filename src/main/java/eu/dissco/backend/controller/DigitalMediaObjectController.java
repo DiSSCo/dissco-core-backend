@@ -75,7 +75,7 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/annotations/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiMetaWrapper> getAnnotationsById(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,

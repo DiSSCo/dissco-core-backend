@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 
 import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
@@ -74,12 +75,8 @@ class ElasticSearchRepositoryIT {
           return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         }).build();
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    mapper.registerModule(new JavaTimeModule());
-
     ElasticsearchTransport transport = new RestClientTransport(restClient,
-        new JacksonJsonpMapper(mapper));
+        new JacksonJsonpMapper(MAPPER));
 
     client = new ElasticsearchClient(transport);
   }

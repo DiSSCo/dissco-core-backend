@@ -148,20 +148,23 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testGetAnnotationsById(){
+  void testGetAnnotationsById() {
     // Given
     int pageNum = 1;
     int pageSize = 10;
-    int totalPageCount =1;
+    int totalPageCount = 1;
     String requestUri = "api/v1/digitalMedia/" + ID + "/annotations/json";
     String path = SANDBOX_URI + requestUri;
-    JsonApiMetaWrapper responseExpected = givenAnnotationJsonResponse(path, pageNum, pageSize, totalPageCount, USER_ID_TOKEN, "123");
+    JsonApiMetaWrapper responseExpected = givenAnnotationJsonResponse(path, pageNum, pageSize,
+        totalPageCount, USER_ID_TOKEN, "123");
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
-    given(service.getAnnotationsOnDigitalMediaObject(ID, path, pageNum, pageSize)).willReturn(responseExpected);
+    given(service.getAnnotationsOnDigitalMediaObject(ID, path, pageNum, pageSize)).willReturn(
+        responseExpected);
 
     // When
-    var responseReceived = controller.getAnnotationsById(PREFIX, POSTFIX, pageNum, pageSize, request);
+    var responseReceived = controller.getAnnotationsById(PREFIX, POSTFIX, pageNum, pageSize,
+        request);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
