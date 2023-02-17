@@ -8,98 +8,119 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.JsonApiData;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
+  private static final String INDEX = "new-dissco";
+  private static final String ANNOTATION_EXISTS_QUERY = "_exists_:annotation.type ";
+  private static final String FIELD_CREATED = "created";
+  private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
+      throws IOException {
+    query = query.replace("/", "//");
+
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+    var searchRequest = new SearchRequest.Builder().index(INDEX)
+        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query).from(offset).size(pageSize)
+        .build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+    var searchRequest = new SearchRequest.Builder().index(INDEX)
+        .q("_exists_:digitalSpecimen.physicalSpecimenId ")
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
     var offset = 0;
     if (pageNumber > 1) {
       offset = offset + (pageSize * (pageNumber - 1));
     }
-    var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
-        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query)
-        .from(offset)
-        .size(pageSize)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
-  }
 
-  public List<DigitalSpecimen> getLatestSpecimen() throws IOException {
-    var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
-        .q("_exists_:digitalSpecimen.physicalSpecimenId ")
-        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
-        .size(10)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
-  }
-
-  public List<AnnotationResponse> getLatestAnnotation() throws IOException {
-    var searchRequest = new SearchRequest.Builder()
-        .index("new-dissco")
-        .q("_exists_:annotation.type ")
-        .sort(s -> s.field(f -> f.field("created").order(SortOrder.Desc)))
-        .size(10)
-        .build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream()
-        .map(Hit::source)
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
   }
 
+  public List<JsonApiData> getLatestAnnotationsJsonResponse(int pageNumber, int pageSize)
+      throws IOException {
+    var offset = 0;
+    if (pageNumber > 1) {
+      offset = offset + (pageSize * (pageNumber - 1));
+    }
+
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapToJsonApiData).toList();
+  }
+
+  public List<AnnotationResponse> getLatestAnnotation() throws IOException {
+    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).size(10).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapToAnnotationResponse).toList();
+  }
+
+
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
+
     var digitalSpecimen = json.get("digitalSpecimen");
-    return new DigitalSpecimen(
-        json.get("id").asText(),
-        json.get("midsLevel").asInt(),
-        json.get("version").asInt(),
-        Instant.ofEpochSecond(json.get("created").asLong()),
-        getText(digitalSpecimen, "type"),
-        getText(digitalSpecimen, "physicalSpecimenId"),
+    return new DigitalSpecimen(json.get("id").asText(), json.get("midsLevel").asInt(),
+        json.get("version").asInt(), Instant.ofEpochSecond(json.get(FIELD_CREATED).asLong()),
+        getText(digitalSpecimen, "type"), getText(digitalSpecimen, "physicalSpecimenId"),
         getText(digitalSpecimen, "physicalSpecimenIdType"),
-        getText(digitalSpecimen, "specimenName"),
-        getText(digitalSpecimen, "organizationId"),
+        getText(digitalSpecimen, "specimenName"), getText(digitalSpecimen, "organizationId"),
         getText(digitalSpecimen, "datasetId"),
         getText(digitalSpecimen, "physicalSpecimenCollection"),
-        getText(digitalSpecimen, "sourceSystemId"),
-        digitalSpecimen.get("data"),
-        digitalSpecimen.get("originalData"),
-        getText(digitalSpecimen, "dwcaId")
-    );
+        getText(digitalSpecimen, "sourceSystemId"), digitalSpecimen.get("data"),
+        digitalSpecimen.get("originalData"), getText(digitalSpecimen, "dwcaId"));
   }
 
   private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
     var annotation = json.get("annotation");
-    return new AnnotationResponse(
-        json.get("id").asText(),
-        json.get("version").asInt(),
-        getText(annotation, "type"),
-        getText(annotation, "motivation"),
-        annotation.get("target"),
-        annotation.get("body"),
-        annotation.get("preferenceScore").asInt(),
+    return new AnnotationResponse(json.get("id").asText(), json.get("version").asInt(),
+        getText(annotation, "type"), getText(annotation, "motivation"), annotation.get("target"),
+        annotation.get("body"), annotation.get("preferenceScore").asInt(),
         getText(annotation, "creator"),
-        Instant.ofEpochSecond(annotation.get("created").asLong()),
-        annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get("generated").asLong()),
-        null
-    );
+        Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong()), annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong()), null);
+  }
+
+  private JsonApiData mapToJsonApiData(ObjectNode json) {
+    ObjectNode annotation = (ObjectNode) json.get("annotation");
+    var created = Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong());
+    var generated = Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong());
+    annotation.put("id", json.get("id").asText());
+    annotation.put(FIELD_CREATED, String.valueOf(created));
+    annotation.put(FIELD_GENERATED, String.valueOf(generated));
+    return new JsonApiData(json.get("id").asText(), annotation.get("type").asText(), annotation);
   }
 
   private String getText(JsonNode digitalSpecimen, String element) {
@@ -110,5 +131,4 @@ public class ElasticSearchRepository {
       return null;
     }
   }
-
 }

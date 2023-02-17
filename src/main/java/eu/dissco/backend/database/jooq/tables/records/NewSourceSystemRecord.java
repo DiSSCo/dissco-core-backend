@@ -5,9 +5,7 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
-
 import java.time.Instant;
-
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record7;
