@@ -232,9 +232,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
     var responseExpected = List.of(givenAnnotationJsonApiData(USER_ID_TOKEN, annotationId));
 
-//    var annotations = context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION).fetch().stream().toList();
-//    var medias = context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_MEDIA_OBJECT).fetch().stream().toList();
-
     // When
     var responseReceived = repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber, pageSize);
 

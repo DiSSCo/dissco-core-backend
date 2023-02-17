@@ -134,32 +134,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSize(pageSize);
   }
 
-  /*
-  @Test
-  void testGetAnnotationsCountForUser() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    int userAnnotationsCount = 10;
-    int pageSize = 5;
-    int expectedCount = userAnnotationsCount / pageSize;
-    List<AnnotationResponse> annotationsNonTarget = List.of(
-        givenAnnotationResponse("test", "test"));
-    postAnnotations(annotationsNonTarget);
-    List<AnnotationResponse> userAnnotations = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, userAnnotationsCount - 1).boxed()
-        .map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      userAnnotations.add(givenAnnotationResponse(userId, annotationId));
-    }
-    postAnnotations(userAnnotations);
-
-    // When
-    int receivedCount = repository.getAnnotationsCountForUser(userId, pageSize);
-
-    // Then
-    assertThat(receivedCount).isEqualTo(expectedCount);
-  } */
-
   @Test
   void testGetAnnotation() {
     // Given

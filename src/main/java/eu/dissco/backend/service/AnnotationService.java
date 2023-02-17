@@ -44,18 +44,9 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getAnnotationsForUserJsonResponse(String userId, int pageNumber,
       int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1);
-    boolean hasNextPage;
-    List<JsonApiData> annotations;
-    if (annotationsPlusOne.size() > pageSize ){
-      hasNextPage = true;
-      annotations = annotationsPlusOne.subList(0, pageSize);
-    } else {
-      hasNextPage = false;
-      annotations = annotationsPlusOne;
-    }
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
-    return new JsonApiListResponseWrapper(annotations, linksNode);
+    var annotationsPlusOne = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
+        pageSize + 1);
+    return wrapResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   public AnnotationResponse getAnnotation(String id) {
@@ -66,20 +57,26 @@ public class AnnotationService {
     return repository.getAnnotations(pageNumber, pageSize);
   }
 
-  public JsonApiListResponseWrapper getAnnotationsJsonResponse(int pageNumber, int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsJsonResponse(pageNumber, pageSize+1);
+  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> annotationsPlusOne,
+      int pageNumber, int pageSize, String path) {
     boolean hasNextPage;
     List<JsonApiData> annotations;
-    if (annotationsPlusOne.size() > pageSize ){
+    if (annotationsPlusOne.size() > pageSize) {
       hasNextPage = true;
       annotations = annotationsPlusOne.subList(0, pageSize);
     } else {
       hasNextPage = false;
       annotations = annotationsPlusOne;
     }
-    
+
     JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
     return new JsonApiListResponseWrapper(annotations, linksNode);
+  }
+
+  public JsonApiListResponseWrapper getAnnotationsJsonResponse(int pageNumber, int pageSize,
+      String path) {
+    var annotationsPlusOne = repository.getAnnotationsJsonResponse(pageNumber, pageSize + 1);
+    return wrapResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
@@ -89,19 +86,9 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getLatestAnnotationsJsonResponse(int pageNumber, int pageSize,
       String path) throws IOException {
-    var annotationsPlusOne = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1);
-    boolean hasNextPage;
-    List<JsonApiData> annotations;
-    if (annotationsPlusOne.size() > pageSize ){
-      hasNextPage = true;
-      annotations = annotationsPlusOne.subList(0, pageSize);
-    } else {
-      hasNextPage = false;
-      annotations = annotationsPlusOne;
-    }
-    
-    JsonApiLinksFull linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
-    return new JsonApiListResponseWrapper(annotations, linksNode);
+    var annotationsPlusOne = elasticRepository.getLatestAnnotationsJsonResponse(pageNumber,
+        pageSize + 1);
+    return wrapResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,

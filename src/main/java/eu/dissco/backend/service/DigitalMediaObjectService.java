@@ -34,19 +34,7 @@ public class DigitalMediaObjectService {
       int pageNumber, int pageSize) {
     String mediaId = "https://hdl.handle.net/" + id;
     var annotationsPlusOne = repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber, pageSize+1);
-
-    boolean hasNextPage;
-    List<JsonApiData> annotations;
-    if (annotationsPlusOne.size() > pageSize ){
-      hasNextPage = true;
-      annotations = annotationsPlusOne.subList(0, pageSize);
-    } else {
-      hasNextPage = false;
-      annotations = annotationsPlusOne;
-    }
-
-    var linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
-    return new JsonApiListResponseWrapper(annotations, linksNode);
+    return wrapResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
@@ -81,10 +69,7 @@ public class DigitalMediaObjectService {
     return repository.getDigitalMediaObject(pageNumber, pageSize);
   }
 
-  public JsonApiListResponseWrapper getDigitalMediaObjectsJsonResponse(int pageNumber, int pageSize,
-      String path) {
-    var dataNodePlusOne = repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize+1);
-
+  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
     boolean hasNextPage;
     List<JsonApiData> dataNode;
     if (dataNodePlusOne.size() > pageSize ){
@@ -97,6 +82,12 @@ public class DigitalMediaObjectService {
 
     var linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
     return new JsonApiListResponseWrapper(dataNode, linksNode);
+  }
+
+  public JsonApiListResponseWrapper getDigitalMediaObjectsJsonResponse(int pageNumber, int pageSize,
+      String path) {
+    var dataNodePlusOne = repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize+1);
+    return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
   private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
