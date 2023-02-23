@@ -4,6 +4,7 @@ package eu.dissco.backend;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
@@ -75,7 +76,7 @@ public class TestUtils {
   }
 
   public static AnnotationResponse givenAnnotationResponse() {
-    return givenAnnotationResponse(USER_ID_TOKEN, "id");
+    return givenAnnotationResponse(USER_ID_TOKEN, ID);
   }
 
   public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
@@ -93,10 +94,12 @@ public class TestUtils {
 
   public static JsonNode givenAnnotationBody() {
     ObjectNode body = MAPPER.createObjectNode();
-    ObjectNode bodyValues = MAPPER.createObjectNode();
-    bodyValues.put("class", "leaf");
-    bodyValues.put("score", 0.99);
+    ArrayNode bodyValues = MAPPER.createArrayNode();
+    ObjectNode value = MAPPER.createObjectNode();
+    value.put("class", "leaf");
+    value.put("score", 0.99);
     body.put("source", "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large");
+    bodyValues.add(value);
     body.set("values", bodyValues);
     return body;
   }
@@ -182,7 +185,7 @@ public class TestUtils {
   private static JsonNode givenDigitalMediaObjectData() {
     ObjectNode data = MAPPER.createObjectNode();
     data.put("dcterms:title", "19942272");
-    data.put("dcterms:publisher", "Royal Botanic Garden Edinburg");
+    data.put("dcterms:publisher", "Royal Botanic Garden Edinburgh");
     return data;
   }
 
@@ -238,9 +241,13 @@ public class TestUtils {
         attributeNode);
   }
 
+  public static DigitalSpecimen givenDigitalSpecimen(String id){
+    return givenDigitalSpecimen(id, 1);
+  }
+
   // Digital Specimen
-  public static DigitalSpecimen givenDigitalSpecimen(String id) {
-    return new DigitalSpecimen(id, 1, 1, CREATED, "BotanySpecimen", "123", "cetaf",
+  public static DigitalSpecimen givenDigitalSpecimen(String id, int version) {
+    return new DigitalSpecimen(id, 1, version, CREATED, "BotanySpecimen", "123", "cetaf",
         "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.", "https://ror.org/0349vqz63",
         "Royal Botanic Garden Edinburgh Herbarium",
         "http://biocol.org/urn:lsid:biocol.org:col:15670", "20.5000.1025/3XA-8PT-SAY",

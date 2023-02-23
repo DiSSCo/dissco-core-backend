@@ -27,7 +27,7 @@ CREATE TABLE public.new_annotation (
 	"generated" timestamptz NOT NULL,
 	last_checked timestamptz NOT NULL,
 	deleted timestamptz NULL,
-	CONSTRAINT new_annotation_pkey PRIMARY KEY (id, version)
+	CONSTRAINT new_annotation_pk PRIMARY KEY (id)
 );
 
 CREATE TABLE public.new_digital_media_object (
@@ -43,8 +43,10 @@ CREATE TABLE public.new_digital_media_object (
 	deleted timestamptz NULL,
 	"data" jsonb NULL,
 	original_data jsonb NULL,
-	CONSTRAINT new_digital_media_object_pkey PRIMARY KEY (id, version)
+	CONSTRAINT new_digital_media_object_pk PRIMARY KEY (id)
 );
+CREATE INDEX new_digital_media_object_id_idx ON public.new_digital_media_object USING btree (id, media_url);
+CREATE UNIQUE INDEX new_digital_media_object_id_version_url ON public.new_digital_media_object USING btree (id, version, media_url);
 
 CREATE TABLE public.new_digital_specimen (
 	id text NOT NULL,
@@ -64,7 +66,7 @@ CREATE TABLE public.new_digital_specimen (
 	"data" jsonb NULL,
 	original_data jsonb NULL,
 	dwca_id text NULL,
-	CONSTRAINT new_digital_specimen_pkey PRIMARY KEY (id, version)
+	CONSTRAINT new_digital_specimen_pk PRIMARY KEY (id)
 );
 CREATE INDEX new_digital_specimen_created_idx ON public.new_digital_specimen USING btree (created);
 CREATE INDEX new_digital_specimen_id_idx ON public.new_digital_specimen USING btree (id, created);

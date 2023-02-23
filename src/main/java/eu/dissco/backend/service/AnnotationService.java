@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -10,8 +10,10 @@ import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.MongoRepository;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -25,10 +27,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
+  private static final String MONGO_DATE_FIELD = "$date";
+
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
-  private final ObjectMapper mapper;
+  private final MongoRepository mongoRepository;
 
   @NotNull
   private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
@@ -123,8 +127,27 @@ public class AnnotationService {
         Instant.ofEpochSecond(annotation.get("generated").asLong()), null);
   }
 
-  public AnnotationResponse getAnnotationVersion(String id, int version) {
-    return repository.getAnnotationVersion(id, version);
+  public AnnotationResponse getAnnotationVersion(String id, int version)
+      throws JsonProcessingException, NotFoundException {
+    var result = mongoRepository.getVersion(id, version, "annotation_provenance");
+    return mapToAnnotation(result);
+  }
+
+  private AnnotationResponse mapToAnnotation(JsonNode result) {
+    return new AnnotationResponse(
+        result.get("id").asText(),
+        result.get("version").asInt(),
+        result.get("type").asText(),
+        result.get("motivation").asText(),
+        result.get("target_body"),
+        result.get("body"),
+        result.get("preference_score").asInt(),
+        result.get("creator").asText(),
+        Instant.parse(result.get("created").get(MONGO_DATE_FIELD).asText()),
+        result.get("generator_body"),
+        Instant.parse(result.get("generated").get(MONGO_DATE_FIELD).asText()),
+        result.get("deleted") == null ? Instant.parse(result.get("deleted").get(MONGO_DATE_FIELD).asText()) : null
+    );
   }
 
   public List<AnnotationResponse> getAnnotationForTarget(String id) {
@@ -132,8 +155,8 @@ public class AnnotationService {
     return repository.getForTarget(fullId);
   }
 
-  public List<Integer> getAnnotationVersions(String id) {
-    return repository.getAnnotationVersions(id);
+  public List<Integer> getAnnotationVersions(String id) throws NotFoundException {
+    return mongoRepository.getVersions(id, "annotation_provenance");
   }
 
   public boolean deleteAnnotation(String prefix, String postfix, String userId)

@@ -2,9 +2,6 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
@@ -103,64 +100,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaVersions() {
-    // Given
-    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
-        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
-        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
-        firstMediaObject.originalData());
-    List<Integer> expectedResponse = List.of(1, 2);
-    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-
-    // When
-    var receivedResponse = repository.getDigitalMediaVersions(ID);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
-  void testGetDigitalMediaByVersion() {
-    int targetVersion = 2;
-    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var expectedResponse = new DigitalMediaObject(firstMediaObject.id(), targetVersion,
-        firstMediaObject.created(), firstMediaObject.type(), firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(), firstMediaObject.format(), firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(), firstMediaObject.originalData());
-    postMediaObjects(List.of(firstMediaObject, expectedResponse));
-
-    // When
-    var receivedResponse = repository.getDigitalMediaByVersion(ID, targetVersion);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetDigitalMediaByVersionJsonResponse() {
-    int targetVersion = 2;
-    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(), targetVersion,
-        firstMediaObject.created(), firstMediaObject.type(), firstMediaObject.digitalSpecimenId(),
-        firstMediaObject.mediaUrl(), firstMediaObject.format(), firstMediaObject.sourceSystemId(),
-        firstMediaObject.data(), firstMediaObject.originalData());
-    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-
-    var specimen = givenDigitalSpecimen(ID_ALT);
-    postDigitalSpecimen(specimen);
-
-    var expectedResponse = givenMediaObjectJsonApiDataWithSpeciesName(secondMediaObject, specimen);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaByVersionJsonResponse(ID, targetVersion);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
   void testGetDigitalMediaObject() {
     // Given
     int pageNum1 = 1;
@@ -218,26 +157,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsOnDigitalMediaObject(){
-    // Given
-    String annotationId = "annotationId";
-    var annotation = givenAnnotationResponse(USER_ID_TOKEN, annotationId);
-    String mediaId = annotation.target().get("id").asText();
-    var mediaObject = givenDigitalMediaObject(mediaId, ID);
-    postAnnotation(annotation, mediaId);
-    postMediaObjects(List.of(mediaObject));
-    int pageNumber = 1;
-    int pageSize = 1;
-
-    var responseExpected = List.of(givenAnnotationJsonApiData(USER_ID_TOKEN, annotationId));
-
-    // When
-    var responseReceived = repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber, pageSize);
-
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
   void testGetDigitalMediaIdsForSpecimen() {
     // Given
     List<String> expectedResponse = List.of(ID, ID_ALT);
@@ -260,6 +179,18 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     for (DigitalMediaObject mediaObject : mediaObjects) {
       var query = context.insertInto(NEW_DIGITAL_MEDIA_OBJECT)
           .set(NEW_DIGITAL_MEDIA_OBJECT.ID, mediaObject.id())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.version())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.type())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.created())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, mediaObject.digitalSpecimenId())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.mediaUrl())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.FORMAT, mediaObject.format())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID, mediaObject.sourceSystemId())
+          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.data().toString()))
+          .set(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
+              JSONB.jsonb(mediaObject.originalData().toString()))
+          .set(NEW_DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.created())
+          .onConflict(NEW_DIGITAL_SPECIMEN.ID).doUpdate()
           .set(NEW_DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.version())
           .set(NEW_DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.type())
           .set(NEW_DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.created())
@@ -297,21 +228,4 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         .execute();
   }
 
-  private void postAnnotation(AnnotationResponse annotation, String targetId) {
-      context.insertInto(NEW_ANNOTATION).set(NEW_ANNOTATION.ID, annotation.id())
-          .set(NEW_ANNOTATION.VERSION, annotation.version())
-          .set(NEW_ANNOTATION.TYPE, annotation.type())
-          .set(NEW_ANNOTATION.MOTIVATION, annotation.motivation())
-          .set(NEW_ANNOTATION.TARGET_ID, targetId)
-          .set(NEW_ANNOTATION.TARGET_BODY, JSONB.jsonb(annotation.target().toString()))
-          .set(NEW_ANNOTATION.BODY, JSONB.jsonb(annotation.body().toString()))
-          .set(NEW_ANNOTATION.PREFERENCE_SCORE, annotation.preferenceScore())
-          .set(NEW_ANNOTATION.CREATOR, annotation.creator())
-          .set(NEW_ANNOTATION.CREATED, annotation.created())
-          .set(NEW_ANNOTATION.GENERATOR_ID, annotation.generator().get("id").toString())
-          .set(NEW_ANNOTATION.GENERATOR_BODY, JSONB.jsonb(annotation.generator().toString()))
-          .set(NEW_ANNOTATION.GENERATED, annotation.generated())
-          .set(NEW_ANNOTATION.LAST_CHECKED, annotation.created())
-          .execute();
-  }
 }

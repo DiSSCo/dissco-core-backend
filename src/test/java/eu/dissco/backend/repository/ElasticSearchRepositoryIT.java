@@ -25,7 +25,10 @@ import eu.dissco.backend.domain.JsonApiData;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.AnnotationTestRecord;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.DigitalSpecimenTestRecord;
 import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,11 +38,14 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -54,7 +60,7 @@ class ElasticSearchRepositoryIT {
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
   private static final ElasticsearchContainer container = new ElasticsearchContainer(
-      ELASTIC_IMAGE).withExposedPorts(9200).withPassword(ELASTICSEARCH_PASSWORD);
+      ELASTIC_IMAGE).withPassword(ELASTICSEARCH_PASSWORD);
   private static ElasticsearchClient client;
   private static RestClient restClient;
   private ElasticSearchRepository repository;
@@ -68,10 +74,16 @@ class ElasticSearchRepositoryIT {
     credentialsProvider.setCredentials(AuthScope.ANY,
         new UsernamePasswordCredentials(ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD));
 
-    restClient = RestClient.builder(HttpHost.create(container.getHttpHostAddress()))
-        .setHttpClientConfigCallback(httpClientBuilder -> {
-          return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-        }).build();
+    HttpHost host = new HttpHost("localhost",
+        container.getMappedPort(9200), "https");
+    final RestClientBuilder builder = RestClient.builder(host);
+
+    builder.setHttpClientConfigCallback(clientBuilder -> {
+      clientBuilder.setSSLContext(container.createSslContextFromCa());
+      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+      return clientBuilder;
+    });
+    restClient = builder.build();
 
     ElasticsearchTransport transport = new RestClientTransport(restClient,
         new JacksonJsonpMapper(MAPPER));
@@ -187,7 +199,7 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
-    var allElems = repository.getLatestAnnotations(1, pageSize * 2);
+    repository.getLatestAnnotations(1, pageSize * 2);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -213,7 +225,7 @@ class ElasticSearchRepositoryIT {
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
-    var responsePost = postAnnotations(annotationTestRecords);
+    postAnnotations(annotationTestRecords);
 
     // When
     var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
@@ -243,7 +255,7 @@ class ElasticSearchRepositoryIT {
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
-    var responsePost = postAnnotations(annotationTestRecords);
+    postAnnotations(annotationTestRecords);
 
     // When
     var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
@@ -274,7 +286,7 @@ class ElasticSearchRepositoryIT {
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
-    var responsePost = postAnnotations(annotationTestRecords);
+   postAnnotations(annotationTestRecords);
 
     // When
     var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);

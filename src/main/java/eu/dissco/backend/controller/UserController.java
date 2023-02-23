@@ -97,21 +97,6 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  @ExceptionHandler(ConflictException.class)
-  public ResponseEntity<Void> handleException(ConflictException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).build();
-  }
-
-  @ExceptionHandler(NotFoundException.class)
-  public ResponseEntity<Void> handleException(NotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-  }
-
-  @ExceptionHandler(ForbiddenException.class)
-  public ResponseEntity<Void> handleException(ForbiddenException e) {
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-  }
-
   private String getNameFromToken(Authentication authentication) {
     KeycloakPrincipal<? extends KeycloakSecurityContext> principal = (KeycloakPrincipal<?>) authentication.getPrincipal();
     AccessToken token = principal.getKeycloakSecurityContext().getToken();

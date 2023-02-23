@@ -5,11 +5,13 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
+
 import java.time.Instant;
+
 import org.jooq.Field;
 import org.jooq.JSONB;
+import org.jooq.Record1;
 import org.jooq.Record12;
-import org.jooq.Record2;
 import org.jooq.Row12;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -195,8 +197,8 @@ public class NewDigitalMediaObjectRecord extends UpdatableRecordImpl<NewDigitalM
     // -------------------------------------------------------------------------
 
     @Override
-    public Record2<String, Integer> key() {
-        return (Record2) super.key();
+    public Record1<String> key() {
+        return (Record1) super.key();
     }
 
     // -------------------------------------------------------------------------

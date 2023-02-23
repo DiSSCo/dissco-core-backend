@@ -113,39 +113,6 @@ class UserControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
-  @Test
-  void testNotFoundException() {
-    // Given
-
-    // When
-    var result = controller.handleException(new NotFoundException());
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-  }
-
-  @Test
-  void testForbiddenException() {
-    // Given
-
-    // When
-    var result = controller.handleException(new ForbiddenException(FORBIDDEN_MESSAGE));
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-  }
-
-  @Test
-  void testConflictException() {
-    // Given
-
-    // When
-    var result = controller.handleException(new ConflictException());
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-  }
-
   private void givenAuthentication(String userId) {
     authentication = new TestingAuthenticationToken(principal, null);
     given(principal.getKeycloakSecurityContext()).willReturn(securityContext);

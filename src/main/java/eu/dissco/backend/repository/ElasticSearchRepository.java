@@ -1,5 +1,7 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
+
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -29,10 +31,8 @@ public class ElasticSearchRepository {
       throws IOException {
     query = query.replace("/", "//");
 
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    var offset = getOffset(pageNumber, pageSize);
+
     var searchRequest = new SearchRequest.Builder().index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query).from(offset).size(pageSize)
         .build();
@@ -41,10 +41,7 @@ public class ElasticSearchRepository {
   }
 
   public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    var offset = getOffset(pageNumber, pageSize);
     var searchRequest = new SearchRequest.Builder().index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId ")
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
@@ -55,10 +52,7 @@ public class ElasticSearchRepository {
 
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    var offset = getOffset(pageNumber, pageSize);
 
     var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
@@ -69,10 +63,7 @@ public class ElasticSearchRepository {
 
   public List<JsonApiData> getLatestAnnotationsJsonResponse(int pageNumber, int pageSize)
       throws IOException {
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    var offset = getOffset(pageNumber, pageSize);
 
     var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
@@ -92,15 +83,20 @@ public class ElasticSearchRepository {
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
 
     var digitalSpecimen = json.get("digitalSpecimen");
-    return new DigitalSpecimen(json.get("id").asText(), json.get("midsLevel").asInt(),
+    return new DigitalSpecimen(json.get("id").asText(),
+        json.get("midsLevel").asInt(),
         json.get("version").asInt(), Instant.ofEpochSecond(json.get(FIELD_CREATED).asLong()),
-        getText(digitalSpecimen, "type"), getText(digitalSpecimen, "physicalSpecimenId"),
+        getText(digitalSpecimen, "type"),
+        getText(digitalSpecimen, "physicalSpecimenId"),
         getText(digitalSpecimen, "physicalSpecimenIdType"),
-        getText(digitalSpecimen, "specimenName"), getText(digitalSpecimen, "organizationId"),
+        getText(digitalSpecimen, "specimenName"),
+        getText(digitalSpecimen, "organizationId"),
         getText(digitalSpecimen, "datasetId"),
         getText(digitalSpecimen, "physicalSpecimenCollection"),
-        getText(digitalSpecimen, "sourceSystemId"), digitalSpecimen.get("data"),
-        digitalSpecimen.get("originalData"), getText(digitalSpecimen, "dwcaId"));
+        getText(digitalSpecimen, "sourceSystemId"),
+        digitalSpecimen.get("data"),
+        digitalSpecimen.get("originalData"),
+        getText(digitalSpecimen, "dwcaId"));
   }
 
   private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {

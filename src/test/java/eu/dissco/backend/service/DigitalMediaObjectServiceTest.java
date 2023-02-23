@@ -1,10 +1,8 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
@@ -12,16 +10,19 @@ import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
+import eu.dissco.backend.repository.MongoRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,12 +38,14 @@ class DigitalMediaObjectServiceTest {
   private DigitalMediaObjectRepository repository;
   @Mock
   private AnnotationService annotationService;
+  @Mock
+  private MongoRepository mongoRepository;
 
   private DigitalMediaObjectService service;
 
   @BeforeEach
   void setup() {
-    service = new DigitalMediaObjectService(repository, annotationService);
+    service = new DigitalMediaObjectService(repository, annotationService, mongoRepository);
   }
 
   @Test
@@ -98,10 +101,10 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersions() {
+  void testGetDigitalMediaVersions() throws NotFoundException {
     // Given
     List<Integer> responseExpected = List.of(1, 2);
-    given(repository.getDigitalMediaVersions(ID)).willReturn(responseExpected);
+    given(mongoRepository.getVersions(ID, "digital_media_provenance")).willReturn(responseExpected);
 
     // When
     var responseReceived = service.getDigitalMediaVersions(ID);
@@ -111,33 +114,50 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersion() {
+  void testGetDigitalMediaVersion() throws NotFoundException, JsonProcessingException {
     // Given
     int version = 1;
-    var responseExpected = givenDigitalMediaObject(ID);
-    given(repository.getDigitalMediaByVersion(ID, version)).willReturn(responseExpected);
+    var responseExpected = givenMongoDBMediaResponse();
+    given(mongoRepository.getVersion(ID, version, "digital_media_provenance")).willReturn(
+        responseExpected);
 
     // When
     var responseReceived = service.getDigitalMediaVersion(ID, version);
 
     // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+    assertThat(responseReceived).isEqualTo(givenDigitalMediaObject(ID));
   }
 
-  @Test
-  void testGetDigitalMediaVersionJsonResponse() {
-    // Given
-    int version = 1;
-    String path = SANDBOX_URI + "/json/" + ID + "/" + String.valueOf(version);
-    var dataNode = givenDigitalMediaJsonApiData(ID);
-    var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    given(repository.getDigitalMediaByVersionJsonResponse(ID, version)).willReturn(dataNode);
-
-    // When
-    var responseReceived = service.getDigitalMediaVersionJsonResponse(ID, version, path);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+  private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
+    return MAPPER.readValue(
+        """
+            {
+              "_id": "20.5000.1025/ABC-123-XYZ/1",
+              "id": "20.5000.1025/ABC-123-XYZ",
+              "version": 1,
+              "type": "2DImageObject",
+              "digital_specimen_id": "20.5000.1025/460-A7R-QMJ",
+              "media_url": "https://dissco.com",
+              "format": "image/jpeg",
+              "source_system_id": "20.5000.1025/GW0-TYL-YRU",
+              "created": {
+                "$date": "2022-11-01T09:59:24.00Z"
+              },
+              "last_checked": {
+                "$date": "2022-11-01T09:59:24.00Z"
+              },
+              "deleted": null,
+              "data": {
+                "dcterms:title": "19942272",
+                "dcterms:publisher": "Royal Botanic Garden Edinburgh"
+              },
+              "original_data": {
+                "dcterms:title": "19942272",
+                "dcterms:type": "StillImage"
+              }
+            }
+            """, JsonNode.class
+    );
   }
 
   @Test
@@ -156,50 +176,15 @@ class DigitalMediaObjectServiceTest {
   @Test
   void testGetAnnotationsOnMediaObject() {
     // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    String path = SANDBOX_URI + ID + "/json";
-    String mediaId = "https://hdl.handle.net/" + ID;
-    String annotationId = "123";
-    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize + 1, USER_ID_TOKEN,
-        annotationId);
-    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN,
-        annotationId,
-        true);
+    var expectedAnnotation = List.of(givenAnnotationResponse());
 
-    given(repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber,
-        pageSize + 1)).willReturn(expectedAnnotation);
+    given(annotationService.getAnnotationForTarget(ID)).willReturn(expectedAnnotation);
 
     // When
-    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber,
-        pageSize);
+    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID);
 
     // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
-  void testGetAnnotationsOnMediaObjectLastPage() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    String path = SANDBOX_URI + ID + "/json";
-    String mediaId = "https://hdl.handle.net/" + ID;
-    String annotationId = "123";
-    var expectedAnnotation = givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, annotationId);
-    var responseExpected = givenAnnotationJsonResponse(path, pageNumber, pageSize, USER_ID_TOKEN,
-        annotationId,
-        false);
-
-    given(repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber,
-        pageSize + 1)).willReturn(expectedAnnotation);
-
-    // When
-    var responseReceived = service.getAnnotationsOnDigitalMediaObject(ID, path, pageNumber,
-        pageSize);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+    assertThat(responseReceived).isEqualTo(expectedAnnotation);
   }
 
   @Test

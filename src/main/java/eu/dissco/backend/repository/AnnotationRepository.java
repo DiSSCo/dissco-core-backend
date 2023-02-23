@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
+import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,63 +24,52 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
+
+
   public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
       int pageSize) {
-    int offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    int offset = getOffset(pageNumber, pageSize);
 
-    return context.select(NEW_ANNOTATION.asterisk()).distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION).where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .orderBy(NEW_ANNOTATION.CREATED)
         .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
   public List<JsonApiData> getAnnotationsForUserJsonResponse(String userId, int pageNumber,
       int pageSize) {
-    int offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    int offset = getOffset(pageNumber, pageSize);
 
-    return context.select(NEW_ANNOTATION.asterisk()).distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION).where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .orderBy(NEW_ANNOTATION.CREATED.desc())
         .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
   }
 
   public AnnotationResponse getAnnotation(String id) {
-    return context.select(NEW_ANNOTATION.asterisk()).distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION).where(NEW_ANNOTATION.ID.eq(id))
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc()).fetchOne(this::mapToAnnotation);
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .fetchOne(this::mapToAnnotation);
   }
 
   public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
-    int offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    int offset = getOffset(pageNumber, pageSize);
 
-    return context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION).limit(pageSize)
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .limit(pageSize)
         .offset(offset).fetch(this::mapToAnnotation);
   }
 
   public List<JsonApiData> getAnnotationsJsonResponse(int pageNumber, int pageSize) {
-    int offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
-    return context.select(NEW_ANNOTATION.asterisk()).distinctOn(NEW_ANNOTATION.ID)
+    int offset = getOffset(pageNumber, pageSize);
+    return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc(), NEW_ANNOTATION.CREATED)
+        .orderBy(NEW_ANNOTATION.CREATED.desc())
         .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
-  }
-
-  public AnnotationResponse getAnnotationVersion(String id, int version) {
-    return context.select(NEW_ANNOTATION.asterisk()).from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id)).and(NEW_ANNOTATION.VERSION.eq(version))
-        .fetchOne(this::mapToAnnotation);
   }
 
   private AnnotationResponse mapToAnnotation(Record dbRecord) {
@@ -130,15 +120,13 @@ public class AnnotationRepository {
         .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc()).fetch(this::mapToAnnotation);
   }
 
-  public List<Integer> getAnnotationVersions(String id) {
-    return context.select(NEW_ANNOTATION.VERSION).from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id)).fetch(Record1::value1).stream().toList();
-  }
-
   public int getAnnotationForUser(String id, String userId) {
-    return context.select(NEW_ANNOTATION.ID).distinctOn(NEW_ANNOTATION.ID).from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id)).and(NEW_ANNOTATION.CREATOR.eq(userId))
+    return context.select(NEW_ANNOTATION.ID)
+        .distinctOn(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .and(NEW_ANNOTATION.CREATOR.eq(userId))
         .and(NEW_ANNOTATION.DELETED.isNull())
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc()).fetch().size();
+        .fetch().size();
   }
 }

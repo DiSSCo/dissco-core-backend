@@ -4,7 +4,9 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
+
 import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
@@ -21,6 +23,8 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index NEW_DIGITAL_MEDIA_OBJECT_ID_IDX = Internal.createIndex(DSL.name("new_digital_media_object_id_idx"), NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, new OrderField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.ID, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL }, false);
+    public static final Index NEW_DIGITAL_MEDIA_OBJECT_ID_VERSION_URL = Internal.createIndex(DSL.name("new_digital_media_object_id_version_url"), NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, new OrderField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.ID, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.VERSION, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL }, true);
     public static final Index NEW_DIGITAL_SPECIMEN_CREATED_IDX = Internal.createIndex(DSL.name("new_digital_specimen_created_idx"), NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN, new OrderField[] { NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN.CREATED }, false);
     public static final Index NEW_DIGITAL_SPECIMEN_ID_IDX = Internal.createIndex(DSL.name("new_digital_specimen_id_idx"), NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN, new OrderField[] { NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN.ID, NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN.CREATED }, false);
     public static final Index NEW_DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_IDX = Internal.createIndex(DSL.name("new_digital_specimen_physical_specimen_id_idx"), NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN, new OrderField[] { NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID }, false);
