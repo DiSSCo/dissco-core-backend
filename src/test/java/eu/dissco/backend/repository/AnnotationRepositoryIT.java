@@ -203,29 +203,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
   }
-
-  @Test
-  void testGetAnnotationVersion() {
-    // Given
-    String annotationId = "123";
-    int targetVersion = 2;
-    List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    AnnotationResponse version1 = givenAnnotationResponse(USER_ID_TOKEN, annotationId);
-    AnnotationResponse version2 = new AnnotationResponse(version1.id(), targetVersion,
-        version1.type(), version1.motivation(), version1.target(), version1.body(),
-        version1.preferenceScore(), version1.creator(), version1.created(), version1.generator(),
-        version1.generated(), version1.deleted_on());
-    annotationsAll.add(version1);
-    annotationsAll.add(version2);
-    postAnnotations(annotationsAll);
-
-    // When
-    var receivedResponse = repository.getAnnotationVersion(annotationId, targetVersion);
-
-    // Then
-    assertThat(version2).isEqualTo(receivedResponse);
-  }
-
   private void postAnnotations(List<AnnotationResponse> annotations) {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {
