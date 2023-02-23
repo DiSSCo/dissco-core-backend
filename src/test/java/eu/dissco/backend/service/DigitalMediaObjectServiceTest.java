@@ -7,7 +7,7 @@ import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

@@ -7,12 +7,11 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.JsonApiData;
@@ -60,7 +59,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectByIdJsonResponse() {
+  void testGetLatestDigitalMediaObjectByIdJsonResponse() throws JsonProcessingException {
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
     var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
         firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
@@ -82,7 +81,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaForDigitalSpecimen() {
+  void testGetDigitalMediaForDigitalSpecimen() throws JsonProcessingException {
     // Given
     String specimenId = ID_ALT;
     var firstMediaObject = givenDigitalMediaObject(ID, specimenId);
@@ -125,7 +124,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaObjectJsonResponse() {
+  void testGetDigitalMediaObjectJsonResponse() throws JsonProcessingException {
     // Given
     int pageNum1 = 1;
     int pageNum2 = 2;
@@ -157,7 +156,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaIdsForSpecimen() {
+  void testGetDigitalMediaIdsForSpecimen() throws JsonProcessingException {
     // Given
     List<String> expectedResponse = List.of(ID, ID_ALT);
     String specimenId = "specimenId";

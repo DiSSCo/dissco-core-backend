@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -23,7 +22,6 @@ public class AnnotationRepository {
 
   private final DSLContext context;
   private final ObjectMapper mapper;
-
 
 
   public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
@@ -114,15 +112,15 @@ public class AnnotationRepository {
   }
 
   public List<AnnotationResponse> getForTarget(String id) {
-    return context.select(NEW_ANNOTATION.asterisk()).distinctOn(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION).where(NEW_ANNOTATION.TARGET_ID.eq(id))
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
         .and(NEW_ANNOTATION.DELETED.isNull())
-        .orderBy(NEW_ANNOTATION.ID, NEW_ANNOTATION.VERSION.desc()).fetch(this::mapToAnnotation);
+        .fetch(this::mapToAnnotation);
   }
 
   public int getAnnotationForUser(String id, String userId) {
     return context.select(NEW_ANNOTATION.ID)
-        .distinctOn(NEW_ANNOTATION.ID)
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.ID.eq(id))
         .and(NEW_ANNOTATION.CREATOR.eq(userId))

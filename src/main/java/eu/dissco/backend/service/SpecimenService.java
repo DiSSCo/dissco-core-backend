@@ -30,6 +30,7 @@ public class SpecimenService {
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
+      "dwca", "http://rs.tdwg.org/dwc/text/",
       "abcd", "https://abcd.tdwg.org/terms/",
       "abcd-efg", "https://terms.tdwg.org/wiki/ABCD_EFG/",
       "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",

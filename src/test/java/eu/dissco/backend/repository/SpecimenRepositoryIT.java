@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.util.ArrayList;
 import org.jooq.JSONB;
@@ -27,7 +28,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetSpecimenLatest() {
+  void testGetSpecimenLatest() throws JsonProcessingException {
     // Given
     populateSpecimenTable();
 
@@ -41,7 +42,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetSpecimenById() {
+  void testGetSpecimenById() throws JsonProcessingException {
     // Given
     populateSpecimenTable();
 
@@ -52,7 +53,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     assertThat(result).isEqualTo(givenDigitalSpecimen("20.5000.1025/ABC-123-XY3"));
   }
 
-  private void populateSpecimenTable() {
+  private void populateSpecimenTable() throws JsonProcessingException {
     var specimens = new ArrayList<DigitalSpecimen>();
     for (int i = 0; i < 22; i++) {
       specimens.add(givenDigitalSpecimen("20.5000.1025/ABC-123-XY" + i));

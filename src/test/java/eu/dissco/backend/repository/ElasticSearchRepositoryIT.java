@@ -16,6 +16,7 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -304,7 +305,7 @@ class ElasticSearchRepositoryIT {
     return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, created, specimen);
   }
 
-  private DigitalSpecimen givenOlderSpecimen(String id) {
+  private DigitalSpecimen givenOlderSpecimen(String id) throws JsonProcessingException {
     var spec = givenDigitalSpecimen(id);
     return new DigitalSpecimen(spec.id(), spec.midsLevel(), spec.version(),
         Instant.parse(CREATED_ALT), spec.type(), spec.physicalSpecimenId(),

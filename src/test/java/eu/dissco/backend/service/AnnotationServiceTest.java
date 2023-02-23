@@ -9,8 +9,7 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.TestUtils.givenAnnotationRequest;
 import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
@@ -62,7 +61,8 @@ class AnnotationServiceTest {
   void setup() {
     mapper = new ObjectMapper().findAndRegisterModules();
     mapper.setDefaultPropertyInclusion(Include.ALWAYS);
-    service = new AnnotationService(repository, annotationClient, elasticRepository, mongoRepository);
+    service = new AnnotationService(repository, annotationClient, elasticRepository,
+        mongoRepository);
   }
 
   @Test
@@ -95,8 +95,9 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1)).willReturn(
-        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, userId, annotationId));
+    given(
+        repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize + 1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize + 1, userId, annotationId));
 
     // When
     var receivedResponse = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize,
@@ -116,7 +117,8 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
-    given(repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize+1)).willReturn(
+    given(
+        repository.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize + 1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
 
     // When
@@ -167,8 +169,8 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
-        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, userId, annotationId));
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize + 1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize + 1, userId, annotationId));
 
     // When
     var receivedResponse = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
@@ -186,7 +188,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
-    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
+    given(repository.getAnnotationsJsonResponse(pageNumber, pageSize + 1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
 
     // When
@@ -221,8 +223,8 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, "123", true);
-    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
-        TestUtils.givenAnnotationJsonApiDataList(pageSize+1, USER_ID_TOKEN, "123"));
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize + 1)).willReturn(
+        TestUtils.givenAnnotationJsonApiDataList(pageSize + 1, USER_ID_TOKEN, "123"));
 
     // When
     var receivedResponse = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
@@ -238,7 +240,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, "123", false);
-    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize+1)).willReturn(
+    given(elasticRepository.getLatestAnnotationsJsonResponse(pageNumber, pageSize + 1)).willReturn(
         TestUtils.givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, "123"));
 
     // When
@@ -261,7 +263,7 @@ class AnnotationServiceTest {
 
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
-    try(var mockedStatic = mockStatic(Instant.class)) {
+    try (var mockedStatic = mockStatic(Instant.class)) {
       mockedStatic.when(Instant::now).thenReturn(instant);
       mockedStatic.when(() -> Instant.ofEpochSecond(CREATED.getLong(ChronoField.INSTANT_SECONDS)))
           .thenReturn(instant);
