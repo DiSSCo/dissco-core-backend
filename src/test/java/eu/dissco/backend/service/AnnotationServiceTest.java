@@ -317,10 +317,10 @@ class AnnotationServiceTest {
               "version": 1,
               "type": "Annotation",
               "motivation": "motivation",
-              "target_id": "targetId",
+              "target_id": "20.5000.1025/TAR_GET_001",
               "target_field": null,
               "target_body": {
-                "id": "targetId",
+                "id": "20.5000.1025/TAR_GET_001",
                 "type": "digitalSpecimen"
               },
               "body": {
