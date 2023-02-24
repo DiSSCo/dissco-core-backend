@@ -167,7 +167,7 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
     specimenTestRecords.addAll(specimenTestRecordsLatest);
     specimenTestRecords.addAll(specimenTestRecordsOlder);
-    var responsePost = postDigitalSpecimens(specimenTestRecords);
+    postDigitalSpecimens(specimenTestRecords);
 
     // When
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
@@ -200,7 +200,6 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
-    repository.getLatestAnnotations(1, pageSize * 2);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -287,7 +286,7 @@ class ElasticSearchRepositoryIT {
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
     annotationTestRecords.addAll(annotationTestRecordsLatest);
     annotationTestRecords.addAll(annotationTestRecordsOlder);
-   postAnnotations(annotationTestRecords);
+    postAnnotations(annotationTestRecords);
 
     // When
     var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);

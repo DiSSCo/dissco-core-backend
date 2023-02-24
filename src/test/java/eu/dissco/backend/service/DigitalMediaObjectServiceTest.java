@@ -118,11 +118,11 @@ class DigitalMediaObjectServiceTest {
     // Given
     int version = 1;
     var responseExpected = givenMongoDBMediaResponse();
-    given(mongoRepository.getVersion(ID, version, "digital_media_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         responseExpected);
 
     // When
-    var responseReceived = service.getDigitalMediaVersion(ID, version);
+    var responseReceived = service.getDigitalMediaVersionByVersion(ID, version);
 
     // Then
     assertThat(responseReceived).isEqualTo(givenDigitalMediaObject(ID));

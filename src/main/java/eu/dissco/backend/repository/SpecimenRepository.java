@@ -30,7 +30,7 @@ public class SpecimenRepository {
         .fetch(this::mapper);
   }
 
-  public DigitalSpecimen getSpecimenById(String id) {
+  public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))

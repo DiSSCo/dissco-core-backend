@@ -49,7 +49,7 @@ public class SpecimenService {
   }
 
   public DigitalSpecimen getSpecimenById(String id) {
-    return repository.getSpecimenById(id);
+    return repository.getLatestSpecimenById(id);
   }
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
@@ -63,7 +63,7 @@ public class SpecimenService {
 
   public DigitalSpecimen getSpecimenByVersion(String id, int version)
       throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getVersion(id, version, "digital_specimen_provenance");
+    var result = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
     return mapResultToSpecimen(result);
   }
 
@@ -92,7 +92,7 @@ public class SpecimenService {
   }
 
   public DigitalSpecimenFull getSpecimenByIdFull(String id) {
-    var digitalSpecimen = repository.getSpecimenById(id);
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
     var annotation = annotationService.getAnnotationForTarget(id);
     return new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation);

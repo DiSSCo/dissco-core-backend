@@ -20,7 +20,7 @@ public class MongoRepository {
   private final MongoDatabase database;
   private final ObjectMapper mapper;
 
-  public JsonNode getVersion(String id, int version, String collectionName)
+  public JsonNode getByVersion(String id, int version, String collectionName)
       throws JsonProcessingException, NotFoundException {
     var collection = database.getCollection(collectionName);
     var versionId = id + '/' + version;

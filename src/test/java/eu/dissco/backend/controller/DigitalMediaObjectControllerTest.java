@@ -14,8 +14,6 @@ import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.TestUtils;
-import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
@@ -122,10 +120,10 @@ class DigitalMediaObjectControllerTest {
   void testGetDigitalMediaObjectVersion() throws NotFoundException, JsonProcessingException {
     // Given
     int version = 1;
-    given(service.getDigitalMediaVersion(ID, version)).willReturn(givenDigitalMediaObject(ID));
+    given(service.getDigitalMediaVersionByVersion(ID, version)).willReturn(givenDigitalMediaObject(ID));
 
     // When
-    var responseReceived = controller.getDigitalMediaObject(PREFIX, POSTFIX, version);
+    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, POSTFIX, version);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);

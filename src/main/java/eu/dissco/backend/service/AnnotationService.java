@@ -127,9 +127,9 @@ public class AnnotationService {
         Instant.ofEpochSecond(annotation.get("generated").asLong()), null);
   }
 
-  public AnnotationResponse getAnnotationVersion(String id, int version)
+  public AnnotationResponse getAnnotationByVersion(String id, int version)
       throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getVersion(id, version, "annotation_provenance");
+    var result = mongoRepository.getByVersion(id, version, "annotation_provenance");
     return mapToAnnotation(result);
   }
 

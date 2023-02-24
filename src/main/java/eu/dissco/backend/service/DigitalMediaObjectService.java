@@ -55,9 +55,9 @@ public class DigitalMediaObjectService {
     return mongoRepository.getVersions(id, "digital_media_provenance");
   }
 
-  public DigitalMediaObject getDigitalMediaVersion(String id, int version)
+  public DigitalMediaObject getDigitalMediaVersionByVersion(String id, int version)
       throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getVersion(id, version, "digital_media_provenance");
+    var result = mongoRepository.getByVersion(id, version, "digital_media_provenance");
     return mapToDigitalMediaObject(result);
   }
 

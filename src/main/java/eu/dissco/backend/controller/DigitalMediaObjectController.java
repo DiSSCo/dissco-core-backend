@@ -99,12 +99,12 @@ public class DigitalMediaObjectController {
   }
 
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DigitalMediaObject> getDigitalMediaObject(
+  public ResponseEntity<DigitalMediaObject> getDigitalMediaObjectByVersion(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       @PathVariable("version") int version) throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
-    var digitalMedia = service.getDigitalMediaVersion(id, version);
+    var digitalMedia = service.getDigitalMediaVersionByVersion(id, version);
     return ResponseEntity.ok(digitalMedia);
   }
 

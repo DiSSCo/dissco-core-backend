@@ -47,7 +47,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     populateSpecimenTable();
 
     // When
-    var result = repository.getSpecimenById("20.5000.1025/ABC-123-XY3");
+    var result = repository.getLatestSpecimenById("20.5000.1025/ABC-123-XY3");
 
     // Then
     assertThat(result).isEqualTo(givenDigitalSpecimen("20.5000.1025/ABC-123-XY3"));

@@ -97,7 +97,7 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Integer>> getSpecimenByVersion(@PathVariable("prefix") String prefix,
+  public ResponseEntity<List<Integer>> getSpecimenVersions(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) throws NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id and version: {}", id);

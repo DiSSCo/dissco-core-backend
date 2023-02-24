@@ -298,11 +298,11 @@ class AnnotationServiceTest {
     // Given
     int version = 1;
     var responseExpected = givenMongoDBAnnotationResponse();
-    given(mongoRepository.getVersion(ID, version, "annotation_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(
         responseExpected);
 
     // When
-    var responseReceived = service.getAnnotationVersion(ID, version);
+    var responseReceived = service.getAnnotationByVersion(ID, version);
 
     // Then
     assertThat(responseReceived).isEqualTo(givenAnnotationResponse());

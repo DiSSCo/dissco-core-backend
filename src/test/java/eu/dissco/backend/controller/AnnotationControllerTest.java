@@ -116,10 +116,10 @@ class AnnotationControllerTest {
     // Given
     int version = 1;
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotationVersion(ID, version)).willReturn(givenAnnotationResponse());
+    given(service.getAnnotationByVersion(ID, version)).willReturn(givenAnnotationResponse());
 
     // When
-    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX, version);
+    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX, version);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -236,7 +236,7 @@ class AnnotationControllerTest {
     // Given
 
     // When
-    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX);
+    var receivedResponse = controller.getAnnotationVersions(PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

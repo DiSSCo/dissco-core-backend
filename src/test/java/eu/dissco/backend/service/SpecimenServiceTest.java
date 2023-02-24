@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DigitalSpecimenServiceTest {
+class SpecimenServiceTest {
 
   @Mock
   private SpecimenRepository repository;
@@ -65,7 +65,7 @@ class DigitalSpecimenServiceTest {
   void testGetSpecimenById() throws JsonProcessingException {
     // Given
     var digitalSpecimen = givenDigitalSpecimen(ID);
-    given(repository.getSpecimenById(ID)).willReturn(digitalSpecimen);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
 
     // When
     var result = service.getSpecimenById(ID);
@@ -106,7 +106,7 @@ class DigitalSpecimenServiceTest {
     // Given
     int version = 4;
     var responseExpected = givenMongoDBMediaResponse();
-    given(mongoRepository.getVersion(ID, version, "digital_specimen_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         responseExpected);
 
     // When
@@ -136,7 +136,7 @@ class DigitalSpecimenServiceTest {
     var specimen = givenDigitalSpecimen(ID);
     var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
-    given(repository.getSpecimenById(ID)).willReturn(specimen);
+    given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
     given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTarget(ID)).willReturn(annotations);
     var expected = new DigitalSpecimenFull(specimen, digitalMedia, annotations);
@@ -178,7 +178,7 @@ class DigitalSpecimenServiceTest {
   void testSpecimenByIdJsonLD() throws IOException {
     // Given
     var specimens = givenDigitalSpecimen(ID);
-    given(repository.getSpecimenById(ID)).willReturn(specimens);
+    given(repository.getLatestSpecimenById(ID)).willReturn(specimens);
     given(digitalMediaObjectService.getDigitalMediaIdsForSpecimen(ID)).willReturn(
         List.of(PREFIX + "XXX-XXX-YYY"));
 

@@ -54,7 +54,7 @@ class MongoRepositoryIT {
     var expected = givenExpectedSpecimen();
 
     // When
-    var result = repository.getVersion(ID, 4, "digital_specimen_provenance");
+    var result = repository.getByVersion(ID, 4, "digital_specimen_provenance");
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -66,7 +66,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getVersion(ID, 2, "digital_specimen_provenance"));
+        () -> repository.getByVersion(ID, 2, "digital_specimen_provenance"));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);

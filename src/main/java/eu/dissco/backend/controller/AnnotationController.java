@@ -77,12 +77,12 @@ public class AnnotationController {
   }
 
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> getAnnotation(@PathVariable("prefix") String prefix,
+  public ResponseEntity<AnnotationResponse> getAnnotationByVersion(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix, @PathVariable("version") int version)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotation: {} with version: {}", id, version);
-    var annotation = service.getAnnotationVersion(id, version);
+    var annotation = service.getAnnotationByVersion(id, version);
     return ResponseEntity.ok(annotation);
   }
 
@@ -167,7 +167,7 @@ public class AnnotationController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Integer>> getAnnotationByVersion(@PathVariable("prefix") String prefix,
+  public ResponseEntity<List<Integer>> getAnnotationVersions(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix) throws NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for versions of annotation with id: {}", id);
