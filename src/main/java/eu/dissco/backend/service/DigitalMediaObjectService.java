@@ -1,5 +1,8 @@
 package eu.dissco.backend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.JsonApiData;
@@ -7,7 +10,10 @@ import eu.dissco.backend.domain.JsonApiLinks;
 import eu.dissco.backend.domain.JsonApiLinksFull;
 import eu.dissco.backend.domain.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
+import eu.dissco.backend.repository.MongoRepository;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +25,7 @@ public class DigitalMediaObjectService {
 
   private final DigitalMediaObjectRepository repository;
   private final AnnotationService annotationService;
+  private final MongoRepository mongoRepository;
 
   public DigitalMediaObject getDigitalMediaById(String id) {
     return repository.getLatestDigitalMediaById(id);
@@ -30,11 +37,8 @@ public class DigitalMediaObjectService {
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
-  public JsonApiListResponseWrapper getAnnotationsOnDigitalMediaObject(String id, String path,
-      int pageNumber, int pageSize) {
-    String mediaId = "https://hdl.handle.net/" + id;
-    var annotationsPlusOne = repository.getAnnotationsOnDigitalMediaObject(mediaId, pageNumber, pageSize+1);
-    return wrapResponse(annotationsPlusOne, pageNumber, pageSize, path);
+  public List<AnnotationResponse> getAnnotationsOnDigitalMediaObject(String id) {
+      return annotationService.getAnnotationForTarget(id);
   }
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
@@ -47,18 +51,29 @@ public class DigitalMediaObjectService {
     return digitalMediaFull;
   }
 
-  public List<Integer> getDigitalMediaVersions(String id) {
-    return repository.getDigitalMediaVersions(id);
+  public List<Integer> getDigitalMediaVersions(String id) throws NotFoundException {
+    return mongoRepository.getVersions(id, "digital_media_provenance");
   }
 
-  public DigitalMediaObject getDigitalMediaVersion(String id, int version) {
-    return repository.getDigitalMediaByVersion(id, version);
+  public DigitalMediaObject getDigitalMediaVersionByVersion(String id, int version)
+      throws JsonProcessingException, NotFoundException {
+    var result = mongoRepository.getByVersion(id, version, "digital_media_provenance");
+    return mapToDigitalMediaObject(result);
   }
 
-  public JsonApiWrapper getDigitalMediaVersionJsonResponse(String id, int version, String path) {
-    var dataNode = repository.getDigitalMediaByVersionJsonResponse(id, version);
-    var linksNode = new JsonApiLinks(path);
-    return new JsonApiWrapper(dataNode, linksNode);
+  private DigitalMediaObject mapToDigitalMediaObject(JsonNode result) {
+    return new DigitalMediaObject(
+        result.get("id").asText(),
+        result.get("version").asInt(),
+        Instant.parse(result.get("created").get("$date").asText()),
+        result.get("type").asText(),
+        result.get("digital_specimen_id").asText(),
+        result.get("media_url").asText(),
+        result.get("format").asText(),
+        result.get("source_system_id").asText(),
+        result.get("data"),
+        result.get("original_data")
+    );
   }
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {

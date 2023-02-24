@@ -10,9 +10,11 @@ import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -110,14 +112,14 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationVersion() {
+  void testGetAnnotationVersion() throws NotFoundException, JsonProcessingException {
     // Given
     int version = 1;
     var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotationVersion(ID, version)).willReturn(givenAnnotationResponse());
+    given(service.getAnnotationByVersion(ID, version)).willReturn(givenAnnotationResponse());
 
     // When
-    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX, version);
+    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX, version);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -230,11 +232,11 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsByVersion() {
+  void testGetAnnotationsByVersion() throws NotFoundException {
     // Given
 
     // When
-    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX);
+    var receivedResponse = controller.getAnnotationVersions(PREFIX, POSTFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

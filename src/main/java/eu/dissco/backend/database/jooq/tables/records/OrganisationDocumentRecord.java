@@ -5,6 +5,7 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
+
 import org.jooq.Field;
 import org.jooq.JSONB;
 import org.jooq.Record1;

@@ -5,19 +5,20 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class FeignConfiguration {
   @Bean
   public Client feignClient()
   {
-    Client trustSSLSockets = new Client.Default(getSSLSocketFactory(), new NoopHostnameVerifier());
-    return trustSSLSockets;
+    return new Client.Default(getSSLSocketFactory(), new NoopHostnameVerifier());
   }
 
 
@@ -31,7 +32,8 @@ public class FeignConfiguration {
       };
       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
       return sslContext.getSocketFactory();
-    } catch (Exception exception) {
+    } catch (Exception e) {
+      log.error("An exception occurred when pushing annotation to annotation-processor", e);
     }
     return null;
   }

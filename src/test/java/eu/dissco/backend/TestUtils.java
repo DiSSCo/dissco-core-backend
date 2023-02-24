@@ -1,9 +1,11 @@
 package eu.dissco.backend;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
@@ -30,6 +32,7 @@ public class TestUtils {
   public static final String POSTFIX = "ABC-123-XYZ";
   public static final String ID = PREFIX + "/" + POSTFIX;
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
+  public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
 
   public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
@@ -70,33 +73,43 @@ public class TestUtils {
 
   // Annotation
   public static AnnotationRequest givenAnnotationRequest() {
-    return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(),
+    return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(TARGET_ID),
         givenAnnotationBody());
   }
 
   public static AnnotationResponse givenAnnotationResponse() {
-    return givenAnnotationResponse(USER_ID_TOKEN, "id");
+    return givenAnnotationResponse(USER_ID_TOKEN, ID);
+  }
+
+  public static AnnotationResponse givenAnnotationResponseTarget(String id, String target){
+    return givenAnnotationResponse(USER_ID_TOKEN, id, target);
   }
 
   public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
+    return givenAnnotationResponse(userId, annotationId, TARGET_ID);
+  }
+
+  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId, String targetId) {
     return new AnnotationResponse(annotationId, 1, "Annotation", "motivation",
-        givenAnnotationTarget(), givenAnnotationBody(), 100, userId, CREATED,
+        givenAnnotationTarget(targetId), givenAnnotationBody(), 100, userId, CREATED,
         givenAnnotationGenerator(), CREATED, null);
   }
 
-  public static JsonNode givenAnnotationTarget() {
+  public static JsonNode givenAnnotationTarget(String targetId) {
     ObjectNode target = MAPPER.createObjectNode();
-    target.put("id", "targetId");
+    target.put("id", targetId);
     target.put("type", "digitalSpecimen");
     return target;
   }
 
   public static JsonNode givenAnnotationBody() {
     ObjectNode body = MAPPER.createObjectNode();
-    ObjectNode bodyValues = MAPPER.createObjectNode();
-    bodyValues.put("class", "leaf");
-    bodyValues.put("score", 0.99);
+    ArrayNode bodyValues = MAPPER.createArrayNode();
+    ObjectNode value = MAPPER.createObjectNode();
+    value.put("class", "leaf");
+    value.put("score", 0.99);
     body.put("source", "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large");
+    bodyValues.add(value);
     body.set("values", bodyValues);
     return body;
   }
@@ -182,7 +195,7 @@ public class TestUtils {
   private static JsonNode givenDigitalMediaObjectData() {
     ObjectNode data = MAPPER.createObjectNode();
     data.put("dcterms:title", "19942272");
-    data.put("dcterms:publisher", "Royal Botanic Garden Edinburg");
+    data.put("dcterms:publisher", "Royal Botanic Garden Edinburgh");
     return data;
   }
 
@@ -193,7 +206,8 @@ public class TestUtils {
     return originalData;
   }
 
-  public static JsonApiListResponseWrapper givenDigitalMediaJsonResponse(String path, int pageNumber,
+  public static JsonApiListResponseWrapper givenDigitalMediaJsonResponse(String path,
+      int pageNumber,
       int pageSize, List<String> mediaIds) {
     JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
     List<JsonApiData> dataNode = new ArrayList<>();
@@ -238,13 +252,78 @@ public class TestUtils {
         attributeNode);
   }
 
+  public static DigitalSpecimen givenDigitalSpecimen(String id) throws JsonProcessingException {
+    return givenDigitalSpecimen(id, 1);
+  }
+
   // Digital Specimen
-  public static DigitalSpecimen givenDigitalSpecimen(String id) {
-    return new DigitalSpecimen(id, 1, 1, CREATED, "BotanySpecimen", "123", "cetaf",
-        "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.", "https://ror.org/0349vqz63",
+  public static DigitalSpecimen givenDigitalSpecimen(String id, int version)
+      throws JsonProcessingException {
+    return new DigitalSpecimen(
+        id,
+        1,
+        version,
+        CREATED,
+        "BotanySpecimen",
+        "123",
+        "cetaf",
+        "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
+        "https://ror.org/0349vqz63",
         "Royal Botanic Garden Edinburgh Herbarium",
-        "http://biocol.org/urn:lsid:biocol.org:col:15670", "20.5000.1025/3XA-8PT-SAY",
-        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData(),
+        "http://biocol.org/urn:lsid:biocol.org:col:15670",
+        "20.5000.1025/3XA-8PT-SAY",
+        givenSpecimenData(),
+        givenSpecimenOriginalData(),
         "http://data.rbge.org.uk/herb/E00586417");
+  }
+
+  private static JsonNode givenSpecimenOriginalData() throws JsonProcessingException {
+    return MAPPER.readValue(
+        """
+              {
+                "dwc:class": "Malacostraca",
+                "dwc:genus": "Mesuca",
+                "dwc:order": "Decapoda",
+                "dwc:family": "Ocypodidae",
+                "dwc:phylum": "Arthropoda",
+                "dwc:country": "Nicobar Islands",
+                "dwc:locality": "Harbour",
+                "dwc:continent": "Eastern Indian Ocean",
+                "dwc:eventDate": "01/01/1846",
+                "dwc:recordedBy": "Rosen",
+                "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
+                "dcterms:modified": "03/12/2012",
+                "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
+                "dwc:preparations": "various - 1",
+                "dwc:basisOfRecord": "PreservedSpecimen",
+                "dwc:catalogNumber": "NHMD79044",
+                "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
+                "dwc:collectionCode": "IV",
+                "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
+                "dwc:institutionCode": "NHMD",
+                "dwc:specificEpithet": "dussumieri",
+                "dwc:acceptedNameUsage": "Mesuca dussumieri",
+                "dwc:otherCatalogNumbers": "CRU-001196"
+              }
+            """, JsonNode.class);
+  }
+
+  private static JsonNode givenSpecimenData() throws JsonProcessingException {
+    return MAPPER.readValue(
+        """
+            {
+              "dwca:id": "http://data.rbge.org.uk/herb/E00586417",
+              "ods:modified": "03/12/2012",
+              "ods:datasetId": "Royal Botanic Garden Edinburgh Herbarium",
+              "ods:objectType": "",
+              "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+              "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
+              "ods:organizationId": "https://ror.org/0349vqz63",
+              "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
+              "ods:physicalSpecimenIdType": "cetaf",
+              "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"      
+            }
+            """, JsonNode.class);
   }
 }

@@ -8,9 +8,11 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewDigitalSpecimenRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Index;
@@ -179,12 +181,12 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
 
     @Override
     public UniqueKey<NewDigitalSpecimenRecord> getPrimaryKey() {
-        return Keys.NEW_DIGITAL_SPECIMEN_PKEY;
+        return Keys.NEW_DIGITAL_SPECIMEN_PK;
     }
 
     @Override
     public List<UniqueKey<NewDigitalSpecimenRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewDigitalSpecimenRecord>>asList(Keys.NEW_DIGITAL_SPECIMEN_PKEY);
+        return Arrays.<UniqueKey<NewDigitalSpecimenRecord>>asList(Keys.NEW_DIGITAL_SPECIMEN_PK);
     }
 
     @Override

@@ -7,9 +7,11 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
@@ -131,7 +133,7 @@ public class NewUser extends TableImpl<NewUserRecord> {
 
     @Override
     public List<UniqueKey<NewUserRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewUserRecord>>asList(Keys.NEW_USER_PKEY, Keys.NEW_USER_ORCID_KEY);
+        return Arrays.<UniqueKey<NewUserRecord>>asList(Keys.NEW_USER_PKEY);
     }
 
     @Override

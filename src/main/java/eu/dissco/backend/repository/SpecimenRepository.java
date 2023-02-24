@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -22,10 +22,7 @@ public class SpecimenRepository {
   private final ObjectMapper mapper;
 
   public List<DigitalSpecimen> getSpecimensLatest(int pageNumber, int pageSize) {
-    var offset = 0;
-    if (pageNumber > 1) {
-      offset = offset + (pageSize * (pageNumber - 1));
-    }
+    int offset = getOffset(pageNumber, pageSize);
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .offset(offset)
@@ -35,10 +32,8 @@ public class SpecimenRepository {
 
   public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
-        .distinctOn(NEW_DIGITAL_SPECIMEN.ID)
         .from(NEW_DIGITAL_SPECIMEN)
         .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .orderBy(NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_SPECIMEN.VERSION.desc())
         .fetchOne(this::mapper);
   }
 
@@ -65,18 +60,4 @@ public class SpecimenRepository {
     }
   }
 
-  public DigitalSpecimen getSpecimenByVersion(String id, int version) {
-    return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
-        .from(NEW_DIGITAL_SPECIMEN)
-        .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .and(NEW_DIGITAL_SPECIMEN.VERSION.eq(version))
-        .fetchOne(this::mapper);
-  }
-
-  public List<Integer> getSpecimenVersions(String id) {
-    return context.select(NEW_DIGITAL_SPECIMEN.VERSION)
-        .from(NEW_DIGITAL_SPECIMEN)
-        .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .fetch(Record1::value1);
-  }
 }

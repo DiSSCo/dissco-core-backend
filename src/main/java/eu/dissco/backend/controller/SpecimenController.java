@@ -1,10 +1,12 @@
 package eu.dissco.backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
 import java.util.List;
@@ -85,7 +87,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DigitalSpecimen> getSpecimenByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, @PathVariable("version") int version) {
+      @PathVariable("postfix") String postfix, @PathVariable("version") int version)
+      throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id and version: {}", id);
     var specimen = service.getSpecimenByVersion(id, version);
@@ -94,8 +97,8 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Integer>> getSpecimenByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  public ResponseEntity<List<Integer>> getSpecimenVersions(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix) throws NotFoundException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id and version: {}", id);
     var versions = service.getSpecimenVersions(id);
