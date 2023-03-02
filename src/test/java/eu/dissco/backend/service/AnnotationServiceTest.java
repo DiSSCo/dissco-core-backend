@@ -312,45 +312,36 @@ class AnnotationServiceTest {
     return MAPPER.readValue(
         """
             {
-              "_id": "20.5000.1025/ABC-123-XYZ/1",
-              "id": "20.5000.1025/ABC-123-XYZ",
-              "version": 1,
-              "type": "Annotation",
-              "motivation": "motivation",
-              "target_id": "20.5000.1025/TAR_GET_001",
-              "target_field": null,
-              "target_body": {
-                "id": "20.5000.1025/TAR_GET_001",
-                "type": "digitalSpecimen"
-              },
-              "body": {
-                "source": "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large",
-                "values": [
-                  {
-                    "class": "leaf",
-                    "score": 0.99
-                  }
-                ]
-              },
-              "preference_score": 100,
-              "creator": "e2befba6-9324-4bb4-9f41-d7dfae4a44b0",
-              "created": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "generator_id": "generatorId",
-              "generator_body": {
-                "id": "generatorId",
-                "name": "annotation processing service"
-              },
-              "generated": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "last_checked": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "deleted": null
-            }
-            """, JsonNode.class
+                 "id": "20.5000.1025/ABC-123-XYZ",
+                 "version": 1,
+                 "created": 1667296764,
+                 "annotation": {
+                   "type": "Annotation",
+                   "motivation": "motivation",
+                   "target": {
+                     "id": "20.5000.1025/TAR_GET_001",
+                     "type": "digitalSpecimen"
+                   },
+                   "body": {
+                     "source": "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large",
+                     "values": [
+                       {
+                         "class": "leaf",
+                         "score": 0.99
+                       }
+                     ]
+                   },
+                   "preferenceScore": 100,
+                   "creator": "e2befba6-9324-4bb4-9f41-d7dfae4a44b0",
+                   "created": 1667296764,
+                   "generator": {
+                     "id": "generatorId",
+                     "name": "annotation processing service"
+                   },
+                   "generated": 1667296764
+                 }
+               }
+                        """, JsonNode.class
     );
   }
 

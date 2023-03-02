@@ -132,31 +132,26 @@ class DigitalMediaObjectServiceTest {
     return MAPPER.readValue(
         """
             {
-              "_id": "20.5000.1025/ABC-123-XYZ/1",
               "id": "20.5000.1025/ABC-123-XYZ",
               "version": 1,
-              "type": "2DImageObject",
-              "digital_specimen_id": "20.5000.1025/460-A7R-QMJ",
-              "media_url": "https://dissco.com",
-              "format": "image/jpeg",
-              "source_system_id": "20.5000.1025/GW0-TYL-YRU",
-              "created": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "last_checked": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "deleted": null,
-              "data": {
+              "created": 1667296764,
+              "digitalMediaObject": {
+                "type": "2DImageObject",
+                "digitalSpecimenId": "20.5000.1025/460-A7R-QMJ",
+                "mediaUrl": "https://dissco.com",
+                "format": "image/jpeg",
+                "sourceSystemId": "20.5000.1025/GW0-TYL-YRU",
+                "data": {
                 "dcterms:title": "19942272",
                 "dcterms:publisher": "Royal Botanic Garden Edinburgh"
-              },
-              "original_data": {
+                },
+                "originalData": {
                 "dcterms:title": "19942272",
                 "dcterms:type": "StillImage"
+                }
               }
             }
-            """, JsonNode.class
+                        """, JsonNode.class
     );
   }
 

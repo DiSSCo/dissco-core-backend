@@ -68,22 +68,23 @@ public class SpecimenService {
   }
 
   private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
+    var digtalSpecimen = result.get("digitalSpecimen");
     return new DigitalSpecimen(
         result.get("id").asText(),
-        result.get("midslevel").asInt(),
+        result.get("midsLevel").asInt(),
         result.get("version").asInt(),
-        Instant.parse(result.get("created").get("$date").asText()),
-        result.get("type").asText(),
-        result.get("physical_specimen_id").asText(),
-        result.get("physical_specimen_type").asText(),
-        result.get("specimen_name").asText(),
-        result.get("organization_id").asText(),
-        result.get("dataset").asText(),
-        result.get("physical_specimen_collection").asText(),
-        result.get("source_system_id").asText(),
-        result.get("data"),
-        result.get("original_data"),
-        result.get("dwca_id").asText()
+        Instant.ofEpochSecond(result.get("created").asInt()),
+        digtalSpecimen.get("ods:type").asText(),
+        digtalSpecimen.get("ods:physicalSpecimenId").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:physicalSpecimenIdType").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:specimenName").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:organizationId").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:datasetId").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:physicalSpecimenCollection").asText(),
+        digtalSpecimen.get("ods:attributes").get("ods:sourceSystemId").asText(),
+        digtalSpecimen.get("ods:attributes"),
+        digtalSpecimen.get("ods:originalAttributes"),
+        digtalSpecimen.get("ods:attributes").get("dwca:id").asText()
     );
   }
 

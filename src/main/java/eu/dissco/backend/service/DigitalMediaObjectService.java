@@ -62,17 +62,18 @@ public class DigitalMediaObjectService {
   }
 
   private DigitalMediaObject mapToDigitalMediaObject(JsonNode result) {
+    var digitalMediaObject = result.get("digitalMediaObject");
     return new DigitalMediaObject(
         result.get("id").asText(),
         result.get("version").asInt(),
-        Instant.parse(result.get("created").get("$date").asText()),
-        result.get("type").asText(),
-        result.get("digital_specimen_id").asText(),
-        result.get("media_url").asText(),
-        result.get("format").asText(),
-        result.get("source_system_id").asText(),
-        result.get("data"),
-        result.get("original_data")
+        Instant.ofEpochSecond(result.get("created").asInt()),
+        digitalMediaObject.get("type").asText(),
+        digitalMediaObject.get("digitalSpecimenId").asText(),
+        digitalMediaObject.get("mediaUrl").asText(),
+        digitalMediaObject.get("format").asText(),
+        digitalMediaObject.get("sourceSystemId").asText(),
+        digitalMediaObject.get("data"),
+        digitalMediaObject.get("originalData")
     );
   }
 
