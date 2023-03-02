@@ -36,6 +36,7 @@ public class SpecimenService {
       "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
       "hdl", "https://hdl.handle.net/",
       "dcterms", "http://purl.org/dc/terms/");
+  private static final String ORGANISATION_ID = "ods:organizationId";
 
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
@@ -68,23 +69,24 @@ public class SpecimenService {
   }
 
   private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
-    var digtalSpecimen = result.get("digitalSpecimen");
+    var digitalSpecimen = result.get("digitalSpecimen");
+    var attributes = digitalSpecimen.get("ods:attributes");
     return new DigitalSpecimen(
         result.get("id").asText(),
         result.get("midsLevel").asInt(),
         result.get("version").asInt(),
         Instant.ofEpochSecond(result.get("created").asInt()),
-        digtalSpecimen.get("ods:type").asText(),
-        digtalSpecimen.get("ods:physicalSpecimenId").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:physicalSpecimenIdType").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:specimenName").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:organizationId").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:datasetId").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:physicalSpecimenCollection").asText(),
-        digtalSpecimen.get("ods:attributes").get("ods:sourceSystemId").asText(),
-        digtalSpecimen.get("ods:attributes"),
-        digtalSpecimen.get("ods:originalAttributes"),
-        digtalSpecimen.get("ods:attributes").get("dwca:id").asText()
+        digitalSpecimen.get("ods:type").asText(),
+        digitalSpecimen.get("ods:physicalSpecimenId").asText(),
+        attributes.get("ods:physicalSpecimenIdType").asText(),
+        attributes.get("ods:specimenName").asText(),
+        attributes.get(ORGANISATION_ID).asText(),
+        attributes.get("ods:datasetId").asText(),
+        attributes.get("ods:physicalSpecimenCollection").asText(),
+        attributes.get("ods:sourceSystemId").asText(),
+        attributes,
+        digitalSpecimen.get("ods:originalAttributes"),
+        digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
     );
   }
 
@@ -129,7 +131,7 @@ public class SpecimenService {
     primarySpecimenData.put("ods:physicalSpecimenId", digitalSpecimen.physicalSpecimenId());
     primarySpecimenData.put("ods:physicalSpecimenIdType", digitalSpecimen.physicalSpecimenIdType());
     primarySpecimenData.put("ods:specimenName", digitalSpecimen.specimenName());
-    primarySpecimenData.put("ods:organizationId", digitalSpecimen.organizationId());
+    primarySpecimenData.put(ORGANISATION_ID, digitalSpecimen.organizationId());
     primarySpecimenData.put("ods:datasetId", digitalSpecimen.datasetId());
     primarySpecimenData.put("ods:physicalSpecimenCollection",
         digitalSpecimen.physicalSpecimenCollection());
@@ -140,7 +142,7 @@ public class SpecimenService {
   private JsonNode generateContext(JsonNode data) {
     var prefixes = determinePrefixes(data);
     var node = mapper.createObjectNode();
-    node.set("ods:organizationId", generateIdNode());
+    node.set(ORGANISATION_ID, generateIdNode());
     node.set("ods:sourceSystemId", generateIdNode());
     node.set("ods:hasSpecimenMedia", generateMediaNode());
     prefixes.forEach(prefix -> node.put(prefix, prefixMap.get(prefix)));
