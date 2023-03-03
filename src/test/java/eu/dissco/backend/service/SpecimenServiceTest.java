@@ -234,67 +234,55 @@ class SpecimenServiceTest {
   private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
     return MAPPER.readValue(
         """
-            {
-              "_id": "20.5000.1025/ABC-123-XYZ/4",
-              "id": "20.5000.1025/ABC-123-XYZ",
-              "version": 4,
-              "type": "BotanySpecimen",
-              "midslevel": 1,
-              "physical_specimen_id": "123",
-              "physical_specimen_type": "cetaf",
-              "specimen_name": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-              "organization_id": "https://ror.org/0349vqz63",
-              "physical_specimen_collection": "http://biocol.org/urn:lsid:biocol.org:col:15670",
-              "dataset": "Royal Botanic Garden Edinburgh Herbarium",
-              "source_system_id": "20.5000.1025/3XA-8PT-SAY",
-              "created": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "last_checked": {
-                "$date": "2022-11-01T09:59:24.00Z"
-              },
-              "deleted": null,
-              "data": {
-                "dwca:id": "http://data.rbge.org.uk/herb/E00586417",
-                "ods:modified": "03/12/2012",
-                "ods:datasetId": "Royal Botanic Garden Edinburgh Herbarium",
-                "ods:objectType": "",
-                "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-                "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-                "ods:organizationId": "https://ror.org/0349vqz63",
-                "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
-                "ods:physicalSpecimenIdType": "cetaf",
-                "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"
-              },
-              "original_data": {
-                "dwc:class": "Malacostraca",
-                "dwc:genus": "Mesuca",
-                "dwc:order": "Decapoda",
-                "dwc:family": "Ocypodidae",
-                "dwc:phylum": "Arthropoda",
-                "dwc:country": "Nicobar Islands",
-                "dwc:locality": "Harbour",
-                "dwc:continent": "Eastern Indian Ocean",
-                "dwc:eventDate": "01/01/1846",
-                "dwc:recordedBy": "Rosen",
-                "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-                "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
-                "dcterms:modified": "03/12/2012",
-                "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
-                "dwc:preparations": "various - 1",
-                "dwc:basisOfRecord": "PreservedSpecimen",
-                "dwc:catalogNumber": "NHMD79044",
-                "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
-                "dwc:collectionCode": "IV",
-                "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
-                "dwc:institutionCode": "NHMD",
-                "dwc:specificEpithet": "dussumieri",
-                "dwc:acceptedNameUsage": "Mesuca dussumieri",
-                "dwc:otherCatalogNumbers": "CRU-001196"
-              },
-              "dwca_id": "http://data.rbge.org.uk/herb/E00586417"
-            }
-            """, JsonNode.class
+                 {
+                "id": "20.5000.1025/ABC-123-XYZ",
+                "midsLevel": 1,
+                "version": 4,
+                "created": 1667296764,
+                "digitalSpecimen": {
+                  "ods:physicalSpecimenId": "123",
+                  "ods:type": "BotanySpecimen",
+                  "ods:attributes": {
+                    "dwca:id": "http://data.rbge.org.uk/herb/E00586417",
+                    "ods:modified": "03/12/2012",
+                    "ods:datasetId": "Royal Botanic Garden Edinburgh Herbarium",
+                    "ods:objectType": "",
+                    "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                    "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
+                    "ods:organizationId": "https://ror.org/0349vqz63",
+                    "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
+                    "ods:physicalSpecimenIdType": "cetaf",
+                    "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"
+                  },
+                  "ods:originalAttributes": {
+                    "dwc:class": "Malacostraca",
+                    "dwc:genus": "Mesuca",
+                    "dwc:order": "Decapoda",
+                    "dwc:family": "Ocypodidae",
+                    "dwc:phylum": "Arthropoda",
+                    "dwc:country": "Nicobar Islands",
+                    "dwc:locality": "Harbour",
+                    "dwc:continent": "Eastern Indian Ocean",
+                    "dwc:eventDate": "01/01/1846",
+                    "dwc:recordedBy": "Rosen",
+                    "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                    "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
+                    "dcterms:modified": "03/12/2012",
+                    "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
+                    "dwc:preparations": "various - 1",
+                    "dwc:basisOfRecord": "PreservedSpecimen",
+                    "dwc:catalogNumber": "NHMD79044",
+                    "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
+                    "dwc:collectionCode": "IV",
+                    "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
+                    "dwc:institutionCode": "NHMD",
+                    "dwc:specificEpithet": "dussumieri",
+                    "dwc:acceptedNameUsage": "Mesuca dussumieri",
+                    "dwc:otherCatalogNumbers": "CRU-001196"
+                  }
+                }
+              }
+                        """, JsonNode.class
     );
   }
 

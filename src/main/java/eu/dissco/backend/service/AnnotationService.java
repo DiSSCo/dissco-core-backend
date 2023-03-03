@@ -119,12 +119,18 @@ public class AnnotationService {
 
   private AnnotationResponse mapResponseToAnnotationResponse(JsonNode response) {
     var annotation = response.get("annotation");
-    return new AnnotationResponse(response.get("id").asText(), response.get("version").asInt(),
-        annotation.get("type").asText(), annotation.get("motivation").asText(),
-        annotation.get("target"), annotation.get("body"), annotation.get("preferenceScore").asInt(),
+    return new AnnotationResponse(response.get("id").asText(),
+        response.get("version").asInt(),
+        annotation.get("type").asText(),
+        annotation.get("motivation").asText(),
+        annotation.get("target"),
+        annotation.get("body"),
+        annotation.get("preferenceScore").asInt(),
         annotation.get("creator").asText(),
-        Instant.ofEpochSecond(annotation.get("created").asLong()), annotation.get("generator"),
-        Instant.ofEpochSecond(annotation.get("generated").asLong()), null);
+        Instant.ofEpochSecond(annotation.get("created").asLong()),
+        annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get("generated").asLong()),
+        null);
   }
 
   public AnnotationResponse getAnnotationByVersion(String id, int version)
@@ -134,19 +140,20 @@ public class AnnotationService {
   }
 
   private AnnotationResponse mapToAnnotation(JsonNode result) {
+    var annotation = result.get("annotation");
     return new AnnotationResponse(
         result.get("id").asText(),
         result.get("version").asInt(),
-        result.get("type").asText(),
-        result.get("motivation").asText(),
-        result.get("target_body"),
-        result.get("body"),
-        result.get("preference_score").asInt(),
-        result.get("creator").asText(),
-        Instant.parse(result.get("created").get(MONGO_DATE_FIELD).asText()),
-        result.get("generator_body"),
-        Instant.parse(result.get("generated").get(MONGO_DATE_FIELD).asText()),
-        result.get("deleted") == null ? Instant.parse(result.get("deleted").get(MONGO_DATE_FIELD).asText()) : null
+        annotation.get("type").asText(),
+        annotation.get("motivation").asText(),
+        annotation.get("target"),
+        annotation.get("body"),
+        annotation.get("preferenceScore").asInt(),
+        annotation.get("creator").asText(),
+        Instant.ofEpochSecond(annotation.get("created").asInt()),
+        annotation.get("generator"),
+        Instant.ofEpochSecond(annotation.get("generated").asInt()),
+        result.get("deleted") == null ? null : Instant.ofEpochSecond(annotation.get("deleted").asInt())
     );
   }
 

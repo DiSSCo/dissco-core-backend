@@ -29,17 +29,17 @@ public class MongoRepository {
       throw new NotFoundException(
           "Could not find " + versionId + " in collection: " + collectionName);
     }
-    return mapper.readValue(result.first().toJson(), JsonNode.class);
+    return mapper.readValue(result.first().toJson(), JsonNode.class).get("eventRecord");
   }
 
   public List<Integer> getVersions(String id, String collectionName) throws NotFoundException {
     var collection = database.getCollection(collectionName);
-    var result = collection.find(eq("id", id)).projection(include("version"));
+    var result = collection.find(eq("eventRecord.id", id)).projection(include("eventRecord.version"));
     if (result.first() == null) {
       throw new NotFoundException("Could not find " + id + " in collection: " + collectionName);
     }
     var versions = new ArrayList<Integer>();
-    result.forEach(document -> versions.add(document.getInteger("version")));
+    result.forEach(document -> versions.add(document.getEmbedded(List.of("eventRecord", "version"), Integer.class)));
     return versions;
   }
 }
