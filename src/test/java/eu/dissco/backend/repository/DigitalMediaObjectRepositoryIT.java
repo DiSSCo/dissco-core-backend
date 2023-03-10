@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;

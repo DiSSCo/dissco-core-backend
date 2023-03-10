@@ -1,4 +1,4 @@
-package eu.dissco.backend.domain;
+package eu.dissco.backend.domain.jsonapi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

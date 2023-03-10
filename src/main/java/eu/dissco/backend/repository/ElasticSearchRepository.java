@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -50,7 +50,7 @@ public class ElasticSearchRepository {
         .map(this::mapToDigitalSpecimen).toList();
   }
 
-  public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
+  public List<AnnotationResponse> getLatestAnnotationsObject(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
 
@@ -61,7 +61,7 @@ public class ElasticSearchRepository {
         .map(this::mapToAnnotationResponse).toList();
   }
 
-  public List<JsonApiData> getLatestAnnotationsJsonResponse(int pageNumber, int pageSize)
+  public List<JsonApiData> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
 

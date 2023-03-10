@@ -5,8 +5,11 @@ import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonResponse;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
+import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
@@ -48,46 +51,30 @@ class AnnotationControllerTest {
   private Authentication authentication;
   private AnnotationController controller;
 
+  private MockHttpServletRequest mockRequest;
+
   @BeforeEach
   void setup() {
     controller = new AnnotationController(service);
+    mockRequest = new MockHttpServletRequest();
+    mockRequest.setRequestURI(ANNOTATION_URI);
   }
 
   @Test
-  void testGetAnnotation() {
-    // Given
-    var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotation(ID)).willReturn(givenAnnotationResponse());
+  void testGetAnnotation(){
+    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
 
     // When
-    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX);
+    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX, mockRequest);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
   void testGetLatestAnnotations() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 30;
-    List<AnnotationResponse> expectedResponseList = new ArrayList<>();
-    int annotationCount = pageNumber * pageSize;
-    for (int i = 0; i < annotationCount; i++) {
-      expectedResponseList.add(givenAnnotationResponse());
-    }
-    given(service.getLatestAnnotations(pageNumber, pageSize)).willReturn(expectedResponseList);
-    var expectedResponse = ResponseEntity.ok(expectedResponseList);
-
-    // When
-    var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetLatestAnnotationsJsonResponse() throws IOException {
     // Given
     String requestUri = "api/v1/annotations/latest/json";
     String path = SANDBOX_URI + requestUri;
@@ -100,11 +87,11 @@ class AnnotationControllerTest {
     var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, annotationId, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(
+    given(service.getLatestAnnotations(pageNumber, pageSize, path)).willReturn(
         expectedJson);
 
     // When
-    var receivedResponse = controller.getLatestAnnotationsJsonResponse(pageNumber, pageSize,
+    var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize,
         request);
 
     // Then
@@ -112,39 +99,14 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationVersion() throws NotFoundException, JsonProcessingException {
+  void testGetAnnotationVersion() throws Exception {
     // Given
     int version = 1;
-    var expectedResponse = ResponseEntity.ok(givenAnnotationResponse());
-    given(service.getAnnotationByVersion(ID, version)).willReturn(givenAnnotationResponse());
+    var expectedResponse = ResponseEntity.ok(givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
+    given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(expectedResponse.getBody());
 
     // When
-    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX, version);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetAnnotationsJsonResponse() {
-    // Given
-    String requestUri = "api/v1/annotations/latest/json";
-    String path = SANDBOX_URI + requestUri;
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI(requestUri);
-
-    int pageNumber = 1;
-    int pageSize = 11;
-    MockHttpServletRequest r = new MockHttpServletRequest();
-    r.setRequestURI("");
-
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, ID, true);
-    var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getAnnotationsJsonResponse(pageNumber, pageSize, path)).willReturn(expectedJson);
-
-    // When
-    var receivedResponse = controller.getAnnotationsJsonResponse(pageNumber, pageSize, request);
+    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX, version, mockRequest);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -154,64 +116,38 @@ class AnnotationControllerTest {
   void testGetAnnotations() {
     // Given
     int pageNumber = 1;
-    int pageSize = 30;
-    List<AnnotationResponse> expectedResponseList = new ArrayList<>();
-    int annotationCount = pageNumber * pageSize;
-    for (int i = 0; i < annotationCount; i++) {
-      expectedResponseList.add(givenAnnotationResponse());
-    }
+    int pageSize = 11;
+    MockHttpServletRequest r = new MockHttpServletRequest();
+    r.setRequestURI("");
 
-    given(service.getAnnotations(pageNumber, pageSize)).willReturn(expectedResponseList);
-    var expectedResponse = ResponseEntity.ok(expectedResponseList);
+    var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
+        USER_ID_TOKEN, ID, true);
+    var expectedResponse = ResponseEntity.ok(expectedJson);
+    given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
 
     // When
-    var receivedResponse = controller.getAnnotations(pageNumber, pageSize);
+    var receivedResponse = controller.getAnnotations(pageNumber, pageSize, mockRequest);
 
+    // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
+
   @Test
-  void testCreateAnnotation() {
+  void testCreateAnnotation(){
     // Given
     givenAuthentication(USER_ID_TOKEN);
     AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
-    given(service.persistAnnotation(request, USER_ID_TOKEN)).willReturn(givenAnnotationResponse());
+    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    given(service.persistAnnotation(request, USER_ID_TOKEN, ANNOTATION_PATH))
+        .willReturn(expectedResponse);
 
     // When
-    var receivedResponse = controller.createAnnotation(authentication, request);
+    var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-  }
-
-  @Test
-  void testUpdateAnnotation() throws NoAnnotationFoundException {
-    // Given
-    givenAuthentication(USER_ID_TOKEN);
-    AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
-    // When
-    var receivedResponse = controller.updateAnnotation(authentication, request, PREFIX, POSTFIX);
-
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetAnnotationsForUser() {
-    // Given
-    givenAuthentication(USER_ID_TOKEN);
-    int pageNumber = 0;
-    int pageSize = 10;
-    List<AnnotationResponse> annotations = Collections.nCopies(pageSize, givenAnnotationResponse());
-    given(service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize)).willReturn(
-        annotations);
-
-    // When
-    var receivedResponse = controller.getAnnotationsForUser(pageNumber, pageSize, authentication);
-
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(receivedResponse.getBody()).isEqualTo(annotations);
+    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
@@ -224,7 +160,7 @@ class AnnotationControllerTest {
     request.setRequestURI(requestUri);
 
     // When
-    var receivedResponse = controller.getAnnotationsForUserJsonResponse(1, 1, request,
+    var receivedResponse = controller.getAnnotationsForUser(1, 1, request,
         authentication);
 
     // Then

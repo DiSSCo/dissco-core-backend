@@ -4,9 +4,9 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 

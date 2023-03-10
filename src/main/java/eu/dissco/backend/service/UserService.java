@@ -2,8 +2,8 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.JsonApiData;
-import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.InvalidIdException;

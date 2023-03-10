@@ -4,22 +4,17 @@ package eu.dissco.backend;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
-import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TestUtils {
@@ -72,111 +67,12 @@ public class TestUtils {
   }
 
   // Annotation
-  public static AnnotationRequest givenAnnotationRequest() {
-    return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(TARGET_ID),
-        givenAnnotationBody());
-  }
 
-  public static AnnotationResponse givenAnnotationResponse() {
-    return givenAnnotationResponse(USER_ID_TOKEN, ID);
-  }
-
-  public static AnnotationResponse givenAnnotationResponseTarget(String id, String target){
-    return givenAnnotationResponse(USER_ID_TOKEN, id, target);
-  }
-
-  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
-    return givenAnnotationResponse(userId, annotationId, TARGET_ID);
-  }
-
-  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId, String targetId) {
-    return new AnnotationResponse(annotationId, 1, "Annotation", "motivation",
-        givenAnnotationTarget(targetId), givenAnnotationBody(), 100, userId, CREATED,
-        givenAnnotationGenerator(), CREATED, null);
-  }
-
-  public static JsonNode givenAnnotationTarget(String targetId) {
-    ObjectNode target = MAPPER.createObjectNode();
-    target.put("id", targetId);
-    target.put("type", "digitalSpecimen");
-    return target;
-  }
-
-  public static JsonNode givenAnnotationBody() {
-    ObjectNode body = MAPPER.createObjectNode();
-    ArrayNode bodyValues = MAPPER.createArrayNode();
-    ObjectNode value = MAPPER.createObjectNode();
-    value.put("class", "leaf");
-    value.put("score", 0.99);
-    body.put("source", "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large");
-    bodyValues.add(value);
-    body.set("values", bodyValues);
-    return body;
-  }
-
-  public static JsonNode givenAnnotationGenerator() {
-    ObjectNode generator = MAPPER.createObjectNode();
-    generator.put("id", "generatorId");
-    generator.put("name", "annotation processing service");
-    return generator;
-  }
-
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, String userId, String annotationId, boolean hasNextPage) {
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, hasNextPage);
-    var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, String userId, List<String> annotationIds, boolean hasNextPage) {
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, hasNextPage);
-
-    var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
-      String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData("id", "Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
-  }
-
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId,
-      List<String> annotationIds) {
-    List<JsonApiData> dataNodes = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-    for (String annotationId : annotationIds) {
-      ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-      annotation.put("deleted", annotation.get("deleted_on").asText());
-      annotation.remove("deleted_on");
-      dataNodes.add(new JsonApiData(annotationId, "Annotation", annotation));
-    }
-    return dataNodes;
-  }
-
-  public static JsonApiData givenAnnotationJsonApiData(String userId, String annotationId) {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-    dataNode.put("deleted", dataNode.get("deleted_on").asText());
-    dataNode.remove("deleted_on");
-    return new JsonApiData(annotationId, "Annotation", dataNode);
-  }
 
   // General
   public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
       boolean hasNextPage) {
-    String pn = "?pageNumber=";
-    String ps = "&pageSize=";
-    String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + pn + "1" + ps + pageSize;
-    String prev = (pageNumber <= 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
-    String next =
-        (hasNextPage) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
-    return new JsonApiLinksFull(self, first, prev, next);
+    return new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
   }
 
   // Digital Media Objects
@@ -209,7 +105,7 @@ public class TestUtils {
   public static JsonApiListResponseWrapper givenDigitalMediaJsonResponse(String path,
       int pageNumber,
       int pageSize, List<String> mediaIds) {
-    JsonApiLinksFull linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
+    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, true, path);
     List<JsonApiData> dataNode = new ArrayList<>();
     for (String id : mediaIds) {
       var mediaObject = givenDigitalMediaObject(id);

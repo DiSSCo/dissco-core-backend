@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.JsonApiData;
-import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -86,17 +86,9 @@ public class DigitalMediaObjectService {
   }
 
   private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
-    boolean hasNextPage;
-    List<JsonApiData> dataNode;
-    if (dataNodePlusOne.size() > pageSize ){
-      hasNextPage = true;
-      dataNode = dataNodePlusOne.subList(0, pageSize);
-    } else {
-      hasNextPage = false;
-      dataNode = dataNodePlusOne;
-    }
-
-    var linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
+    boolean hasNextPage = dataNodePlusOne.size() > pageSize;
+    var dataNode = hasNextPage ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
@@ -104,18 +96,6 @@ public class DigitalMediaObjectService {
       String path) {
     var dataNodePlusOne = repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize+1);
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
-  }
-
-  private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
-      boolean hasNextPage) {
-    String pn = "?pageNumber=";
-    String ps = "&pageSize=";
-    String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + pn + "1" + ps + pageSize;
-    String prev = (pageNumber == 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
-    String next =
-        (hasNextPage) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
-    return new JsonApiLinksFull(self, first, prev, next);
   }
 
   public List<String> getDigitalMediaIdsForSpecimen(String id) {

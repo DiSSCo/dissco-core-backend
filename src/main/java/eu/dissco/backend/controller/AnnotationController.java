@@ -3,7 +3,8 @@ package eu.dissco.backend.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
@@ -45,76 +46,60 @@ public class AnnotationController {
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
 
-  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> getAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) {
+  @GetMapping(value = "/{prefix}/{postfix}/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix, HttpServletRequest request) {
+    String path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + postfix;
     log.info("Received get request for annotation: {}", id);
-    var annotation = service.getAnnotation(id);
+    var annotation = service.getAnnotation(id, path);
     return ResponseEntity.ok(annotation);
   }
 
-  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AnnotationResponse>> getLatestAnnotations(
-      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) throws IOException {
-    log.info("Received get request for latest paginated annotations. Page number: {}, page size {}",
-        pageNumber, pageSize);
-    var annotations = service.getLatestAnnotations(pageNumber, pageSize);
-    return ResponseEntity.ok(annotations);
-  }
-
   @GetMapping(value = "/latest/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotationsJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotations(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
       throws IOException {
     log.info("Received get request for latest paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
     String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getLatestAnnotationsJsonResponse(pageNumber, pageSize, path);
+    var annotations = service.getLatestAnnotations(pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }
 
-  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> getAnnotationByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, @PathVariable("version") int version)
+  @GetMapping(value = "/{prefix}/{postfix}/{version}/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix, @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + postfix;
+    String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for annotation: {} with version: {}", id, version);
-    var annotation = service.getAnnotationByVersion(id, version);
+    var annotation = service.getAnnotationByVersion(id, version, path);
     return ResponseEntity.ok(annotation);
   }
 
-  @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AnnotationResponse>> getAnnotations(
-      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) {
-    log.info("Received get request for paginated annotations. Page number: {}, page size {}",
-        pageNumber, pageSize);
-    var annotations = service.getAnnotations(pageNumber, pageSize);
-    return ResponseEntity.ok(annotations);
-  }
 
   @GetMapping(value = "/all/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for json paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
     String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getAnnotationsJsonResponse(pageNumber, pageSize, path);
+    var annotations = service.getAnnotations(pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> createAnnotation(Authentication authentication,
-      @RequestBody AnnotationRequest annotation) {
+  @PostMapping(value = "/json", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
+      @RequestBody AnnotationRequest annotation, HttpServletRequest request) {
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
-    var annotationResponse = service.persistAnnotation(annotation, userId);
+    String path = SANDBOX_URI + request.getRequestURI();
+    var annotationResponse = service.persistAnnotation(annotation, userId, path);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {
@@ -125,13 +110,14 @@ public class AnnotationController {
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{postfix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnotationResponse> updateAnnotation(Authentication authentication,
+  public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
       @RequestBody AnnotationRequest annotation, @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) throws NoAnnotationFoundException {
+      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NoAnnotationFoundException {
+    var path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + postfix;
     var userId = getNameFromToken(authentication);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(id, annotation, userId);
+    var annotationResponse = service.updateAnnotation(id, annotation, userId, path);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {
@@ -141,29 +127,33 @@ public class AnnotationController {
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AnnotationResponse>> getAnnotationsForUser(
-      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, Authentication authentication) {
-    var userId = getNameFromToken(authentication);
-    log.info("Received get request to show all annotations for user: {}", userId);
-    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize);
-    return ResponseEntity.ok(annotations);
-  }
-
-  @PreAuthorize("isAuthenticated()")
-  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator/json", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUserJsonResponse(
+  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
       Authentication authentication) {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
     String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getAnnotationsForUserJsonResponse(userId, pageNumber, pageSize, path);
+    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
     return ResponseEntity.ok(annotations);
   }
+
+  // Todo does this need to be in Json? Answer: yes
+  /*
+  current: [1, 2, 3, 4]
+  proposed:
+  {
+  "links": "sandbox.dissco.tech/api/v1/annotations/20.5/abc-123/versions",
+  "data": {
+    "type": "annotationVersions",
+    "id": "20.5/abc-123",
+    "attributes": {
+      "versions": [1,2, 3, 4]
+    }
+  }
+}
+*/
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -5,8 +5,8 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -22,14 +22,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.AnnotationTestRecord;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.DigitalSpecimenTestRecord;
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +42,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -228,7 +223,7 @@ class ElasticSearchRepositoryIT {
     postAnnotations(annotationTestRecords);
 
     // When
-    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
+    var responseReceived = repository.getLatestAnnotationsObject(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -258,7 +253,7 @@ class ElasticSearchRepositoryIT {
     postAnnotations(annotationTestRecords);
 
     // When
-    var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
+    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -289,7 +284,7 @@ class ElasticSearchRepositoryIT {
     postAnnotations(annotationTestRecords);
 
     // When
-    var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
+    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);

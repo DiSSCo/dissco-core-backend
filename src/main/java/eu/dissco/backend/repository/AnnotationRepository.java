@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class AnnotationRepository {
   private final ObjectMapper mapper;
 
 
-  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
+  public List<AnnotationResponse> getAnnotationsForUserObject(String userId, int pageNumber,
       int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
 
@@ -35,7 +35,7 @@ public class AnnotationRepository {
         .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public List<JsonApiData> getAnnotationsForUserJsonResponse(String userId, int pageNumber,
+  public List<JsonApiData> getAnnotationsForUser(String userId, int pageNumber,
       int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
 
@@ -46,14 +46,14 @@ public class AnnotationRepository {
         .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
   }
 
-  public AnnotationResponse getAnnotation(String id) {
+  public JsonApiData getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.ID.eq(id))
-        .fetchOne(this::mapToAnnotation);
+        .fetchOne(this::mapToJsonApiData);
   }
 
-  public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
+  public List<AnnotationResponse> getAnnotationsObject(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
 
     return context.select(NEW_ANNOTATION.asterisk())
@@ -62,7 +62,7 @@ public class AnnotationRepository {
         .offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public List<JsonApiData> getAnnotationsJsonResponse(int pageNumber, int pageSize) {
+  public List<JsonApiData> getAnnotations(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)

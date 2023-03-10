@@ -4,17 +4,17 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponseTarget;
 import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiData;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiDataList;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseTarget;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -60,7 +60,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(expectedResponse);
 
     // When
-    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
+    var receivedResponse = repository.getAnnotationsForUserObject(userId, pageNumber, pageSize);
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
@@ -84,7 +84,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
+    var receivedResponse = repository.getAnnotationsForUserObject(userId, pageNumber, pageSize);
 
     // Then
     assertThat(receivedResponse).hasSize(pageSize);
@@ -107,7 +107,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(userAnnotations);
 
     // When
-    var receivedResponse = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
+    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber,
         pageSize);
 
     // Then
@@ -131,33 +131,13 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(userAnnotations);
 
     // When
-    var receivedResponse = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
+    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber,
         pageSize);
 
     // Then
     assertThat(receivedResponse).hasSize(pageSize);
   }
 
-  @Test
-  void testGetAnnotation() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    String targetId = "2";
-    List<AnnotationResponse> annotations = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, 10).boxed().map(Object::toString)
-        .toList();
-    for (String annotationId : annotationIds) {
-      annotations.add(givenAnnotationResponse(userId, annotationId));
-    }
-    postAnnotations(annotations);
-    var expectedResponse = givenAnnotationResponse(userId, targetId);
-
-    // When
-    var receivedResponse = repository.getAnnotation(targetId);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
 
   @Test
   void testGetAnnotations() {
@@ -175,8 +155,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotationsAll);
 
     // When
-    var annotationsP1 = repository.getAnnotations(pageNumber, pageSize);
-    var annotationsP2 = repository.getAnnotations(pageNumber + 1, pageSize);
+    var annotationsP1 = repository.getAnnotationsObject(pageNumber, pageSize);
+    var annotationsP2 = repository.getAnnotationsObject(pageNumber + 1, pageSize);
     annotationsReceivedAll.addAll(annotationsP1);
     annotationsReceivedAll.addAll(annotationsP2);
 
@@ -202,7 +182,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var expectedResponse = givenAnnotationJsonApiDataList(USER_ID_TOKEN, annotationIds);
 
     // When
-    var receivedResponse = repository.getAnnotationsJsonResponse(pageNumber, pageSize);
+    var receivedResponse = repository.getAnnotations(pageNumber, pageSize);
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
