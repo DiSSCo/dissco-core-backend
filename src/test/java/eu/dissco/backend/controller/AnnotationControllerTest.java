@@ -12,6 +12,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -172,7 +173,7 @@ class AnnotationControllerTest {
     // Given
 
     // When
-    var receivedResponse = controller.getAnnotationVersions(PREFIX, POSTFIX);
+    var receivedResponse = controller.getAnnotationVersions(PREFIX, POSTFIX, mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

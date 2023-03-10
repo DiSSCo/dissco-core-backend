@@ -139,29 +139,14 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  // Todo does this need to be in Json? Answer: yes
-  /*
-  current: [1, 2, 3, 4]
-  proposed:
-  {
-  "links": "sandbox.dissco.tech/api/v1/annotations/20.5/abc-123/versions",
-  "data": {
-    "type": "annotationVersions",
-    "id": "20.5/abc-123",
-    "attributes": {
-      "versions": [1,2, 3, 4]
-    }
-  }
-}
-*/
-
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Integer>> getAnnotationVersions(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix) throws NotFoundException {
+  public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + postfix;
+    var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for versions of annotation with id: {}", id);
-    var versions = service.getAnnotationVersions(id);
+    var versions = service.getAnnotationVersions(id, path);
     return ResponseEntity.ok(versions);
   }
 

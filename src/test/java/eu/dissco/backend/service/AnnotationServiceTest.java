@@ -71,7 +71,7 @@ class AnnotationServiceTest {
     mapper = new ObjectMapper().findAndRegisterModules();
     mapper.setDefaultPropertyInclusion(Include.ALWAYS);
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository);
+        mongoRepository, MAPPER);
   }
 
   @Test
@@ -315,11 +315,17 @@ class AnnotationServiceTest {
   @Test
   void testGetDigitalMediaVersions() throws NotFoundException {
     // Given
-    List<Integer> responseExpected = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(responseExpected);
+    List<Integer> versionsList = List.of(1, 2);
+    var versionsNode = MAPPER.createObjectNode();
+    var arrayNode = versionsNode.putArray("versions");
+    arrayNode.add(1).add(2);
+    var dataNode = new JsonApiData(ID, "annotationVersions", versionsNode);
+    var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
+
+    given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
 
     // When
-    var responseReceived = service.getAnnotationVersions(ID);
+    var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);

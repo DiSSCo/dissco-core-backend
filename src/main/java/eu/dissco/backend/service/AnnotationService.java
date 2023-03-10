@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -34,6 +35,7 @@ public class AnnotationService {
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
+  private final ObjectMapper mapper;
 
   public JsonApiWrapper getAnnotation(String id, String path){
     var dataNode = repository.getAnnotation(id);
@@ -105,8 +107,13 @@ public class AnnotationService {
     return repository.getForTarget(fullId);
   }
 
-  public List<Integer> getAnnotationVersions(String id) throws NotFoundException {
-    return mongoRepository.getVersions(id, "annotation_provenance");
+  public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
+    var versions = mongoRepository.getVersions(id, "annotation_provenance");
+    var versionsNode = mapper.createObjectNode();
+    var arrayNode = versionsNode.putArray("versions");
+    versions.forEach(arrayNode::add);
+    var dataNode = new JsonApiData(id, "annotationVersions", versionsNode);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public boolean deleteAnnotation(String prefix, String postfix, String userId)
