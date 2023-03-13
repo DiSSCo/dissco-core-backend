@@ -4,6 +4,8 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.POSTFIX;
+import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -14,7 +16,6 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -297,6 +298,16 @@ class AnnotationServiceTest {
   }
 
   @Test
+  void testUpdateAnnotationDoesNotExist(){
+    // Given
+    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
+
+    // Then
+    assertThrowsExactly(NoAnnotationFoundException.class,
+        () ->service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
+  }
+
+  @Test
   void testGetAnnotationsByVersion() throws Exception{
     // Given
     int version = 1;
@@ -366,6 +377,28 @@ class AnnotationServiceTest {
                }
                         """, JsonNode.class
     );
+  }
+
+  @Test
+  void testDeleteAnnotation() throws Exception{
+    // Given
+    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
+
+    // When
+    var result = service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN);
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testDeleteAnnotationDoesNotExist() throws Exception{
+    // Given
+    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
+
+    // Then
+    assertThrowsExactly(NoAnnotationFoundException.class,
+        () ->service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN));
   }
 
   private AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation, String userId) {

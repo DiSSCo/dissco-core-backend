@@ -67,6 +67,20 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetAnnotation(){
+    // Given
+    var expectedAnnotation = givenAnnotationResponse();
+    postAnnotations(List.of(expectedAnnotation));
+    var expected = givenAnnotationJsonApiData(USER_ID_TOKEN, ID);
+
+    // When
+    var result = repository.getAnnotation(ID);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testGetAnnotationsForUserSecondPage() {
     // Given
     String userId = USER_ID_TOKEN;
@@ -137,7 +151,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(receivedResponse).hasSize(pageSize);
   }
-
 
   @Test
   void testGetAnnotations() {

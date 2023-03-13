@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
@@ -8,8 +9,10 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
+import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -56,7 +59,7 @@ class AnnotationControllerTest {
 
   @BeforeEach
   void setup() {
-    controller = new AnnotationController(service);
+    controller = new AnnotationController(service, MAPPER);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(ANNOTATION_URI);
   }
@@ -135,12 +138,13 @@ class AnnotationControllerTest {
 
 
   @Test
-  void testCreateAnnotation(){
+  void testCreateAnnotation() throws Exception{
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    AnnotationRequest request = new AnnotationRequest("type", "motivation", null, null);
+    AnnotationRequest annotation = givenAnnotationRequest();
+    var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(request, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))
         .willReturn(expectedResponse);
 
     // When
@@ -149,6 +153,23 @@ class AnnotationControllerTest {
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testUpdateAnnotation() throws Exception{
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    AnnotationRequest annotation = givenAnnotationRequest();
+    var requestBody = givenJsonApiAnnotationRequest(annotation);
+    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(expected);
+
+    // When
+    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, POSTFIX, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isEqualTo(expected);
   }
 
   @Test

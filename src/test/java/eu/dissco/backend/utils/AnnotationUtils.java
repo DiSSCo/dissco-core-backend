@@ -18,6 +18,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,6 +78,15 @@ public class AnnotationUtils {
     generator.put("id", "generatorId");
     generator.put("name", "annotation processing service");
     return generator;
+  }
+  
+  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request){
+    return new JsonApiRequestWrapper(
+        new JsonApiRequest(
+            "annotation",
+            MAPPER.valueToTree(request)
+        )
+    );
   }
 
   public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,

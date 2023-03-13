@@ -1,13 +1,17 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
+import jakarta.json.Json;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +50,9 @@ public class AnnotationController {
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
 
-  @GetMapping(value = "/{prefix}/{postfix}/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  private final ObjectMapper mapper;
+
+  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix, HttpServletRequest request) {
     String path = SANDBOX_URI + request.getRequestURI();
@@ -56,7 +62,7 @@ public class AnnotationController {
     return ResponseEntity.ok(annotation);
   }
 
-  @GetMapping(value = "/latest/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotations(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
@@ -68,7 +74,7 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @GetMapping(value = "/{prefix}/{postfix}/{version}/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix, @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
@@ -80,7 +86,7 @@ public class AnnotationController {
   }
 
 
-  @GetMapping(value = "/all/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
@@ -93,9 +99,11 @@ public class AnnotationController {
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(value = "/json", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
-      @RequestBody AnnotationRequest annotation, HttpServletRequest request) {
+      @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
+      throws JsonProcessingException {
+    var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
     String path = SANDBOX_URI + request.getRequestURI();
@@ -111,11 +119,13 @@ public class AnnotationController {
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{postfix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
-      @RequestBody AnnotationRequest annotation, @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NoAnnotationFoundException {
+      @RequestBody JsonApiRequestWrapper requestBody, @PathVariable("prefix") String prefix,
+      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NoAnnotationFoundException, JsonProcessingException {
     var path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + postfix;
     var userId = getNameFromToken(authentication);
+    var annotation = getAnnotationFromRequest(requestBody);
+
     log.info("Received update for annotation: {} from user: {}", id, userId);
     var annotationResponse = service.updateAnnotation(id, annotation, userId, path);
     if (annotationResponse != null) {
@@ -127,7 +137,7 @@ public class AnnotationController {
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/creator/json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
@@ -164,6 +174,13 @@ public class AnnotationController {
     } else {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+  }
+
+  private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody) throws JsonProcessingException {
+    if (!requestBody.data().type().equals("annotation")){
+      throw new IllegalArgumentException();
+    }
+    return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);
   }
 
   @ExceptionHandler(NoAnnotationFoundException.class)
