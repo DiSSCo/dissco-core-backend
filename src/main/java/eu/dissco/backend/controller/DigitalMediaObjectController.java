@@ -34,6 +34,7 @@ public class DigitalMediaObjectController {
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
 
+  // Todo jsonify
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<DigitalMediaObject>> getDigitalMediaObjects(
