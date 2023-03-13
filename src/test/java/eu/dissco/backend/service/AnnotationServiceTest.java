@@ -9,7 +9,6 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationBody;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiDataList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
@@ -43,7 +42,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +62,8 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
+  @Mock
+  ServiceUtils serviceUtils;
   private AnnotationService service;
   private ObjectMapper mapper;
 
@@ -334,12 +334,14 @@ class AnnotationServiceTest {
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
+    try (var mockedStatic = mockStatic(ServiceUtils.class)){
+      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList)).thenReturn(versionsNode);
+      // When
+      var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
 
-    // When
-    var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+      // Then
+      assertThat(responseReceived).isEqualTo(responseExpected);
+    }
   }
 
   private JsonNode givenMongoDBAnnotationResponse() throws JsonProcessingException {

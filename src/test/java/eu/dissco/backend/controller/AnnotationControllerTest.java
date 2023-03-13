@@ -4,29 +4,21 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,23 +72,18 @@ class AnnotationControllerTest {
   @Test
   void testGetLatestAnnotations() throws IOException {
     // Given
-    String requestUri = "api/v1/annotations/latest/json";
-    String path = SANDBOX_URI + requestUri;
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI(requestUri);
-
     int pageNumber = 1;
     int pageSize = 11;
     String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
         USER_ID_TOKEN, annotationId, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getLatestAnnotations(pageNumber, pageSize, path)).willReturn(
+    given(service.getLatestAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(
         expectedJson);
 
     // When
     var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize,
-        request);
+        mockRequest);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -121,8 +108,6 @@ class AnnotationControllerTest {
     // Given
     int pageNumber = 1;
     int pageSize = 11;
-    MockHttpServletRequest r = new MockHttpServletRequest();
-    r.setRequestURI("");
 
     var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
@@ -177,12 +162,8 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
 
-    String requestUri = "api/v1/annotations/latest/json";
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI(requestUri);
-
     // When
-    var receivedResponse = controller.getAnnotationsForUser(1, 1, request,
+    var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest,
         authentication);
 
     // Then

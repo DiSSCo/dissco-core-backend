@@ -25,13 +25,6 @@ public class DigitalMediaObjectRepository {
   private final ObjectMapper mapper;
   private final DSLContext context;
 
-  public DigitalMediaObject getLatestDigitalMediaById(String id) {
-    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(NEW_DIGITAL_MEDIA_OBJECT)
-        .where(NEW_DIGITAL_MEDIA_OBJECT.ID.eq(id))
-        .fetchOne(this::mapToMultiMediaObject);
-  }
-
   public JsonApiData getLatestDigitalMediaObjectByIdJsonResponse(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION,
             NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk())
@@ -49,14 +42,7 @@ public class DigitalMediaObjectRepository {
         .fetch(this::mapToMultiMediaObject);
   }
 
-  public List<DigitalMediaObject> getDigitalMediaObject(int pageNumber, int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(NEW_DIGITAL_MEDIA_OBJECT)
-        .offset(offset).limit(pageSize).fetch(this::mapToMultiMediaObject);
-  }
-
-  public List<JsonApiData> getDigitalMediaObjectJsonResponse(int pageNumber, int pageSize) {
+  public List<JsonApiData> getDigitalMediaObjects(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
     return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION,
             NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_SPECIMEN)

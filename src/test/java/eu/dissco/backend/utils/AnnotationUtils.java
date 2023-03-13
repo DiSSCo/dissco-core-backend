@@ -21,6 +21,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.ObjectType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,7 +84,7 @@ public class AnnotationUtils {
   public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request){
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
-            "annotation",
+            ObjectType.ANNOTATION,
             MAPPER.valueToTree(request)
         )
     );
@@ -101,6 +102,12 @@ public class AnnotationUtils {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
 
     var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
+    return new JsonApiListResponseWrapper(dataNodes, linksNode);
+  }
+
+  public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path, List<String> annotationIds) {
+    JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
+    var dataNodes = givenAnnotationJsonApiDataList(USER_ID_TOKEN, annotationIds);
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
 

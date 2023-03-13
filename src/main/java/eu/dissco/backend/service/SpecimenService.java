@@ -59,7 +59,7 @@ public class SpecimenService {
   }
 
   public List<AnnotationResponse> getAnnotations(String id) {
-    return annotationService.getAnnotationForTarget(id);
+    return annotationService.getAnnotationForTargetObject(id);
   }
 
   public DigitalSpecimen getSpecimenByVersion(String id, int version)
@@ -97,7 +97,7 @@ public class SpecimenService {
   public DigitalSpecimenFull getSpecimenByIdFull(String id) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
-    var annotation = annotationService.getAnnotationForTarget(id);
+    var annotation = annotationService.getAnnotationForTargetObject(id);
     return new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation);
   }
 

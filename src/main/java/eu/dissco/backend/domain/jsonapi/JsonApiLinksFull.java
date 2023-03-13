@@ -18,4 +18,11 @@ public class JsonApiLinksFull {
     this.next = (hasNext) ? path + pn + (pageNum + 1) + ps + pageSize : null;
   }
 
+  public JsonApiLinksFull(String path){
+    this.self = path;
+    this.first = null;
+    this.next = null;
+    this.prev = null;
+  }
+
 }

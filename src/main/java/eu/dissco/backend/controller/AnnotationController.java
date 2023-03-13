@@ -3,17 +3,14 @@ package eu.dissco.backend.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.ObjectType;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
-import jakarta.json.Json;
 import java.io.IOException;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +46,6 @@ public class AnnotationController {
   private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
-
   private final ObjectMapper mapper;
 
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -177,7 +173,7 @@ public class AnnotationController {
   }
 
   private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody) throws JsonProcessingException {
-    if (!requestBody.data().type().equals("annotation")){
+    if (!requestBody.data().type().equals(ObjectType.ANNOTATION)){
       throw new IllegalArgumentException();
     }
     return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);

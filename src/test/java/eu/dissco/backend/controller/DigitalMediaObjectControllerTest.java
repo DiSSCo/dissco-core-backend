@@ -1,13 +1,15 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
@@ -31,68 +33,39 @@ class DigitalMediaObjectControllerTest {
   @Mock
   private DigitalMediaObjectService service;
   private DigitalMediaObjectController controller;
+  private MockHttpServletRequest mockRequest;
 
   @BeforeEach
   void setup() {
-    controller = new DigitalMediaObjectController(service);
+    controller = new DigitalMediaObjectController(service, MAPPER);
+    mockRequest = new MockHttpServletRequest();
+    mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
   }
 
   @Test
-  void testGetDigitalMediaObject() {
+  void testGetDigitalMediaObjects() {
     // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    var mediaObjects = Collections.nCopies(pageSize, givenDigitalMediaObject(ID));
-    given(service.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(mediaObjects);
-
-    // When
-    var responseReceived = controller.getDigitalMediaObjects(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetDigitalMediaObjectsNameJsonResponse() {
-    // Given
-    String requestUri = "api/v1/digitalMedia/json";
-    String path = SANDBOX_URI + requestUri;
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI(requestUri);
     int pageNumber = 1;
     int pageSize = 10;
     List<String> mediaIds = Collections.nCopies(pageSize, ID);
-    given(service.getDigitalMediaObjectsJsonResponse(pageNumber, pageSize, path)).willReturn(
-        TestUtils.givenDigitalMediaJsonResponse(path, pageNumber, pageSize,
+    given(service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH)).willReturn(
+        TestUtils.givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, pageNumber, pageSize,
             mediaIds));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectsNameJsonResponse(pageNumber, pageSize,
-        request);
+    var responseReceived = controller.getDigitalMediaObjects(pageNumber, pageSize,
+        mockRequest);
 
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
-
   @Test
-  void testGetMultiMediaById() {
-    // Given
-    given(service.getDigitalMediaById(ID)).willReturn(givenDigitalMediaObject(ID));
-
-    // When
-    var responseReceived = controller.getMultiMediaById(PREFIX, POSTFIX);
-
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetLatestDigitalMediaObjectByIdJsonResponse() {
+  void testGetLatestDigitalMediaObjectById() {
     // Given
     String requestUri = "api/v1/digitalMedia/json/" + ID;
     String path = SANDBOX_URI + requestUri;
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI(requestUri);
-    given(service.getDigitalMediaByIdJsonResponse(ID, path)).willReturn(
+    given(service.getDigitalMediaById(ID, path)).willReturn(
         givenDigitalMediaJsonResponse(path, ID));
 
     // When
@@ -104,12 +77,8 @@ class DigitalMediaObjectControllerTest {
 
   @Test
   void testGetDigitalMediaVersions() throws NotFoundException {
-    // Given
-    List<Integer> versions = List.of(1, 2, 3);
-    given(service.getDigitalMediaVersions(ID)).willReturn(versions);
-
     // When
-    var responseReceived = controller.getDigitalMediaVersions(PREFIX, POSTFIX);
+    var responseReceived = controller.getDigitalMediaVersions(PREFIX, POSTFIX, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -119,10 +88,10 @@ class DigitalMediaObjectControllerTest {
   void testGetDigitalMediaObjectVersion() throws NotFoundException, JsonProcessingException {
     // Given
     int version = 1;
-    given(service.getDigitalMediaVersionByVersion(ID, version)).willReturn(givenDigitalMediaObject(ID));
+    given(service.getDigitalMediaObjectByVersion(ID, version, DIGITAL_MEDIA_PATH)).willReturn(givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, POSTFIX, version);
+    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, POSTFIX, version, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -131,15 +100,16 @@ class DigitalMediaObjectControllerTest {
   @Test
   void testGetAnnotationsById() {
     // Given
-    var responseExpected = givenAnnotationResponse(USER_ID_TOKEN, ID);
-    given(service.getAnnotationsOnDigitalMediaObject(ID)).willReturn(List.of(responseExpected));
+    var responseExpected = givenAnnotationJsonResponseNoPagination(USER_ID_TOKEN, List.of("1", "2"));
+
+    given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(responseExpected);
 
     // When
-    var responseReceived = controller.getAnnotationsById(PREFIX, POSTFIX);
+    var responseReceived = controller.getAnnotationsById(PREFIX, POSTFIX, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(responseReceived.getBody()).isEqualTo(List.of(responseExpected));
+    assertThat(responseReceived.getBody()).isEqualTo(responseExpected);
   }
 
 }

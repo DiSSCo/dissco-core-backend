@@ -41,25 +41,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetLatestDigitalMediaById() {
-    // Given
-    var firstMediaObject = givenDigitalMediaObject(ID);
-    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
-        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
-        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
-        firstMediaObject.originalData());
-    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-
-    // When
-    var receivedResponse = repository.getLatestDigitalMediaById(ID);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(secondMediaObject);
-  }
-
-  @Test
-  void testGetLatestDigitalMediaObjectByIdJsonResponse() throws JsonProcessingException {
+  void testGetLatestDigitalMediaObjectById() throws JsonProcessingException {
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
     var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
         firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
@@ -99,32 +81,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaObject() {
-    // Given
-    int pageNum1 = 1;
-    int pageNum2 = 2;
-    List<DigitalMediaObject> mediaObjectsAll = new ArrayList<>();
-    int pageSize = 10;
-    for (int i = 0; i < pageSize * 2; i++) {
-      mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i)));
-    }
-    postMediaObjects(mediaObjectsAll);
-    List<DigitalMediaObject> mediaObjectsReceived = new ArrayList<>();
-
-    // When
-    var pageOne = repository.getDigitalMediaObject(pageNum1, pageSize);
-    var pageTwo = repository.getDigitalMediaObject(pageNum2, pageSize);
-    mediaObjectsReceived.addAll(pageOne);
-    mediaObjectsReceived.addAll(pageTwo);
-
-    // Then
-    assertThat(pageOne).hasSize(pageSize);
-    assertThat(pageTwo).hasSize(pageSize);
-    assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll);
-  }
-
-  @Test
-  void testGetDigitalMediaObjectJsonResponse() throws JsonProcessingException {
+  void testGetDigitalMediaObjects() throws JsonProcessingException {
     // Given
     int pageNum1 = 1;
     int pageNum2 = 2;
@@ -144,8 +101,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     List<JsonApiData> mediaObjectsReceived = new ArrayList<>();
 
     // When
-    var pageOne = repository.getDigitalMediaObjectJsonResponse(pageNum1, pageSize);
-    var pageTwo = repository.getDigitalMediaObjectJsonResponse(pageNum2, pageSize);
+    var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
+    var pageTwo = repository.getDigitalMediaObjects(pageNum2, pageSize);
     mediaObjectsReceived.addAll(pageOne);
     mediaObjectsReceived.addAll(pageTwo);
 

@@ -7,11 +7,9 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewAnnotationRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.JSONB;

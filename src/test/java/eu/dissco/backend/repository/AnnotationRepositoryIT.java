@@ -213,7 +213,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getForTarget(TARGET_ID);
+    var receivedResponse = repository.getForTargetObject(TARGET_ID);
 
     // Then
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));

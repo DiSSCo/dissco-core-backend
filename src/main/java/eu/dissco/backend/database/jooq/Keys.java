@@ -20,7 +20,6 @@ import eu.dissco.backend.database.jooq.tables.records.NewSourceSystemRecord;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
 import eu.dissco.backend.database.jooq.tables.records.OrganisationDoRecord;
 import eu.dissco.backend.database.jooq.tables.records.OrganisationDocumentRecord;
-
 import org.jooq.ForeignKey;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;

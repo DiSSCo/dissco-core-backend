@@ -111,13 +111,22 @@ public class AnnotationRepository {
         attributeNode);
   }
 
-  public List<AnnotationResponse> getForTarget(String id) {
+  public List<AnnotationResponse> getForTargetObject(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.TARGET_ID.eq(id))
         .and(NEW_ANNOTATION.DELETED.isNull())
         .fetch(this::mapToAnnotation);
   }
+
+  public List<JsonApiData> getForTarget(String id) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
+        .and(NEW_ANNOTATION.DELETED.isNull())
+        .fetch(this::mapToJsonApiData);
+  }
+
 
   public int getAnnotationForUser(String id, String userId) {
     return context.select(NEW_ANNOTATION.ID)

@@ -92,7 +92,7 @@ class SpecimenServiceTest {
   void testGetAnnotations() {
     // Given
     var annotations = List.of(givenAnnotationResponse());
-    given(annotationService.getAnnotationForTarget(ID)).willReturn(annotations);
+    given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
 
     // When
     var result = service.getAnnotations(ID);
@@ -138,7 +138,7 @@ class SpecimenServiceTest {
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
     given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
-    given(annotationService.getAnnotationForTarget(ID)).willReturn(annotations);
+    given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var expected = new DigitalSpecimenFull(specimen, digitalMedia, annotations);
 
     // When

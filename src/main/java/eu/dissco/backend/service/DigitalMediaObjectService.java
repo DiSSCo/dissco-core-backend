@@ -1,8 +1,8 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -13,7 +13,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,62 +26,43 @@ public class DigitalMediaObjectService {
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
 
-  public DigitalMediaObject getDigitalMediaById(String id) {
-    return repository.getLatestDigitalMediaById(id);
-  }
-
-  public JsonApiWrapper getDigitalMediaByIdJsonResponse(String id, String path) {
+  public JsonApiWrapper getDigitalMediaById(String id, String path) {
     var dataNode = repository.getLatestDigitalMediaObjectByIdJsonResponse(id);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
-  public List<AnnotationResponse> getAnnotationsOnDigitalMediaObject(String id) {
-      return annotationService.getAnnotationForTarget(id);
+  public JsonApiListResponseWrapper getAnnotationsOnDigitalMedia(String id, String path) {
+    return annotationService.getAnnotationForTarget(id, path);
   }
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
     var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
     var digitalMedia = repository.getDigitalMediaForSpecimen(id);
     for (var digitalMediaObject : digitalMedia) {
-      var annotation = annotationService.getAnnotationForTarget(digitalMediaObject.id());
+      var annotation = annotationService.getAnnotationForTargetObject(digitalMediaObject.id());
       digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
     }
     return digitalMediaFull;
   }
 
-  public List<Integer> getDigitalMediaVersions(String id) throws NotFoundException {
-    return mongoRepository.getVersions(id, "digital_media_provenance");
+  public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
+    var versions = mongoRepository.getVersions(id, "digital_media_provenance");
+    var versionNode = createVersionNode(versions);
+    var dataNode = new JsonApiData(id, "digitalMediaVersions", versionNode);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public DigitalMediaObject getDigitalMediaVersionByVersion(String id, int version)
+  public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getByVersion(id, version, "digital_media_provenance");
-    return mapToDigitalMediaObject(result);
-  }
-
-  private DigitalMediaObject mapToDigitalMediaObject(JsonNode result) {
-    var digitalMediaObject = result.get("digitalMediaObject");
-    return new DigitalMediaObject(
-        result.get("id").asText(),
-        result.get("version").asInt(),
-        Instant.ofEpochSecond(result.get("created").asInt()),
-        digitalMediaObject.get("type").asText(),
-        digitalMediaObject.get("digitalSpecimenId").asText(),
-        digitalMediaObject.get("mediaUrl").asText(),
-        digitalMediaObject.get("format").asText(),
-        digitalMediaObject.get("sourceSystemId").asText(),
-        digitalMediaObject.get("data"),
-        digitalMediaObject.get("originalData")
-    );
+    var dataNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
+    String type = dataNode.get("digitalMediaObject").get("type").asText();
+    return new JsonApiWrapper(new JsonApiData(id, type, dataNode),
+        new JsonApiLinks(path));
   }
 
   public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
     return repository.getDigitalMediaForSpecimen(id);
-  }
-
-  public List<DigitalMediaObject> getDigitalMediaObjects(int pageNumber, int pageSize) {
-    return repository.getDigitalMediaObject(pageNumber, pageSize);
   }
 
   private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
@@ -92,9 +72,9 @@ public class DigitalMediaObjectService {
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
-  public JsonApiListResponseWrapper getDigitalMediaObjectsJsonResponse(int pageNumber, int pageSize,
+  public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
       String path) {
-    var dataNodePlusOne = repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize+1);
+    var dataNodePlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize+1);
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 

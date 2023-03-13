@@ -1,7 +1,8 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
@@ -9,6 +10,7 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
@@ -102,16 +104,21 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public List<AnnotationResponse> getAnnotationForTarget(String id) {
+  public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
     var fullId = "https://hdl.handle.net/" + id;
-    return repository.getForTarget(fullId);
+    return repository.getForTargetObject(fullId);
   }
+
+  public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
+    var fullId = "https://hdl.handle.net/" + id;
+    var dataNode = repository.getForTarget(fullId);
+    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+  }
+
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "annotation_provenance");
-    var versionsNode = mapper.createObjectNode();
-    var arrayNode = versionsNode.putArray("versions");
-    versions.forEach(arrayNode::add);
+    var versionsNode = createVersionNode(versions);
     var dataNode = new JsonApiData(id, "annotationVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
