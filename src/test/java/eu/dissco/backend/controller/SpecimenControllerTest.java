@@ -38,6 +38,14 @@ class SpecimenControllerTest {
   }
 
   @Test
+  void testGetLatestSpecimen() throws Exception {
+    var result = controller.getLatestSpecimen(1, 1, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
   void testGetSpecimenById(){
     // When
     var result = controller.getSpecimenById(PREFIX, POSTFIX, mockRequest);
@@ -86,6 +94,15 @@ class SpecimenControllerTest {
   void testGetSpecimenAnnotations() throws Exception {
     // When
     var result = controller.getSpecimenAnnotations(PREFIX, POSTFIX, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetSpecimenDigitalMedia(){
+    // When
+    var result = controller.getSpecimenDigitalMedia(PREFIX, POSTFIX, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

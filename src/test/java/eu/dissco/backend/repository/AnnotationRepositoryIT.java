@@ -199,7 +199,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetForTarget() {
+  void testGetForTargetObject() {
     // Given
     var expectedResponse = givenAnnotationResponseTarget(ID, TARGET_ID);
     var annotations = List.of(
@@ -211,6 +211,28 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
     // When
     var receivedResponse = repository.getForTargetObject(TARGET_ID);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
+  }
+
+  @Test
+  void testGetForTarget() {
+    // Given
+    var expectedResponse = new JsonApiData(
+        ID,
+        "Annotation",
+        MAPPER.valueToTree(givenAnnotationResponseTarget(ID, TARGET_ID))
+    );
+    List<AnnotationResponse> annotations = List.of(
+        givenAnnotationResponseTarget(ID, TARGET_ID),
+        givenAnnotationResponseTarget(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
+        givenAnnotationResponseTarget(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007")
+    );
+    postAnnotations(annotations);
+
+    // When
+    var receivedResponse = repository.getForTarget(TARGET_ID);
 
     // Then
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));

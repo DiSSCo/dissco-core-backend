@@ -4,8 +4,10 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
+import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
+import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +67,20 @@ class DigitalMediaObjectServiceTest {
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetAnnotationsOnDigitalMedia(){
+    // Given
+    var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
+    given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
+
+    //
+    var result = service.getAnnotationsOnDigitalMedia(ID, ANNOTATION_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+
   }
 
   @Test

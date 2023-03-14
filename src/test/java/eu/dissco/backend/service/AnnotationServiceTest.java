@@ -11,6 +11,7 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiDataList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
@@ -92,6 +93,32 @@ class AnnotationServiceTest {
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
+
+  @Test
+  void testGetAnnotationForTargetObject(){
+    // Given
+    var expected = List.of(givenAnnotationResponse());
+    given(repository.getForTargetObject("https://hdl.handle.net/" + ID)).willReturn(expected);
+
+    // When
+    var result = service.getAnnotationForTargetObject(ID);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetAnnotationForTarget(){
+    var repositoryResponse = givenAnnotationJsonApiDataList(USER_ID_TOKEN, List.of(ID));
+    var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
+    given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(repositoryResponse);
+
+    // When
+    var result = service.getAnnotationForTarget(ID, ANNOTATION_PATH);
+
+    assertThat(result).isEqualTo(expected);
+  }
+
 
   @Test
   void testGetAnnotationsForUserJsonResponseLastPage() {
