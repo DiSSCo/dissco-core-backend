@@ -61,7 +61,7 @@ public class DigitalMediaObjectService {
         new JsonApiLinks(path));
   }
 
-  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
+  public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
     return repository.getDigitalMediaForSpecimen(id);
   }
 

@@ -11,7 +11,7 @@ public class ServiceUtils {
   @Autowired
   private static ObjectMapper mapper;
 
-  public static JsonNode createVersionNode(List<Integer> versions){
+  protected static JsonNode createVersionNode(List<Integer> versions){
     var versionsNode = mapper.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     versions.forEach(arrayNode::add);

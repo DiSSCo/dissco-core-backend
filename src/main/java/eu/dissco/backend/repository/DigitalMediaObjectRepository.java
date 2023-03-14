@@ -35,11 +35,11 @@ public class DigitalMediaObjectRepository {
         .fetchOne(this::mapToJsonApiData);
   }
 
-  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
+  public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
     return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
         .from(NEW_DIGITAL_MEDIA_OBJECT)
         .where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
-        .fetch(this::mapToMultiMediaObject);
+        .fetch(this::mapToJsonApiData);
   }
 
   public List<JsonApiData> getDigitalMediaObjects(int pageNumber, int pageSize) {

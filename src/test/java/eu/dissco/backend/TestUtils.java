@@ -1,6 +1,7 @@
 package eu.dissco.backend;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +14,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,10 @@ public class TestUtils {
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
 
-  public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
+  public static final ObjectMapper MAPPER = new ObjectMapper()
+      .findAndRegisterModules()
+      .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+      .setSerializationInclusion(Include.NON_NULL);
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
 
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech/";

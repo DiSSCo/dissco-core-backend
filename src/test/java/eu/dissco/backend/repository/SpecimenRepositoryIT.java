@@ -1,13 +1,17 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.util.ArrayList;
+import java.util.List;
+import org.checkerframework.checker.units.qual.A;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,12 +46,26 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetLatestSpecimenById() throws Exception {
+    // Given
+    var targetSpecimen = givenDigitalSpecimen(ID);
+    insertIntoDatabase(new ArrayList<>(List.of(targetSpecimen)));
+    var expected = givenDigitalSpecimenJsonApiData(targetSpecimen);
+
+    // When
+    var result = repository.getLatestSpecimenById(ID);
+
+    // Then
+    assertThat(result).hasToString(expected.toString());
+  }
+
+  @Test
   void testGetSpecimenById() throws JsonProcessingException {
     // Given
     populateSpecimenTable();
 
     // When
-    var result = repository.getLatestSpecimenById("20.5000.1025/ABC-123-XY3");
+    var result = repository.getLatestSpecimenByIdObject("20.5000.1025/ABC-123-XY3");
 
     // Then
     assertThat(result).isEqualTo(givenDigitalSpecimen("20.5000.1025/ABC-123-XY3"));

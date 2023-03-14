@@ -108,6 +108,7 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
     String targetId = PREFIX + "/0";
     var targetSpecimen = givenDigitalSpecimen(targetId);
+    var targetSpecimenJsonApiData = new JsonApiData(targetSpecimen.id(), targetSpecimen.type(), MAPPER.valueToTree(targetSpecimen));
 
     for (int i = 0; i < 10; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -119,7 +120,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.search(targetId, 1, 1);
 
     // Then
-    assertThat(responseReceived).contains(targetSpecimen);
+    assertThat(responseReceived).contains(targetSpecimenJsonApiData);
   }
 
   @Test

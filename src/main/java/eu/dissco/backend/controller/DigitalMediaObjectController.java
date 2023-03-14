@@ -1,5 +1,9 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
+import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
+import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -29,9 +33,6 @@ public class DigitalMediaObjectController {
 
   private final DigitalMediaObjectService service;
   private final ObjectMapper mapper;
-  private static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
-  private static final String DEFAULT_PAGE_NUM = "1";
-  private static final String DEFAULT_PAGE_SIZE = "10";
 
 
   @ResponseStatus(HttpStatus.OK)

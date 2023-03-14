@@ -27,7 +27,7 @@ public class ElasticSearchRepository {
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
 
-  public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
+  public List<JsonApiData> search(String query, int pageNumber, int pageSize)
       throws IOException {
     query = query.replace("/", "//");
 
@@ -37,7 +37,7 @@ public class ElasticSearchRepository {
         .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query).from(offset).size(pageSize)
         .build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
+        .map(this::mapDigitalSpecimenToJsonApiData).toList();
   }
 
   public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
@@ -69,7 +69,7 @@ public class ElasticSearchRepository {
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
         .size(pageSize).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToJsonApiData).toList();
+        .map(this::mapAnnotationToJsonApiData).toList();
   }
 
   public List<AnnotationResponse> getLatestAnnotation() throws IOException {
@@ -77,6 +77,11 @@ public class ElasticSearchRepository {
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).size(10).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
+  }
+
+  private JsonApiData mapDigitalSpecimenToJsonApiData(ObjectNode json){
+    var digitalSpecimen = json.get("digitalSpecimen");
+    return  new JsonApiData(digitalSpecimen.get("id").asText(), digitalSpecimen.get("type").asText(), digitalSpecimen );
   }
 
 
@@ -109,7 +114,7 @@ public class ElasticSearchRepository {
         Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong()), null);
   }
 
-  private JsonApiData mapToJsonApiData(ObjectNode json) {
+  private JsonApiData mapAnnotationToJsonApiData(ObjectNode json) {
     ObjectNode annotation = (ObjectNode) json.get("annotation");
     var created = Instant.ofEpochSecond(annotation.get(FIELD_CREATED).asLong());
     var generated = Instant.ofEpochSecond(annotation.get(FIELD_GENERATED).asLong());
