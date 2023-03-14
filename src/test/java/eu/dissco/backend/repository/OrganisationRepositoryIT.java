@@ -33,6 +33,24 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetOrganisationNames(){
+    // Given
+    var museum = new OrganisationTuple("Museum für Naturkunde", "2");
+    List<OrganisationRecord> organisationRecords = List.of(
+        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
+        new OrganisationRecord(museum.ror(), museum.name(), "germany", "DE")
+    );
+    postToDb(organisationRecords);
+    var expected = List.of(ORGANISATION.name(), museum.name());
+
+    // When
+    var result = repository.getOrganisationNames();
+
+    // Then
+    assertThat(result).hasSameElementsAs(expected);
+  }
+
+  @Test
   void testGetOrganisations(){
 
     // Given

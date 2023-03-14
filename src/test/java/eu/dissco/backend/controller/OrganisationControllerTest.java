@@ -19,12 +19,22 @@ class OrganisationControllerTest {
   @Mock
   private OrganisationService service;
   private OrganisationController controller;
-  private MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+  private final MockHttpServletRequest mockRequest = new MockHttpServletRequest();
 
   @BeforeEach
   void setup() {
     controller = new OrganisationController(service);
     mockRequest.setRequestURI(ORGANISATION_URI);
+  }
+
+
+  @Test
+  void testGetOrganisationNames(){
+    // When
+    var result = controller.getOrganisationNames();
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test

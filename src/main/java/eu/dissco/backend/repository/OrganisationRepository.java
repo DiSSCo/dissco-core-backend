@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -19,6 +20,11 @@ public class OrganisationRepository {
 
   private final DSLContext context;
   private final ObjectMapper mapper;
+
+  public List<String> getOrganisationNames() {
+    return context.select(ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
+        .fetch(Record1::value1);
+  }
 
   public List<JsonApiData> getOrganisations() {
     return context.select(ORGANISATION_DO.ID, ORGANISATION_DO.ORGANISATION_NAME)

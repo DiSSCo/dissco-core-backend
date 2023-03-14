@@ -9,6 +9,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.repository.OrganisationRepository;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,20 @@ class OrganisationServiceTest {
   @BeforeEach
   void setup(){
     service = new OrganisationService(repository);
+  }
+
+  @Test
+  void testGetOrganisationNames(){
+    // Given
+    List<String> expected = List.of("a", "b");
+    given(repository.getOrganisationNames()).willReturn(expected);
+
+    // When
+    var result = service.getOrganisationNames();
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+
   }
 
   @Test
