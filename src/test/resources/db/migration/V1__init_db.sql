@@ -71,3 +71,15 @@ CREATE TABLE public.new_digital_specimen (
 CREATE INDEX new_digital_specimen_created_idx ON public.new_digital_specimen USING btree (created);
 CREATE INDEX new_digital_specimen_id_idx ON public.new_digital_specimen USING btree (id, created);
 CREATE INDEX new_digital_specimen_physical_specimen_id_idx ON public.new_digital_specimen USING btree (physical_specimen_id);
+
+
+CREATE TABLE public.organisation_do (
+	id text NOT NULL,
+	organisation_name text NULL,
+	organisation_code text NULL,
+	city text NULL,
+	country text NULL,
+	country_code text NULL,
+	"data" jsonb NULL,
+	CONSTRAINT organisation_do_pkey PRIMARY KEY (id)
+);

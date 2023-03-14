@@ -33,7 +33,7 @@ public class TestUtils {
 
   public static final ObjectMapper MAPPER = new ObjectMapper()
       .findAndRegisterModules()
-      .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+      .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
       .setSerializationInclusion(Include.NON_NULL);
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
 

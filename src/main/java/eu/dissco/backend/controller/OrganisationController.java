@@ -1,9 +1,10 @@
 package eu.dissco.backend.controller;
 
-import eu.dissco.backend.domain.Country;
-import eu.dissco.backend.domain.OrganisationTuple;
+import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
+
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.service.OrganisationService;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,26 +26,20 @@ public class OrganisationController {
   private final OrganisationService service;
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/names", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<String>> getOrganisationNames() {
-    log.info("Received get request for organisation names");
-    var names = service.getNames();
-    return ResponseEntity.ok(names);
-  }
-
-  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/tuples", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<OrganisationTuple>> getOrganisationTuple() {
+  public ResponseEntity<JsonApiListResponseWrapper> getOrganisations(HttpServletRequest request) {
     log.info("Received get request for organisation tuples");
-    var tuples = service.getTuples();
-    return ResponseEntity.ok(tuples);
+    var path = SANDBOX_URI + request.getRequestURI();
+    var organisations = service.getOrganisations(path);
+    return ResponseEntity.ok(organisations);
   }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/countries", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Country>> getOrganisationCountries() {
+  public ResponseEntity<JsonApiListResponseWrapper> getOrganisationCountries(HttpServletRequest request) {
     log.info("Received get request for organisation countries");
-    var countries = service.getCountries();
+    var path = SANDBOX_URI + request.getRequestURI();
+    var countries = service.getCountries(path);
     return ResponseEntity.ok(countries);
   }
 

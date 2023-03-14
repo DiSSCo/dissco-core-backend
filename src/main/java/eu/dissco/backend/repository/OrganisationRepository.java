@@ -2,14 +2,14 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 
-import eu.dissco.backend.domain.Country;
-import eu.dissco.backend.domain.OrganisationTuple;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
-import org.jooq.Record1;
-import org.jooq.Record2;
+import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -18,29 +18,35 @@ import org.springframework.stereotype.Repository;
 public class OrganisationRepository {
 
   private final DSLContext context;
+  private final ObjectMapper mapper;
 
-  public List<String> getOrganisationNames() {
-    return context.select(ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
-        .fetch(Record1::value1);
-  }
-
-  public List<OrganisationTuple> getOrganisationTuple() {
+  public List<JsonApiData> getOrganisations() {
     return context.select(ORGANISATION_DO.ID, ORGANISATION_DO.ORGANISATION_NAME)
-        .from(ORGANISATION_DO).fetch(this::mapToOrganisationTuple);
+        .from(ORGANISATION_DO).fetch(this::mapToOrganisation);
   }
 
-  private OrganisationTuple mapToOrganisationTuple(Record2<String, String> dbRecord) {
-    return new OrganisationTuple(
-        dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME),
-        dbRecord.get(ORGANISATION_DO.ID));
+  private JsonApiData mapToOrganisation(Record dbRecord) {
+    ObjectNode attributeNode = mapper.createObjectNode();
+    attributeNode.put("organisationName",dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME));
+    return new JsonApiData(
+        dbRecord.get(ORGANISATION_DO.ID),
+        "organisation",
+        attributeNode);
   }
 
-  public List<Country> getCountries() {
+  public List<JsonApiData> getCountries() {
     return context.selectDistinct(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE).from(ORGANISATION_DO).groupBy(ORGANISATION_DO.COUNTRY,
         ORGANISATION_DO.COUNTRY_CODE).fetch(this::mapCountry);
   }
 
-  private Country mapCountry(Record2<String, String> dbRecord) {
-    return new Country(dbRecord.value1(), dbRecord.value2());
+
+  private JsonApiData mapCountry(Record dbRecord) {
+    ObjectNode attributeNode = mapper.createObjectNode();
+    attributeNode.put("country", dbRecord.get(ORGANISATION_DO.COUNTRY));
+    return new JsonApiData(
+        dbRecord.get(ORGANISATION_DO.COUNTRY_CODE),
+        "country",
+        attributeNode
+    );
   }
 }

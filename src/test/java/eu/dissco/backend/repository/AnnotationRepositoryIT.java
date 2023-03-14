@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -11,8 +12,6 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseTarget;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.ArrayList;
@@ -30,9 +29,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
   @BeforeEach
   void setup() {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    repository = new AnnotationRepository(context, mapper);
+    repository = new AnnotationRepository(context, MAPPER);
   }
 
   @AfterEach

@@ -1,9 +1,8 @@
 package eu.dissco.backend.service;
 
-import eu.dissco.backend.domain.Country;
-import eu.dissco.backend.domain.OrganisationTuple;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.repository.OrganisationRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,15 +14,14 @@ public class OrganisationService {
 
   private final OrganisationRepository repository;
 
-  public List<String> getNames() {
-    return repository.getOrganisationNames();
+  public JsonApiListResponseWrapper getOrganisations(String path) {
+    return new JsonApiListResponseWrapper(repository.getOrganisations(),
+    new JsonApiLinksFull(path));
   }
 
-  public List<OrganisationTuple> getTuples() {
-    return repository.getOrganisationTuple();
-  }
-
-  public List<Country> getCountries() {
-    return repository.getCountries();
+  public JsonApiListResponseWrapper getCountries(String path) {
+    var dataNode = repository.getCountries();
+    var linksNode = new JsonApiLinksFull(path);
+    return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 }

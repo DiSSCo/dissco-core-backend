@@ -1,0 +1,96 @@
+package eu.dissco.backend.repository;
+
+import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
+import static eu.dissco.backend.utils.OrganisationUtils.COUNTRY;
+import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION;
+import static eu.dissco.backend.utils.OrganisationUtils.givenCountryData;
+import static eu.dissco.backend.utils.OrganisationUtils.givenOrganisationData;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import eu.dissco.backend.domain.Country;
+import eu.dissco.backend.domain.OrganisationTuple;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import java.util.ArrayList;
+import java.util.List;
+import org.jooq.Query;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class OrganisationRepositoryIT extends BaseRepositoryIT {
+
+  private OrganisationRepository repository;
+
+  @BeforeEach
+  void setup() {
+    repository = new OrganisationRepository(context, MAPPER);
+  }
+
+  @AfterEach
+  void destroy() {
+    context.truncate(ORGANISATION_DO).execute();
+  }
+
+  @Test
+  void testGetOrganisations(){
+
+    // Given
+    var museum = new OrganisationTuple("Museum für Naturkunde", "2");
+
+    List<OrganisationRecord> organisationRecords = List.of(
+        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
+        new OrganisationRecord(museum.ror(), museum.name(), "germany", "DE")
+    );
+    postToDb(organisationRecords);
+    List<JsonApiData> expected = List.of(
+        givenOrganisationData(ORGANISATION),
+        givenOrganisationData(museum)
+    );
+
+    // When
+    var result = repository.getOrganisations();
+
+    // Then
+    assertThat(result).hasSameElementsAs(expected);
+  }
+
+  @Test
+  void testGetCountries(){
+
+    // Given
+    Country germany = new Country("Germany", "DE");
+
+    List<OrganisationRecord> organisationRecords = List.of(
+        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
+        new OrganisationRecord("2", "Museum für Naturkunde", germany.country(), germany.countryCode())
+    );
+    postToDb(organisationRecords);
+    List<JsonApiData> expected = List.of(
+        givenCountryData(COUNTRY),
+        givenCountryData(germany)
+    );
+
+    // When
+    var result = repository.getCountries();
+
+    // Then
+    assertThat(result).hasSameElementsAs(expected);
+  }
+
+
+  private void postToDb(List<OrganisationRecord> organisations) {
+    List<Query> queryList = new ArrayList<>();
+    for (var org : organisations) {
+      var query = context.insertInto(ORGANISATION_DO)
+          .set(ORGANISATION_DO.ID, org.id())
+          .set(ORGANISATION_DO.ORGANISATION_NAME, org.orgName())
+          .set(ORGANISATION_DO.COUNTRY, org.countryName())
+          .set(ORGANISATION_DO.COUNTRY_CODE, org.countryCode());
+      queryList.add(query);
+    }
+    context.batch(queryList).execute();
+  }
+
+  private record OrganisationRecord(String id, String orgName, String countryName, String countryCode) {}
+}

@@ -20,10 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
@@ -65,12 +63,10 @@ class AnnotationServiceTest {
   @Mock
   ServiceUtils serviceUtils;
   private AnnotationService service;
-  private ObjectMapper mapper;
+
 
   @BeforeEach
   void setup() {
-    mapper = new ObjectMapper().findAndRegisterModules();
-    mapper.setDefaultPropertyInclusion(Include.ALWAYS);
     service = new AnnotationService(repository, annotationClient, elasticRepository,
         mongoRepository, MAPPER);
   }
@@ -211,8 +207,8 @@ class AnnotationServiceTest {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID_ALT);
-    JsonNode annotationNode = mapper.valueToTree(annotationResponse);
-    ObjectNode clientResponse = mapper.createObjectNode();
+    JsonNode annotationNode = MAPPER.valueToTree(annotationResponse);
+    ObjectNode clientResponse = MAPPER.createObjectNode();
     clientResponse.put("id", annotationResponse.id());
     clientResponse.put("version", annotationResponse.version());
     clientResponse.put("annotation", annotationNode);
@@ -271,8 +267,8 @@ class AnnotationServiceTest {
 
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID);
-    JsonNode annotationNode = mapper.valueToTree(annotationResponse);
-    ObjectNode clientResponse = mapper.createObjectNode();
+    JsonNode annotationNode = MAPPER.valueToTree(annotationResponse);
+    ObjectNode clientResponse = MAPPER.createObjectNode();
     clientResponse.put("id", annotationResponse.id());
     clientResponse.put("version", annotationResponse.version());
     clientResponse.set("annotation", annotationNode);
@@ -281,8 +277,6 @@ class AnnotationServiceTest {
     Instant instant = Instant.now(clock);
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockedStatic.when(Instant::now).thenReturn(instant);
-      mockedStatic.when(() -> Instant.ofEpochSecond(CREATED.getLong(ChronoField.INSTANT_SECONDS)))
-          .thenReturn(instant);
       mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
 
       given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))
