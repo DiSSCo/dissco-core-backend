@@ -5,17 +5,11 @@ import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.DigitalSpecimenFull;
-import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

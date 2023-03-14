@@ -11,7 +11,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.util.ArrayList;
 import java.util.List;
-import org.checkerframework.checker.units.qual.A;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

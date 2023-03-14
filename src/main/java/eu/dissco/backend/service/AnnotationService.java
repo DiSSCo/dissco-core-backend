@@ -137,8 +137,4 @@ public class AnnotationService {
     }
   }
 
-  public List<AnnotationResponse> getLatestAnnotation() throws IOException {
-    return elasticRepository.getLatestAnnotation();
-  }
-
 }

@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -143,6 +144,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).hasSize(pageSize);
   }
 
+
   @Test
   void testGetLatestSpecimen() throws IOException {
     // Given
@@ -150,10 +152,10 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 1;
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
-    List<DigitalSpecimen> responseExpected = new ArrayList<>();
+    List<JsonApiData> responseExpected = new ArrayList<>();
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
-      responseExpected.add(specimen);
+      responseExpected.add(givenDigitalSpecimenJsonApiData(specimen));
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
     for (int i = pageSize; i < pageSize * 2; i++) {
@@ -166,7 +168,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(specimenTestRecords);
 
     // When
-    var responseReceived = repository.getLatestSpecimenObject(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -179,7 +181,7 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 2;
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
-    List<DigitalSpecimen> responseExpected = new ArrayList<>();
+    List<JsonApiData> responseExpected = new ArrayList<>();
 
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -188,7 +190,7 @@ class ElasticSearchRepositoryIT {
 
     for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenOlderSpecimen(PREFIX + "/" + i);
-      responseExpected.add(specimen);
+      responseExpected.add(givenDigitalSpecimenJsonApiData(specimen));
       specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
     }
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
@@ -197,7 +199,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(specimenTestRecords);
 
     // When
-    var responseReceived = repository.getLatestSpecimenObject(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -205,35 +207,6 @@ class ElasticSearchRepositoryIT {
 
   @Test
   void testGetLatestAnnotations() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
-    List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
-    List<AnnotationResponse> responseExpected = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
-      responseExpected.add(annotation);
-      annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
-    }
-    for (int i = 11; i < 15; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
-      annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
-    }
-    List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
-    annotationTestRecords.addAll(annotationTestRecordsLatest);
-    annotationTestRecords.addAll(annotationTestRecordsOlder);
-    postAnnotations(annotationTestRecords);
-
-    // When
-    var responseReceived = repository.getLatestAnnotationsObject(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
-  }
-
-  @Test
-  void testGetLatestAnnotationsJsonResponse() throws IOException {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -263,7 +236,7 @@ class ElasticSearchRepositoryIT {
   }
 
   @Test
-  void testGetLatestAnnotationsJsonResponseSecondPage() throws IOException {
+  void testGetLatestAnnotationsSecondPage() throws IOException {
     // Given
     int pageNumber = 2;
     int pageSize = 10;

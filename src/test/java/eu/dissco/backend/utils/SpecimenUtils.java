@@ -8,7 +8,6 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
-import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
