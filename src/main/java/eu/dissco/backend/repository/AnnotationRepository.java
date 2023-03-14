@@ -102,9 +102,7 @@ public class AnnotationRepository {
       attributeNode.set("generator",
           mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
       attributeNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
-      if (dbRecord.get(NEW_ANNOTATION.DELETED)!= null){
-        attributeNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
-      }
+      attributeNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
       return null;

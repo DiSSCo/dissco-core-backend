@@ -12,8 +12,11 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseTarget;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -150,7 +153,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotations() {
+  void testGetAnnotationsObject() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -177,7 +180,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsJsonResponse() {
+  void testGetAnnotations() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -219,11 +222,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetForTarget() {
     // Given
-    var expectedResponse = new JsonApiData(
-        ID,
-        "Annotation",
-        MAPPER.valueToTree(givenAnnotationResponseTarget(ID, TARGET_ID))
-    );
+    MAPPER.setSerializationInclusion(Include.ALWAYS);
+    var expectedResponse =  givenAnnotationJsonApiData(USER_ID_TOKEN, ID);
     List<AnnotationResponse> annotations = List.of(
         givenAnnotationResponseTarget(ID, TARGET_ID),
         givenAnnotationResponseTarget(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
