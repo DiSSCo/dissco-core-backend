@@ -49,12 +49,14 @@ public class SpecimenController {
     return ResponseEntity.ok(specimen);
   }
 
+
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<DigitalSpecimen>> getLatestSpecimen(
+  public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize) throws IOException {
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) throws IOException {
     log.info("Received get request for latest digital specimen");
-    var specimens = service.getLatestSpecimen(pageNumber, pageSize);
+    var path = SANDBOX_URI + request.getRequestURI();
+    var specimens = service.getLatestSpecimen(pageNumber, pageSize, path);
     return ResponseEntity.ok(specimens);
   }
 
@@ -125,8 +127,6 @@ public class SpecimenController {
     return ResponseEntity.ok(annotations);
   }
 
-  // Todo 7
-
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
@@ -138,7 +138,6 @@ public class SpecimenController {
     return ResponseEntity.ok(digitalMedia);
   }
 
-  // 8 Todo
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> searchSpecimen(@RequestParam String query,

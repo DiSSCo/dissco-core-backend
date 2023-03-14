@@ -82,7 +82,7 @@ class DigitalMediaObjectServiceTest {
       given(annotationService.getAnnotationForTargetObject(String.valueOf(id))).willReturn(
           List.of(annotation));
     }
-    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(mediaObjects);
+    given(repository.getDigitalMediaForSpecimenObject(ID)).willReturn(mediaObjects);
 
     // When
     var responseReceived = service.getDigitalMediaObjectFull(ID);
@@ -163,7 +163,11 @@ class DigitalMediaObjectServiceTest {
   @Test
   void testGetDigitalMediaForSpecimen() {
     // Given
-    var responseExpected = List.of(givenDigitalMediaObject(ID));
+    var mediaObject = givenDigitalMediaObject(ID);
+    var responseExpected = List.of(new JsonApiData(
+        mediaObject.id(),
+        mediaObject.type(),
+        MAPPER.valueToTree(mediaObject)));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(responseExpected);
 
     // When

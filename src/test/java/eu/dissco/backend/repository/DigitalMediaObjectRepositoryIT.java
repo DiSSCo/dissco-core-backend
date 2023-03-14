@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
@@ -66,15 +67,41 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetDigitalMediaForDigitalSpecimen() throws JsonProcessingException {
     // Given
     String specimenId = ID_ALT;
-    var firstMediaObject = givenDigitalMediaObject(ID, specimenId);
-    var secondMediaObject = givenDigitalMediaObject("aa", specimenId);
-    List<DigitalMediaObject> expectedResponse = List.of(firstMediaObject, secondMediaObject);
-    postMediaObjects(expectedResponse);
+    List<DigitalMediaObject> postedMediaObjects = List.of(
+        givenDigitalMediaObject(ID, specimenId),
+        givenDigitalMediaObject("aa", specimenId));
+    postMediaObjects(postedMediaObjects);
+    List<JsonApiData> expectedResponse = new ArrayList<>();
+    postedMediaObjects.forEach(media -> expectedResponse.add(new JsonApiData(
+        media.id(),
+        media.type(),
+        MAPPER.valueToTree(media)
+    )));
+
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);
 
     // When
     var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
+
+    // Then
+    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
+  }
+
+
+  @Test
+  void testGetDigitalMediaForDigitalSpecimenObject() throws JsonProcessingException {
+    // Given
+    String specimenId = ID_ALT;
+    List<DigitalMediaObject> expectedResponse = List.of(
+        givenDigitalMediaObject(ID, specimenId),
+        givenDigitalMediaObject("aa", specimenId));
+    postMediaObjects(expectedResponse);
+    var specimen = givenDigitalSpecimen(specimenId);
+    postDigitalSpecimen(specimen);
+
+    // When
+    var receivedResponse = repository.getDigitalMediaForSpecimenObject(specimenId);
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);

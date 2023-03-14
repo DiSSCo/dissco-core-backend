@@ -1,7 +1,6 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -23,7 +22,6 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -35,9 +33,7 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -246,10 +242,10 @@ class SpecimenServiceTest {
   void testGetLatestSpecimen() throws IOException {
     // Given
     var specimens = List.of(givenDigitalSpecimen(ID));
-    given(elasticRepository.getLatestSpecimen(1, 10)).willReturn(specimens);
+    given(elasticRepository.getLatestSpecimenObject(1, 10)).willReturn(specimens);
 
     // When
-    var result = service.getLatestSpecimen(1, 10);
+    var result = service.getLatestSpecimen(1, 10, "");
 
     // Then
     assertThat(result).isEqualTo(specimens);

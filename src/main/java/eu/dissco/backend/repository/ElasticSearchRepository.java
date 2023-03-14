@@ -40,7 +40,7 @@ public class ElasticSearchRepository {
         .map(this::mapDigitalSpecimenToJsonApiData).toList();
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+  public List<DigitalSpecimen> getLatestSpecimenObject(int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var searchRequest = new SearchRequest.Builder().index(INDEX)
         .q("_exists_:digitalSpecimen.physicalSpecimenId ")
@@ -48,6 +48,16 @@ public class ElasticSearchRepository {
         .size(pageSize).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public List<JsonApiData> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+    var offset = getOffset(pageNumber, pageSize);
+    var searchRequest = new SearchRequest.Builder().index(INDEX)
+        .q("_exists_:digitalSpecimen.physicalSpecimenId ")
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapDigitalSpecimenToJsonApiData).toList();
   }
 
   public List<AnnotationResponse> getLatestAnnotationsObject(int pageNumber, int pageSize)
@@ -86,7 +96,6 @@ public class ElasticSearchRepository {
 
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
-
     var digitalSpecimen = json.get("digitalSpecimen");
     return new DigitalSpecimen(json.get("id").asText(),
         json.get("midsLevel").asInt(),

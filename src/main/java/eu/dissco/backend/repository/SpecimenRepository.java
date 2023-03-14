@@ -36,7 +36,7 @@ public class SpecimenRepository {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(this::mapper);
+        .fetchOne(this::mapToDigitalSpecimen);
   }
 
   public JsonApiData getLatestSpecimenById(String id){
@@ -73,7 +73,7 @@ public class SpecimenRepository {
     return new JsonApiData(dbRecord.get(NEW_DIGITAL_SPECIMEN.ID), dbRecord.get(NEW_DIGITAL_SPECIMEN.TYPE), attributeNode);
   }
 
-  private DigitalSpecimen mapper(Record dbRecord) {
+  private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
     try {
       return new DigitalSpecimen(
           dbRecord.get(NEW_DIGITAL_SPECIMEN.ID),

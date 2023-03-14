@@ -166,7 +166,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(specimenTestRecords);
 
     // When
-    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimenObject(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -180,10 +180,12 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
     List<DigitalSpecimen> responseExpected = new ArrayList<>();
+
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
+
     for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenOlderSpecimen(PREFIX + "/" + i);
       responseExpected.add(specimen);
@@ -195,7 +197,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(specimenTestRecords);
 
     // When
-    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimenObject(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -296,7 +298,7 @@ class ElasticSearchRepositoryIT {
   }
 
   private DigitalSpecimenTestRecord givenOlderDigitalSpecimenTestRecord(DigitalSpecimen specimen) {
-    Instant created = Instant.parse("2022-09-02T09:59:24Z");
+    Instant created = Instant.parse(CREATED_ALT);
     return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, created, specimen);
   }
 

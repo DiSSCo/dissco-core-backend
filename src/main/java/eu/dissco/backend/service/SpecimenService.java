@@ -6,8 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
@@ -21,7 +19,6 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -105,8 +102,12 @@ public class SpecimenService {
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
-    return elasticRepository.getLatestSpecimen(pageNumber, pageSize);
+  public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path) throws IOException {
+    var dataNodePlusOne = elasticRepository.getLatestSpecimen(pageNumber, pageSize+1);
+    boolean hasNext = dataNodePlusOne.size() > pageSize;
+    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
+    return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
   public JsonApiWrapper getSpecimenByIdJsonLD(String id, String path) {

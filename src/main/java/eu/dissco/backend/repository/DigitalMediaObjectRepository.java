@@ -58,6 +58,13 @@ public class DigitalMediaObjectRepository {
         .fetch(Record1::value1);
   }
 
+  public List<DigitalMediaObject> getDigitalMediaForSpecimenObject(String id) {
+    return context.select(NEW_DIGITAL_MEDIA_OBJECT.asterisk())
+        .from(NEW_DIGITAL_MEDIA_OBJECT)
+        .where(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
+        .fetch(this::mapToMultiMediaObject);
+  }
+
   private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
     try {
       return new DigitalMediaObject(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),

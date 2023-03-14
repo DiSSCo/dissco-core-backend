@@ -3,7 +3,6 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -38,7 +37,7 @@ public class DigitalMediaObjectService {
 
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
     var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
-    var digitalMedia = repository.getDigitalMediaForSpecimen(id);
+    var digitalMedia = repository.getDigitalMediaForSpecimenObject(id);
     for (var digitalMediaObject : digitalMedia) {
       var annotation = annotationService.getAnnotationForTargetObject(digitalMediaObject.id());
       digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
