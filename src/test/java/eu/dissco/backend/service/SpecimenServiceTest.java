@@ -257,11 +257,30 @@ class SpecimenServiceTest {
         new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH));
 
     // When
-    var result = service.getLatestSpecimen(1, 10, SPECIMEN_PATH);
+    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
   }
+
+  @Test
+  void testGetLatestSpecimenLastPage() throws IOException {
+    // Given
+    int pageSize = 10;
+    int pageNum = 2;
+    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
+    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize+1)).willReturn(dataNode);
+    var expected = new JsonApiListResponseWrapper(dataNode,
+        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH));
+
+    // When
+    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
 
   @Test
   void testSpecimenByIdJsonLD() throws IOException {
