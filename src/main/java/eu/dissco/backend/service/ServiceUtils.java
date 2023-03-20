@@ -8,10 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ServiceUtils {
   private ServiceUtils(){}
 
-  @Autowired
-  private static ObjectMapper mapper;
 
-  protected static JsonNode createVersionNode(List<Integer> versions){
+  protected static JsonNode createVersionNode(List<Integer> versions, ObjectMapper mapper){
     var versionsNode = mapper.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     versions.forEach(arrayNode::add);

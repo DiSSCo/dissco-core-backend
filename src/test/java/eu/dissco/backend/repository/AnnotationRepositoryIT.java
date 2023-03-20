@@ -113,10 +113,10 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed()
         .map(Object::toString).toList();
     List<AnnotationResponse> userAnnotations = new ArrayList<>();
-    List<JsonApiData> expectedResponse = new ArrayList<>();
+    List<AnnotationResponse> expectedResponse = new ArrayList<>();
     for (String annotationId : annotationIds) {
       userAnnotations.add(givenAnnotationResponse(userId, annotationId));
-      expectedResponse.add(givenAnnotationJsonApiData(userId, annotationId));
+      expectedResponse.add(givenAnnotationResponse(userId, annotationId));
     }
     postAnnotations(userAnnotations);
 
@@ -153,33 +153,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsObject() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    var annotationsReceivedAll = new ArrayList<>();
-
-    List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2 - 1)).boxed()
-        .map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      annotationsAll.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
-    }
-    postAnnotations(annotationsAll);
-
-    // When
-    var annotationsP1 = repository.getAnnotationsObject(pageNumber, pageSize);
-    var annotationsP2 = repository.getAnnotationsObject(pageNumber + 1, pageSize);
-    annotationsReceivedAll.addAll(annotationsP1);
-    annotationsReceivedAll.addAll(annotationsP2);
-
-    // Then
-    assertThat(annotationsP1).hasSize(pageSize);
-    assertThat(annotationsP2).hasSize(pageSize);
-    assertThat(annotationsReceivedAll).hasSameElementsAs(annotationsAll);
-  }
-
-  @Test
   void testGetAnnotations() {
     // Given
     int pageNumber = 1;
@@ -190,15 +163,15 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
         .map(Object::toString).toList();
     for (String annotationId : annotationIds) {
       annotationsAll.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
+
     }
     postAnnotations(annotationsAll);
-    var expectedResponse = givenAnnotationJsonApiDataList(USER_ID_TOKEN, annotationIds);
 
     // When
     var receivedResponse = repository.getAnnotations(pageNumber, pageSize);
 
     // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
+    assertThat(receivedResponse).hasSameElementsAs(annotationsAll);
   }
 
   @Test

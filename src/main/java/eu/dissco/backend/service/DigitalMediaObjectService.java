@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -24,6 +25,7 @@ public class DigitalMediaObjectService {
   private final DigitalMediaObjectRepository repository;
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
+  private final ObjectMapper mapper;
 
   public JsonApiWrapper getDigitalMediaById(String id, String path) {
     var dataNode = repository.getLatestDigitalMediaObjectByIdJsonResponse(id);
@@ -47,7 +49,7 @@ public class DigitalMediaObjectService {
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "digital_media_provenance");
-    var versionNode = createVersionNode(versions);
+    var versionNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(id, "digitalMediaVersions", versionNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }

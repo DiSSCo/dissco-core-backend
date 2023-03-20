@@ -113,4 +113,8 @@ public class DigitalMediaObjectRepository {
     return new JsonApiData(attributeNode.get("id").asText(), attributeNode.get("type").asText(),
         attributeNode);
   }
+
+
+
+
 }

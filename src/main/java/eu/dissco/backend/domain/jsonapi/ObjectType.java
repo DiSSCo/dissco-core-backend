@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum ObjectType {
   @JsonProperty("annotation")ANNOTATION("annotation"),
   @JsonProperty("mediaObject")MEDIA_OBJECT("digitalMediaObject");
-
   private String state;
   private ObjectType(String state){
     this.state = state;

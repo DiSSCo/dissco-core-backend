@@ -48,7 +48,7 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getMultiMediaByIdJsonResponse(
+  public ResponseEntity<JsonApiWrapper> getMultiMediaById(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       HttpServletRequest request) {
     var id = prefix + '/' + postfix;

@@ -20,6 +20,7 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +40,16 @@ public class AnnotationService {
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
 
-  public JsonApiWrapper getAnnotation(String id, String path){
-    var dataNode = repository.getAnnotation(id);
+  @NotNull
+  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
+      String userId) {
+    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
+        annotation.target(), annotation.body());
+  }
+
+  public JsonApiWrapper getAnnotation(String id, String path) {
+    var annotation = repository.getAnnotation(id);
+    var dataNode = new JsonApiData(id, annotation.type(), annotation, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -53,18 +62,20 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
       int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber,
+    var annotationsPlusOne = repository.getAnnotationsForUserObject(userId, pageNumber,
         pageSize + 1);
-    return new JsonApiListResponseWrapper(annotationsPlusOne, pageNumber, pageSize, path);
+
+    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   public JsonApiListResponseWrapper getAnnotations(int pageNumber, int pageSize,
       String path) {
     var annotationsPlusOne = repository.getAnnotations(pageNumber, pageSize + 1);
-   return new JsonApiListResponseWrapper(annotationsPlusOne, pageNumber, pageSize, path);
+    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationRequest annotation, String userId, String path) {
+  public JsonApiWrapper persistAnnotation(AnnotationRequest annotation, String userId,
+      String path) {
     var event = mapAnnotationRequestToEvent(annotation, userId);
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
@@ -77,14 +88,8 @@ public class AnnotationService {
     return null;
   }
 
-  @NotNull
-  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
-      String userId) {
-    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
-        annotation.target(), annotation.body());
-  }
-
-  public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId, String path)
+  public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
+      String path)
       throws NoAnnotationFoundException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
@@ -111,14 +116,14 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
     var fullId = "https://hdl.handle.net/" + id;
-    var dataNode = repository.getForTarget(fullId);
-    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+    var annotations = repository.getForTarget(fullId);
+    return wrapListResponse(annotations, path);
   }
 
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "annotation_provenance");
-    var versionsNode = createVersionNode(versions);
+    var versionsNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(id, "annotationVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -136,5 +141,20 @@ public class AnnotationService {
           "No active annotation with id: " + id + " was found for user");
     }
   }
+
+  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne, int pageNumber, int pageSize, String path){
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
+        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+    return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
+  }
+
+  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations, String path){
+    List<JsonApiData> dataNode = new ArrayList<>();
+    annotations.forEach(annotation -> dataNode.add(
+        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+  }
+
 
 }

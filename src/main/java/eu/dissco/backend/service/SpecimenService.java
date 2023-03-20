@@ -85,7 +85,7 @@ public class SpecimenService {
 
   public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
     var versionsList = mongoRepository.getVersions(id, "digital_specimen_provenance");
-    var versionNode = createVersionNode(versionsList);
+    var versionNode = createVersionNode(versionsList, mapper);
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode), new JsonApiLinks(path));
   }
 

@@ -50,7 +50,7 @@ class DigitalMediaObjectServiceTest {
 
   @BeforeEach
   void setup() {
-    service = new DigitalMediaObjectService(repository, annotationService, mongoRepository);
+    service = new DigitalMediaObjectService(repository, annotationService, mongoRepository, MAPPER);
 
   }
 
@@ -119,7 +119,7 @@ class DigitalMediaObjectServiceTest {
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     try (var mockedStatic = mockStatic(ServiceUtils.class)) {
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList))
+      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
       // When
       var responseReceived = service.getDigitalMediaVersions(ID, DIGITAL_MEDIA_PATH);

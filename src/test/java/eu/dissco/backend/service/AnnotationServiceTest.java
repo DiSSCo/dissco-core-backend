@@ -14,6 +14,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -73,7 +74,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetAnnotationsForUserJsonResponse() {
+  void testGetAnnotationsForUser() {
     // Given
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
@@ -83,8 +84,8 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(
-        repository.getAnnotationsForUser(userId, pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize + 1, userId, annotationId));
+        repository.getAnnotationsForUserObject(userId, pageNumber, pageSize + 1)).willReturn(
+        givenAnnotationResponseList(annotationId, pageSize+1));
 
     // When
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize,
@@ -109,7 +110,7 @@ class AnnotationServiceTest {
 
   @Test
   void testGetAnnotationForTarget(){
-    var repositoryResponse = givenAnnotationJsonApiDataList(USER_ID_TOKEN, List.of(ID));
+    var repositoryResponse = givenAnnotationResponseList(ID, 1);
     var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
     given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(repositoryResponse);
 
@@ -121,32 +122,10 @@ class AnnotationServiceTest {
 
 
   @Test
-  void testGetAnnotationsForUserJsonResponseLastPage() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    String annotationId = "123";
-    int pageNumber = 1;
-    int pageSize = 15;
-    String path = SANDBOX_URI + "api/v1/annotations/creator/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        userId, annotationId, false);
-    given(
-        repository.getAnnotationsForUser(userId, pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
-
-    // When
-    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize,
-        path);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
   void testGetAnnotation() {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(repository.getAnnotation(ID)).willReturn(expected.data());
+    given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse());
 
     // When
     var result = service.getAnnotation(ID, ANNOTATION_PATH);
@@ -155,11 +134,9 @@ class AnnotationServiceTest {
     assertThat(expected).isEqualTo(result);
   }
 
-
-
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void testGetAnnotationsJsonResponse(int pageNumber) {
+  void testGetAnnotations(int pageNumber) {
     int pageSize = 15;
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
@@ -167,7 +144,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(repository.getAnnotations(pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize + 1, userId, annotationId));
+        givenAnnotationResponseList(annotationId, pageSize+1));
 
     // When
     var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
@@ -186,7 +163,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
     given(repository.getAnnotations(pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize, userId, annotationId));
+        givenAnnotationResponseList(annotationId, pageSize));
 
     // When
     var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
@@ -356,7 +333,7 @@ class AnnotationServiceTest {
 
     given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
     try (var mockedStatic = mockStatic(ServiceUtils.class)){
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList)).thenReturn(versionsNode);
+      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER)).thenReturn(versionsNode);
       // When
       var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
 

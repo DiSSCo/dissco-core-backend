@@ -69,7 +69,7 @@ class DigitalMediaObjectControllerTest {
         givenDigitalMediaJsonResponse(path, ID));
 
     // When
-    var responseReceived = controller.getMultiMediaByIdJsonResponse(PREFIX, POSTFIX, request);
+    var responseReceived = controller.getMultiMediaById(PREFIX, POSTFIX, request);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);

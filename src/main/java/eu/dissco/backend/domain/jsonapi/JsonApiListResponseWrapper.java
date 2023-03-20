@@ -13,9 +13,9 @@ public class JsonApiListResponseWrapper {
     this.links = linksNode;
   }
 
-  public JsonApiListResponseWrapper(List<JsonApiData> annotationsPlusOne,  int pageNumber, int pageSize, String path) {
-    boolean hasNextPage = annotationsPlusOne.size() > pageSize;
-    this.data = hasNextPage ? annotationsPlusOne.subList(0, pageSize) : annotationsPlusOne;
+  public JsonApiListResponseWrapper(List<JsonApiData> domainObjectPlusOne,  int pageNumber, int pageSize, String path) {
+    boolean hasNextPage = domainObjectPlusOne.size() > pageSize;
+    this.data = hasNextPage ? domainObjectPlusOne.subList(0, pageSize) : domainObjectPlusOne;
     this.links = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
   }
 

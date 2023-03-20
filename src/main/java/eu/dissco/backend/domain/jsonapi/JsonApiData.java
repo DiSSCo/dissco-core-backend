@@ -1,7 +1,26 @@
 package eu.dissco.backend.domain.jsonapi;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public record JsonApiData (String id, String type, JsonNode attributes) {
+import lombok.Value;
+
+@Value
+public class JsonApiData {
+  String id;
+  String type;
+  JsonNode attributes;
+
+  public <T extends Record> JsonApiData(String id, String type, T domainObject, ObjectMapper mapper){
+    this.id = id;
+    this.type = type;
+    this.attributes = mapper.valueToTree(domainObject);
+  }
+
+  public JsonApiData(String id, String type, JsonNode attributes){
+    this.id = id;
+    this.type = type;
+    this.attributes = attributes;
+  }
 
 }

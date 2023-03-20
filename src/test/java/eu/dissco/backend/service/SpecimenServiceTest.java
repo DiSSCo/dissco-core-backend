@@ -197,7 +197,7 @@ class SpecimenServiceTest {
     var dataNode = new JsonApiData(ID, "digitalSpecimenVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
     try (var mockedStatic = mockStatic(ServiceUtils.class)) {
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList))
+      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
 
       // When
@@ -294,7 +294,7 @@ class SpecimenServiceTest {
     var result = service.getSpecimenByIdJsonLD(ID, ANNOTATION_PATH);
 
     // Then
-    assertThat(result.data().attributes().toPrettyString()).isEqualTo(givenJsonLDString());
+    assertThat(result.data().getAttributes().toPrettyString()).isEqualTo(givenJsonLDString());
   }
 
   private String givenJsonLDString() {

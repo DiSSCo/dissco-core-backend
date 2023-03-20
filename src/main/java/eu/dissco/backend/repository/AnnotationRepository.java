@@ -5,9 +5,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +33,7 @@ public class AnnotationRepository {
         .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public List<JsonApiData> getAnnotationsForUser(String userId, int pageNumber,
+  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
       int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
 
@@ -43,31 +41,22 @@ public class AnnotationRepository {
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
         .orderBy(NEW_ANNOTATION.CREATED.desc())
-        .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
+        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public JsonApiData getAnnotation(String id) {
+  public AnnotationResponse getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.ID.eq(id))
-        .fetchOne(this::mapToJsonApiData);
+        .fetchOne(this::mapToAnnotation);
   }
 
-  public List<AnnotationResponse> getAnnotationsObject(int pageNumber, int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .limit(pageSize)
-        .offset(offset).fetch(this::mapToAnnotation);
-  }
-
-  public List<JsonApiData> getAnnotations(int pageNumber, int pageSize) {
+  public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .orderBy(NEW_ANNOTATION.CREATED.desc())
-        .limit(pageSize).offset(offset).fetch(this::mapToJsonApiData);
+        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
   private AnnotationResponse mapToAnnotation(Record dbRecord) {
@@ -87,30 +76,6 @@ public class AnnotationRepository {
     }
   }
 
-  private JsonApiData mapToJsonApiData(Record dbRecord) {
-    ObjectNode attributeNode = mapper.createObjectNode();
-    try {
-      attributeNode.put("id", dbRecord.get(NEW_ANNOTATION.ID));
-      attributeNode.put("version", dbRecord.get(NEW_ANNOTATION.VERSION));
-      attributeNode.put("type", dbRecord.get(NEW_ANNOTATION.TYPE));
-      attributeNode.put("motivation", dbRecord.get(NEW_ANNOTATION.MOTIVATION));
-      attributeNode.set("target", mapper.readTree(dbRecord.get(NEW_ANNOTATION.TARGET_BODY).data()));
-      attributeNode.set("body", mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()));
-      attributeNode.put("preferenceScore", dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE));
-      attributeNode.put("creator", dbRecord.get(NEW_ANNOTATION.CREATOR));
-      attributeNode.put("created", String.valueOf(dbRecord.get(NEW_ANNOTATION.CREATED)));
-      attributeNode.set("generator",
-          mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()));
-      attributeNode.put("generated", String.valueOf(dbRecord.get(NEW_ANNOTATION.GENERATED)));
-      attributeNode.put("deleted", String.valueOf(dbRecord.get(NEW_ANNOTATION.DELETED)));
-    } catch (JsonProcessingException e) {
-      log.error("Failed to parse annotation body to Json", e);
-      return null;
-    }
-    return new JsonApiData(dbRecord.get(NEW_ANNOTATION.ID), dbRecord.get(NEW_ANNOTATION.TYPE),
-        attributeNode);
-  }
-
   public List<AnnotationResponse> getForTargetObject(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
@@ -119,12 +84,12 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
-  public List<JsonApiData> getForTarget(String id) {
+  public List<AnnotationResponse> getForTarget(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.TARGET_ID.eq(id))
         .and(NEW_ANNOTATION.DELETED.isNull())
-        .fetch(this::mapToJsonApiData);
+        .fetch(this::mapToAnnotation);
   }
 
 

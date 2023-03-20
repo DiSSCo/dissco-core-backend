@@ -37,6 +37,10 @@ public class AnnotationUtils {
         givenAnnotationBody());
   }
 
+  public static List<AnnotationResponse> givenAnnotationResponseList(String targetId, int n){
+    return Collections.nCopies(n, givenAnnotationResponse(USER_ID_TOKEN,(targetId)));
+  }
+
   public static AnnotationResponse givenAnnotationResponse() {
     return givenAnnotationResponse(USER_ID_TOKEN, ID);
   }
@@ -107,13 +111,15 @@ public class AnnotationUtils {
 
   public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path, List<String> annotationIds) {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
-    var dataNodes = givenAnnotationJsonApiDataList(USER_ID_TOKEN, annotationIds);
+    List<JsonApiData> dataNodes = new ArrayList<>();
+
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "Annotation", MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, id)))));
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData("id", "Annotation",
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "Annotation",
         MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
   }
 
