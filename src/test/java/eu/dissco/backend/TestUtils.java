@@ -37,7 +37,7 @@ public class TestUtils {
       .setSerializationInclusion(Include.NON_NULL);
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
 
-  public static final String SANDBOX_URI = "https://sandbox.dissco.tech/";
+  public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
 
   // Users
   public static JsonApiWrapper givenUserResponse() {

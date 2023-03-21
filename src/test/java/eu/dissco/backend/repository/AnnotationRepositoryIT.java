@@ -6,17 +6,12 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiData;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiDataList;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonApiDataDeletedOn;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseTarget;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -67,17 +62,16 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotation(){
+  void testGetAnnotation() {
     // Given
     var expectedAnnotation = givenAnnotationResponse();
     postAnnotations(List.of(expectedAnnotation));
-    var expected = givenAnnotationJsonApiData(USER_ID_TOKEN, ID);
 
     // When
     var result = repository.getAnnotation(ID);
 
     // Then
-    assertThat(result).isEqualTo(expected);
+    assertThat(result).isEqualTo(expectedAnnotation);
   }
 
   @Test
@@ -177,11 +171,13 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetForTargetObject() {
     // Given
-    var expectedResponse = givenAnnotationResponseTarget(ID, TARGET_ID);
+    var expectedResponse = givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
     var annotations = List.of(
         expectedResponse,
-        givenAnnotationResponseTarget(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponseTarget(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007")
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"
+        ),
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"
+        )
     );
     postAnnotations(annotations);
 
@@ -196,11 +192,13 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   void testGetForTarget() {
     // Given
     MAPPER.setSerializationInclusion(Include.ALWAYS);
-    var expectedResponse =  givenAnnotationJsonApiData(USER_ID_TOKEN, ID);
+    var expectedResponse = givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
     List<AnnotationResponse> annotations = List.of(
-        givenAnnotationResponseTarget(ID, TARGET_ID),
-        givenAnnotationResponseTarget(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponseTarget(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007")
+        expectedResponse,
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"
+        ),
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"
+        )
     );
     postAnnotations(annotations);
 
@@ -216,8 +214,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     // Given
     var annotations = List.of(
         givenAnnotationResponse(USER_ID_TOKEN, ID),
-        givenAnnotationResponseTarget("AnotherUser", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponseTarget("JamesBond", PREFIX + "/TAR-GET-007")
+        givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
+        givenAnnotationResponse(USER_ID_TOKEN, "JamesBond", PREFIX + "/TAR-GET-007")
     );
     postAnnotations(annotations);
 

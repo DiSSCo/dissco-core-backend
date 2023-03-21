@@ -121,7 +121,6 @@ class AnnotationControllerTest {
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
-
   @Test
   void testCreateAnnotation() throws Exception{
     // Given

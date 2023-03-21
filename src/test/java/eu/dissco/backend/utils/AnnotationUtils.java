@@ -29,24 +29,31 @@ import java.util.List;
 public class AnnotationUtils {
   private AnnotationUtils(){}
 
-  public static final String ANNOTATION_URI = "api/v1/annotations/";
+  public static final String ANNOTATION_URI = "/api/v1/annotations/";
   public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
 
+  // AnnotationRequest
   public static AnnotationRequest givenAnnotationRequest() {
     return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(TARGET_ID),
         givenAnnotationBody());
   }
 
-  public static List<AnnotationResponse> givenAnnotationResponseList(String targetId, int n){
-    return Collections.nCopies(n, givenAnnotationResponse(USER_ID_TOKEN,(targetId)));
+  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request){
+    return new JsonApiRequestWrapper(
+        new JsonApiRequest(
+            ObjectType.ANNOTATION,
+            MAPPER.valueToTree(request)
+        )
+    );
+  }
+
+  // AnnotationResponseResponse
+  public static List<AnnotationResponse> givenAnnotationResponseList(String annotationId, int n){
+    return Collections.nCopies(n, givenAnnotationResponse(USER_ID_TOKEN,(annotationId)));
   }
 
   public static AnnotationResponse givenAnnotationResponse() {
-    return givenAnnotationResponse(USER_ID_TOKEN, ID);
-  }
-
-  public static AnnotationResponse givenAnnotationResponseTarget(String id, String target){
-    return givenAnnotationResponse(USER_ID_TOKEN, id, target);
+    return givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
   }
 
   public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
@@ -58,6 +65,66 @@ public class AnnotationUtils {
         givenAnnotationTarget(targetId), givenAnnotationBody(), 100, userId, CREATED,
         givenAnnotationGenerator(), CREATED, null);
   }
+
+  // JsonApiData
+
+  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
+      String annotationId) {
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "Annotation",
+        MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
+  }
+
+  public static JsonApiData givenAnnotationJsonApiDataDeletedOn(String userId, String annotationId) {
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
+    dataNode.put("deleted", dataNode.get("deleted_on").asText());
+    dataNode.remove("deleted_on");
+    return new JsonApiData(annotationId, "Annotation", dataNode);
+  }
+
+  /*
+  public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId,
+      List<String> annotationIds) {
+    List<JsonApiData> dataNodes = new ArrayList<>();
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    for (String annotationId : annotationIds) {
+      ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
+      annotation.put("deleted", annotation.get("deleted_on").asText());
+      annotation.remove("deleted_on");
+      dataNodes.add(new JsonApiData(annotationId, "Annotation", annotation));
+    }
+    return dataNodes;
+  }*/
+
+  // JsonApiWrapper
+
+  public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path){
+    var annotation = givenAnnotationResponse();
+    var dataNode = new JsonApiData(annotation.id(),"Annotation", MAPPER.valueToTree(annotation));
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
+  // JsonApiListResponseWrapper
+  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
+      int pageSize, String userId, String annotationId, boolean hasNextPage) {
+    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
+    var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
+    return new JsonApiListResponseWrapper(dataNodes, linksNode);
+  }
+
+  public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path, List<String> annotationIds) {
+    JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
+    List<JsonApiData> dataNodes = new ArrayList<>();
+
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "Annotation", MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, id)))));
+    return new JsonApiListResponseWrapper(dataNodes, linksNode);
+  }
+
+
+  // Construction Helpers
 
   public static JsonNode givenAnnotationTarget(String targetId) {
     ObjectNode target = MAPPER.createObjectNode();
@@ -83,74 +150,6 @@ public class AnnotationUtils {
     generator.put("id", "generatorId");
     generator.put("name", "annotation processing service");
     return generator;
-  }
-  
-  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request){
-    return new JsonApiRequestWrapper(
-        new JsonApiRequest(
-            ObjectType.ANNOTATION,
-            MAPPER.valueToTree(request)
-        )
-    );
-  }
-
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, String userId, String annotationId, boolean hasNextPage) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
-    var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, String userId, List<String> annotationIds, boolean hasNextPage) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
-
-    var dataNodes = givenAnnotationJsonApiDataList(userId, annotationIds);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path, List<String> annotationIds) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
-    List<JsonApiData> dataNodes = new ArrayList<>();
-
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "Annotation", MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, id)))));
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
-      String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
-  }
-
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId,
-      List<String> annotationIds) {
-    List<JsonApiData> dataNodes = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-    for (String annotationId : annotationIds) {
-      ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-      annotation.put("deleted", annotation.get("deleted_on").asText());
-      annotation.remove("deleted_on");
-      dataNodes.add(new JsonApiData(annotationId, "Annotation", annotation));
-    }
-    return dataNodes;
-  }
-
-  public static JsonApiData givenAnnotationJsonApiData(String userId, String annotationId) {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-    dataNode.put("deleted", dataNode.get("deleted_on").asText());
-    dataNode.remove("deleted_on");
-    return new JsonApiData(annotationId, "Annotation", dataNode);
-  }
-
-  public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path){
-    var annotation = givenAnnotationResponse();
-    var dataNode = new JsonApiData(annotation.id(),"Annotation", MAPPER.valueToTree(annotation));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
 }
