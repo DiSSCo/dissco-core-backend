@@ -32,8 +32,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class DigitalMediaObjectController {
 
   private final DigitalMediaObjectService service;
-  private final ObjectMapper mapper;
-
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -48,7 +46,7 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getMultiMediaById(
+  public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectById(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
       HttpServletRequest request) {
     var id = prefix + '/' + postfix;
@@ -60,7 +58,7 @@ public class DigitalMediaObjectController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsById(
+  public ResponseEntity<JsonApiListResponseWrapper> getMediaAnnotationsById(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
     String path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + postfix;

@@ -5,19 +5,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
-import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestUtils {
 
@@ -80,84 +75,11 @@ public class TestUtils {
     return new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
   }
 
-  // Digital Media Objects
-  public static DigitalMediaObject givenDigitalMediaObject(String id) {
-    return new DigitalMediaObject(id, 1, CREATED, "2DImageObject", "20.5000.1025/460-A7R-QMJ",
-        "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
-        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
-  }
-
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId) {
-    return new DigitalMediaObject(mediaId, 1, CREATED, "2DImageObject", specimenId,
-        "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
-        givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
-  }
-
-  private static JsonNode givenDigitalMediaObjectData() {
-    ObjectNode data = MAPPER.createObjectNode();
-    data.put("dcterms:title", "19942272");
-    data.put("dcterms:publisher", "Royal Botanic Garden Edinburgh");
-    return data;
-  }
-
-  private static JsonNode givenDigitalMediaObjectOriginalData() {
-    ObjectNode originalData = MAPPER.createObjectNode();
-    originalData.put("dcterms:title", "19942272");
-    originalData.put("dcterms:type", "StillImage");
-    return originalData;
-  }
-
-  public static JsonApiListResponseWrapper givenDigitalMediaJsonResponse(String path,
-      int pageNumber,
-      int pageSize, List<String> mediaIds) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, true, path);
-    List<JsonApiData> dataNode = new ArrayList<>();
-    for (String id : mediaIds) {
-      var mediaObject = givenDigitalMediaObject(id);
-      dataNode.add(new JsonApiData(id, "2dImageObject", MAPPER.valueToTree(mediaObject)));
-    }
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
-  }
-
-  public static JsonApiWrapper givenDigitalMediaJsonResponse(String path, String mediaId) {
-    JsonApiLinks linksNode = new JsonApiLinks(path);
-    JsonApiData dataNode = new JsonApiData(mediaId, "2dImageObject",
-        MAPPER.valueToTree(givenDigitalMediaObject(mediaId)));
-    return new JsonApiWrapper(dataNode, linksNode);
-  }
-
-  public static JsonApiData givenDigitalMediaJsonApiData(String id) {
-    return new JsonApiData(id, "2dImageObject", MAPPER.valueToTree(givenDigitalMediaObject(id)));
-  }
-
-  public static JsonApiData givenMediaObjectJsonApiDataWithSpeciesName(
-      DigitalMediaObject mediaObject, DigitalSpecimen specimen) {
-    ObjectNode attributeNode = MAPPER.createObjectNode();
-    ObjectNode specimenNode = MAPPER.createObjectNode();
-
-    attributeNode.put("id", mediaObject.id());
-    attributeNode.put("version", mediaObject.version());
-    attributeNode.put("type", mediaObject.type());
-    attributeNode.put("created", String.valueOf(mediaObject.created()));
-    attributeNode.put("digitalSpecimenId", String.valueOf(mediaObject.digitalSpecimenId()));
-    attributeNode.put("mediaUrl", mediaObject.mediaUrl());
-    attributeNode.put("format", mediaObject.format());
-    attributeNode.put("sourceSystemId", mediaObject.sourceSystemId());
-    attributeNode.set("data", mediaObject.data());
-    attributeNode.set("originalData", mediaObject.originalData());
-    specimenNode.put("digitalSpecimenName", specimen.specimenName());
-    specimenNode.put("digitalSpecimenVersion", specimen.version());
-    attributeNode.set("digitalSpecimen", specimenNode);
-
-    return new JsonApiData(attributeNode.get("id").asText(), attributeNode.get("type").asText(),
-        attributeNode);
-  }
+  // Digital Specimen
 
   public static DigitalSpecimen givenDigitalSpecimen(String id) throws JsonProcessingException {
     return givenDigitalSpecimen(id, 1);
   }
-
-  // Digital Specimen
   public static DigitalSpecimen givenDigitalSpecimen(String id, int version)
       throws JsonProcessingException {
     return new DigitalSpecimen(

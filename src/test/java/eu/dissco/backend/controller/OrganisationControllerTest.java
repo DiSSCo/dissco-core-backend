@@ -4,7 +4,6 @@ import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import eu.dissco.backend.service.OrganisationService;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

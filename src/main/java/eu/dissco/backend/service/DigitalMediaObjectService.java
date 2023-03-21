@@ -27,24 +27,24 @@ public class DigitalMediaObjectService {
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
 
+  // Controller Functions
+  public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
+      String path) {
+    var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize+1);
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    mediaPlusOne.forEach(media -> dataNodePlusOne.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
+  }
+
   public JsonApiWrapper getDigitalMediaById(String id, String path) {
-    var dataNode = repository.getLatestDigitalMediaObjectByIdJsonResponse(id);
+    var mediaObject = repository.getLatestDigitalMediaObjectById(id);
+    var dataNode = new JsonApiData(mediaObject.id(), mediaObject.type(), mediaObject, mapper);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
-  public JsonApiListResponseWrapper getAnnotationsOnDigitalMedia(String id, String path) {
-    return annotationService.getAnnotationForTarget(id, path);
-  }
-
-  public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
-    var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
-    var digitalMedia = repository.getDigitalMediaForSpecimenObject(id);
-    for (var digitalMediaObject : digitalMedia) {
-      var annotation = annotationService.getAnnotationForTargetObject(digitalMediaObject.id());
-      digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
-    }
-    return digitalMediaFull;
+  public JsonApiListResponseWrapper getAnnotationsOnDigitalMedia(String mediaId, String path) {
+    return annotationService.getAnnotationForTarget(mediaId, path);
   }
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
@@ -62,24 +62,33 @@ public class DigitalMediaObjectService {
         new JsonApiLinks(path));
   }
 
-  public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
-    return repository.getDigitalMediaForSpecimen(id);
+  // Used By Other Services
+  public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
+    var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
+    var digitalMedia = repository.getDigitalMediaForSpecimen(id);
+    for (var digitalMediaObject : digitalMedia) {
+      var annotation = annotationService.getAnnotationForTargetObject(digitalMediaObject.id());
+      digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
+    }
+    return digitalMediaFull;
   }
 
+  public List<String> getDigitalMediaIdsForSpecimen(String id) {
+    return repository.getDigitalMediaIdsForSpecimen(id);
+  }
+
+  public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
+    var mediaList = repository.getDigitalMediaForSpecimen(id);
+    List<JsonApiData> dataNode = new ArrayList<>();
+    mediaList.forEach(media -> dataNode.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    return dataNode;
+  }
+
+  // Response Wrapper
   private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
     boolean hasNextPage = dataNodePlusOne.size() > pageSize;
     var dataNode = hasNextPage ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
     return new JsonApiListResponseWrapper(dataNode, linksNode);
-  }
-
-  public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
-      String path) {
-    var dataNodePlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize+1);
-    return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
-  }
-
-  public List<String> getDigitalMediaIdsForSpecimen(String id) {
-    return repository.getDigitalMediaIdsForSpecimen(id);
   }
 }

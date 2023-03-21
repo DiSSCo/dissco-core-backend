@@ -2,12 +2,10 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
-import static eu.dissco.backend.TestUtils.givenMediaObjectJsonApiDataWithSpeciesName;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,72 +40,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectById() throws JsonProcessingException {
-    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
-        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
-        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
-        firstMediaObject.originalData());
-
-    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-    var specimen = givenDigitalSpecimen(ID_ALT);
-    postDigitalSpecimen(specimen);
-
-    var expectedResponse = givenMediaObjectJsonApiDataWithSpeciesName(secondMediaObject, specimen);
-
-    // When
-    var receivedResponse = repository.getLatestDigitalMediaObjectByIdJsonResponse(ID);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetDigitalMediaForDigitalSpecimen() throws JsonProcessingException {
-    // Given
-    String specimenId = ID_ALT;
-    List<DigitalMediaObject> postedMediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject("aa", specimenId));
-    postMediaObjects(postedMediaObjects);
-    List<JsonApiData> expectedResponse = new ArrayList<>();
-    postedMediaObjects.forEach(media -> expectedResponse.add(new JsonApiData(
-        media.id(),
-        media.type(),
-        MAPPER.valueToTree(media)
-    )));
-
-    var specimen = givenDigitalSpecimen(specimenId);
-    postDigitalSpecimen(specimen);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-
-  @Test
-  void testGetDigitalMediaForDigitalSpecimenObject() throws JsonProcessingException {
-    // Given
-    String specimenId = ID_ALT;
-    List<DigitalMediaObject> expectedResponse = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject("aa", specimenId));
-    postMediaObjects(expectedResponse);
-    var specimen = givenDigitalSpecimen(specimenId);
-    postDigitalSpecimen(specimen);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaForSpecimenObject(specimenId);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
   void testGetDigitalMediaObjects() throws JsonProcessingException {
     // Given
     int pageNum1 = 1;
@@ -121,11 +53,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
       mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i), specimenId));
     }
     postMediaObjects(mediaObjectsAll);
-    List<JsonApiData> expectedResponse = new ArrayList<>();
-    for (DigitalMediaObject mediaObject : mediaObjectsAll) {
-      expectedResponse.add(givenMediaObjectJsonApiDataWithSpeciesName(mediaObject, specimen));
-    }
-    List<JsonApiData> mediaObjectsReceived = new ArrayList<>();
+    List<DigitalMediaObject> mediaObjectsReceived = new ArrayList<>();
 
     // When
     var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
@@ -136,7 +64,47 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(pageOne).hasSize(pageSize);
     assertThat(pageTwo).hasSize(pageSize);
-    assertThat(mediaObjectsReceived).hasSameElementsAs(expectedResponse);
+    assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll);
+  }
+
+  @Test
+  void testGetLatestDigitalMediaObjectById() throws JsonProcessingException {
+    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
+    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
+        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
+        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
+        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
+        firstMediaObject.originalData());
+
+    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
+    var specimen = givenDigitalSpecimen(ID_ALT);
+    postDigitalSpecimen(specimen);
+
+    // When
+    var receivedResponse = repository.getLatestDigitalMediaObjectById(ID);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(secondMediaObject);
+  }
+
+  @Test
+  void testGetDigitalMediaForSpecimen() throws JsonProcessingException {
+    // Given
+    String specimenId = ID_ALT;
+    List<DigitalMediaObject> postedMediaObjects = List.of(
+        givenDigitalMediaObject(ID, specimenId),
+        givenDigitalMediaObject("aa", specimenId));
+    postMediaObjects(postedMediaObjects);
+    List<JsonApiData> expectedResponse = new ArrayList<>();
+
+    var specimen = givenDigitalSpecimen(specimenId);
+    postDigitalSpecimen(specimen);
+
+    // When
+    var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
+
+    // Then
+    assertThat(receivedResponse).hasSameElementsAs(postedMediaObjects);
   }
 
   @Test

@@ -2,14 +2,13 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonApiData;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaJsonResponse;
-import static eu.dissco.backend.TestUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
@@ -51,22 +50,62 @@ class DigitalMediaObjectServiceTest {
   @BeforeEach
   void setup() {
     service = new DigitalMediaObjectService(repository, annotationService, mongoRepository, MAPPER);
+  }
 
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void testGetDigitalMediaObjects(int pageNumber) {
+    // Given
+    int pageSize = 10;
+
+    var repositoryResponse = Collections.nCopies(pageSize+1, givenDigitalMediaObject(ID));
+    var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
+    var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, true);
+    var dataNode = dataNodePlusOne.subList(0, pageSize);
+    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
+    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(repositoryResponse);
+
+    // When
+    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetDigitalMediaObjectsLastPage() {
+    // Given
+    int pageSize = 10;
+    int pageNumber = 1;
+
+    var repositoryResponse = Collections.nCopies(pageSize, givenDigitalMediaObject(ID));
+    var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
+    var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, false);
+
+    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(repositoryResponse);
+
+    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
+
+    // When
+    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
   }
 
   @Test
   void testGetDigitalMediaById() {
     // Given
-    String path = SANDBOX_URI + "/json/" + ID;
-    var dataNode = givenDigitalMediaJsonApiData(ID);
-    var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    given(repository.getLatestDigitalMediaObjectByIdJsonResponse(ID)).willReturn(dataNode);
+    var mediaObject = givenDigitalMediaObject(ID);
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
+    var expected = new JsonApiWrapper(new JsonApiData(mediaObject.id(), mediaObject.type(),
+        MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
-    var responseReceived = service.getDigitalMediaById(ID, path);
+    var responseReceived = service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH);
 
     // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+    assertThat(responseReceived).isEqualTo(expected);
   }
 
   @Test
@@ -80,31 +119,6 @@ class DigitalMediaObjectServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
-
-  }
-
-  @Test
-  void testGetDigitalMediaByIdJsonResponse() {
-    // Given
-    List<String> mediaIds = List.of("1", "2", "3");
-    List<DigitalMediaObject> mediaObjects = new ArrayList<>();
-    List<DigitalMediaObjectFull> responseExpected = new ArrayList<>();
-
-    for (String id : mediaIds) {
-      var mediaObject = givenDigitalMediaObject(id);
-      mediaObjects.add(mediaObject);
-      var annotation = givenAnnotationResponse();
-      responseExpected.add(new DigitalMediaObjectFull(mediaObject, List.of(annotation)));
-      given(annotationService.getAnnotationForTargetObject(String.valueOf(id))).willReturn(
-          List.of(annotation));
-    }
-    given(repository.getDigitalMediaForSpecimenObject(ID)).willReturn(mediaObjects);
-
-    // When
-    var responseReceived = service.getDigitalMediaObjectFull(ID);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
   }
 
   @Test
@@ -117,10 +131,10 @@ class DigitalMediaObjectServiceTest {
     arrayNode.add(1).add(2);
     var dataNode = new JsonApiData(ID, "digitalMediaVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(DIGITAL_MEDIA_PATH));
-
     try (var mockedStatic = mockStatic(ServiceUtils.class)) {
       mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
+
       // When
       var responseReceived = service.getDigitalMediaVersions(ID, DIGITAL_MEDIA_PATH);
 
@@ -130,7 +144,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersion() throws NotFoundException, JsonProcessingException {
+  void testGetDigitalMediaByVersion() throws NotFoundException, JsonProcessingException {
     // Given
     int version = 1;
     var mongoResponse = givenMongoDBMediaResponse();
@@ -147,6 +161,60 @@ class DigitalMediaObjectServiceTest {
 
     // Then
     assertThat(responseReceived).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetDigitalMediaObjectFull() {
+    // Given
+    List<String> mediaIds = List.of("1", "2", "3");
+    List<DigitalMediaObject> mediaObjects = new ArrayList<>();
+    List<DigitalMediaObjectFull> responseExpected = new ArrayList<>();
+
+    for (String id : mediaIds) {
+      var mediaObject = givenDigitalMediaObject(id);
+      mediaObjects.add(mediaObject);
+      var annotation = givenAnnotationResponse();
+      responseExpected.add(new DigitalMediaObjectFull(mediaObject, List.of(annotation)));
+      given(annotationService.getAnnotationForTargetObject(String.valueOf(id))).willReturn(
+          List.of(annotation));
+    }
+    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(mediaObjects);
+
+    // When
+    var responseReceived = service.getDigitalMediaObjectFull(ID);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetDigitalMediaForSpecimen() {
+    // Given
+    var mediaObject = givenDigitalMediaObject(ID);
+    var responseExpected = List.of(new JsonApiData(
+        mediaObject.id(),
+        mediaObject.type(),
+        MAPPER.valueToTree(mediaObject)));
+    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
+
+    // When
+    var responseReceived = service.getDigitalMediaForSpecimen(ID);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetDigitalMediaIdsForSpecimen() {
+    // Given
+    List<String> responseExpected = List.of("1, 2");
+    given(repository.getDigitalMediaIdsForSpecimen(ID)).willReturn(responseExpected);
+
+    // When
+    var responseReceived = service.getDigitalMediaIdsForSpecimen(ID);
+
+    // Then
+    assertThat(responseReceived).isEqualTo(responseExpected);
   }
 
   private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
@@ -174,80 +242,5 @@ class DigitalMediaObjectServiceTest {
             }
                         """, JsonNode.class
     );
-  }
-
-  @Test
-  void testGetDigitalMediaForSpecimen() {
-    // Given
-    var mediaObject = givenDigitalMediaObject(ID);
-    var responseExpected = List.of(new JsonApiData(
-        mediaObject.id(),
-        mediaObject.type(),
-        MAPPER.valueToTree(mediaObject)));
-    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(responseExpected);
-
-    // When
-    var responseReceived = service.getDigitalMediaForSpecimen(ID);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {1, 2})
-  void testGetDigitalMediaObjects(int pageNumber) {
-    // Given
-    int pageSize = 10;
-    String path = SANDBOX_URI + "json";
-
-    var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, true);
-
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(
-        dataNodePlusOne);
-
-    var dataNode = dataNodePlusOne.subList(0, pageSize);
-    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
-
-    // When
-    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
-  void testGetDigitalMediaObjectsJsonResponseLastPage() {
-    // Given
-    int pageSize = 10;
-    int pageNumber = 1;
-    String path = SANDBOX_URI + "json";
-
-    var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(path, pageNumber, pageSize, false);
-
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(
-        dataNode);
-
-    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
-
-    // When
-    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
-  void testGetDigitalMediaIdsForSpecimen() {
-    // Given
-    List<String> responseExpected = List.of("1, 2");
-    given(repository.getDigitalMediaIdsForSpecimen(ID)).willReturn(responseExpected);
-
-    // When
-    var responseReceived = service.getDigitalMediaIdsForSpecimen(ID);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
   }
 }

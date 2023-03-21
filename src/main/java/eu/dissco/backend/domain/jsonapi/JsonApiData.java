@@ -16,7 +16,6 @@ public class JsonApiData {
     this.type = type;
     this.attributes = mapper.valueToTree(domainObject);
   }
-
   public JsonApiData(String id, String type, JsonNode attributes){
     this.id = id;
     this.type = type;
