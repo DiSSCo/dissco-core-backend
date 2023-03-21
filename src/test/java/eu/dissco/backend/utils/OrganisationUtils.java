@@ -11,39 +11,28 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import java.util.List;
 
 public class OrganisationUtils {
-  private OrganisationUtils(){}
 
   public static final String ORGANISATION_URI = "/api/v1/organisation";
   public static final String ORGANISATION_PATH = SANDBOX_URI + ORGANISATION_URI;
-
   public final static OrganisationTuple ORGANISATION = new OrganisationTuple("Naturalis", "0x123");
   public final static Country COUNTRY = new Country("Netherlands", "NL");
 
-  public static JsonApiData givenOrganisationData(OrganisationTuple organisation){
-    var attributeNode = MAPPER.createObjectNode();
-    attributeNode.put("organisationName", organisation.name());
-    return new JsonApiData(
-        organisation.ror(),
-        "organisation",
-        attributeNode
-    );
+  private OrganisationUtils() {
   }
 
-  public static JsonApiData givenCountryData(Country country){
-    var attributeNode = MAPPER.createObjectNode();
-    attributeNode.put("country", country.country());
-    return new JsonApiData(
-        country.countryCode(),
-        "country",
-        attributeNode
-    );
+  public static JsonApiData givenOrganisationData(OrganisationTuple organisation) {
+    return new JsonApiData(organisation.ror(),"organisation", organisation, MAPPER);
   }
 
-  public static JsonApiData givenCountryData(){
+  public static JsonApiData givenCountryData(Country country) {
+    return new JsonApiData(country.countryCode(),"country", country, MAPPER);
+  }
+
+  public static JsonApiData givenCountryData() {
     return givenCountryData(COUNTRY);
   }
 
-  public static JsonApiData givenOrganisationData(){
+  public static JsonApiData givenOrganisationData() {
     return givenOrganisationData(ORGANISATION);
   }
 
@@ -54,7 +43,7 @@ public class OrganisationUtils {
     );
   }
 
-  public static JsonApiListResponseWrapper givenCountryJsonApiWrapper(){
+  public static JsonApiListResponseWrapper givenCountryJsonApiWrapper() {
     return new JsonApiListResponseWrapper(
         List.of(givenCountryData()),
         new JsonApiLinksFull(ORGANISATION_PATH)

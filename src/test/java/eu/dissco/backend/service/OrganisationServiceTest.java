@@ -1,5 +1,8 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.utils.OrganisationUtils.COUNTRY;
+import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION;
 import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION_PATH;
 import static eu.dissco.backend.utils.OrganisationUtils.givenCountryData;
 import static eu.dissco.backend.utils.OrganisationUtils.givenCountryJsonApiWrapper;
@@ -25,7 +28,7 @@ class OrganisationServiceTest {
 
   @BeforeEach
   void setup(){
-    service = new OrganisationService(repository);
+    service = new OrganisationService(repository, MAPPER);
   }
 
   @Test
@@ -39,13 +42,12 @@ class OrganisationServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
-
   }
 
   @Test
   void testGetOrganisations(){
     // Given
-    given(repository.getOrganisations()).willReturn(List.of(givenOrganisationData()));
+    given(repository.getOrganisations()).willReturn(List.of(ORGANISATION));
     var expected = givenOrganisationJsonApiWrapper();
 
     // When
@@ -58,7 +60,7 @@ class OrganisationServiceTest {
   @Test
   void testGetCountries(){
     // Given
-    given(repository.getCountries()).willReturn(List.of(givenCountryData()));
+    given(repository.getCountries()).willReturn(List.of(COUNTRY));
     var expected = givenCountryJsonApiWrapper();
 
     // When

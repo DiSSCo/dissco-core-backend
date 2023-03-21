@@ -66,9 +66,6 @@ public class TestUtils {
         "https://ror.org/XXXXXXXXX");
   }
 
-  // Annotation
-
-
   // General
   public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
       boolean hasNextPage) {

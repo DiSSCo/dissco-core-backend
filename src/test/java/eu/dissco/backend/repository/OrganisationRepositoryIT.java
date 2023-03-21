@@ -55,16 +55,13 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
 
     // Given
     var museum = new OrganisationTuple("Museum für Naturkunde", "2");
+    var expected = List.of(ORGANISATION, museum);
 
     List<OrganisationRecord> organisationRecords = List.of(
         new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
         new OrganisationRecord(museum.ror(), museum.name(), "germany", "DE")
     );
     postToDb(organisationRecords);
-    List<JsonApiData> expected = List.of(
-        givenOrganisationData(ORGANISATION),
-        givenOrganisationData(museum)
-    );
 
     // When
     var result = repository.getOrganisations();
@@ -78,16 +75,13 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
 
     // Given
     Country germany = new Country("Germany", "DE");
+    var expected = List.of(COUNTRY, germany);
 
     List<OrganisationRecord> organisationRecords = List.of(
         new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
         new OrganisationRecord("2", "Museum für Naturkunde", germany.country(), germany.countryCode())
     );
     postToDb(organisationRecords);
-    List<JsonApiData> expected = List.of(
-        givenCountryData(COUNTRY),
-        givenCountryData(germany)
-    );
 
     // When
     var result = repository.getCountries();
