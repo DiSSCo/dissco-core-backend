@@ -210,13 +210,13 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
+    List<AnnotationResponse> expected = new ArrayList<>();
     List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
     List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
     for (int i = 0; i < pageSize; i++) {
       String id = PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      responseExpected.add(givenAnnotationJsonApiData(id));
+      expected.add(annotation);
       annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
     }
     for (int i = 11; i < pageSize * 2; i++) {
@@ -232,7 +232,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(expected);
   }
 
   @Test
@@ -242,7 +242,7 @@ class ElasticSearchRepositoryIT {
     int pageSize = 10;
     List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
     List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
+    List<AnnotationResponse> responseExpected = new ArrayList<>();
     for (int i = 0; i < pageSize; i++) {
       String id = PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
@@ -250,8 +250,8 @@ class ElasticSearchRepositoryIT {
     }
     for (int i = pageSize; i < pageSize * 2; i++) {
       String id = PREFIX + "/" + i;
-      responseExpected.add(givenAnnotationJsonApiData(id));
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
+      responseExpected.add(annotation);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();

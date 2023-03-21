@@ -51,7 +51,7 @@ public class AnnotationService {
       String path) throws IOException {
     var annotationsPlusOne = elasticRepository.getLatestAnnotations(pageNumber,
         pageSize + 1);
-    return new JsonApiListResponseWrapper(annotationsPlusOne, pageNumber, pageSize, path);
+    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
@@ -73,8 +73,8 @@ public class AnnotationService {
     var event = mapAnnotationRequestToEvent(annotationRequest, userId);
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
-      var annoationResponse = mapper.treeToValue(response.get("annotation"), AnnotationResponse.class);
-      var dataNode = new JsonApiData(annoationResponse.id(), annoationResponse.type(), annoationResponse, mapper);
+      var annotationResponse = mapper.treeToValue(response.get("annotation"), AnnotationResponse.class);
+      var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(), annotationResponse, mapper);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;

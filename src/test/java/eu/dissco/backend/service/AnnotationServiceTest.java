@@ -42,6 +42,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -171,14 +172,14 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetLatestAnnotationsJsonResponse() throws IOException {
+  void testGetLatestAnnotations() throws IOException {
     int pageSize = 15;
     int pageNumber = 1;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, "123", true);
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize + 1, USER_ID_TOKEN, "123"));
+        USER_ID_TOKEN, ID, true);
+    var elasticResponse = Collections.nCopies(pageSize+1, givenAnnotationResponse());
+    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
@@ -186,16 +187,15 @@ class AnnotationServiceTest {
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
-
   @Test
-  void testGetLatestAnnotationsJsonResponseLastPage() throws IOException {
+  void testGetLatestAnnotationsLastPage() throws IOException {
     int pageSize = 15;
     int pageNumber = 1;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        USER_ID_TOKEN, "123", false);
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(
-        givenAnnotationJsonApiDataList(pageSize, USER_ID_TOKEN, "123"));
+        USER_ID_TOKEN, ID, false);
+    var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse());
+    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);

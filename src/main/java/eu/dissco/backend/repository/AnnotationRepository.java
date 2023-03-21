@@ -56,7 +56,6 @@ public class AnnotationRepository {
         .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
   }
 
-
   public List<AnnotationResponse> getForTarget(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
