@@ -21,29 +21,6 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-
-  public List<AnnotationResponse> getAnnotationsForUserObject(String userId, int pageNumber,
-      int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.CREATED)
-        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
-  }
-
-  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
-      int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.CREATED.desc())
-        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
-  }
-
   public AnnotationResponse getAnnotation(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
@@ -57,6 +34,35 @@ public class AnnotationRepository {
         .from(NEW_ANNOTATION)
         .orderBy(NEW_ANNOTATION.CREATED.desc())
         .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
+  }
+
+  public int getAnnotationForUser(String id, String userId) {
+    return context.select(NEW_ANNOTATION.ID)
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.ID.eq(id))
+        .and(NEW_ANNOTATION.CREATOR.eq(userId))
+        .and(NEW_ANNOTATION.DELETED.isNull())
+        .fetch().size();
+  }
+
+  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
+      int pageSize) {
+    int offset = getOffset(pageNumber, pageSize);
+
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.CREATOR.eq(userId))
+        .orderBy(NEW_ANNOTATION.CREATED)
+        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
+  }
+
+
+  public List<AnnotationResponse> getForTarget(String id) {
+    return context.select(NEW_ANNOTATION.asterisk())
+        .from(NEW_ANNOTATION)
+        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
+        .and(NEW_ANNOTATION.DELETED.isNull())
+        .fetch(this::mapToAnnotation);
   }
 
   private AnnotationResponse mapToAnnotation(Record dbRecord) {
@@ -76,29 +82,4 @@ public class AnnotationRepository {
     }
   }
 
-  public List<AnnotationResponse> getForTargetObject(String id) {
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
-        .and(NEW_ANNOTATION.DELETED.isNull())
-        .fetch(this::mapToAnnotation);
-  }
-
-  public List<AnnotationResponse> getForTarget(String id) {
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
-        .and(NEW_ANNOTATION.DELETED.isNull())
-        .fetch(this::mapToAnnotation);
-  }
-
-
-  public int getAnnotationForUser(String id, String userId) {
-    return context.select(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id))
-        .and(NEW_ANNOTATION.CREATOR.eq(userId))
-        .and(NEW_ANNOTATION.DELETED.isNull())
-        .fetch().size();
-  }
 }

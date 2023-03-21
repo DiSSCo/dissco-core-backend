@@ -62,8 +62,7 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
-  @Mock
-  ServiceUtils serviceUtils;
+
   private AnnotationService service;
 
 
@@ -84,7 +83,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(
-        repository.getAnnotationsForUserObject(userId, pageNumber, pageSize + 1)).willReturn(
+        repository.getAnnotationsForUser(userId, pageNumber, pageSize + 1)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize+1));
 
     // When
@@ -99,7 +98,7 @@ class AnnotationServiceTest {
   void testGetAnnotationForTargetObject(){
     // Given
     var expected = List.of(givenAnnotationResponse());
-    given(repository.getForTargetObject("https://hdl.handle.net/" + ID)).willReturn(expected);
+    given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(expected);
 
     // When
     var result = service.getAnnotationForTargetObject(ID);
@@ -119,7 +118,6 @@ class AnnotationServiceTest {
 
     assertThat(result).isEqualTo(expected);
   }
-
 
   @Test
   void testGetAnnotation() {
@@ -207,7 +205,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotation() {
+  void testPersistAnnotation() throws Exception {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID_ALT);
@@ -242,7 +240,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationIsNull() {
+  void testPersistAnnotationIsNull() throws Exception{
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))

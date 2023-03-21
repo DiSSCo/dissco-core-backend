@@ -33,19 +33,13 @@ import org.springframework.stereotype.Service;
 public class AnnotationService {
 
   private static final String MONGO_DATE_FIELD = "$date";
-
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
 
-  @NotNull
-  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
-      String userId) {
-    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
-        annotation.target(), annotation.body());
-  }
+  // Used by Controller
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
@@ -60,12 +54,12 @@ public class AnnotationService {
     return new JsonApiListResponseWrapper(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
-      int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsForUserObject(userId, pageNumber,
-        pageSize + 1);
-
-    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
+  public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
+      throws NotFoundException, JsonProcessingException {
+    var annotation = mongoRepository.getByVersion(id, version, "annotation_provenance");
+    var type = annotation.get("annotation").get("type").asText();
+    var dataNode = new JsonApiData(id, type, annotation);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiListResponseWrapper getAnnotations(int pageNumber, int pageSize,
@@ -74,23 +68,28 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationRequest annotation, String userId,
-      String path) {
-    var event = mapAnnotationRequestToEvent(annotation, userId);
+  public JsonApiWrapper persistAnnotation(AnnotationRequest annotationRequest, String userId,
+      String path) throws JsonProcessingException {
+    var event = mapAnnotationRequestToEvent(annotationRequest, userId);
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
-      response = response.get("annotation");
-      var type = response.get("type").asText();
-      var id = response.get("id").asText();
-      var dataNode = new JsonApiData(id, type, response);
+      var annoationResponse = mapper.treeToValue(response.get("annotation"), AnnotationResponse.class);
+      var dataNode = new JsonApiData(annoationResponse.id(), annoationResponse.type(), annoationResponse, mapper);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
   }
 
+  @NotNull
+  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
+      String userId) {
+    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
+        annotation.target(), annotation.body());
+  }
+
   public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
       String path)
-      throws NoAnnotationFoundException {
+      throws NoAnnotationFoundException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
       return persistAnnotation(annotation, userId, path);
@@ -101,26 +100,13 @@ public class AnnotationService {
     }
   }
 
-  public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
-      throws NotFoundException, JsonProcessingException {
-    var annotation = mongoRepository.getByVersion(id, version, "annotation_provenance");
-    var type = annotation.get("annotation").get("type").asText();
-    var dataNode = new JsonApiData(id, type, annotation);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
+      int pageSize, String path) {
+    var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber,
+        pageSize + 1);
+
+    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
-
-  public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
-    var fullId = "https://hdl.handle.net/" + id;
-    return repository.getForTargetObject(fullId);
-  }
-
-  public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
-    var fullId = "https://hdl.handle.net/" + id;
-    var annotations = repository.getForTarget(fullId);
-    return wrapListResponse(annotations, path);
-  }
-
-
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "annotation_provenance");
     var versionsNode = createVersionNode(versions, mapper);
@@ -142,6 +128,20 @@ public class AnnotationService {
     }
   }
 
+  // Used by other services
+
+  public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
+    var fullId = "https://hdl.handle.net/" + id;
+    return repository.getForTarget(fullId);
+  }
+
+  public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
+    var fullId = "https://hdl.handle.net/" + id;
+    var annotations = repository.getForTarget(fullId);
+    return wrapListResponse(annotations, path);
+  }
+
+  // Response Constructors
   private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne, int pageNumber, int pageSize, String path){
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
@@ -155,6 +155,4 @@ public class AnnotationService {
         new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
-
-
 }
