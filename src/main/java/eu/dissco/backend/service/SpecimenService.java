@@ -49,37 +49,34 @@ public class SpecimenService {
   private final MongoRepository mongoRepository;
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path) {
-    var dataNodePlusOne = repository.getSpecimensLatest(pageNumber, pageSize + 1);
-    boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
-    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
+    var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize + 1);
+    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
+  }
+
+  public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path) throws IOException {
+    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize+1);
+    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
   public JsonApiWrapper getSpecimenById(String id, String path) {
-    var dataNode = repository.getLatestSpecimenById(id);
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var dataNode = new JsonApiData(digitalSpecimen.id(), digitalSpecimen.type(), digitalSpecimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public JsonApiListResponseWrapper search(String query, int pageNumber, int pageSize, String path)
-      throws IOException {
-    var specimensPlusOne = elasticRepository.search(query, pageNumber, pageSize+1);
-    boolean hasNext = specimensPlusOne.size() > pageSize;
-    var specimens = hasNext ? specimensPlusOne.subList(0, pageSize) : specimensPlusOne;
-
-    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
-    return new JsonApiListResponseWrapper(specimens, linksNode);
-  }
-
-  public JsonApiListResponseWrapper getAnnotations(String id, String path) {
-    return annotationService.getAnnotationForTarget(id, path);
+  public JsonApiWrapper getSpecimenByIdFull(String id, String path) {
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
+    var annotation = annotationService.getAnnotationForTargetObject(id);
+    var attributeNode = mapper.valueToTree(new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation));
+    return new JsonApiWrapper(new JsonApiData(id, digitalSpecimen.type(), attributeNode), new JsonApiLinks(path));
   }
 
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var specimen = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    var type = specimen.get("digitalSpecimen").get("ods:type").asText();
-    var dataNode = new JsonApiData(id, type, specimen);
+    var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
+    var type = specimenNode.get("digitalSpecimen").get("ods:type").asText();
+    var dataNode = new JsonApiData(id, type, specimenNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -89,12 +86,8 @@ public class SpecimenService {
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode), new JsonApiLinks(path));
   }
 
-  public JsonApiWrapper getSpecimenByIdFull(String id, String path) {
-    var digitalSpecimen = repository.getLatestSpecimenByIdObject(id);
-    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
-    var annotation = annotationService.getAnnotationForTargetObject(id);
-    var attributeNode = mapper.valueToTree(new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation));
-    return new JsonApiWrapper(new JsonApiData(id, digitalSpecimen.type(), attributeNode), new JsonApiLinks(path));
+  public JsonApiListResponseWrapper getAnnotations(String id, String path) {
+    return annotationService.getAnnotationForTarget(id, path);
   }
 
   public JsonApiListResponseWrapper getDigitalMedia(String id, String path) {
@@ -102,16 +95,8 @@ public class SpecimenService {
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
-  public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path) throws IOException {
-    var dataNodePlusOne = elasticRepository.getLatestSpecimen(pageNumber, pageSize+1);
-    boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
-    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
-  }
-
   public JsonApiWrapper getSpecimenByIdJsonLD(String id, String path) {
-    var digitalSpecimen = repository.getLatestSpecimenByIdObject(id);
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMediaObjects = digitalMediaObjectService.getDigitalMediaIdsForSpecimen(
         digitalSpecimen.id()).stream().map(value -> "hdl:" + value).toList();
     var primarySpecimenData = generatePrimaryData(digitalSpecimen);
@@ -126,6 +111,12 @@ public class SpecimenService {
     return new JsonApiWrapper(
         new JsonApiData(id, digitalSpecimen.type(), mapper.valueToTree(attributeNode)),
         new JsonApiLinks(path));
+  }
+
+  public JsonApiListResponseWrapper search(String query, int pageNumber, int pageSize, String path)
+      throws IOException {
+    var specimensPlusOne = elasticRepository.search(query, pageNumber, pageSize+1);
+    return wrapListResponse(specimensPlusOne, pageSize, pageNumber, path);
   }
 
   private JsonNode generatePrimaryData(DigitalSpecimen digitalSpecimen) {
@@ -175,4 +166,14 @@ public class SpecimenService {
     node.put("@type", "@id");
     return node;
   }
+
+  private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList, int pageSize, int pageNumber, String path){
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    digitalSpecimenList.forEach(specimen -> dataNodePlusOne.add(new JsonApiData(specimen.id(), specimen.type(), specimen, mapper)));
+    boolean hasNext = dataNodePlusOne.size() > pageSize;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
+    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    return new JsonApiListResponseWrapper(dataNode, linksNode);
+  }
+
 }

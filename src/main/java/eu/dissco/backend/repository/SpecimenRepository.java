@@ -5,9 +5,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,54 +21,20 @@ public class SpecimenRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public List<JsonApiData> getSpecimensLatest(int pageNumber, int pageSize) {
+  public List<DigitalSpecimen> getSpecimensLatest(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .offset(offset)
         .limit(pageSize)
-        .fetch(this::mapToJsonApiData);
+        .fetch(this::mapToDigitalSpecimen);
   }
 
-  public DigitalSpecimen getLatestSpecimenByIdObject(String id) {
+  public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
         .fetchOne(this::mapToDigitalSpecimen);
-  }
-
-  public JsonApiData getLatestSpecimenById(String id){
-    return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
-        .from(NEW_DIGITAL_SPECIMEN)
-        .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(this::mapToJsonApiData);
-  }
-
-  private JsonApiData mapToJsonApiData(Record dbRecord){
-    ObjectNode attributeNode = mapper.createObjectNode();
-    try {
-      attributeNode.put("id", dbRecord.get(NEW_DIGITAL_SPECIMEN.ID));
-      attributeNode.put("midsLevel", dbRecord.get(NEW_DIGITAL_SPECIMEN.MIDSLEVEL));
-      attributeNode.put("version", dbRecord.get(NEW_DIGITAL_SPECIMEN.VERSION));
-      attributeNode.put("created", String.valueOf(dbRecord.get(NEW_DIGITAL_SPECIMEN.CREATED)));
-      attributeNode.put("type", dbRecord.get(NEW_DIGITAL_SPECIMEN.TYPE));
-      attributeNode.put("physicalSpecimenId",
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID));
-      attributeNode.put("physicalSpecimenIdType",
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE));
-      attributeNode.put("specimenName", dbRecord.get(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME));
-      attributeNode.put("organizationId", dbRecord.get(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID));
-      attributeNode.put("datasetId", dbRecord.get(NEW_DIGITAL_SPECIMEN.DATASET));
-      attributeNode.put("physicalSpecimenCollection",
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_COLLECTION));
-      attributeNode.put("sourceSystemId", dbRecord.get(NEW_DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID));
-      attributeNode.set("data", mapper.readTree(dbRecord.get(NEW_DIGITAL_SPECIMEN.DATA).data()));
-      attributeNode.set("originalData",  mapper.readTree(dbRecord.get(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA).data()));
-      attributeNode.put("dwcaId", dbRecord.get(NEW_DIGITAL_SPECIMEN.DWCA_ID));
-    } catch (JsonProcessingException e){
-      throw new RuntimeException(e);
-    }
-    return new JsonApiData(dbRecord.get(NEW_DIGITAL_SPECIMEN.ID), dbRecord.get(NEW_DIGITAL_SPECIMEN.TYPE), attributeNode);
   }
 
   private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {

@@ -43,7 +43,6 @@ public class SpecimenController {
     return ResponseEntity.ok(specimen);
   }
 
-
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,

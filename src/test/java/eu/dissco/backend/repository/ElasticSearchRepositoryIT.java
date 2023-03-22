@@ -109,7 +109,6 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();
     String targetId = PREFIX + "/0";
     var targetSpecimen = givenDigitalSpecimen(targetId);
-    var targetSpecimenJsonApiData = new JsonApiData(targetSpecimen.id(), targetSpecimen.type(), MAPPER.valueToTree(targetSpecimen));
 
     for (int i = 0; i < 10; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -121,7 +120,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.search(targetId, 1, 1);
 
     // Then
-    assertThat(responseReceived).contains(targetSpecimenJsonApiData);
+    assertThat(responseReceived).contains(targetSpecimen);
   }
 
   @Test
@@ -152,10 +151,10 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 1;
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
+    List<DigitalSpecimen> responseExpected = new ArrayList<>();
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
-      responseExpected.add(givenDigitalSpecimenJsonApiData(specimen));
+      responseExpected.add(specimen);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
     for (int i = pageSize; i < pageSize * 2; i++) {
@@ -181,7 +180,7 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 2;
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
+    List<DigitalSpecimen> responseExpected = new ArrayList<>();
 
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -190,7 +189,7 @@ class ElasticSearchRepositoryIT {
 
     for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenOlderSpecimen(PREFIX + "/" + i);
-      responseExpected.add(givenDigitalSpecimenJsonApiData(specimen));
+      responseExpected.add(specimen);
       specimenTestRecordsOlder.add(givenOlderDigitalSpecimenTestRecord(specimen));
     }
     List<DigitalSpecimenTestRecord> specimenTestRecords = new ArrayList<>();

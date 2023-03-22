@@ -310,7 +310,7 @@ class AnnotationServiceTest {
     var annotationNode = MAPPER.createObjectNode();
     annotationNode.set("annotation", MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, ID)));
     given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(annotationNode);
-    var expected = new JsonApiWrapper(new JsonApiData(ID, "Annotation", annotationNode), new JsonApiLinks(ANNOTATION_PATH));
+    var expected = new JsonApiWrapper(new JsonApiData(ID, "Annotation", annotationNode.get("annotation")), new JsonApiLinks(ANNOTATION_PATH));
 
     // When
     var result = service.getAnnotationByVersion(ID, version, ANNOTATION_PATH);

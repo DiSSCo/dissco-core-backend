@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
@@ -56,9 +57,10 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
-    var annotation = mongoRepository.getByVersion(id, version, "annotation_provenance");
-    var type = annotation.get("annotation").get("type").asText();
-    var dataNode = new JsonApiData(id, type, annotation);
+    var annotationNode = mongoRepository.getByVersion(id, version, "annotation_provenance").get("annotation");
+    validateAnnotationNode(annotationNode);
+    var type = annotationNode.get("type").asText();
+    var dataNode = new JsonApiData(id, type, annotationNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -147,6 +149,10 @@ public class AnnotationService {
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
         new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
+  }
+
+  private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
+    mapper.treeToValue(annotationNode, AnnotationResponse.class);
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations, String path){

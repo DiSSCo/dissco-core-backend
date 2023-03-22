@@ -76,7 +76,7 @@ class SpecimenServiceTest {
 
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(dataNode);
+    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(digitalSpecimens);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode);
 
     // When
@@ -94,7 +94,7 @@ class SpecimenServiceTest {
     var digitalSpecimens = List.of(givenDigitalSpecimen(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(dataNode);
+    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(digitalSpecimens);
     var expected = new JsonApiListResponseWrapper(dataNode, linksNode);
 
     // When
@@ -105,10 +105,46 @@ class SpecimenServiceTest {
   }
 
   @Test
+  void testGetLatestSpecimen() throws IOException {
+    // Given
+    int pageSize = 10;
+    int pageNum = 1;
+    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimen(ID));
+    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize + 1)).willReturn(specimens);
+    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
+        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH));
+
+    // When
+    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetLatestSpecimenLastPage() throws IOException {
+    // Given
+    int pageSize = 10;
+    int pageNum = 2;
+    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
+    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize+1)).willReturn(specimens);
+    var expected = new JsonApiListResponseWrapper(dataNode,
+        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH));
+
+    // When
+    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testGetSpecimenById() throws JsonProcessingException {
     // Given
     var dataNode = givenDigitalSpecimenJsonApiData(givenDigitalSpecimen(ID));
-    given(repository.getLatestSpecimenById(ID)).willReturn(dataNode);
+    given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimen(ID));
     var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -119,51 +155,21 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearch() throws IOException {
+  void testGetSpecimenByIdFull() throws JsonProcessingException {
     // Given
-    int pageNum = 1;
-    int pageSize = 1;
-
-    var digitalSpecimens = givenDigitalSpecimenJsonApiDataList(pageSize + 1);
-
-    var query = "Leucanthemum ircutianum";
-    given(elasticRepository.search(query, pageNum, pageSize + 1)).willReturn(digitalSpecimens);
-    var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode);
+    var specimen = givenDigitalSpecimen(ID);
+    var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
+    var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
+    given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
+    given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
+    var attributeNode = MAPPER.valueToTree(
+        new DigitalSpecimenFull(specimen, digitalMedia, annotations));
+    var expected = new JsonApiWrapper(new JsonApiData(ID, specimen.type(), attributeNode),
+        new JsonApiLinks(ANNOTATION_PATH));
 
     // When
-    var result = service.search(query, pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testSearchLastPage() throws IOException {
-    // Given
-    int pageNum = 2;
-    int pageSize = 10;
-    var digitalSpecimens = givenDigitalSpecimenJsonApiDataList(pageSize);
-    var query = "Leucanthemum ircutianum";
-    given(elasticRepository.search(query, pageNum, pageSize + 1)).willReturn(digitalSpecimens);
-    var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
-
-    // When
-    var result = service.search(query, pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotations() {
-    // Given
-    var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
-    given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
-
-    // When
-    var result = service.getAnnotations(ID, ANNOTATION_PATH);
+    var result = service.getSpecimenByIdFull(ID, ANNOTATION_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -209,21 +215,13 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenByIdFull() throws JsonProcessingException {
+  void testGetAnnotations() {
     // Given
-    var specimen = givenDigitalSpecimen(ID);
-    var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
-    var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
-    given(repository.getLatestSpecimenByIdObject(ID)).willReturn(specimen);
-    given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
-    given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
-    var attributeNode = MAPPER.valueToTree(
-        new DigitalSpecimenFull(specimen, digitalMedia, annotations));
-    var expected = new JsonApiWrapper(new JsonApiData(ID, specimen.type(), attributeNode),
-        new JsonApiLinks(ANNOTATION_PATH));
+    var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
+    given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
 
     // When
-    var result = service.getSpecimenByIdFull(ID, ANNOTATION_PATH);
+    var result = service.getAnnotations(ID, ANNOTATION_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -246,47 +244,10 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetLatestSpecimen() throws IOException {
-    // Given
-    int pageSize = 10;
-    int pageNum = 1;
-    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimen(ID));
-    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize + 1)).willReturn(dataNode);
-    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
-        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH));
-
-    // When
-    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetLatestSpecimenLastPage() throws IOException {
-    // Given
-    int pageSize = 10;
-    int pageNum = 2;
-    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
-    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize+1)).willReturn(dataNode);
-    var expected = new JsonApiListResponseWrapper(dataNode,
-        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH));
-
-    // When
-    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-
-  @Test
   void testSpecimenByIdJsonLD() throws IOException {
     // Given
     var specimens = givenDigitalSpecimen(ID);
-    given(repository.getLatestSpecimenByIdObject(ID)).willReturn(specimens);
+    given(repository.getLatestSpecimenById(ID)).willReturn(specimens);
     given(digitalMediaObjectService.getDigitalMediaIdsForSpecimen(ID)).willReturn(
         List.of(PREFIX + "XXX-XXX-YYY"));
 
@@ -296,6 +257,45 @@ class SpecimenServiceTest {
     // Then
     assertThat(result.data().getAttributes().toPrettyString()).isEqualTo(givenJsonLDString());
   }
+
+  @Test
+  void testSearch() throws IOException {
+    // Given
+    int pageNum = 1;
+    int pageSize = 1;
+
+    var digitalSpecimens = givenDigitalSpecimenJsonApiDataList(pageSize + 1);
+
+    var query = "Leucanthemum ircutianum";
+    given(elasticRepository.search(query, pageNum, pageSize + 1)).willReturn(givenDigitalSpecimenList(pageSize+1));
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode);
+
+    // When
+    var result = service.search(query, pageNum, pageSize, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testSearchLastPage() throws IOException {
+    // Given
+    int pageNum = 2;
+    int pageSize = 10;
+    var digitalSpecimens = givenDigitalSpecimenJsonApiDataList(pageSize);
+    var query = "Leucanthemum ircutianum";
+    given(elasticRepository.search(query, pageNum, pageSize + 1)).willReturn(givenDigitalSpecimenList(pageSize));
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
+
+    // When
+    var result = service.search(query, pageNum, pageSize, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
 
   private String givenJsonLDString() {
     return """
