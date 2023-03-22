@@ -5,6 +5,7 @@ import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -66,12 +67,11 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{postfix}/jsonld", produces = "application/ld+json")
-  public ResponseEntity<JsonApiWrapper> getSpecimenByIdJsonLD(
+  public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(
       @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
     var id = prefix + '/' + postfix;
     log.info("Received get request for jsonld view of specimen with id: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimenByIdJsonLD(id, path);
+    var specimen = service.getSpecimenByIdJsonLD(id);
     return ResponseEntity.ok(specimen);
   }
 

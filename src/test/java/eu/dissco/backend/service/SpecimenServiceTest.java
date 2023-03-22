@@ -11,7 +11,6 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
-import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_URI;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenList;
@@ -22,6 +21,7 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -40,8 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpServletRequest;
-
 @ExtendWith(MockitoExtension.class)
 class SpecimenServiceTest {
 
@@ -55,7 +53,6 @@ class SpecimenServiceTest {
   private AnnotationService annotationService;
   @Mock
   private MongoRepository mongoRepository;
-  private MockHttpServletRequest mockRequest;
 
   private SpecimenService service;
 
@@ -63,12 +60,10 @@ class SpecimenServiceTest {
   void setup() {
     service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaObjectService,
         annotationService, mongoRepository);
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(SPECIMEN_URI);
   }
 
   @Test
-  void testGetSpecimen() throws JsonProcessingException {
+  void testGetSpecimen()  {
     // Given
     int pageNum = 1;
     int pageSize = 10;
@@ -182,14 +177,16 @@ class SpecimenServiceTest {
     var specimen = givenMongoDBMediaResponse();
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
-    var expectedResponse = new JsonApiWrapper(new JsonApiData(ID, "BotanySpecimen", specimen),
-        new JsonApiLinks(SPECIMEN_PATH));
+    var responseExpected = new JsonApiWrapper(
+        new JsonApiData(ID, "BotanySpecimen", givenDigitalSpecimen(ID, version), MAPPER),
+        new JsonApiLinks(SPECIMEN_PATH)
+    );
 
     // When
     var responseReceived = service.getSpecimenByVersion(ID, version, SPECIMEN_PATH);
 
     // Then
-    assertThat(responseReceived).isEqualTo(expectedResponse);
+    assertThat(responseReceived).isEqualTo(responseExpected);
   }
 
   @Test
@@ -252,10 +249,10 @@ class SpecimenServiceTest {
         List.of(PREFIX + "XXX-XXX-YYY"));
 
     // When
-    var result = service.getSpecimenByIdJsonLD(ID, ANNOTATION_PATH);
+    var result = service.getSpecimenByIdJsonLD(ID);
 
     // Then
-    assertThat(result.data().getAttributes().toPrettyString()).isEqualTo(givenJsonLDString());
+    assertThat(MAPPER.valueToTree(result).toPrettyString()).isEqualTo(givenJsonLDString());
   }
 
   @Test

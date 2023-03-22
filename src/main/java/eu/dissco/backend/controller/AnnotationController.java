@@ -10,7 +10,6 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.domain.jsonapi.ObjectType;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
@@ -174,8 +173,8 @@ public class AnnotationController {
   }
 
   private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody) throws JsonProcessingException {
-    if (!requestBody.data().type().equals(ObjectType.ANNOTATION)){
-      throw new IllegalArgumentException();
+    if (!requestBody.data().type().equals("annotation")){
+      throw new IllegalArgumentException("Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
     }
     return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);
   }

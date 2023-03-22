@@ -21,7 +21,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.domain.jsonapi.ObjectType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +40,7 @@ public class AnnotationUtils {
   public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request){
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
-            ObjectType.ANNOTATION,
+            "annotation",
             MAPPER.valueToTree(request)
         )
     );

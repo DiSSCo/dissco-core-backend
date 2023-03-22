@@ -19,6 +19,7 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +76,8 @@ public class SpecimenService {
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    var type = specimenNode.get("digitalSpecimen").get("ods:type").asText();
-    var dataNode = new JsonApiData(id, type, specimenNode);
+    var specimen = mapResultToSpecimen(specimenNode);
+    var dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -95,12 +96,12 @@ public class SpecimenService {
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
-  public JsonApiWrapper getSpecimenByIdJsonLD(String id, String path) {
+  public DigitalSpecimenJsonLD getSpecimenByIdJsonLD(String id) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMediaObjects = digitalMediaObjectService.getDigitalMediaIdsForSpecimen(
         digitalSpecimen.id()).stream().map(value -> "hdl:" + value).toList();
     var primarySpecimenData = generatePrimaryData(digitalSpecimen);
-    var attributeNode = new DigitalSpecimenJsonLD(
+    return new DigitalSpecimenJsonLD(
         "hdl:" + digitalSpecimen.id(),
         digitalSpecimen.type(),
         generateContext(primarySpecimenData),
@@ -108,9 +109,6 @@ public class SpecimenService {
         "hdl:" + digitalSpecimen.sourceSystemId(),
         digitalMediaObjects
     );
-    return new JsonApiWrapper(
-        new JsonApiData(id, digitalSpecimen.type(), mapper.valueToTree(attributeNode)),
-        new JsonApiLinks(path));
   }
 
   public JsonApiListResponseWrapper search(String query, int pageNumber, int pageSize, String path)
@@ -165,6 +163,28 @@ public class SpecimenService {
     var node = mapper.createObjectNode();
     node.put("@type", "@id");
     return node;
+  }
+
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
+    var digitalSpecimen = result.get("digitalSpecimen");
+    var attributes = digitalSpecimen.get("ods:attributes");
+    return new DigitalSpecimen(
+        result.get("id").asText(),
+        result.get("midsLevel").asInt(),
+        result.get("version").asInt(),
+        Instant.ofEpochSecond(result.get("created").asInt()),
+        digitalSpecimen.get("ods:type").asText(),
+        digitalSpecimen.get("ods:physicalSpecimenId").asText(),
+        attributes.get("ods:physicalSpecimenIdType").asText(),
+        attributes.get("ods:specimenName").asText(),
+        attributes.get(ORGANISATION_ID).asText(),
+        attributes.get("ods:datasetId").asText(),
+        attributes.get("ods:physicalSpecimenCollection").asText(),
+        attributes.get("ods:sourceSystemId").asText(),
+        attributes,
+        digitalSpecimen.get("ods:originalAttributes"),
+        digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
+    );
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList, int pageSize, int pageNumber, String path){
