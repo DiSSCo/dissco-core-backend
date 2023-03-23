@@ -6,8 +6,8 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.controller.ControllerUtils.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
-import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -28,6 +28,8 @@ import eu.dissco.backend.repository.ElasticSearchTestRecords.AnnotationTestRecor
 import eu.dissco.backend.repository.ElasticSearchTestRecords.DigitalSpecimenTestRecord;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,6 +63,7 @@ class ElasticSearchRepositoryIT {
   private static ElasticsearchClient client;
   private static RestClient restClient;
   private ElasticSearchRepository repository;
+  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
 
   @BeforeAll
   static void initContainer() {
@@ -90,7 +93,7 @@ class ElasticSearchRepositoryIT {
 
   @BeforeEach
   void initRepository() {
-    repository = new ElasticSearchRepository(client);
+    repository = new ElasticSearchRepository(client, formatter);
   }
 
   @AfterEach

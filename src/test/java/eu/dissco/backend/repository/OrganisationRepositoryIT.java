@@ -4,13 +4,10 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 import static eu.dissco.backend.utils.OrganisationUtils.COUNTRY;
 import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION;
-import static eu.dissco.backend.utils.OrganisationUtils.givenCountryData;
-import static eu.dissco.backend.utils.OrganisationUtils.givenOrganisationData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.Query;

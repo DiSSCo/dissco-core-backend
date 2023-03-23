@@ -5,13 +5,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import eu.dissco.backend.configuration.InstantDeserializer;
+import eu.dissco.backend.configuration.InstantSerializer;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 
 public class TestUtils {
@@ -26,10 +28,17 @@ public class TestUtils {
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
 
-  public static final ObjectMapper MAPPER = new ObjectMapper()
-      .findAndRegisterModules()
-      .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
-      .setSerializationInclusion(Include.NON_NULL);
+  public static final ObjectMapper MAPPER;
+
+  static {
+    var mapper = new ObjectMapper().findAndRegisterModules();
+    SimpleModule dateModule = new SimpleModule();
+    dateModule.addSerializer(Instant.class, new InstantSerializer());
+    dateModule.addDeserializer(Instant.class, new InstantDeserializer());
+    mapper.registerModule(dateModule);
+    mapper.setSerializationInclusion(Include.NON_NULL);
+    MAPPER = mapper.copy();
+  }
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
 
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";

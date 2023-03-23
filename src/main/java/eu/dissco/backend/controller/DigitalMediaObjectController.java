@@ -5,7 +5,6 @@ import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;

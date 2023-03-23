@@ -3,7 +3,6 @@ package eu.dissco.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ServiceUtils {
   private ServiceUtils(){}

@@ -12,21 +12,27 @@ import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Slf4j
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
+
 
   private static final String INDEX = "new-dissco";
   private static final String ANNOTATION_EXISTS_QUERY = "_exists_:annotation.type ";
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
+  private final DateTimeFormatter formatter;
 
-  public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize) throws IOException {
+  public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
+      throws IOException {
     query = query.replace("/", "//");
 
     var offset = getOffset(pageNumber, pageSize);
@@ -83,11 +89,8 @@ public class ElasticSearchRepository {
         digitalSpecimen.get("originalData"), getText(digitalSpecimen, "dwcaId"));
   }
 
-  private Instant parseDate(JsonNode created) {
-    if (created.asLong() > 0) {
-      return Instant.ofEpochSecond(created.asLong());
-    }
-    return Instant.parse(created.asText());
+  private Instant parseDate(JsonNode instantNode) {
+    return Instant.from(formatter.parse(instantNode.asText()));
   }
 
   private String getText(JsonNode digitalSpecimen, String element) {

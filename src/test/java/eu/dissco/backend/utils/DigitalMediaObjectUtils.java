@@ -7,7 +7,6 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
