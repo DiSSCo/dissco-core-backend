@@ -188,7 +188,7 @@ public class SpecimenService {
     return node;
   }
 
-  private DigitalSpecimen mapResultToSpecimen(JsonNode result) throws UnprocessableEntityException {
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
     var digitalSpecimen = result.get("digitalSpecimen");
     var attributes = digitalSpecimen.get("ods:attributes");
     return new DigitalSpecimen(

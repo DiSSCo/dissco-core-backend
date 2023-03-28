@@ -126,16 +126,6 @@ public class ElasticSearchRepository {
     return null;
   }
 
-  private boolean isDouble(String timestamp){
-    try {
-      Double.parseDouble(timestamp);
-    }
-    catch (NumberFormatException nfe){
-      return false;
-    }
-    return true;
-  }
-
   private String getText(JsonNode digitalSpecimen, String element) {
     var jsonNode = digitalSpecimen.get(element);
     if (jsonNode != null) {
