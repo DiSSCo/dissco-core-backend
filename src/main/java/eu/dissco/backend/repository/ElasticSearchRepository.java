@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -30,6 +31,8 @@ public class ElasticSearchRepository {
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
   private final DateTimeFormatter formatter;
+
+  private final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
   public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
       throws IOException {
@@ -90,7 +93,20 @@ public class ElasticSearchRepository {
   }
 
   private Instant parseDate(JsonNode instantNode) {
+    if (isDouble(instantNode.asText())){
+      return Instant.ofEpochSecond(instantNode.asLong());
+    }
     return Instant.from(formatter.parse(instantNode.asText()));
+  }
+
+  private boolean isDouble(String timestamp){
+    try {
+      Double.parseDouble(timestamp);
+    }
+    catch (NumberFormatException nfe){
+      return false;
+    }
+    return true;
   }
 
   private String getText(JsonNode digitalSpecimen, String element) {
