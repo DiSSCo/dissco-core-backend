@@ -166,7 +166,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID, specimen.physicalSpecimenId())
         .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE, specimen.physicalSpecimenIdType())
         .set(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, specimen.specimenName())
-        .set(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID, specimen.organizationId())
+        .set(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID, specimen.organisationId())
         .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_COLLECTION,
             specimen.physicalSpecimenCollection())
         .set(NEW_DIGITAL_SPECIMEN.DATASET, specimen.datasetId())

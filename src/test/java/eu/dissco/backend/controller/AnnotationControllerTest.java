@@ -2,8 +2,8 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
@@ -62,7 +62,7 @@ class AnnotationControllerTest {
     given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
 
     // When
-    var receivedResponse = controller.getAnnotation(PREFIX, POSTFIX, mockRequest);
+    var receivedResponse = controller.getAnnotation(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -97,7 +97,7 @@ class AnnotationControllerTest {
     given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(expectedResponse.getBody());
 
     // When
-    var receivedResponse = controller.getAnnotationByVersion(PREFIX, POSTFIX, version, mockRequest);
+    var receivedResponse = controller.getAnnotationByVersion(PREFIX, SUFFIX, version, mockRequest);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
@@ -149,7 +149,7 @@ class AnnotationControllerTest {
     given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(expected);
 
     // When
-    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, POSTFIX, mockRequest);
+    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -174,7 +174,7 @@ class AnnotationControllerTest {
     // Given
 
     // When
-    var receivedResponse = controller.getAnnotationVersions(PREFIX, POSTFIX, mockRequest);
+    var receivedResponse = controller.getAnnotationVersions(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -184,10 +184,10 @@ class AnnotationControllerTest {
   void testDeleteAnnotationSuccess() throws NoAnnotationFoundException {
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    given(service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN)).willReturn(true);
+    given(service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN)).willReturn(true);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, POSTFIX);
+    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
@@ -197,10 +197,10 @@ class AnnotationControllerTest {
   void testDeleteAnnotationFailure() throws NoAnnotationFoundException {
     // Given
     givenAuthentication(USER_ID_TOKEN);
-    given(service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN)).willReturn(false);
+    given(service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN)).willReturn(false);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, POSTFIX);
+    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);

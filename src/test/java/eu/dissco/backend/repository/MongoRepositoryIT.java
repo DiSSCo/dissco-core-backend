@@ -120,7 +120,7 @@ class MongoRepositoryIT {
                          "ods:type": "GeologyRockSpecimen",
                          "ods:attributes": {
                            "ods:physicalSpecimenIdType": "cetaf",
-                           "ods:organizationId": "https://ror.org/0443cwa12",
+                           "ods:organisationId": "https://ror.org/0443cwa12",
                            "ods:sourceSystemId": "20.5000.1025/MN0-5XP-FFD",
                            "dwca:id": null,
                            "dcterms:license": "http://creativecommons.org/licenses/by-nc/4.0/",

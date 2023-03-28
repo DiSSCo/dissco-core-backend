@@ -48,11 +48,11 @@ public class AnnotationController {
   private final AnnotationService service;
   private final ObjectMapper mapper;
 
-  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) {
+      @PathVariable("suffix") String suffix, HttpServletRequest request) {
     String path = SANDBOX_URI + request.getRequestURI();
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     log.info("Received get request for annotation: {}", id);
     var annotation = service.getAnnotation(id, path);
     return ResponseEntity.ok(annotation);
@@ -70,11 +70,11 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, @PathVariable("version") int version, HttpServletRequest request)
+      @PathVariable("suffix") String suffix, @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for annotation: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, path);
@@ -113,12 +113,12 @@ public class AnnotationController {
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
-  @PatchMapping(value = "/{prefix}/{postfix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, @PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NoAnnotationFoundException, JsonProcessingException {
+      @PathVariable("suffix") String suffix, HttpServletRequest request) throws NoAnnotationFoundException, JsonProcessingException {
     var path = SANDBOX_URI + request.getRequestURI();
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     var userId = getNameFromToken(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
 
@@ -146,10 +146,10 @@ public class AnnotationController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + postfix;
+      @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
+    var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for versions of annotation with id: {}", id);
     var versions = service.getAnnotationVersions(id, path);
@@ -158,13 +158,13 @@ public class AnnotationController {
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @DeleteMapping(value = "/{prefix}/{postfix}")
+  @DeleteMapping(value = "/{prefix}/{suffix}")
   public ResponseEntity<Void> deleteAnnotation(Authentication authentication,
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix)
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException {
     var userId = getNameFromToken(authentication);
-    log.info("Received delete for annotation: {} from user: {}", (prefix + postfix), userId);
-    var success = service.deleteAnnotation(prefix, postfix, getNameFromToken(authentication));
+    log.info("Received delete for annotation: {} from user: {}", (prefix + suffix), userId);
+    var success = service.deleteAnnotation(prefix, suffix, getNameFromToken(authentication));
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } else {

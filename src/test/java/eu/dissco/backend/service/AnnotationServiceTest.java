@@ -4,9 +4,9 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
+import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
@@ -382,7 +382,7 @@ class AnnotationServiceTest {
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
     // When
-    var result = service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN);
+    var result = service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN);
 
     // Then
     assertThat(result).isTrue();
@@ -395,7 +395,7 @@ class AnnotationServiceTest {
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () ->service.deleteAnnotation(PREFIX, POSTFIX, USER_ID_TOKEN));
+        () ->service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
   }
 
   private AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation, String userId) {

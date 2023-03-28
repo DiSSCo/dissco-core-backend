@@ -23,8 +23,8 @@ public class TestUtils {
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
   public static final String PREFIX = "20.5000.1025";
-  public static final String POSTFIX = "ABC-123-XYZ";
-  public static final String ID = PREFIX + "/" + POSTFIX;
+  public static final String SUFFIX = "ABC-123-XYZ";
+  public static final String ID = PREFIX + "/" + SUFFIX;
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
 
@@ -82,11 +82,14 @@ public class TestUtils {
   }
 
   // Digital Specimen
-
   public static DigitalSpecimen givenDigitalSpecimen(String id) throws JsonProcessingException {
-    return givenDigitalSpecimen(id, 1);
+    return givenDigitalSpecimen(id, "global_id_123123");
   }
-  public static DigitalSpecimen givenDigitalSpecimen(String id, int version)
+
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId) throws JsonProcessingException {
+    return givenDigitalSpecimen(id, physicalId, 1);
+  }
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, int version)
       throws JsonProcessingException {
     return new DigitalSpecimen(
         id,
@@ -94,7 +97,7 @@ public class TestUtils {
         version,
         CREATED,
         "BotanySpecimen",
-        "123",
+        physicalId,
         "cetaf",
         "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
         "https://ror.org/0349vqz63",
@@ -148,7 +151,7 @@ public class TestUtils {
               "ods:objectType": "",
               "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
               "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-              "ods:organizationId": "https://ror.org/0349vqz63",
+              "ods:organisationId": "https://ror.org/0349vqz63",
               "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
               "ods:physicalSpecimenIdType": "cetaf",
               "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"      

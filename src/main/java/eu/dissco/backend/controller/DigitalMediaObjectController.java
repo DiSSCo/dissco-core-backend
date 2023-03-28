@@ -44,11 +44,11 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectById(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for multiMedia with id: {}", id);
     var multiMedia = service.getDigitalMediaById(id, path);
@@ -56,33 +56,33 @@ public class DigitalMediaObjectController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getMediaAnnotationsById(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
     String path = SANDBOX_URI + request.getRequestURI();
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     log.info("Received get request for annotations on digitalMedia with id: {}", id);
     var annotations = service.getAnnotationsOnDigitalMedia(id, path);
     return ResponseEntity.ok(annotations);
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getDigitalMediaVersions(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request)
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request)
       throws NotFoundException {
     String path = SANDBOX_URI + request.getRequestURI();
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     log.info("Received get request for versions of digital media with id: {}", id);
     var versions = service.getDigitalMediaVersions(id, path);
     return ResponseEntity.ok(versions);
   }
 
-  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectByVersion(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix,
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @PathVariable("version") int version, HttpServletRequest request) throws JsonProcessingException, NotFoundException {
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for digital media: {} with version: {}", id, version);
     var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, path);
