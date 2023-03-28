@@ -1,7 +1,7 @@
 package eu.dissco.backend.utils;
 
-import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 
 import eu.dissco.backend.domain.OrganisationDocument;

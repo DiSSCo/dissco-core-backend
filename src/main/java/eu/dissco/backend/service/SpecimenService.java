@@ -15,7 +15,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -101,7 +100,7 @@ public class SpecimenService {
   }
 
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
-      throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
+      throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
     JsonApiData dataNode;
     var specimen = mapResultToSpecimen(specimenNode);
