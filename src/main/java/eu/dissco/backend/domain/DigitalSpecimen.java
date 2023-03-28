@@ -7,6 +7,7 @@ public record DigitalSpecimen(
     String id,
     int midsLevel,
     int version,
+    //@JsonFormat(pattern = "MM-dd HH:mm:ss", timezone = "UTC")
     Instant created,
     String type,
     String physicalSpecimenId,

@@ -2,9 +2,9 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.JsonApiData;
-import eu.dissco.backend.domain.JsonApiWrapper;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.InvalidIdException;
 import eu.dissco.backend.exceptions.InvalidTypeException;
@@ -28,8 +28,8 @@ public class UserService {
   public JsonApiData createNewUser(JsonApiWrapper request)
       throws JsonProcessingException, ConflictException {
     checkType(request);
-    var requestUser = mapper.treeToValue(request.data().attributes(), User.class);
-    var id = request.data().id();
+    var requestUser = mapper.treeToValue(request.data().getAttributes(), User.class);
+    var id = request.data().getId();
     var optionalUser = repository.find(id);
     if (optionalUser.isEmpty()) {
       var userResponse = repository.createNewUser(id, requestUser);
@@ -41,8 +41,8 @@ public class UserService {
   }
 
   private void checkType(JsonApiWrapper request) throws InvalidTypeException {
-    if (!TYPE.equals(request.data().type())) {
-      log.warn("Type: {} is not relevant for users endpoint", request.data().type());
+    if (!TYPE.equals(request.data().getType())) {
+      log.warn("Type: {} is not relevant for users endpoint", request.data().getType());
       throw new InvalidTypeException();
     }
   }
@@ -59,17 +59,17 @@ public class UserService {
   public JsonApiData updateUser(String id, JsonApiWrapper request)
       throws ConflictException, NotFoundException {
     checkType(request);
-    if (id.equals(request.data().id())) {
+    if (id.equals(request.data().getId())) {
       var optionalUser = repository.find(id);
       if (optionalUser.isPresent()) {
-        var user = repository.updateUser(id, request.data().attributes());
+        var user = repository.updateUser(id, request.data().getAttributes());
         return new JsonApiData(id, TYPE, mapper.valueToTree(user));
       } else {
         log.warn("No user with id: {} is present in the database", id);
         throw new NotFoundException();
       }
     } else {
-      log.warn("ID: {} is equal to id in request: {}", id, request.data().type());
+      log.warn("ID: {} is equal to id in request: {}", id, request.data().getType());
       throw new InvalidIdException();
     }
   }

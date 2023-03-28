@@ -12,10 +12,8 @@ import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;

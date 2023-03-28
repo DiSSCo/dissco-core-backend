@@ -5,8 +5,9 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.controller.ControllerUtils.DATE_STRING;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -22,14 +23,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.AnnotationTestRecord;
 import eu.dissco.backend.repository.ElasticSearchTestRecords.DigitalSpecimenTestRecord;
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +45,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -65,6 +63,7 @@ class ElasticSearchRepositoryIT {
   private static ElasticsearchClient client;
   private static RestClient restClient;
   private ElasticSearchRepository repository;
+  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
 
   @BeforeAll
   static void initContainer() {
@@ -94,7 +93,7 @@ class ElasticSearchRepositoryIT {
 
   @BeforeEach
   void initRepository() {
-    repository = new ElasticSearchRepository(client);
+    repository = new ElasticSearchRepository(client, formatter);
   }
 
   @AfterEach
@@ -147,6 +146,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).hasSize(pageSize);
   }
 
+
   @Test
   void testGetLatestSpecimen() throws IOException {
     // Given
@@ -184,10 +184,12 @@ class ElasticSearchRepositoryIT {
     List<DigitalSpecimenTestRecord> specimenTestRecordsLatest = new ArrayList<>();
     List<DigitalSpecimenTestRecord> specimenTestRecordsOlder = new ArrayList<>();
     List<DigitalSpecimen> responseExpected = new ArrayList<>();
+
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       specimenTestRecordsLatest.add(givenDigitalSpecimenTestRecord(specimen));
     }
+
     for (int i = pageSize; i < pageSize * 2; i++) {
       var specimen = givenOlderSpecimen(PREFIX + "/" + i);
       responseExpected.add(specimen);
@@ -210,16 +212,48 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
+    List<AnnotationResponse> expected = new ArrayList<>();
+    List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
+    List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
+    for (int i = 0; i < pageSize; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
+      expected.add(annotation);
+      annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
+    }
+    for (int i = 11; i < pageSize * 2; i++) {
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
+      annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
+    }
+    List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
+    annotationTestRecords.addAll(annotationTestRecordsLatest);
+    annotationTestRecords.addAll(annotationTestRecordsOlder);
+    postAnnotations(annotationTestRecords);
+
+    // When
+    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(expected);
+  }
+
+  @Test
+  void testGetLatestAnnotationsSecondPage() throws IOException {
+    // Given
+    int pageNumber = 2;
+    int pageSize = 10;
     List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
     List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
     List<AnnotationResponse> responseExpected = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
-      responseExpected.add(annotation);
+    for (int i = 0; i < pageSize; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
     }
-    for (int i = 11; i < 15; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
+    for (int i = pageSize; i < pageSize * 2; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
+      responseExpected.add(annotation);
       annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
     }
     List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
@@ -234,73 +268,12 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
-  @Test
-  void testGetLatestAnnotationsJsonResponse() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
-    List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
-    for (int i = 0; i < pageSize; i++) {
-      String id = PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      responseExpected.add(givenAnnotationJsonApiData(id));
-      annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
-    }
-    for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
-      annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
-    }
-    List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
-    annotationTestRecords.addAll(annotationTestRecordsLatest);
-    annotationTestRecords.addAll(annotationTestRecordsOlder);
-    postAnnotations(annotationTestRecords);
-
-    // When
-    var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
-  }
-
-  @Test
-  void testGetLatestAnnotationsJsonResponseSecondPage() throws IOException {
-    // Given
-    int pageNumber = 2;
-    int pageSize = 10;
-    List<AnnotationTestRecord> annotationTestRecordsLatest = new ArrayList<>();
-    List<AnnotationTestRecord> annotationTestRecordsOlder = new ArrayList<>();
-    List<JsonApiData> responseExpected = new ArrayList<>();
-    for (int i = 0; i < pageSize; i++) {
-      String id = PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      annotationTestRecordsLatest.add(givenAnnotationTestRecord(annotation));
-    }
-    for (int i = pageSize; i < pageSize * 2; i++) {
-      String id = PREFIX + "/" + i;
-      responseExpected.add(givenAnnotationJsonApiData(id));
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      annotationTestRecordsOlder.add(givenOlderAnnotationTestRecord(annotation));
-    }
-    List<AnnotationTestRecord> annotationTestRecords = new ArrayList<>();
-    annotationTestRecords.addAll(annotationTestRecordsLatest);
-    annotationTestRecords.addAll(annotationTestRecordsOlder);
-    postAnnotations(annotationTestRecords);
-
-    // When
-    var responseReceived = repository.getLatestAnnotationsJsonResponse(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
-  }
-
   private DigitalSpecimenTestRecord givenDigitalSpecimenTestRecord(DigitalSpecimen specimen) {
     return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, CREATED, specimen);
   }
 
   private DigitalSpecimenTestRecord givenOlderDigitalSpecimenTestRecord(DigitalSpecimen specimen) {
-    Instant created = Instant.parse("2022-09-02T09:59:24Z");
+    Instant created = Instant.parse(CREATED_ALT);
     return new DigitalSpecimenTestRecord(specimen.id(), 1, 1, created, specimen);
   }
 

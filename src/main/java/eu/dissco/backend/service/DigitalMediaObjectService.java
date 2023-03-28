@@ -1,19 +1,18 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalMediaObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.JsonApiData;
-import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiLinksFull;
-import eu.dissco.backend.domain.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,99 +25,70 @@ public class DigitalMediaObjectService {
   private final DigitalMediaObjectRepository repository;
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
+  private final ObjectMapper mapper;
 
-  public DigitalMediaObject getDigitalMediaById(String id) {
-    return repository.getLatestDigitalMediaById(id);
+  // Controller Functions
+  public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
+      String path) {
+    var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize+1);
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    mediaPlusOne.forEach(media -> dataNodePlusOne.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper getDigitalMediaByIdJsonResponse(String id, String path) {
-    var dataNode = repository.getLatestDigitalMediaObjectByIdJsonResponse(id);
+  public JsonApiWrapper getDigitalMediaById(String id, String path) {
+    var mediaObject = repository.getLatestDigitalMediaObjectById(id);
+    var dataNode = new JsonApiData(mediaObject.id(), mediaObject.type(), mediaObject, mapper);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
-  public List<AnnotationResponse> getAnnotationsOnDigitalMediaObject(String id) {
-      return annotationService.getAnnotationForTarget(id);
+  public JsonApiListResponseWrapper getAnnotationsOnDigitalMedia(String mediaId, String path) {
+    return annotationService.getAnnotationForTarget(mediaId, path);
   }
 
+  public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
+    var versions = mongoRepository.getVersions(id, "digital_media_provenance");
+    var versionNode = createVersionNode(versions, mapper);
+    var dataNode = new JsonApiData(id, "digitalMediaVersions", versionNode);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
+  public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
+      throws JsonProcessingException, NotFoundException {
+    var dataNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
+    String type = dataNode.get("digitalMediaObject").get("type").asText();
+    return new JsonApiWrapper(new JsonApiData(id, type, dataNode),
+        new JsonApiLinks(path));
+  }
+
+  // Used By Other Services
   public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
     var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
     var digitalMedia = repository.getDigitalMediaForSpecimen(id);
     for (var digitalMediaObject : digitalMedia) {
-      var annotation = annotationService.getAnnotationForTarget(digitalMediaObject.id());
+      var annotation = annotationService.getAnnotationForTargetObject(digitalMediaObject.id());
       digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
     }
     return digitalMediaFull;
   }
 
-  public List<Integer> getDigitalMediaVersions(String id) throws NotFoundException {
-    return mongoRepository.getVersions(id, "digital_media_provenance");
-  }
-
-  public DigitalMediaObject getDigitalMediaVersionByVersion(String id, int version)
-      throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getByVersion(id, version, "digital_media_provenance");
-    return mapToDigitalMediaObject(result);
-  }
-
-  private DigitalMediaObject mapToDigitalMediaObject(JsonNode result) {
-    var digitalMediaObject = result.get("digitalMediaObject");
-    return new DigitalMediaObject(
-        result.get("id").asText(),
-        result.get("version").asInt(),
-        Instant.ofEpochSecond(result.get("created").asInt()),
-        digitalMediaObject.get("type").asText(),
-        digitalMediaObject.get("digitalSpecimenId").asText(),
-        digitalMediaObject.get("mediaUrl").asText(),
-        digitalMediaObject.get("format").asText(),
-        digitalMediaObject.get("sourceSystemId").asText(),
-        digitalMediaObject.get("data"),
-        digitalMediaObject.get("originalData")
-    );
-  }
-
-  public List<DigitalMediaObject> getDigitalMediaForSpecimen(String id) {
-    return repository.getDigitalMediaForSpecimen(id);
-  }
-
-  public List<DigitalMediaObject> getDigitalMediaObjects(int pageNumber, int pageSize) {
-    return repository.getDigitalMediaObject(pageNumber, pageSize);
-  }
-
-  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
-    boolean hasNextPage;
-    List<JsonApiData> dataNode;
-    if (dataNodePlusOne.size() > pageSize ){
-      hasNextPage = true;
-      dataNode = dataNodePlusOne.subList(0, pageSize);
-    } else {
-      hasNextPage = false;
-      dataNode = dataNodePlusOne;
-    }
-
-    var linksNode = buildLinksNode(path, pageNumber, pageSize, hasNextPage);
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
-  }
-
-  public JsonApiListResponseWrapper getDigitalMediaObjectsJsonResponse(int pageNumber, int pageSize,
-      String path) {
-    var dataNodePlusOne = repository.getDigitalMediaObjectJsonResponse(pageNumber, pageSize+1);
-    return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
-  }
-
-  private JsonApiLinksFull buildLinksNode(String path, int pageNumber, int pageSize,
-      boolean hasNextPage) {
-    String pn = "?pageNumber=";
-    String ps = "&pageSize=";
-    String self = path + pn + pageNumber + ps + pageSize;
-    String first = path + pn + "1" + ps + pageSize;
-    String prev = (pageNumber == 1) ? null : path + pn + (pageNumber - 1) + ps + pageSize;
-    String next =
-        (hasNextPage) ? null : path + pn + (pageNumber + 1) + ps + pageSize;
-    return new JsonApiLinksFull(self, first, prev, next);
-  }
-
   public List<String> getDigitalMediaIdsForSpecimen(String id) {
     return repository.getDigitalMediaIdsForSpecimen(id);
+  }
+
+  public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
+    var mediaList = repository.getDigitalMediaForSpecimen(id);
+    List<JsonApiData> dataNode = new ArrayList<>();
+    mediaList.forEach(media -> dataNode.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    return dataNode;
+  }
+
+  // Response Wrapper
+  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
+    boolean hasNextPage = dataNodePlusOne.size() > pageSize;
+    var dataNode = hasNextPage ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
+    return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 }

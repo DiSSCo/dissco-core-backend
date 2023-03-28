@@ -1,8 +1,8 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.JsonApiLinks;
-import eu.dissco.backend.domain.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,11 +52,11 @@ public class UserController {
       throws JsonProcessingException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId,
-        request.data().id());
-    checkAuthorisation(tokenId, request.data().id());
+        request.data().getId());
+    checkAuthorisation(tokenId, request.data().getId());
     var response = service.createNewUser(request);
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.data().id())));
+        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.data().getId())));
   }
 
   @PreAuthorize("isAuthenticated()")

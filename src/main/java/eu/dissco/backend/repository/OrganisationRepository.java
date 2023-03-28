@@ -2,14 +2,15 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Record2;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -18,21 +19,20 @@ import org.springframework.stereotype.Repository;
 public class OrganisationRepository {
 
   private final DSLContext context;
+  private final ObjectMapper mapper;
 
   public List<String> getOrganisationNames() {
     return context.select(ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
         .fetch(Record1::value1);
   }
 
-  public List<OrganisationTuple> getOrganisationTuple() {
+  public List<OrganisationTuple> getOrganisations() {
     return context.select(ORGANISATION_DO.ID, ORGANISATION_DO.ORGANISATION_NAME)
-        .from(ORGANISATION_DO).fetch(this::mapToOrganisationTuple);
+        .from(ORGANISATION_DO).fetch(this::mapToOrganisation);
   }
 
-  private OrganisationTuple mapToOrganisationTuple(Record2<String, String> dbRecord) {
-    return new OrganisationTuple(
-        dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME),
-        dbRecord.get(ORGANISATION_DO.ID));
+  private OrganisationTuple mapToOrganisation(Record dbRecord) {
+    return new OrganisationTuple(dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME), dbRecord.get(ORGANISATION_DO.ID));
   }
 
   public List<Country> getCountries() {
@@ -40,7 +40,8 @@ public class OrganisationRepository {
         ORGANISATION_DO.COUNTRY_CODE).fetch(this::mapCountry);
   }
 
-  private Country mapCountry(Record2<String, String> dbRecord) {
-    return new Country(dbRecord.value1(), dbRecord.value2());
+
+  private Country mapCountry(Record dbRecord) {
+    return new Country(dbRecord.get(ORGANISATION_DO.COUNTRY), dbRecord.get(ORGANISATION_DO.COUNTRY_CODE));
   }
 }

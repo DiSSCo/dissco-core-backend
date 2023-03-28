@@ -1,15 +1,21 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -27,6 +33,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SpecimenService {
 
+  private static final String ORGANISATION_ID = "ods:organizationId";
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
@@ -36,8 +43,6 @@ public class SpecimenService {
       "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
       "hdl", "https://hdl.handle.net/",
       "dcterms", "http://purl.org/dc/terms/");
-  private static final String ORGANISATION_ID = "ods:organizationId";
-
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
@@ -45,72 +50,56 @@ public class SpecimenService {
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
 
-  public List<DigitalSpecimen> getSpecimen(int pageNumber, int pageSize) {
-    return repository.getSpecimensLatest(pageNumber, pageSize);
+  public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path) {
+    var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize + 1);
+    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
-  public DigitalSpecimen getSpecimenById(String id) {
-    return repository.getLatestSpecimenById(id);
+  public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path) throws IOException {
+    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize+1);
+    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
-  public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
-      throws IOException {
-    return elasticRepository.search(query, pageNumber, pageSize);
+  public JsonApiWrapper getSpecimenById(String id, String path) {
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var dataNode = new JsonApiData(digitalSpecimen.id(), digitalSpecimen.type(), digitalSpecimen, mapper);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public List<AnnotationResponse> getAnnotations(String id) {
-    return annotationService.getAnnotationForTarget(id);
-  }
-
-  public DigitalSpecimen getSpecimenByVersion(String id, int version)
-      throws JsonProcessingException, NotFoundException {
-    var result = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    return mapResultToSpecimen(result);
-  }
-
-  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
-    var digitalSpecimen = result.get("digitalSpecimen");
-    var attributes = digitalSpecimen.get("ods:attributes");
-    return new DigitalSpecimen(
-        result.get("id").asText(),
-        result.get("midsLevel").asInt(),
-        result.get("version").asInt(),
-        Instant.ofEpochSecond(result.get("created").asInt()),
-        digitalSpecimen.get("ods:type").asText(),
-        digitalSpecimen.get("ods:physicalSpecimenId").asText(),
-        attributes.get("ods:physicalSpecimenIdType").asText(),
-        attributes.get("ods:specimenName").asText(),
-        attributes.get(ORGANISATION_ID).asText(),
-        attributes.get("ods:datasetId").asText(),
-        attributes.get("ods:physicalSpecimenCollection").asText(),
-        attributes.get("ods:sourceSystemId").asText(),
-        attributes,
-        digitalSpecimen.get("ods:originalAttributes"),
-        digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
-    );
-  }
-
-  public List<Integer> getSpecimenVersions(String id) throws NotFoundException {
-    return mongoRepository.getVersions(id, "digital_specimen_provenance");
-  }
-
-  public DigitalSpecimenFull getSpecimenByIdFull(String id) {
+  public JsonApiWrapper getSpecimenByIdFull(String id, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
-    var annotation = annotationService.getAnnotationForTarget(id);
-    return new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation);
+    var annotation = annotationService.getAnnotationForTargetObject(id);
+    var attributeNode = mapper.valueToTree(new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation));
+    return new JsonApiWrapper(new JsonApiData(id, digitalSpecimen.type(), attributeNode), new JsonApiLinks(path));
   }
 
-  public List<DigitalMediaObject> getDigitalMedia(String id) {
-    return digitalMediaObjectService.getDigitalMediaForSpecimen(id);
+  public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
+      throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
+    var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
+    JsonApiData dataNode;
+    var specimen = mapResultToSpecimen(specimenNode);
+    dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
-    return elasticRepository.getLatestSpecimen(pageNumber, pageSize);
+  public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
+    var versionsList = mongoRepository.getVersions(id, "digital_specimen_provenance");
+    var versionNode = createVersionNode(versionsList, mapper);
+    return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode), new JsonApiLinks(path));
+  }
+
+  public JsonApiListResponseWrapper getAnnotations(String id, String path) {
+    return annotationService.getAnnotationForTarget(id, path);
+  }
+
+  public JsonApiListResponseWrapper getDigitalMedia(String id, String path) {
+    var dataNode = digitalMediaObjectService.getDigitalMediaForSpecimen(id);
+    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
   public DigitalSpecimenJsonLD getSpecimenByIdJsonLD(String id) {
-    var digitalSpecimen = getSpecimenById(id);
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
     var digitalMediaObjects = digitalMediaObjectService.getDigitalMediaIdsForSpecimen(
         digitalSpecimen.id()).stream().map(value -> "hdl:" + value).toList();
     var primarySpecimenData = generatePrimaryData(digitalSpecimen);
@@ -122,6 +111,12 @@ public class SpecimenService {
         "hdl:" + digitalSpecimen.sourceSystemId(),
         digitalMediaObjects
     );
+  }
+
+  public JsonApiListResponseWrapper search(String query, int pageNumber, int pageSize, String path)
+      throws IOException {
+    var specimensPlusOne = elasticRepository.search(query, pageNumber, pageSize+1);
+    return wrapListResponse(specimensPlusOne, pageSize, pageNumber, path);
   }
 
   private JsonNode generatePrimaryData(DigitalSpecimen digitalSpecimen) {
@@ -171,4 +166,43 @@ public class SpecimenService {
     node.put("@type", "@id");
     return node;
   }
+
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result) throws UnprocessableEntityException {
+    var digitalSpecimen = result.get("digitalSpecimen");
+    var attributes = digitalSpecimen.get("ods:attributes");
+    DigitalSpecimen ds;
+
+    try {
+      ds =  new DigitalSpecimen(
+          result.get("id").asText(),
+          result.get("midsLevel").asInt(),
+          result.get("version").asInt(),
+          Instant.ofEpochSecond(result.get("created").asInt()),
+          digitalSpecimen.get("ods:type").asText(),
+          digitalSpecimen.get("ods:physicalSpecimenId").asText(),
+          attributes.get("ods:physicalSpecimenIdType").asText(),
+          attributes.get("ods:specimenName").asText(),
+          attributes.get(ORGANISATION_ID).asText(),
+          attributes.get("ods:datasetId").asText(),
+          attributes.get("ods:physicalSpecimenCollection").asText(),
+          attributes.get("ods:sourceSystemId").asText(),
+          attributes,
+          digitalSpecimen.get("ods:originalAttributes"),
+          digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
+      );
+    } catch (NullPointerException npe){
+      throw new UnprocessableEntityException("Unable to map given specimen and version to DigitalSpecimenObject");
+    }
+    return ds;
+  }
+
+  private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList, int pageSize, int pageNumber, String path){
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    digitalSpecimenList.forEach(specimen -> dataNodePlusOne.add(new JsonApiData(specimen.id(), specimen.type(), specimen, mapper)));
+    boolean hasNext = dataNodePlusOne.size() > pageSize;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
+    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    return new JsonApiListResponseWrapper(dataNode, linksNode);
+  }
+
 }

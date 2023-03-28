@@ -27,17 +27,17 @@ public class SpecimenRepository {
         .from(NEW_DIGITAL_SPECIMEN)
         .offset(offset)
         .limit(pageSize)
-        .fetch(this::mapper);
+        .fetch(this::mapToDigitalSpecimen);
   }
 
   public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(this::mapper);
+        .fetchOne(this::mapToDigitalSpecimen);
   }
 
-  private DigitalSpecimen mapper(Record dbRecord) {
+  private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
     try {
       return new DigitalSpecimen(
           dbRecord.get(NEW_DIGITAL_SPECIMEN.ID),

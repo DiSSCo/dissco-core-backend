@@ -1,20 +1,16 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiData;
-import static eu.dissco.backend.TestUtils.givenAnnotationJsonApiDataList;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponse;
-import static eu.dissco.backend.TestUtils.givenAnnotationResponseTarget;
 import static eu.dissco.backend.database.jooq.tables.NewAnnotation.NEW_ANNOTATION;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.JsonApiData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -30,14 +26,64 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
   @BeforeEach
   void setup() {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    repository = new AnnotationRepository(context, mapper);
+    repository = new AnnotationRepository(context, MAPPER);
   }
 
   @AfterEach
   void destroy() {
     context.truncate(NEW_ANNOTATION).execute();
+  }
+
+  @Test
+  void testGetAnnotation() {
+    // Given
+    var expectedAnnotation = givenAnnotationResponse();
+    postAnnotations(List.of(expectedAnnotation));
+
+    // When
+    var result = repository.getAnnotation(ID);
+
+    // Then
+    assertThat(result).isEqualTo(expectedAnnotation);
+  }
+
+  @Test
+  void testGetAnnotations() {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+
+    List<AnnotationResponse> annotationsAll = new ArrayList<>();
+    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed()
+        .map(Object::toString).toList();
+    for (String annotationId : annotationIds) {
+      annotationsAll.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
+
+    }
+    postAnnotations(annotationsAll);
+
+    // When
+    var receivedResponse = repository.getAnnotations(pageNumber, pageSize);
+
+    // Then
+    assertThat(receivedResponse).hasSameElementsAs(annotationsAll);
+  }
+
+  @Test
+  void testGetAnnotationForUser() {
+    // Given
+    var annotations = List.of(
+        givenAnnotationResponse(USER_ID_TOKEN, ID),
+        givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
+        givenAnnotationResponse(USER_ID_TOKEN, "JamesBond", PREFIX + "/TAR-GET-007")
+    );
+    postAnnotations(annotations);
+
+    // When
+    var receivedResponse = repository.getAnnotationForUser(ID, USER_ID_TOKEN);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(1);
   }
 
   @Test
@@ -91,131 +137,16 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsForUserJsonResponse() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    int pageNumber = 1;
-    int pageSize = 11;
-    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed()
-        .map(Object::toString).toList();
-    List<AnnotationResponse> userAnnotations = new ArrayList<>();
-    List<JsonApiData> expectedResponse = new ArrayList<>();
-    for (String annotationId : annotationIds) {
-      userAnnotations.add(givenAnnotationResponse(userId, annotationId));
-      expectedResponse.add(givenAnnotationJsonApiData(userId, annotationId));
-    }
-    postAnnotations(userAnnotations);
-
-    // When
-    var receivedResponse = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
-        pageSize);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
-  void testGetAnnotationsForUserJsonResponseSecondPage() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    int pageNumber = 2;
-    int pageSize = 11;
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2) - 1).boxed()
-        .map(Object::toString).toList();
-
-    List<AnnotationResponse> userAnnotations = new ArrayList<>();
-
-    for (String annotationId : annotationIds) {
-      userAnnotations.add(givenAnnotationResponse(userId, annotationId));
-    }
-    postAnnotations(userAnnotations);
-
-    // When
-    var receivedResponse = repository.getAnnotationsForUserJsonResponse(userId, pageNumber,
-        pageSize);
-
-    // Then
-    assertThat(receivedResponse).hasSize(pageSize);
-  }
-
-  @Test
-  void testGetAnnotation() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    String targetId = "2";
-    List<AnnotationResponse> annotations = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, 10).boxed().map(Object::toString)
-        .toList();
-    for (String annotationId : annotationIds) {
-      annotations.add(givenAnnotationResponse(userId, annotationId));
-    }
-    postAnnotations(annotations);
-    var expectedResponse = givenAnnotationResponse(userId, targetId);
-
-    // When
-    var receivedResponse = repository.getAnnotation(targetId);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetAnnotations() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    var annotationsReceivedAll = new ArrayList<>();
-
-    List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2 - 1)).boxed()
-        .map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      annotationsAll.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
-    }
-    postAnnotations(annotationsAll);
-
-    // When
-    var annotationsP1 = repository.getAnnotations(pageNumber, pageSize);
-    var annotationsP2 = repository.getAnnotations(pageNumber + 1, pageSize);
-    annotationsReceivedAll.addAll(annotationsP1);
-    annotationsReceivedAll.addAll(annotationsP2);
-
-    // Then
-    assertThat(annotationsP1).hasSize(pageSize);
-    assertThat(annotationsP2).hasSize(pageSize);
-    assertThat(annotationsReceivedAll).hasSameElementsAs(annotationsAll);
-  }
-
-  @Test
-  void testGetAnnotationsJsonResponse() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-
-    List<AnnotationResponse> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed()
-        .map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      annotationsAll.add(givenAnnotationResponse(USER_ID_TOKEN, annotationId));
-    }
-    postAnnotations(annotationsAll);
-    var expectedResponse = givenAnnotationJsonApiDataList(USER_ID_TOKEN, annotationIds);
-
-    // When
-    var receivedResponse = repository.getAnnotationsJsonResponse(pageNumber, pageSize);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
   void testGetForTarget() {
     // Given
-    var expectedResponse = givenAnnotationResponseTarget(ID, TARGET_ID);
-    var annotations = List.of(
+    MAPPER.setSerializationInclusion(Include.ALWAYS);
+    var expectedResponse = givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
+    List<AnnotationResponse> annotations = List.of(
         expectedResponse,
-        givenAnnotationResponseTarget(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponseTarget(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007")
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"
+        ),
+        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"
+        )
     );
     postAnnotations(annotations);
 
@@ -225,24 +156,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
   }
-
-  @Test
-  void testGetAnnotationForUser() {
-    // Given
-    var annotations = List.of(
-        givenAnnotationResponse(USER_ID_TOKEN, ID),
-        givenAnnotationResponseTarget("AnotherUser", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponseTarget("JamesBond", PREFIX + "/TAR-GET-007")
-    );
-    postAnnotations(annotations);
-
-    // When
-    var receivedResponse = repository.getAnnotationForUser(ID, USER_ID_TOKEN);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(1);
-  }
-
 
   private void postAnnotations(List<AnnotationResponse> annotations) {
     List<Query> queryList = new ArrayList<>();
