@@ -9,6 +9,7 @@ import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
@@ -90,7 +91,7 @@ public class SpecimenController {
   @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
       @PathVariable("postfix") String postfix, @PathVariable("version") int version, HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException {
+      throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
     var id = prefix + '/' + postfix;
     log.info("Received get request for specimen with id and version: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();

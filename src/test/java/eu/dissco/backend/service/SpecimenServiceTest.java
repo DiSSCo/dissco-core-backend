@@ -170,7 +170,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSpecimenByVersion() throws NotFoundException, JsonProcessingException {
+  void testSpecimenByVersion() throws Exception {
     // Given
     int version = 4;
     var specimen = givenMongoDBMediaResponse();

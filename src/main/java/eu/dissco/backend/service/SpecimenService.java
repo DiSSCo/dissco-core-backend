@@ -14,7 +14,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -28,7 +27,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException.UnprocessableEntity;
 
 @Slf4j
 @Service
@@ -77,16 +75,11 @@ public class SpecimenService {
   }
 
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
-      throws JsonProcessingException, NotFoundException {
+      throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
     var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
     JsonApiData dataNode;
-    try {
-      var specimen = mapResultToSpecimen(specimenNode);
-      dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
-    } catch (UnprocessableEntityException e){
-      dataNode = new JsonApiData(id, "digitalSpecimen", specimenNode);
-      log.warn("Unable to map digital specimen {} verision {} to DigitalSpecimen object. Returning raw json", id, version);
-    }
+    var specimen = mapResultToSpecimen(specimenNode);
+    dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -198,7 +191,7 @@ public class SpecimenService {
           digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
       );
     } catch (NullPointerException npe){
-      throw new UnprocessableEntityException();
+      throw new UnprocessableEntityException("Unable to map given specimen and version to DigitalSpecimenObject");
     }
     return ds;
   }

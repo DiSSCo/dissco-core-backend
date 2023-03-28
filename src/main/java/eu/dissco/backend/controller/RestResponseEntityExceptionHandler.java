@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -42,6 +43,12 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Void> handleException(IllegalArgumentException e){
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+  }
+
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  @ExceptionHandler(UnprocessableEntityException.class)
+  public ResponseEntity<String> handleException(UnprocessableEntityException e){
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
 
