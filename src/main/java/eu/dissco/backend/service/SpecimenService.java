@@ -14,7 +14,9 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -26,6 +28,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException.UnprocessableEntity;
 
 @Slf4j
 @Service
@@ -76,8 +79,14 @@ public class SpecimenService {
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    var specimen = mapResultToSpecimen(specimenNode);
-    var dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    JsonApiData dataNode;
+    try {
+      var specimen = mapResultToSpecimen(specimenNode);
+      dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    } catch (UnprocessableEntityException e){
+      dataNode = new JsonApiData(id, "digitalSpecimen", specimenNode);
+      log.warn("Unable to map digital specimen {} verision {} to DigitalSpecimen object. Returning raw json", id, version);
+    }
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -165,26 +174,33 @@ public class SpecimenService {
     return node;
   }
 
-  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result) throws UnprocessableEntityException {
     var digitalSpecimen = result.get("digitalSpecimen");
     var attributes = digitalSpecimen.get("ods:attributes");
-    return new DigitalSpecimen(
-        result.get("id").asText(),
-        result.get("midsLevel").asInt(),
-        result.get("version").asInt(),
-        Instant.ofEpochSecond(result.get("created").asInt()),
-        digitalSpecimen.get("ods:type").asText(),
-        digitalSpecimen.get("ods:physicalSpecimenId").asText(),
-        attributes.get("ods:physicalSpecimenIdType").asText(),
-        attributes.get("ods:specimenName").asText(),
-        attributes.get(ORGANISATION_ID).asText(),
-        attributes.get("ods:datasetId").asText(),
-        attributes.get("ods:physicalSpecimenCollection").asText(),
-        attributes.get("ods:sourceSystemId").asText(),
-        attributes,
-        digitalSpecimen.get("ods:originalAttributes"),
-        digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
-    );
+    DigitalSpecimen ds;
+
+    try {
+      ds =  new DigitalSpecimen(
+          result.get("id").asText(),
+          result.get("midsLevel").asInt(),
+          result.get("version").asInt(),
+          Instant.ofEpochSecond(result.get("created").asInt()),
+          digitalSpecimen.get("ods:type").asText(),
+          digitalSpecimen.get("ods:physicalSpecimenId").asText(),
+          attributes.get("ods:physicalSpecimenIdType").asText(),
+          attributes.get("ods:specimenName").asText(),
+          attributes.get(ORGANISATION_ID).asText(),
+          attributes.get("ods:datasetId").asText(),
+          attributes.get("ods:physicalSpecimenCollection").asText(),
+          attributes.get("ods:sourceSystemId").asText(),
+          attributes,
+          digitalSpecimen.get("ods:originalAttributes"),
+          digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
+      );
+    } catch (NullPointerException npe){
+      throw new UnprocessableEntityException();
+    }
+    return ds;
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList, int pageSize, int pageNumber, String path){

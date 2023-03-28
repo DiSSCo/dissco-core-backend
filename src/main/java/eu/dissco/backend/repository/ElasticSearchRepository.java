@@ -80,7 +80,7 @@ public class ElasticSearchRepository {
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
     var digitalSpecimen = json.get("digitalSpecimen");
-    var createdOn = parseDate(digitalSpecimen.get(FIELD_CREATED));
+    var createdOn = parseDate(json.get(FIELD_CREATED));
     return new DigitalSpecimen(json.get("id").asText(), json.get("midsLevel").asInt(),
         json.get("version").asInt(), createdOn, getText(digitalSpecimen, "type"),
         getText(digitalSpecimen, "physicalSpecimenId"),
