@@ -15,6 +15,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -36,6 +37,8 @@ public class SpecimenService {
 
   private static final String ORGANISATION_ID = "ods:organisationId";
   private static final String MIDS_LEVEL = "midsLevel";
+  private static final String DEFAULT_PAGE_NUM = "1";
+  private static final String DEFAULT_PAGE_SIZE = "10";
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
@@ -227,34 +230,48 @@ public class SpecimenService {
   }
 
   public JsonApiListResponseWrapper search(MultiValueMap<String, String> params, String path)
-      throws IOException {
-    var pageNumber = getIntParam("pageNumber", params, "1");
-    var pageSize = getIntParam("pageSize", params, "10");
+      throws IOException, UnknownParameterException {
+    var pageNumber = getIntParam("pageNumber", params, DEFAULT_PAGE_NUM);
+    var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
+    removePaginationParams(params);
     var specimenPlusOne = elasticRepository.search(mapParams(params), pageNumber, pageSize + 1);
     return wrapListResponse(specimenPlusOne, pageNumber, pageSize, params, path);
   }
 
-  private static int getIntParam(String paramName, MultiValueMap<String, String> params, String defaultValue) {
+  private void removePaginationParams(MultiValueMap<String, String> params) {
+    params.remove("pageSize");
+    params.remove("pageNumber");
+  }
+
+  private int getIntParam(String paramName, MultiValueMap<String, String> params,
+      String defaultValue) {
     var paramValue = params.getOrDefault(paramName, List.of(defaultValue));
-    if (paramValue.size() > 1){
+    if (paramValue.size() > 1) {
       log.warn("Taking first value for param: {} values: {}", paramName, paramValue);
     }
-    try{
-      return Integer.parseInt(paramValue.get(0));
-    } catch(NumberFormatException ex){
-     log.error("Param: {} cannot be parsed to a number, falling back to default", paramName, ex);
-     return Integer.parseInt(defaultValue);
+    try {
+      var intValue = Integer.parseInt(paramValue.get(0));
+      if (intValue > 0) {
+        return intValue;
+      } else {
+        log.warn("Provided value: {} is a negative value, falling back to default value", intValue);
+        return Integer.parseInt(defaultValue);
+      }
+    } catch (NumberFormatException ex) {
+      log.error("Param: {} cannot be parsed to a number, falling back to default", paramName, ex);
+      return Integer.parseInt(defaultValue);
     }
   }
 
-  private Map<String, List<String>> mapParams(MultiValueMap<String, String> params) {
+  private Map<String, List<String>> mapParams(MultiValueMap<String, String> params)
+      throws UnknownParameterException {
     var mappedParams = new HashMap<String, List<String>>();
     for (var entry : params.entrySet()) {
       var mappedParam = paramMapping.get(entry.getKey());
       if (mappedParam != null) {
         mappedParams.put(mappedParam, entry.getValue());
       } else {
-        log.warn("Did not find mapping for key: {}", entry.getKey());
+        throw new UnknownParameterException("Parameter: " + entry.getKey() + " is not recognised");
       }
     }
     return mappedParams;

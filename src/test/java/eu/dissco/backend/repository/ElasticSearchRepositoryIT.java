@@ -85,21 +85,24 @@ class ElasticSearchRepositoryIT {
     client = new ElasticsearchClient(transport);
   }
 
+  @BeforeEach
+  void initRepository() {
+    repository = new ElasticSearchRepository(client);
+  }
+
   @AfterAll
   public static void closeResources() throws Exception {
     restClient.close();
   }
 
-  private static Stream<Arguments> provideKeyValue() {
-    return Stream.of(
-        Arguments.of("digitalSpecimen.ods:physicalSpecimenId.keyword", "global_id_45634"),
-        Arguments.of("q", PREFIX + "/0")
-    );
-  }
-
-  @BeforeEach
-  void initRepository() {
-    repository = new ElasticSearchRepository(client);
+  @AfterEach
+  void clearIndex() throws IOException {
+    if (client.indices().exists(re -> re.index(DIGITAL_SPECIMEN_INDEX)).value()) {
+      client.indices().delete(b -> b.index(DIGITAL_SPECIMEN_INDEX));
+    }
+    if (client.indices().exists(re -> re.index(ANNOTATION_INDEX)).value()) {
+      client.indices().delete(b -> b.index(ANNOTATION_INDEX));
+    }
   }
 
   @ParameterizedTest
@@ -124,14 +127,11 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived).contains(targetSpecimen);
   }
 
-  @AfterEach
-  void clearIndex() throws IOException {
-    if (client.indices().exists(re -> re.index(DIGITAL_SPECIMEN_INDEX)).value()) {
-      client.indices().delete(b -> b.index(DIGITAL_SPECIMEN_INDEX));
-    }
-    if (client.indices().exists(re -> re.index(ANNOTATION_INDEX)).value()) {
-      client.indices().delete(b -> b.index(ANNOTATION_INDEX));
-    }
+  private static Stream<Arguments> provideKeyValue() {
+    return Stream.of(
+        Arguments.of("digitalSpecimen.ods:physicalSpecimenId.keyword", "global_id_45634"),
+        Arguments.of("q", PREFIX + "/0")
+    );
   }
 
   @Test

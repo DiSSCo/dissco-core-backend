@@ -15,9 +15,11 @@ import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiD
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +32,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -263,7 +266,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearch() throws IOException {
+  void testSearch() throws IOException, UnknownParameterException {
     // Given
     int pageNum = 1;
     int pageSize = 10;
@@ -285,7 +288,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearchLastPage() throws IOException {
+  void testSearchLastPage() throws IOException, UnknownParameterException {
     // Given
     int pageNum = 2;
     int pageSize = 10;
@@ -297,7 +300,7 @@ class SpecimenServiceTest {
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
         givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>((HashMap)params.clone()), pageNum, pageSize, false, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize, false, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
 
     // When
@@ -308,7 +311,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testInvalidPageNumber() throws IOException {
+  void testInvalidPageNumber() throws IOException, UnknownParameterException {
     // Given
     int pageNum = 1;
     int pageSize = 10;
@@ -320,7 +323,7 @@ class SpecimenServiceTest {
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
         givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>((HashMap)params.clone()), pageNum, pageSize, false, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize, false, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
 
     // When
@@ -331,7 +334,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearchWithParameters() throws IOException {
+  void testSearchWithParameters() throws IOException, UnknownParameterException {
     // Given
     int pageNum = 1;
     int pageSize = 10;
@@ -339,14 +342,13 @@ class SpecimenServiceTest {
     var params = new LinkedHashMap<String, List<String>>();
     params.put("country", List.of("France", "Albania"));
     params.put("typeStatus", List.of("holotype"));
-    params.put("randomValue", List.of("value"));
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("digitalSpecimen.ods:attributes.dwc:country.keyword",
         List.of("France", "Albania"), "digitalSpecimen.ods:attributes.dwc:typeStatus.keyword",
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
         givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>((HashMap)params.clone()),pageNum, pageSize, false, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(params),pageNum, pageSize, false, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
 
     // When
@@ -354,6 +356,21 @@ class SpecimenServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testSearchException() {
+    // Given
+    var params = new HashMap<String, List<String>>();
+    params.put("exception", List.of("Leucanthemum ircutianum"));
+    var map = new MultiValueMapAdapter<>(params);
+
+    // When
+    assertThatThrownBy(() -> service.search(map, SPECIMEN_PATH)).isExactlyInstanceOf(
+        UnknownParameterException.class).hasMessageContaining("exception");
+
+    // Then
+    then(elasticRepository).shouldHaveNoInteractions();
   }
 
 

@@ -9,6 +9,7 @@ import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
@@ -137,7 +138,7 @@ public class SpecimenController {
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> search(
       @RequestParam MultiValueMap<String, String> params,
-      HttpServletRequest request) throws IOException {
+      HttpServletRequest request) throws IOException, UnknownParameterException {
     log.info("Received request params: {}", params);
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.search(params, path);
