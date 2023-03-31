@@ -9,6 +9,7 @@ import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,10 +58,10 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenById(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+      @PathVariable("suffix") String suffix, HttpServletRequest request) {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.getSpecimenById(id, path);
@@ -67,20 +69,20 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/jsonld", produces = "application/ld+json")
+  @GetMapping(value = "/{prefix}/{suffix}/jsonld", produces = "application/ld+json")
   public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix) {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for jsonld view of specimen with id: {}", id);
     var specimen = service.getSpecimenByIdJsonLD(id);
     return ResponseEntity.ok(specimen);
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenByIdFull(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.getSpecimenByIdFull(id, path);
@@ -88,11 +90,11 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, @PathVariable("version") int version, HttpServletRequest request)
+      @PathVariable("suffix") String suffix, @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
-    var id = prefix + '/' + postfix;
+    var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.getSpecimenByVersion(id, version, path);
@@ -100,10 +102,10 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenVersions(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix, HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + postfix;
+      @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var versions = service.getSpecimenVersions(id, path);
@@ -111,10 +113,10 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenAnnotations(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for annotations of specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var annotations = service.getAnnotations(id, path);
@@ -122,10 +124,10 @@ public class SpecimenController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{postfix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
-      @PathVariable("prefix") String prefix, @PathVariable("postfix") String postfix, HttpServletRequest request) {
-    var id = prefix + '/' + postfix;
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+    var id = prefix + '/' + suffix;
     log.info("Received get request for digitalmedia of specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var digitalMedia = service.getDigitalMedia(id, path);
@@ -134,12 +136,12 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> searchSpecimen(@RequestParam String query,
-      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) throws IOException {
-    log.info("Received get request with query: {}", query);
+  public ResponseEntity<JsonApiListResponseWrapper> search(
+      @RequestParam MultiValueMap<String, String> params,
+      HttpServletRequest request) throws IOException, UnknownParameterException {
+    log.info("Received request params: {}", params);
     var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.search(query, pageNumber, pageSize, path);
+    var specimen = service.search(params, path);
     return ResponseEntity.ok(specimen);
   }
 

@@ -15,7 +15,7 @@ public interface AnnotationClient {
   @PostMapping(value = "")
   JsonNode postAnnotation(@RequestBody AnnotationEvent event);
 
-  @DeleteMapping(value = "/{prefix}/{postfix}")
+  @DeleteMapping(value = "/{prefix}/{suffix}")
   void deleteAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("postfix") String postfix);
+      @PathVariable("suffix") String suffix);
 }

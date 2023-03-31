@@ -1,8 +1,8 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.POSTFIX;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
@@ -62,7 +62,7 @@ class DigitalMediaObjectControllerTest {
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectById(PREFIX, POSTFIX, mockRequest);
+    var responseReceived = controller.getDigitalMediaObjectById(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -71,7 +71,7 @@ class DigitalMediaObjectControllerTest {
   @Test
   void testGetDigitalMediaVersions() throws NotFoundException {
     // When
-    var responseReceived = controller.getDigitalMediaVersions(PREFIX, POSTFIX, mockRequest);
+    var responseReceived = controller.getDigitalMediaVersions(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -84,7 +84,7 @@ class DigitalMediaObjectControllerTest {
     given(service.getDigitalMediaObjectByVersion(ID, version, DIGITAL_MEDIA_PATH)).willReturn(givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
 
     // When
-    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, POSTFIX, version, mockRequest);
+    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, SUFFIX, version, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -98,7 +98,7 @@ class DigitalMediaObjectControllerTest {
     given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(responseExpected);
 
     // When
-    var responseReceived = controller.getMediaAnnotationsById(PREFIX, POSTFIX, mockRequest);
+    var responseReceived = controller.getMediaAnnotationsById(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);

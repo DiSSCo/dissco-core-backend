@@ -4,6 +4,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,9 +13,10 @@ import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -24,33 +26,46 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
-
-  private static final String INDEX = "new-dissco";
-  private static final String ANNOTATION_EXISTS_QUERY = "_exists_:annotation.type ";
+  private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
+  private static final String ANNOTATION_INDEX = "annotation";
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
-  private final DateTimeFormatter formatter;
 
-  private final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
-
-  public List<DigitalSpecimen> search(String query, int pageNumber, int pageSize)
+  public List<DigitalSpecimen> search(Map<String, List<String>> params, int pageNumber,
+      int pageSize)
       throws IOException {
-    query = query.replace("/", "//");
-
     var offset = getOffset(pageNumber, pageSize);
-
-    var searchRequest = new SearchRequest.Builder().index(INDEX)
-        .q("_exists_:digitalSpecimen.physicalSpecimenId AND " + query).from(offset).size(pageSize)
-        .build();
+    var queries = generateQueries(params);
+    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+        .query(
+            q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .from(offset)
+        .size(pageSize).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
   }
 
+  private List<Query> generateQueries(Map<String, List<String>> params) {
+    var queries = new ArrayList<Query>();
+    for (var entry : params.entrySet()) {
+      for (var value : entry.getValue()) {
+        Query query;
+        if (Objects.equals(entry.getKey(), "q")) {
+          var sanitisedValue = value.replace("/", "//");
+          query = new Query.Builder().queryString(q -> q.query(sanitisedValue)).build();
+        } else {
+          query = new Query.Builder().term(t -> t.field(entry.getKey()).value(value)).build();
+        }
+        queries.add(query);
+      }
+    }
+    return queries;
+  }
+
   public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
-    var searchRequest = new SearchRequest.Builder().index(INDEX)
-        .q("_exists_:digitalSpecimen.physicalSpecimenId ")
+    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
         .size(pageSize).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
@@ -61,7 +76,8 @@ public class ElasticSearchRepository {
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
 
-    var searchRequest = new SearchRequest.Builder().index(INDEX).q(ANNOTATION_EXISTS_QUERY)
+    var searchRequest = new SearchRequest.Builder()
+        .index(ANNOTATION_INDEX)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
         .size(pageSize).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
@@ -80,33 +96,34 @@ public class ElasticSearchRepository {
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
     var digitalSpecimen = json.get("digitalSpecimen");
+    var attributes = digitalSpecimen.get("ods:attributes");
     var createdOn = parseDate(json.get(FIELD_CREATED));
-    return new DigitalSpecimen(json.get("id").asText(), json.get("midsLevel").asInt(),
-        json.get("version").asInt(), createdOn, getText(digitalSpecimen, "type"),
-        getText(digitalSpecimen, "physicalSpecimenId"),
-        getText(digitalSpecimen, "physicalSpecimenIdType"),
-        getText(digitalSpecimen, "specimenName"), getText(digitalSpecimen, "organizationId"),
-        getText(digitalSpecimen, "datasetId"),
-        getText(digitalSpecimen, "physicalSpecimenCollection"),
-        getText(digitalSpecimen, "sourceSystemId"), digitalSpecimen.get("data"),
-        digitalSpecimen.get("originalData"), getText(digitalSpecimen, "dwcaId"));
+    return new DigitalSpecimen(
+        json.get("id").asText(),
+        json.get("midsLevel").asInt(),
+        json.get("version").asInt(),
+        createdOn,
+        getText(digitalSpecimen, "ods:type"),
+        getText(digitalSpecimen, "ods:physicalSpecimenId"),
+        getText(attributes, "ods:physicalSpecimenIdType"),
+        getText(attributes, "ods:specimenName"),
+        getText(attributes, "ods:organisationId"),
+        getText(attributes, "ods:datasetId"),
+        getText(attributes, "ods:physicalSpecimenCollection"),
+        getText(attributes, "ods:sourceSystemId"),
+        attributes,
+        digitalSpecimen.get("ods:originalAttributes"),
+        getText(attributes, "dwca:id"));
   }
 
   private Instant parseDate(JsonNode instantNode) {
-    if (isDouble(instantNode.asText())){
-      return Instant.ofEpochSecond(instantNode.asLong());
+    if (instantNode.isTextual()) {
+      return Instant.parse(instantNode.asText());
+    } else if (instantNode.isDouble()) {
+      return Instant.ofEpochSecond((long) instantNode.asDouble());
     }
-    return Instant.from(formatter.parse(instantNode.asText()));
-  }
-
-  private boolean isDouble(String timestamp){
-    try {
-      Double.parseDouble(timestamp);
-    }
-    catch (NumberFormatException nfe){
-      return false;
-    }
-    return true;
+    log.error("Cannot parse timestamp of: {}", instantNode);
+    return null;
   }
 
   private String getText(JsonNode digitalSpecimen, String element) {
@@ -117,4 +134,5 @@ public class ElasticSearchRepository {
       return null;
     }
   }
+
 }

@@ -116,12 +116,12 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public boolean deleteAnnotation(String prefix, String postfix, String userId)
+  public boolean deleteAnnotation(String prefix, String suffix, String userId)
       throws NoAnnotationFoundException {
-    var id = prefix + "/" + postfix;
+    var id = prefix + "/" + suffix;
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
-      annotationClient.deleteAnnotation(prefix, postfix);
+      annotationClient.deleteAnnotation(prefix, suffix);
       return true;
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);

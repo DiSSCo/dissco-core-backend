@@ -26,7 +26,7 @@ public class UserRepository {
       "lastName", NEW_USER.LAST_NAME,
       "email", NEW_USER.EMAIL,
       "orcid", NEW_USER.ORCID,
-      "organization", NEW_USER.ORGANIZATION
+      "organisation", NEW_USER.ORGANIZATION
   );
 
   public User createNewUser(String id, User requestUser) {
@@ -37,7 +37,7 @@ public class UserRepository {
         .set(NEW_USER.LAST_NAME, requestUser.lastName())
         .set(NEW_USER.EMAIL, requestUser.email())
         .set(NEW_USER.ORCID, requestUser.orcid())
-        .set(NEW_USER.ORGANIZATION, requestUser.organization())
+        .set(NEW_USER.ORGANIZATION, requestUser.organisation())
         .set(NEW_USER.CREATED, createdTimestamp)
         .set(NEW_USER.UPDATED, createdTimestamp)
         .returning().fetchOne().map(this::mapToUser);
