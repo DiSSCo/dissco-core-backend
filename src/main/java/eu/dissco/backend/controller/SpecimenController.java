@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequestMapping("/api/v1/specimens")
 @RequiredArgsConstructor
 public class SpecimenController {
+
   private final SpecimenService service;
 
   @ResponseStatus(HttpStatus.OK)
@@ -50,7 +51,8 @@ public class SpecimenController {
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) throws IOException {
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
+      throws IOException {
     log.info("Received get request for latest digital specimen");
     var path = SANDBOX_URI + request.getRequestURI();
     var specimens = service.getLatestSpecimen(pageNumber, pageSize, path);
@@ -81,7 +83,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenByIdFull(
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
@@ -92,7 +95,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, @PathVariable("version") int version, HttpServletRequest request)
+      @PathVariable("suffix") String suffix, @PathVariable("version") int version,
+      HttpServletRequest request)
       throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
@@ -115,7 +119,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenAnnotations(
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotations of specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
@@ -126,7 +131,8 @@ public class SpecimenController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix, HttpServletRequest request) {
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for digitalmedia of specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
@@ -145,4 +151,16 @@ public class SpecimenController {
     return ResponseEntity.ok(specimen);
   }
 
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> aggregation(
+      @RequestParam MultiValueMap<String, String> params, HttpServletRequest request)
+      throws IOException, UnknownParameterException {
+    log.info("Request for aggregations");
+    var path = SANDBOX_URI + request.getRequestURI() + "?" + request.getQueryString();
+    var aggregations = service.aggregations(params, path);
+    return ResponseEntity.ok(aggregations);
+  }
 }
+
+

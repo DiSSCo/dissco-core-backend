@@ -4,6 +4,13 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
+import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.LongTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -11,14 +18,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.MappingTerms;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -31,20 +42,6 @@ public class ElasticSearchRepository {
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
-
-  public List<DigitalSpecimen> search(Map<String, List<String>> params, int pageNumber,
-      int pageSize)
-      throws IOException {
-    var offset = getOffset(pageNumber, pageSize);
-    var queries = generateQueries(params);
-    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
-        .query(
-            q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
-        .from(offset)
-        .size(pageSize).build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
-  }
 
   private List<Query> generateQueries(Map<String, List<String>> params) {
     var queries = new ArrayList<Query>();
@@ -135,4 +132,51 @@ public class ElasticSearchRepository {
     }
   }
 
+  public List<DigitalSpecimen> search(Map<String, List<String>> params, int pageNumber,
+      int pageSize)
+      throws IOException {
+    var offset = getOffset(pageNumber, pageSize);
+    var queries = generateQueries(params);
+    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+        .query(
+            q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .from(offset)
+        .size(pageSize).build();
+    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+        .map(this::mapToDigitalSpecimen).toList();
+  }
+
+  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params) throws IOException {
+    var aggregationQueries = new HashMap<String, Aggregation>();
+    var queries = generateQueries(params);
+    for (var aggregationTerm : MappingTerms.getAggregationList()) {
+      aggregationQueries.put(aggregationTerm.getName(), AggregationBuilders.terms()
+          .field(aggregationTerm.getFullName()).build()._toAggregation());
+    }
+    var aggregationRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+        .query(
+            q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .aggregations(aggregationQueries).build();
+    var aggregations = client.search(aggregationRequest, ObjectNode.class).aggregations();
+    return collectResult(aggregations);
+  }
+
+  private Map<String, Map<String, Long>> collectResult(
+      Map<String, Aggregate> aggregations) {
+    var mapped = new HashMap<String, Map<String, Long>>();
+    for (var entry : aggregations.entrySet()) {
+      var aggregation = new LinkedHashMap<String, Long>();
+      if (entry.getValue()._get() instanceof StringTermsAggregate value) {
+        for (StringTermsBucket stringTermsBucket : value.buckets().array()) {
+          aggregation.put(stringTermsBucket.key(), stringTermsBucket.docCount());
+        }
+      } else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
+        for (LongTermsBucket stringTermsBucket : value.buckets().array()) {
+          aggregation.put(String.valueOf(stringTermsBucket.key()), stringTermsBucket.docCount());
+        }
+      }
+      mapped.put(entry.getKey(), aggregation);
+    }
+    return mapped;
+  }
 }

@@ -15,6 +15,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.time.Instant;
+import java.util.Map;
 
 public class TestUtils {
 
@@ -27,8 +28,12 @@ public class TestUtils {
   public static final String ID = PREFIX + "/" + SUFFIX;
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
+  public static final String SOURCE_SYSTEM_ID_1 = "20.5000.1025/3XA-8PT-SAY";
+  public static final String SOURCE_SYSTEM_ID_2 = "20.5000.1025/ANO-THE-RAY";
 
   public static final ObjectMapper MAPPER;
+  public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
+  public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
 
   static {
     var mapper = new ObjectMapper().findAndRegisterModules();
@@ -39,9 +44,6 @@ public class TestUtils {
     mapper.setSerializationInclusion(Include.NON_NULL);
     MAPPER = mapper.copy();
   }
-  public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
-
-  public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
 
   // Users
   public static JsonApiWrapper givenUserResponse() {
@@ -86,10 +88,18 @@ public class TestUtils {
     return givenDigitalSpecimen(id, "global_id_123123");
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId) throws JsonProcessingException {
-    return givenDigitalSpecimen(id, physicalId, 1);
+  public static DigitalSpecimen givenDigitalSpecimenSourceSystem(String id, String sourceSystem)
+      throws JsonProcessingException {
+    return givenDigitalSpecimen(id, "global_id_123123", 1, sourceSystem);
   }
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, int version)
+
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId)
+      throws JsonProcessingException {
+    return givenDigitalSpecimen(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
+  }
+
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, int version,
+      String sourceSystemId)
       throws JsonProcessingException {
     return new DigitalSpecimen(
         id,
@@ -103,8 +113,8 @@ public class TestUtils {
         "https://ror.org/0349vqz63",
         "Royal Botanic Garden Edinburgh Herbarium",
         "http://biocol.org/urn:lsid:biocol.org:col:15670",
-        "20.5000.1025/3XA-8PT-SAY",
-        givenSpecimenData(),
+        sourceSystemId,
+        givenSpecimenData(sourceSystemId),
         givenSpecimenOriginalData(),
         "http://data.rbge.org.uk/herb/E00586417");
   }
@@ -141,21 +151,30 @@ public class TestUtils {
             """, JsonNode.class);
   }
 
-  private static JsonNode givenSpecimenData() throws JsonProcessingException {
-    return MAPPER.readValue(
-        """
-            {
-              "dwca:id": "http://data.rbge.org.uk/herb/E00586417",
-              "ods:modified": "03/12/2012",
-              "ods:datasetId": "Royal Botanic Garden Edinburgh Herbarium",
-              "ods:objectType": "",
-              "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-              "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-              "ods:organisationId": "https://ror.org/0349vqz63",
-              "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
-              "ods:physicalSpecimenIdType": "cetaf",
-              "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"      
-            }
-            """, JsonNode.class);
+  private static JsonNode givenSpecimenData(String sourceSystemId) {
+    var node = MAPPER.createObjectNode();
+    node.put("dwca:id", "http://data.rbge.org.uk/herb/E00586417");
+    node.put("ods:modified", "03/12/2012");
+    node.put("ods:datasetId", "Royal Botanic Garden Edinburgh Herbarium");
+    node.put("ods:objectType", "");
+    node.put("dcterms:license", "http://creativecommons.org/licenses/by/4.0/legalcode");
+    node.put("ods:specimenName", "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.");
+    node.put("ods:organisationId", "https://ror.org/0349vqz63");
+    node.put("ods:sourceSystemId", sourceSystemId);
+    node.put("ods:physicalSpecimenIdType", "cetaf");
+    node.put("ods:physicalSpecimenCollection", "http://biocol.org/urn:lsid:biocol.org:col:15670");
+    node.put("ods:specimenName", "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.");
+    node.put("dwc:typeStatus", "holotype");
+    node.put("dwc:country", "Scotland");
+    node.put("ods:hasMedia", "true");
+    return node;
+  }
+
+  public static Map<String, Map<String, Long>> givenAggregationMap() {
+    return Map.of(
+        "sourceSystem", Map.of(SOURCE_SYSTEM_ID_1, 5L, SOURCE_SYSTEM_ID_2, 5L),
+        "typeStatus", Map.of("type", 10L),
+        "hasMedia", Map.of("true", 10L)
+    );
   }
 }

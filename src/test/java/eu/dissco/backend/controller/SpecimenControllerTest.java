@@ -1,7 +1,10 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
+import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_URI;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -9,7 +12,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +137,22 @@ class SpecimenControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(((JsonApiListResponseWrapper) result.getBody()).getData()).isEqualTo(
         givenDigitalSpecimenJsonApiDataList(2));
+  }
+
+  @Test
+  void testAggregation() throws Exception {
+    //Given
+    var paramMap = new MultiValueMapAdapter(Map.of("SourceSystemId", List.of(SOURCE_SYSTEM_ID_1)));
+    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+    given(service.aggregations(eq(paramMap), anyString())).willReturn(
+        new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+    // When
+    var result = controller.aggregation(paramMap, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(((JsonApiWrapper) result.getBody()).data()).isEqualTo(data);
   }
 
 }

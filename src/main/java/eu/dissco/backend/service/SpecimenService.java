@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
+import eu.dissco.backend.domain.MappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -48,31 +49,12 @@ public class SpecimenService {
       "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
       "hdl", "https://hdl.handle.net/",
       "dcterms", "http://purl.org/dc/terms/");
-  private final Map<String, String> paramMapping = createParamMapping();
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
   private final DigitalMediaObjectService digitalMediaObjectService;
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
-
-  private static Map<String, String> createParamMapping() {
-    var map = new HashMap<String, String>();
-    map.put("country", "digitalSpecimen.ods:attributes.dwc:country.keyword");
-    map.put("countryCode", "digitalSpecimen.ods:attributes.dwc:countryCode.keyword");
-    map.put("physicalSpecimenId", "digitalSpecimen.ods:physicalSpecimenId.keyword");
-    map.put(MIDS_LEVEL, MIDS_LEVEL);
-    map.put("typeStatus", "digitalSpecimen.ods:attributes.dwc:typeStatus.keyword");
-    map.put("license", "digitalSpecimen.ods:attributes.dcterms:license.keyword");
-    map.put("hasMedia", "digitalSpecimen.ods:attributes.ods:hasMedia.keyword");
-    map.put("organisationId", "digitalSpecimen.ods:attributes.ods:organisationId.keyword");
-    map.put("organisationName", "digitalSpecimen.ods:attributes.ods:organisationName.keyword");
-    map.put("sourceSystemId", "digitalSpecimen.ods:attributes.ods:sourceSystemId.keyword");
-    map.put("type", "digitalSpecimen.ods:type.keyword");
-    map.put("specimenName", "digitalSpecimen.ods:attributes.ods:specimenName");
-    map.put("q", "q");
-    return map;
-  }
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path) {
     var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize + 1);
@@ -267,7 +249,7 @@ public class SpecimenService {
       throws UnknownParameterException {
     var mappedParams = new HashMap<String, List<String>>();
     for (var entry : params.entrySet()) {
-      var mappedParam = paramMapping.get(entry.getKey());
+      var mappedParam = MappingTerms.getParamMapping().get(entry.getKey());
       if (mappedParam != null) {
         mappedParams.put(mappedParam, entry.getValue());
       } else {
@@ -275,5 +257,12 @@ public class SpecimenService {
       }
     }
     return mappedParams;
+  }
+
+  public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
+      throws IOException, UnknownParameterException {
+    var aggregations = elasticRepository.getAggregations(mapParams(params));
+    var dataNode = new JsonApiData("id", "aggregations", mapper.valueToTree(aggregations));
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 }

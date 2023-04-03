@@ -3,8 +3,12 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
+import static eu.dissco.backend.domain.MappingTerms.SOURCE_SYSTEM_ID;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -154,6 +158,32 @@ class ElasticSearchRepositoryIT {
 
     // Then
     assertThat(responseReceived).hasSize(pageSize);
+  }
+
+  @Test
+  void testAggregation() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      DigitalSpecimen specimen;
+      if (i < 5) {
+        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
+      } else {
+        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_2);
+      }
+      specimenTestRecords.add(specimen);
+    }
+
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.getAggregations(
+        Map.of(SOURCE_SYSTEM_ID.getFullName(), List.of(SOURCE_SYSTEM_ID_2)));
+
+    // Then
+    assertThat(responseReceived.get("midsLevel")).containsEntry("1", 5L);
+    assertThat(responseReceived.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
+    assertThat(responseReceived.get("sourceSystemId").get(SOURCE_SYSTEM_ID_1)).isNull();
   }
 
   @Test

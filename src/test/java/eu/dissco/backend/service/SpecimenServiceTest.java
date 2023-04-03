@@ -3,7 +3,10 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
@@ -187,7 +190,7 @@ class SpecimenServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
-        new JsonApiData(ID, "BotanySpecimen", givenDigitalSpecimen(ID, "123", version),
+        new JsonApiData(ID, "BotanySpecimen", givenDigitalSpecimen(ID, "123", version, SOURCE_SYSTEM_ID_1),
             MAPPER),
         new JsonApiLinks(SPECIMEN_PATH)
     );
@@ -372,6 +375,24 @@ class SpecimenServiceTest {
     // Then
     then(elasticRepository).shouldHaveNoInteractions();
   }
+  @Test
+  void testAggregation() throws IOException, UnknownParameterException {
+    // Given
+    var params = new HashMap<String, List<String>>();
+    params.put("sourceSystemId", List.of(SOURCE_SYSTEM_ID_1));
+    var map = new MultiValueMapAdapter<>(params);
+    var aggregationMap = givenAggregationMap();
+    given(elasticRepository.getAggregations(anyMap())).willReturn(aggregationMap);
+    var dataNode = new JsonApiData("id", "aggregations", MAPPER.valueToTree(aggregationMap));
+    var linksNode = new JsonApiLinks(SPECIMEN_PATH);
+    var expected = new JsonApiWrapper(dataNode, linksNode);
+
+    // When
+    var result = service.aggregations(map, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
 
 
   private String givenJsonLDString() {
@@ -393,7 +414,8 @@ class SpecimenServiceTest {
             "hdl" : "https://hdl.handle.net/",
             "ods" : "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
             "dwca" : "http://rs.tdwg.org/dwc/text/",
-            "dcterms" : "http://purl.org/dc/terms/"
+            "dcterms" : "http://purl.org/dc/terms/",
+            "dwc" : "http://rs.tdwg.org/dwc/terms/"
           },
           "ods:primarySpecimenData" : {
             "ods:midsLevel" : 1,
@@ -408,7 +430,10 @@ class SpecimenServiceTest {
             "ods:modified" : "03/12/2012",
             "ods:objectType" : "",
             "dcterms:license" : "http://creativecommons.org/licenses/by/4.0/legalcode",
-            "ods:sourceSystemId" : "20.5000.1025/3XA-8PT-SAY"
+            "ods:sourceSystemId" : "20.5000.1025/3XA-8PT-SAY",
+            "dwc:typeStatus" : "holotype",
+            "dwc:country" : "Scotland",
+            "ods:hasMedia" : "true"
           },
           "ods:sourceSystemId" : "hdl:20.5000.1025/3XA-8PT-SAY",
           "ods:hasSpecimenMedia" : [ "hdl:20.5000.1025XXX-XXX-YYY" ]
@@ -436,7 +461,10 @@ class SpecimenServiceTest {
               "ods:organisationId": "https://ror.org/0349vqz63",
               "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
               "ods:physicalSpecimenIdType": "cetaf",
-              "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670"
+              "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670",
+              "dwc:typeStatus": "holotype",
+              "dwc:country": "Scotland",
+              "ods:hasMedia": "true"
             },
             "ods:originalAttributes": {
               "dwc:class": "Malacostraca",
