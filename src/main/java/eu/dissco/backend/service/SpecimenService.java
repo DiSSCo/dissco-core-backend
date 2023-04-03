@@ -196,15 +196,20 @@ public class SpecimenService {
 
   private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList,
       int pageSize, int pageNumber, String path) {
-    var dataNodePlusOne = digitalSpecimenList.stream().map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper)).toList();
+    var dataNodePlusOne = digitalSpecimenList.stream()
+        .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
+        .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
+
   private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
-    var dataNodePlusOne = digitalSpecimenList.stream().map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper)).toList();
+    var dataNodePlusOne = digitalSpecimenList.stream()
+        .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
+        .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(params, pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
@@ -262,7 +267,8 @@ public class SpecimenService {
   public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
       throws IOException, UnknownParameterException {
     var aggregations = elasticRepository.getAggregations(mapParams(params));
-    var dataNode = new JsonApiData("id", "aggregations", mapper.valueToTree(aggregations));
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
+        mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 }

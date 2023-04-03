@@ -383,7 +383,7 @@ class SpecimenServiceTest {
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenAggregationMap();
     given(elasticRepository.getAggregations(anyMap())).willReturn(aggregationMap);
-    var dataNode = new JsonApiData("id", "aggregations", MAPPER.valueToTree(aggregationMap));
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations", MAPPER.valueToTree(aggregationMap));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
     var expected = new JsonApiWrapper(dataNode, linksNode);
 
