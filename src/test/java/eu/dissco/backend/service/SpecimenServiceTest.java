@@ -4,7 +4,6 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;

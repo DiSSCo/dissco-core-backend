@@ -1,9 +1,10 @@
 package eu.dissco.backend.domain;
 
-import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public enum MappingTerms {
   COUNTRY("country", "digitalSpecimen.ods:attributes.dwc:country.keyword"),
@@ -21,6 +22,8 @@ public enum MappingTerms {
   DATASET_ID("datasetId", "digitalSpecimen.ods:attributes.ods:datasetId.keyword"),
   QUERY("q", "q");
 
+  public static final Set<MappingTerms> aggregationList = getAggregationList();
+  private static final Map<String, String> paramMapping = getParamMapping();
   private final String name;
   private final String fullName;
 
@@ -29,7 +32,24 @@ public enum MappingTerms {
     this.fullName = fullName;
   }
 
-  public static Map<String, String> getParamMapping() {
+  public static Optional<String> getMappedTerm(String name) {
+    return Optional.ofNullable(paramMapping.get(name));
+  }
+
+  private static Set<MappingTerms> getAggregationList() {
+    var aggregationTerms = EnumSet.noneOf(MappingTerms.class);
+    aggregationTerms.add(COUNTRY);
+    aggregationTerms.add(MIDS_LEVEL);
+    aggregationTerms.add(TYPE_STATUS);
+    aggregationTerms.add(LICENSE);
+    aggregationTerms.add(HAS_MEDIA);
+    aggregationTerms.add(ORGANISATION_NAME);
+    aggregationTerms.add(SOURCE_SYSTEM_ID);
+    aggregationTerms.add(DATASET_ID);
+    return aggregationTerms;
+  }
+
+  private static Map<String, String> getParamMapping() {
     var paramMap = new HashMap<String, String>();
     paramMap.put(COUNTRY.name, COUNTRY.fullName);
     paramMap.put(COUNTRY_CODE.name, COUNTRY_CODE.fullName);
@@ -44,19 +64,6 @@ public enum MappingTerms {
     paramMap.put(SPECIMEN_NAME.name, SPECIMEN_NAME.fullName);
     paramMap.put(QUERY.name, QUERY.fullName);
     return paramMap;
-  }
-
-  public static List<MappingTerms> getAggregationList() {
-    var aggregationTerms = new ArrayList<MappingTerms>();
-    aggregationTerms.add(COUNTRY);
-    aggregationTerms.add(MIDS_LEVEL);
-    aggregationTerms.add(TYPE_STATUS);
-    aggregationTerms.add(LICENSE);
-    aggregationTerms.add(HAS_MEDIA);
-    aggregationTerms.add(ORGANISATION_NAME);
-    aggregationTerms.add(SOURCE_SYSTEM_ID);
-    aggregationTerms.add(DATASET_ID);
-    return aggregationTerms;
   }
 
   public String getName() {

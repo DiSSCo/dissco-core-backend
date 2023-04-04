@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.domain.MappingTerms.getMappedTerm;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -9,7 +10,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
-import eu.dissco.backend.domain.MappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -254,9 +254,9 @@ public class SpecimenService {
       throws UnknownParameterException {
     var mappedParams = new HashMap<String, List<String>>();
     for (var entry : params.entrySet()) {
-      var mappedParam = MappingTerms.getParamMapping().get(entry.getKey());
-      if (mappedParam != null) {
-        mappedParams.put(mappedParam, entry.getValue());
+      var mappedParam = getMappedTerm(entry.getKey());
+      if (mappedParam.isPresent()) {
+        mappedParams.put(mappedParam.get(), entry.getValue());
       } else {
         throw new UnknownParameterException("Parameter: " + entry.getKey() + " is not recognised");
       }

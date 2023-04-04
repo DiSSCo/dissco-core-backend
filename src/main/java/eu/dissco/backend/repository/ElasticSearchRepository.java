@@ -1,5 +1,6 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.domain.MappingTerms.aggregationList;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -18,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.MappingTerms;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -149,7 +148,7 @@ public class ElasticSearchRepository {
   public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params) throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
     var queries = generateQueries(params);
-    for (var aggregationTerm : MappingTerms.getAggregationList()) {
+    for (var aggregationTerm : aggregationList) {
       aggregationQueries.put(aggregationTerm.getName(), AggregationBuilders.terms()
           .field(aggregationTerm.getFullName()).build()._toAggregation());
     }
