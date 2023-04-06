@@ -1,18 +1,14 @@
 package eu.dissco.backend.domain.jsonapi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Value;
 
 @Value
 public class JsonApiData {
-  @JsonProperty("id")
   String id;
-  @JsonProperty("type")
   String type;
-  @JsonProperty("attributes")
   JsonNode attributes;
 
   @JsonCreator
