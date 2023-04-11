@@ -5,6 +5,7 @@ import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -33,7 +34,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
-  private static final String MONGO_DATE_FIELD = "$date";
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
@@ -57,7 +57,9 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
-    var annotationNode = mongoRepository.getByVersion(id, version, "annotation_provenance").get("annotation");
+    var eventNode = mongoRepository.getByVersion(id, version, "annotation_provenance");
+    var annotationNode = (ObjectNode) eventNode.get("annotation");
+    annotationNode.set("version", eventNode.get("version"));
     validateAnnotationNode(annotationNode);
     var type = annotationNode.get("type").asText();
     var dataNode = new JsonApiData(id, type, annotationNode);

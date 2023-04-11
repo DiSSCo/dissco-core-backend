@@ -6,6 +6,6 @@ public class ControllerUtils {
   protected static final String DEFAULT_PAGE_NUM = "1";
   protected static final String DEFAULT_PAGE_SIZE = "10";
   protected static final String SANDBOX_URI = "https://sandbox.dissco.tech";
-  public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+  public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 }
