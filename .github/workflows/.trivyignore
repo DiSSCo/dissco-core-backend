@@ -81,4 +81,5 @@ CVE-2022-1471
 # Issue: update from 6.0.7 -> 6.0.8
 # Severity: Critical
 # Note April 19: Updating spring boot caused this
-CVE-2022-1471
+CVE-2023-20863
+
