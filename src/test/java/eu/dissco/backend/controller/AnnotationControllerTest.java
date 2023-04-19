@@ -39,11 +39,6 @@ class AnnotationControllerTest {
   @Mock
   private AnnotationService service;
   @Mock
-  private KeycloakPrincipal<KeycloakSecurityContext> principal;
-  @Mock
-  private KeycloakSecurityContext securityContext;
-  @Mock
-  private AccessToken accessToken;
   private Authentication authentication;
   private AnnotationController controller;
 
@@ -207,9 +202,6 @@ class AnnotationControllerTest {
   }
 
   private void givenAuthentication(String userId) {
-    authentication = new TestingAuthenticationToken(principal, null);
-    given(principal.getKeycloakSecurityContext()).willReturn(securityContext);
-    given(securityContext.getToken()).willReturn(accessToken);
-    given(accessToken.getSubject()).willReturn(userId);
+    given(authentication.getName()).willReturn(userId);
   }
 }

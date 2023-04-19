@@ -66,19 +66,19 @@ CVE-2022-37434
 # Issue: Upgrade 1.4 -> 1.5
 # Severity: High
 # Status: Jira DD-446
-CVE-2023-24998
+#CVE-2023-24998
 
 # Date: April 12, 2023
 # Package: Spring Web
 # Issue: Upgrade Spring boot
 # Severity: Critical
 # Status: Jira DD-243
-CVE-2016-1000027
+#CVE-2016-1000027
 
 # Date: April 12, 2023
 # Package: Snakeyaml
 # Issue: Upgrade Spring boot
 # Severity: High, Critical
 # Status: Jira DD-243
-CVE-2022-1471
-CVE-2022-25857
+#CVE-2022-1471
+#CVE-2022-25857

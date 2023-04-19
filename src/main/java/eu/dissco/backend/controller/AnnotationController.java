@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
 import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,12 +15,8 @@ import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -93,7 +90,6 @@ public class AnnotationController {
     return ResponseEntity.ok(annotations);
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
@@ -111,7 +107,6 @@ public class AnnotationController {
     }
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
@@ -185,8 +180,6 @@ public class AnnotationController {
   }
 
   private String getNameFromToken(Authentication authentication) {
-    KeycloakPrincipal<? extends KeycloakSecurityContext> principal = (KeycloakPrincipal<?>) authentication.getPrincipal();
-    AccessToken token = principal.getKeycloakSecurityContext().getToken();
-    return token.getSubject();
+    return authentication.getName();
   }
 }
