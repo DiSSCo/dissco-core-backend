@@ -15,13 +15,9 @@ import eu.dissco.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,12 +26,6 @@ class UserControllerTest {
   @Mock
   private UserService service;
   @Mock
-  private KeycloakPrincipal<KeycloakSecurityContext> principal;
-  @Mock
-  private KeycloakSecurityContext securityContext;
-  @Mock
-  private AccessToken accessToken;
-
   private Authentication authentication;
   private UserController controller;
 
@@ -113,10 +103,7 @@ class UserControllerTest {
   }
 
   private void givenAuthentication(String userId) {
-    authentication = new TestingAuthenticationToken(principal, null);
-    given(principal.getKeycloakSecurityContext()).willReturn(securityContext);
-    given(securityContext.getToken()).willReturn(accessToken);
-    given(accessToken.getSubject()).willReturn(userId);
+    given(authentication.getName()).willReturn(userId);
   }
 
 }

@@ -9,9 +9,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,7 +41,6 @@ public class UserController {
     }
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping
   public ResponseEntity<JsonApiWrapper> createNewUser(Authentication authentication,
@@ -59,7 +55,6 @@ public class UserController {
         .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.data().getId())));
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> getUser(Authentication authentication,
@@ -97,9 +92,7 @@ public class UserController {
   }
 
   private String getNameFromToken(Authentication authentication) {
-    KeycloakPrincipal<? extends KeycloakSecurityContext> principal = (KeycloakPrincipal<?>) authentication.getPrincipal();
-    AccessToken token = principal.getKeycloakSecurityContext().getToken();
-    return token.getSubject();
+    return authentication.getName();
   }
 
 }

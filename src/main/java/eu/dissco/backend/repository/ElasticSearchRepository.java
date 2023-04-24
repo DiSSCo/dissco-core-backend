@@ -167,7 +167,7 @@ public class ElasticSearchRepository {
       var aggregation = new LinkedHashMap<String, Long>();
       if (entry.getValue()._get() instanceof StringTermsAggregate value) {
         for (StringTermsBucket stringTermsBucket : value.buckets().array()) {
-          aggregation.put(stringTermsBucket.key(), stringTermsBucket.docCount());
+          aggregation.put(stringTermsBucket.key().stringValue(), stringTermsBucket.docCount());
         }
       } else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
         for (LongTermsBucket stringTermsBucket : value.buckets().array()) {

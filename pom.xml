@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.8</version>
+    <version>3.0.6</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>eu.dissco</groupId>
@@ -16,15 +16,14 @@
   <description>Backend for DiSSCo frontend</description>
   <properties>
     <java.version>17</java.version>
-    <elasticsearch.version>8.3.1</elasticsearch.version>
+    <elasticsearch.version>8.7.0</elasticsearch.version>
     <jakarta.json.version>2.1.0</jakarta.json.version>
-    <spring-cloud-starter-openfeign.version>3.1.5</spring-cloud-starter-openfeign.version>
-    <feign-okhttp.version>12.1</feign-okhttp.version>
+    <spring-cloud-starter-openfeign.version>4.0.2</spring-cloud-starter-openfeign.version>
+    <feign-okhttp.version>12.3</feign-okhttp.version>
+    <springdoc.version>1.7.0</springdoc.version>
+    <mongodb-driver.version>3.12.13</mongodb-driver.version>
     <testcontainers.version>1.17.6</testcontainers.version>
-    <com.c4-soft.springaddons.version>4.5.1</com.c4-soft.springaddons.version>
-    <keycloak-adapter-bom.version>16.1.1</keycloak-adapter-bom.version>
-    <springdoc.version>1.6.14</springdoc.version>
-    <mongodb-driver.version>3.4.3</mongodb-driver.version>
+    <mockito-inline.version>5.2.0</mockito-inline.version>
     <sonar.organization>dissco</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.coverage.jacoco.xmlReportPaths>../app-it/target/site/jacoco-aggregate/jacoco.xml
@@ -39,19 +38,18 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
-      <dependency>
-        <groupId>org.keycloak.bom</groupId>
-        <artifactId>keycloak-adapter-bom</artifactId>
-        <version>${keycloak-adapter-bom.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -60,6 +58,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -77,6 +81,12 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-ui</artifactId>
       <version>${springdoc.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -97,10 +107,6 @@
       <version>${jakarta.json.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.keycloak</groupId>
-      <artifactId>keycloak-spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
@@ -108,6 +114,12 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-openfeign</artifactId>
       <version>${spring-cloud-starter-openfeign.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-fileupload</groupId>
+          <artifactId>commons-fileupload</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.github.openfeign</groupId>
@@ -119,7 +131,10 @@
       <artifactId>mongodb-driver</artifactId>
       <version>${mongodb-driver.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
@@ -139,18 +154,6 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.c4-soft.springaddons</groupId>
-      <artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-      <version>${com.c4-soft.springaddons.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.c4-soft.springaddons</groupId>
-      <artifactId>spring-addons-keycloak</artifactId>
-      <version>${com.c4-soft.springaddons.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -181,6 +184,12 @@
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>${mockito-inline.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -250,11 +259,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${javax-jaxb.version}</version>
           </dependency>
           <dependency>
             <groupId>org.glassfish.jaxb</groupId>
