@@ -14,6 +14,7 @@ import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -157,7 +158,8 @@ public class SpecimenController {
       @RequestParam MultiValueMap<String, String> params, HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request for aggregations");
-    var path = SANDBOX_URI + request.getRequestURI() + "?" + request.getQueryString();
+    var path = SANDBOX_URI + request.getRequestURI() + "?" + Objects.requireNonNullElse(
+        request.getQueryString(), "");
     var aggregations = service.aggregations(params, path);
     return ResponseEntity.ok(aggregations);
   }
