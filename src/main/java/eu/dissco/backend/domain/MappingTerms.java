@@ -20,6 +20,12 @@ public enum MappingTerms {
   SOURCE_SYSTEM_ID("sourceSystemId", "digitalSpecimen.ods:attributes.ods:sourceSystemId.keyword"),
   SPECIMEN_NAME("type", "digitalSpecimen.ods:type.keyword"),
   DATASET_ID("datasetId", "digitalSpecimen.ods:attributes.ods:datasetId.keyword"),
+  KINGDOM("kingdom", "digitalSpecimen.ods:attributes.dwc:kingdom.keyword"),
+  CLASS("class", "digitalSpecimen.ods:attributes.dwc:class.keyword"),
+  FAMILY("family", "digitalSpecimen.ods:attributes.dwc:family.keyword"),
+  GENUS("genus", "digitalSpecimen.ods:attributes.dwc:genus.keyword"),
+  ORDER("order", "digitalSpecimen.ods:attributes.dwc:order.keyword"),
+  PHYLUM("phylum", "digitalSpecimen.ods:attributes.dwc:phylum.keyword"),
   QUERY("q", "q");
 
   public static final Set<MappingTerms> aggregationList = getAggregationList();
@@ -46,6 +52,12 @@ public enum MappingTerms {
     aggregationTerms.add(ORGANISATION_NAME);
     aggregationTerms.add(SOURCE_SYSTEM_ID);
     aggregationTerms.add(DATASET_ID);
+    aggregationTerms.add(KINGDOM);
+    aggregationTerms.add(CLASS);
+    aggregationTerms.add(FAMILY);
+    aggregationTerms.add(GENUS);
+    aggregationTerms.add(ORDER);
+    aggregationTerms.add(PHYLUM);
     return aggregationTerms;
   }
 
@@ -62,6 +74,12 @@ public enum MappingTerms {
     paramMap.put(ORGANISATION_NAME.name, ORGANISATION_NAME.fullName);
     paramMap.put(SOURCE_SYSTEM_ID.name, SOURCE_SYSTEM_ID.fullName);
     paramMap.put(SPECIMEN_NAME.name, SPECIMEN_NAME.fullName);
+    paramMap.put(KINGDOM.name, KINGDOM.fullName);
+    paramMap.put(CLASS.name, CLASS.fullName);
+    paramMap.put(FAMILY.name, FAMILY.fullName);
+    paramMap.put(GENUS.name, GENUS.fullName);
+    paramMap.put(ORDER.name, ORDER.fullName);
+    paramMap.put(PHYLUM.name, PHYLUM.fullName);
     paramMap.put(QUERY.name, QUERY.fullName);
     return paramMap;
   }
