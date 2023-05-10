@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public enum MappingTerms {
+  TYPE("type", "digitalSpecimen.ods:type.keyword"),
   COUNTRY("country", "digitalSpecimen.ods:attributes.dwc:country.keyword"),
   COUNTRY_CODE("countryCode", "digitalSpecimen.ods:attributes.dwc:countryCode.keyword"),
   MIDS_LEVEL("midsLevel", "midsLevel"),
@@ -26,6 +27,9 @@ public enum MappingTerms {
   GENUS("genus", "digitalSpecimen.ods:attributes.dwc:genus.keyword"),
   ORDER("order", "digitalSpecimen.ods:attributes.dwc:order.keyword"),
   PHYLUM("phylum", "digitalSpecimen.ods:attributes.dwc:phylum.keyword"),
+  BASIS_OF_RECORD("basisOfRecord", "digitalSpecimen.ods:attributes.dwc:basisOfRecord.keyword"),
+  LIVING_OR_PRESERVED("livingOrPreserved",
+      "digitalSpecimen.ods:attributes.ods:livingOrPreserved.keyword"),
   QUERY("q", "q");
 
   public static final Set<MappingTerms> aggregationList = getAggregationList();
@@ -44,12 +48,14 @@ public enum MappingTerms {
 
   private static Set<MappingTerms> getAggregationList() {
     var aggregationTerms = EnumSet.noneOf(MappingTerms.class);
+    aggregationTerms.add(TYPE);
     aggregationTerms.add(COUNTRY);
     aggregationTerms.add(MIDS_LEVEL);
     aggregationTerms.add(TYPE_STATUS);
     aggregationTerms.add(LICENSE);
     aggregationTerms.add(HAS_MEDIA);
     aggregationTerms.add(ORGANISATION_NAME);
+    aggregationTerms.add(ORGANISATION_ID);
     aggregationTerms.add(SOURCE_SYSTEM_ID);
     aggregationTerms.add(DATASET_ID);
     aggregationTerms.add(KINGDOM);
@@ -58,11 +64,14 @@ public enum MappingTerms {
     aggregationTerms.add(GENUS);
     aggregationTerms.add(ORDER);
     aggregationTerms.add(PHYLUM);
+    aggregationTerms.add(BASIS_OF_RECORD);
+    aggregationTerms.add(LIVING_OR_PRESERVED);
     return aggregationTerms;
   }
 
   private static Map<String, String> getParamMapping() {
     var paramMap = new HashMap<String, String>();
+    paramMap.put(TYPE.getName(), TYPE.getFullName());
     paramMap.put(COUNTRY.name, COUNTRY.fullName);
     paramMap.put(COUNTRY_CODE.name, COUNTRY_CODE.fullName);
     paramMap.put(MIDS_LEVEL.name, MIDS_LEVEL.fullName);
@@ -70,7 +79,7 @@ public enum MappingTerms {
     paramMap.put(TYPE_STATUS.name, TYPE_STATUS.fullName);
     paramMap.put(LICENSE.name, LICENSE.fullName);
     paramMap.put(HAS_MEDIA.name, HAS_MEDIA.fullName);
-    paramMap.put(ORGANISATION_ID.name, ORGANISATION_NAME.fullName);
+    paramMap.put(ORGANISATION_ID.name, ORGANISATION_ID.fullName);
     paramMap.put(ORGANISATION_NAME.name, ORGANISATION_NAME.fullName);
     paramMap.put(SOURCE_SYSTEM_ID.name, SOURCE_SYSTEM_ID.fullName);
     paramMap.put(SPECIMEN_NAME.name, SPECIMEN_NAME.fullName);
@@ -80,6 +89,8 @@ public enum MappingTerms {
     paramMap.put(GENUS.name, GENUS.fullName);
     paramMap.put(ORDER.name, ORDER.fullName);
     paramMap.put(PHYLUM.name, PHYLUM.fullName);
+    paramMap.put(BASIS_OF_RECORD.name, BASIS_OF_RECORD.fullName);
+    paramMap.put(LIVING_OR_PRESERVED.name, LIVING_OR_PRESERVED.fullName);
     paramMap.put(QUERY.name, QUERY.fullName);
     return paramMap;
   }
