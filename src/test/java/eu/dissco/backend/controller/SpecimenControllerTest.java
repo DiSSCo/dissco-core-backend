@@ -152,7 +152,21 @@ class SpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(((JsonApiWrapper) result.getBody()).data()).isEqualTo(data);
+    assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+  }
+
+  @Test
+  void testDiscipline() throws Exception {
+    //Given
+    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+    given(service.discipline(anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+    // When
+    var result = controller.discipline(mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((result.getBody()).getData()).isEqualTo(data);
   }
 
 }

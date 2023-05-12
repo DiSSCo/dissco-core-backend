@@ -14,7 +14,6 @@ import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +36,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class SpecimenController {
 
   private final SpecimenService service;
+
+  private static String getPath(HttpServletRequest request) {
+    var path = SANDBOX_URI + request.getRequestURI();
+    var queryString = request.getQueryString();
+    if (queryString != null) {
+      return path + "?" + request.getQueryString();
+    }
+    return path;
+  }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -158,9 +166,17 @@ public class SpecimenController {
       @RequestParam MultiValueMap<String, String> params, HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request for aggregations");
-    var path = SANDBOX_URI + request.getRequestURI() + "?" + Objects.requireNonNullElse(
-        request.getQueryString(), "");
+    String path = getPath(request);
     var aggregations = service.aggregations(params, path);
+    return ResponseEntity.ok(aggregations);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "discipline", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> discipline(HttpServletRequest request) throws IOException {
+    log.info("Request for aggregations");
+    var path = SANDBOX_URI + request.getRequestURI();
+    var aggregations = service.discipline(path);
     return ResponseEntity.ok(aggregations);
   }
 }

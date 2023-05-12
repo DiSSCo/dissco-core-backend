@@ -23,6 +23,7 @@ public class TestUtils {
   public static final String TYPE = "users";
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
+  public static final String HANDLE = "https://hdl.handle.net/";
   public static final String PREFIX = "20.5000.1025";
   public static final String SUFFIX = "ABC-123-XYZ";
   public static final String ID = PREFIX + "/" + SUFFIX;
@@ -96,6 +97,11 @@ public class TestUtils {
   public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId)
       throws JsonProcessingException {
     return givenDigitalSpecimen(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
+  }
+
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, String sourceSystem)
+      throws JsonProcessingException {
+    return givenDigitalSpecimen(id, physicalId, 1, sourceSystem);
   }
 
   public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, int version,
