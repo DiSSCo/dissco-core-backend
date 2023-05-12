@@ -30,6 +30,7 @@ public enum MappingTerms {
   BASIS_OF_RECORD("basisOfRecord", "digitalSpecimen.ods:attributes.dwc:basisOfRecord.keyword"),
   LIVING_OR_PRESERVED("livingOrPreserved",
       "digitalSpecimen.ods:attributes.ods:livingOrPreserved.keyword"),
+  TOPIC_DISCIPLINE("topicDiscipline", "digitalSpecimen.ods:attributes.ods:topicDiscipline.keyword"),
   QUERY("q", "q");
 
   public static final Set<MappingTerms> aggregationList = getAggregationList();
@@ -66,6 +67,7 @@ public enum MappingTerms {
     aggregationTerms.add(PHYLUM);
     aggregationTerms.add(BASIS_OF_RECORD);
     aggregationTerms.add(LIVING_OR_PRESERVED);
+    aggregationTerms.add(TOPIC_DISCIPLINE);
     return aggregationTerms;
   }
 
@@ -91,6 +93,7 @@ public enum MappingTerms {
     paramMap.put(PHYLUM.name, PHYLUM.fullName);
     paramMap.put(BASIS_OF_RECORD.name, BASIS_OF_RECORD.fullName);
     paramMap.put(LIVING_OR_PRESERVED.name, LIVING_OR_PRESERVED.fullName);
+    paramMap.put(TOPIC_DISCIPLINE.name, TOPIC_DISCIPLINE.fullName);
     paramMap.put(QUERY.name, QUERY.fullName);
     return paramMap;
   }

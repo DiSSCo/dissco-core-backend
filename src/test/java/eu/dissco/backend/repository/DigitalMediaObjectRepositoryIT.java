@@ -1,7 +1,9 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
@@ -64,17 +66,15 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(pageOne).hasSize(pageSize);
     assertThat(pageTwo).hasSize(pageSize);
-    assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll);
+    assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
+        media -> givenDigitalMediaObject(HANDLE + media.id(), HANDLE + media.digitalSpecimenId(),
+            HANDLE + SOURCE_SYSTEM_ID_1)).toList());
   }
 
   @Test
   void testGetLatestDigitalMediaObjectById() throws JsonProcessingException {
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = new DigitalMediaObject(firstMediaObject.id(),
-        firstMediaObject.version() + 1, firstMediaObject.created(), firstMediaObject.type(),
-        firstMediaObject.digitalSpecimenId(), firstMediaObject.mediaUrl(),
-        firstMediaObject.format(), firstMediaObject.sourceSystemId(), firstMediaObject.data(),
-        firstMediaObject.originalData());
+    var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
 
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
     var specimen = givenDigitalSpecimen(ID_ALT);
@@ -84,7 +84,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     var receivedResponse = repository.getLatestDigitalMediaObjectById(ID);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(secondMediaObject);
+    assertThat(receivedResponse).isEqualTo(
+        givenDigitalMediaObject(HANDLE + ID, HANDLE + ID_ALT, HANDLE + SOURCE_SYSTEM_ID_1, 2));
   }
 
   @Test
@@ -104,7 +105,11 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
 
     // Then
-    assertThat(receivedResponse).hasSameElementsAs(postedMediaObjects);
+    assertThat(receivedResponse).hasSameElementsAs(
+        List.of(
+            givenDigitalMediaObject(HANDLE + ID, HANDLE + specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
+            givenDigitalMediaObject(HANDLE + "aa", HANDLE + specimenId,
+                HANDLE + SOURCE_SYSTEM_ID_1)));
   }
 
   @Test
@@ -114,8 +119,9 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = "specimenId";
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObject> mediaObjects = List.of(givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject(ID_ALT, specimenId));
+    List<DigitalMediaObject> mediaObjects = List.of(
+        givenDigitalMediaObject(ID, specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
+        givenDigitalMediaObject(ID_ALT, specimenId, HANDLE + SOURCE_SYSTEM_ID_1));
     postMediaObjects(mediaObjects);
 
     // When

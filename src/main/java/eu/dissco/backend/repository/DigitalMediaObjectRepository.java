@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,14 +59,15 @@ public class DigitalMediaObjectRepository {
 
   private DigitalMediaObject mapToMultiMediaObject(Record dbRecord) {
     try {
-      return new DigitalMediaObject(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
+      return new DigitalMediaObject(
+          HANDLE_STRING + dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ID),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.VERSION),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.CREATED),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.TYPE),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
+          HANDLE_STRING + dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL),
           dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.FORMAT),
-          dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
+          HANDLE_STRING + dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID),
           mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.DATA).data()),
           mapper.readTree(dbRecord.get(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data()));
     } catch (JsonProcessingException e) {

@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
@@ -28,10 +29,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
+import eu.dissco.backend.domain.MappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
@@ -44,6 +47,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -189,7 +193,8 @@ class SpecimenServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
-        new JsonApiData(ID, "BotanySpecimen", givenDigitalSpecimen(ID, "123", version, SOURCE_SYSTEM_ID_1),
+        new JsonApiData(HANDLE + ID, "BotanySpecimen",
+            givenDigitalSpecimen(HANDLE + ID, "123", version, HANDLE + SOURCE_SYSTEM_ID_1),
             MAPPER),
         new JsonApiLinks(SPECIMEN_PATH)
     );
@@ -278,9 +283,9 @@ class SpecimenServiceTest {
     params.put("q", List.of("Leucanthemum ircutianum"));
     var map = new MultiValueMapAdapter<>(params);
     given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize + 1))).willReturn(
-        givenDigitalSpecimenList(pageSize + 1));
+        Pair.of(11L, givenDigitalSpecimenList(pageSize + 1)));
     var linksNode = new JsonApiLinksFull(map, pageNum, pageSize, true, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode, new JsonApiMeta(11L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);
@@ -301,9 +306,10 @@ class SpecimenServiceTest {
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
-        givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize, false, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
+        Pair.of(10L, givenDigitalSpecimenList(pageSize)));
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
+        false, SPECIMEN_PATH);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode, new JsonApiMeta(10L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);
@@ -324,9 +330,10 @@ class SpecimenServiceTest {
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
-        givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize, false, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
+        Pair.of(10L, givenDigitalSpecimenList(pageSize)));
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
+        false, SPECIMEN_PATH);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode, new JsonApiMeta(10L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);
@@ -349,9 +356,10 @@ class SpecimenServiceTest {
         List.of("France", "Albania"), "digitalSpecimen.ods:attributes.dwc:typeStatus.keyword",
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
-        givenDigitalSpecimenList(pageSize));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(params),pageNum, pageSize, false, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode);
+        Pair.of(10L, givenDigitalSpecimenList(pageSize)));
+    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(params), pageNum, pageSize,
+        false, SPECIMEN_PATH);
+    var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode, new JsonApiMeta(10L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);
@@ -374,6 +382,7 @@ class SpecimenServiceTest {
     // Then
     then(elasticRepository).shouldHaveNoInteractions();
   }
+
   @Test
   void testAggregation() throws IOException, UnknownParameterException {
     // Given
@@ -382,12 +391,30 @@ class SpecimenServiceTest {
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenAggregationMap();
     given(elasticRepository.getAggregations(anyMap())).willReturn(aggregationMap);
-    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations", MAPPER.valueToTree(aggregationMap));
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
+        MAPPER.valueToTree(aggregationMap));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
     var expected = new JsonApiWrapper(dataNode, linksNode);
 
     // When
     var result = service.aggregations(map, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testDiscipline() throws IOException {
+    // Given
+    var aggregation = Pair.of(352009L, Map.of("topicDiscipline", Map.of("Zoology", 349555L, "Astrogeology", 2454L)));
+    given(elasticRepository.getAggregation(MappingTerms.TOPIC_DISCIPLINE)).willReturn(aggregation);
+    var dataNode = new JsonApiData(String.valueOf(SPECIMEN_PATH.hashCode()), "aggregations",
+        MAPPER.valueToTree(aggregation.getRight()));
+    var linksNode = new JsonApiLinks(SPECIMEN_PATH);
+    var expected = new JsonApiWrapper(dataNode, linksNode, new JsonApiMeta(352009L));
+
+    // When
+    var result = service.discipline(SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
