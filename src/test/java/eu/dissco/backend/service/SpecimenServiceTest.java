@@ -186,10 +186,34 @@ class SpecimenServiceTest {
   }
 
   @Test
+  void testGetSpecimenByVersionFull() throws Exception {
+    // Given
+    int version = 4;
+    var specimen = givenMongoDBResponse();
+    var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
+    var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
+    given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
+        specimen);
+    given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
+    var attributeNode = MAPPER.valueToTree(
+        new DigitalSpecimenFull(givenDigitalSpecimen(HANDLE + ID, "123", version, HANDLE + SOURCE_SYSTEM_ID_1),
+            digitalMedia, annotations));
+    var expected = new JsonApiWrapper(new JsonApiData(ID, "BotanySpecimen", attributeNode),
+        new JsonApiLinks(ANNOTATION_PATH));
+
+    // When
+    var result = service.getSpecimenByVersionFull(ID, 4, ANNOTATION_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testSpecimenByVersion() throws Exception {
     // Given
     int version = 4;
-    var specimen = givenMongoDBMediaResponse();
+    var specimen = givenMongoDBResponse();
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
@@ -467,7 +491,7 @@ class SpecimenServiceTest {
   }
 
 
-  private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
+  private JsonNode givenMongoDBResponse() throws JsonProcessingException {
     return MAPPER.readValue("""
            {
           "id": "20.5000.1025/ABC-123-XYZ",

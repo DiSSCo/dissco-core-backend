@@ -10,7 +10,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
-import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -95,9 +94,21 @@ public class SpecimenController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for specimen with id: {}", id);
+    log.info("Received get request for full specimen with id: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.getSpecimenByIdFull(id, path);
+    return ResponseEntity.ok(specimen);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{suffix}/{version}/full", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getSpecimenByVersionFull(@PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix, @PathVariable("version") int version,
+      HttpServletRequest request) throws NotFoundException, JsonProcessingException {
+    var id = prefix + '/' + suffix;
+    log.info("Received get request for full specimen with id: {} and version: {}", id, version);
+    var path = SANDBOX_URI + request.getRequestURI();
+    var specimen = service.getSpecimenByVersionFull(id, version, path);
     return ResponseEntity.ok(specimen);
   }
 
@@ -106,7 +117,7 @@ public class SpecimenController {
   public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, @PathVariable("version") int version,
       HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException, UnprocessableEntityException {
+      throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var path = SANDBOX_URI + request.getRequestURI();
