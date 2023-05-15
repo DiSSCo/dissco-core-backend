@@ -1,7 +1,10 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -50,7 +53,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     var result = repository.getLatestSpecimenById("20.5000.1025/ABC-123-XY3");
 
     // Then
-    assertThat(result).isEqualTo(givenDigitalSpecimen("20.5000.1025/ABC-123-XY3"));
+    assertThat(result).isEqualTo(givenDigitalSpecimenSourceSystem(HANDLE + "20.5000.1025/ABC-123-XY3", HANDLE + SOURCE_SYSTEM_ID_1));
   }
 
   private void populateSpecimenTable() throws JsonProcessingException {

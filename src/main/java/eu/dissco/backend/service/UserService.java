@@ -28,8 +28,8 @@ public class UserService {
   public JsonApiData createNewUser(JsonApiWrapper request)
       throws JsonProcessingException, ConflictException {
     checkType(request);
-    var requestUser = mapper.treeToValue(request.data().getAttributes(), User.class);
-    var id = request.data().getId();
+    var requestUser = mapper.treeToValue(request.getData().getAttributes(), User.class);
+    var id = request.getData().getId();
     var optionalUser = repository.find(id);
     if (optionalUser.isEmpty()) {
       var userResponse = repository.createNewUser(id, requestUser);
@@ -41,8 +41,8 @@ public class UserService {
   }
 
   private void checkType(JsonApiWrapper request) throws InvalidTypeException {
-    if (!TYPE.equals(request.data().getType())) {
-      log.warn("Type: {} is not relevant for users endpoint", request.data().getType());
+    if (!TYPE.equals(request.getData().getType())) {
+      log.warn("Type: {} is not relevant for users endpoint", request.getData().getType());
       throw new InvalidTypeException();
     }
   }
@@ -59,17 +59,17 @@ public class UserService {
   public JsonApiData updateUser(String id, JsonApiWrapper request)
       throws ConflictException, NotFoundException {
     checkType(request);
-    if (id.equals(request.data().getId())) {
+    if (id.equals(request.getData().getId())) {
       var optionalUser = repository.find(id);
       if (optionalUser.isPresent()) {
-        var user = repository.updateUser(id, request.data().getAttributes());
+        var user = repository.updateUser(id, request.getData().getAttributes());
         return new JsonApiData(id, TYPE, mapper.valueToTree(user));
       } else {
         log.warn("No user with id: {} is present in the database", id);
         throw new NotFoundException();
       }
     } else {
-      log.warn("ID: {} is equal to id in request: {}", id, request.data().getType());
+      log.warn("ID: {} is equal to id in request: {}", id, request.getData().getType());
       throw new InvalidIdException();
     }
   }

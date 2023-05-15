@@ -48,11 +48,11 @@ public class UserController {
       throws JsonProcessingException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId,
-        request.data().getId());
-    checkAuthorisation(tokenId, request.data().getId());
+        request.getData().getId());
+    checkAuthorisation(tokenId, request.getData().getId());
     var response = service.createNewUser(request);
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.data().getId())));
+        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.getData().getId())));
   }
 
   @ResponseStatus(HttpStatus.OK)

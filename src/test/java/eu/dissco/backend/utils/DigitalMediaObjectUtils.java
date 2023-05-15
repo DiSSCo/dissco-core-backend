@@ -3,6 +3,7 @@ package eu.dissco.backend.utils;
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,8 +29,21 @@ public class DigitalMediaObjectUtils {
   }
 
   public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId) {
-    return new DigitalMediaObject(mediaId, 1, CREATED, "2DImageObject", specimenId,
-        "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
+    return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, 1);
+  }
+
+  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId, int version) {
+    return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, version);
+  }
+  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+      String sourceSystemId){
+    return givenDigitalMediaObject(mediaId, specimenId, sourceSystemId, 1);
+  }
+
+  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+      String sourceSystemId, int version) {
+    return new DigitalMediaObject(mediaId, version, CREATED, "2DImageObject", specimenId,
+        "https://dissco.com", "image/jpeg", sourceSystemId,
         givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }
 

@@ -1,6 +1,8 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.domain.MappingTerms.aggregationList;
+import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.MappingTerms;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -84,18 +88,28 @@ public class ElasticSearchRepository {
     var annotation = json.get("annotation");
     var createdOn = parseDate(annotation.get(FIELD_CREATED));
     var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
-    return new AnnotationResponse(json.get("id").asText(), json.get("version").asInt(),
-        getText(annotation, "type"), getText(annotation, "motivation"), annotation.get("target"),
-        annotation.get("body"), annotation.get("preferenceScore").asInt(),
-        getText(annotation, "creator"), createdOn, annotation.get("generator"), generatedOn, null);
+    return new AnnotationResponse(
+        HANDLE_STRING + json.get("id").asText(),
+        json.get("version").asInt(),
+        getText(annotation, "type"),
+        getText(annotation, "motivation"),
+        annotation.get("target"),
+        annotation.get("body"),
+        annotation.get("preferenceScore").asInt(),
+        getText(annotation, "creator"),
+        createdOn,
+        annotation.get("generator"),
+        generatedOn,
+        null);
   }
 
   private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
     var digitalSpecimen = json.get("digitalSpecimen");
     var attributes = digitalSpecimen.get("ods:attributes");
+    addUrlToAttributes(attributes);
     var createdOn = parseDate(json.get(FIELD_CREATED));
     return new DigitalSpecimen(
-        json.get("id").asText(),
+        HANDLE_STRING + json.get("id").asText(),
         json.get("midsLevel").asInt(),
         json.get("version").asInt(),
         createdOn,
@@ -131,7 +145,7 @@ public class ElasticSearchRepository {
     }
   }
 
-  public List<DigitalSpecimen> search(Map<String, List<String>> params, int pageNumber,
+  public Pair<Long, List<DigitalSpecimen>> search(Map<String, List<String>> params, int pageNumber,
       int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
@@ -139,13 +153,18 @@ public class ElasticSearchRepository {
     var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
         .size(pageSize).build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
+    var searchResult = client.search(searchRequest, ObjectNode.class);
+    var totalHits = searchResult.hits().total().value();
+    var specimens = searchResult.hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
+    return Pair.of(totalHits, specimens);
   }
 
-  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params) throws IOException {
+  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params)
+      throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
     var queries = generateQueries(params);
     for (var aggregationTerm : aggregationList) {
@@ -167,7 +186,7 @@ public class ElasticSearchRepository {
       var aggregation = new LinkedHashMap<String, Long>();
       if (entry.getValue()._get() instanceof StringTermsAggregate value) {
         for (StringTermsBucket stringTermsBucket : value.buckets().array()) {
-          aggregation.put(stringTermsBucket.key(), stringTermsBucket.docCount());
+          aggregation.put(stringTermsBucket.key().stringValue(), stringTermsBucket.docCount());
         }
       } else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
         for (LongTermsBucket stringTermsBucket : value.buckets().array()) {
@@ -177,5 +196,18 @@ public class ElasticSearchRepository {
       mapped.put(entry.getKey(), aggregation);
     }
     return mapped;
+  }
+
+  public Pair<Long, Map<String, Map<String, Long>>> getAggregation(MappingTerms mappingTerm)
+      throws IOException {
+    var aggregationRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+        .aggregations(mappingTerm.getName(),
+            AggregationBuilders.terms().field(mappingTerm.getFullName()).build()._toAggregation())
+        .build();
+    var aggregation = client.search(aggregationRequest, ObjectNode.class);
+    var totalRecords = aggregation.hits().total().value();
+    var aggregationResult = collectResult(aggregation.aggregations());
+    return Pair.of(totalRecords, aggregationResult);
   }
 }

@@ -106,7 +106,7 @@ class SpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenAnnotations() throws Exception {
+  void testGetSpecimenAnnotations() {
     // When
     var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
 
@@ -152,7 +152,30 @@ class SpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(((JsonApiWrapper) result.getBody()).data()).isEqualTo(data);
+    assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+  }
+
+  @Test
+  void testDiscipline() throws Exception {
+    //Given
+    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+    given(service.discipline(anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+    // When
+    var result = controller.discipline(mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((result.getBody()).getData()).isEqualTo(data);
+  }
+
+  @Test
+  void testGetSpecimenByVersionFull() throws Exception {
+    // When
+    var result = controller.getSpecimenByVersionFull(PREFIX, SUFFIX, 1, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
 }

@@ -1,6 +1,9 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.domain.MappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.domain.MappingTerms.getMappedTerm;
+import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,11 +17,13 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.repository.RepositoryUtils;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
 import java.time.Instant;
@@ -28,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
@@ -40,6 +46,7 @@ public class SpecimenService {
   private static final String MIDS_LEVEL = "midsLevel";
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
+  private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
@@ -84,17 +91,28 @@ public class SpecimenService {
         new JsonApiLinks(path));
   }
 
+  public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
+      throws NotFoundException, JsonProcessingException {
+    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
+    var specimen = mapResultToSpecimen(specimenNode);
+    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
+    var annotation = annotationService.getAnnotationForTargetObject(id);
+    var attributeNode = mapper.valueToTree(
+        new DigitalSpecimenFull(specimen, digitalMedia, annotation));
+    return new JsonApiWrapper(new JsonApiData(id, specimen.type(), attributeNode),
+        new JsonApiLinks(path));
+  }
+
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    JsonApiData dataNode;
+    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
-    dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    var dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
-    var versionsList = mongoRepository.getVersions(id, "digital_specimen_provenance");
+    var versionsList = mongoRepository.getVersions(id, MONGODB_COLLECTION_NAME);
     var versionNode = createVersionNode(versionsList, mapper);
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode),
         new JsonApiLinks(path));
@@ -175,8 +193,9 @@ public class SpecimenService {
   private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
     var digitalSpecimen = result.get("digitalSpecimen");
     var attributes = digitalSpecimen.get("ods:attributes");
+    addUrlToAttributes(attributes);
     return new DigitalSpecimen(
-        result.get("id").asText(),
+        HANDLE_STRING + result.get("id").asText(),
         result.get(MIDS_LEVEL).asInt(),
         result.get("version").asInt(),
         Instant.ofEpochSecond(result.get("created").asInt()),
@@ -205,15 +224,17 @@ public class SpecimenService {
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList,
+  private JsonApiListResponseWrapper wrapListResponse(
+      Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
-    var dataNodePlusOne = digitalSpecimenList.stream()
+    var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
         .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(params, pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
+    return new JsonApiListResponseWrapper(dataNode, linksNode,
+        new JsonApiMeta(digitalSpecimenSearchResult.getLeft()));
   }
 
   public JsonApiListResponseWrapper search(MultiValueMap<String, String> params, String path)
@@ -271,4 +292,13 @@ public class SpecimenService {
         mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
+
+  public JsonApiWrapper discipline(String path) throws IOException {
+    var disciplineResult = elasticRepository.getAggregation(TOPIC_DISCIPLINE);
+    var dataNode = new JsonApiData(String.valueOf(path.hashCode()), "aggregations",
+        mapper.valueToTree(disciplineResult.getRight()));
+    return new JsonApiWrapper(dataNode,
+        new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
+  }
+
 }
