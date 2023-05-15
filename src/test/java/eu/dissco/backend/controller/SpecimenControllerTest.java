@@ -106,7 +106,7 @@ class SpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenAnnotations() throws Exception {
+  void testGetSpecimenAnnotations() {
     // When
     var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
 
@@ -167,6 +167,15 @@ class SpecimenControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat((result.getBody()).getData()).isEqualTo(data);
+  }
+
+  @Test
+  void testGetSpecimenByVersionFull() throws Exception {
+    // When
+    var result = controller.getSpecimenByVersionFull(PREFIX, SUFFIX, 1, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
 }

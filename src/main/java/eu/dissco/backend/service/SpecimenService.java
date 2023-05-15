@@ -46,6 +46,7 @@ public class SpecimenService {
   private static final String MIDS_LEVEL = "midsLevel";
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
+  private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
@@ -90,17 +91,28 @@ public class SpecimenService {
         new JsonApiLinks(path));
   }
 
+  public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
+      throws NotFoundException, JsonProcessingException {
+    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
+    var specimen = mapResultToSpecimen(specimenNode);
+    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
+    var annotation = annotationService.getAnnotationForTargetObject(id);
+    var attributeNode = mapper.valueToTree(
+        new DigitalSpecimenFull(specimen, digitalMedia, annotation));
+    return new JsonApiWrapper(new JsonApiData(id, specimen.type(), attributeNode),
+        new JsonApiLinks(path));
+  }
+
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var specimenNode = mongoRepository.getByVersion(id, version, "digital_specimen_provenance");
-    JsonApiData dataNode;
+    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
-    dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    var dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
-    var versionsList = mongoRepository.getVersions(id, "digital_specimen_provenance");
+    var versionsList = mongoRepository.getVersions(id, MONGODB_COLLECTION_NAME);
     var versionNode = createVersionNode(versionsList, mapper);
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode),
         new JsonApiLinks(path));
@@ -288,4 +300,5 @@ public class SpecimenService {
     return new JsonApiWrapper(dataNode,
         new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
   }
+
 }
