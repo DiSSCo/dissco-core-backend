@@ -451,7 +451,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearchTerm() throws IOException, UnknownParameterException {
+  void testSearchTermValue() throws IOException, UnknownParameterException {
     // Given
     var aggregation = Map.of("topicDiscipline", Map.of("Zoology", 349555L));
     given(elasticRepository.searchTermValue(TOPIC_DISCIPLINE.getName(),
@@ -468,6 +468,12 @@ class SpecimenServiceTest {
     assertThat(result).isEqualTo(expected);
   }
 
+  @Test
+  void testSearchTermUnknown(){
+    // When / Then
+    assertThatThrownBy(() -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH)).isInstanceOf(
+        UnknownParameterException.class);
+  }
 
   private String givenJsonLDString() {
     return """
