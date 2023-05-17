@@ -204,10 +204,21 @@ public class ElasticSearchRepository {
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .aggregations(mappingTerm.getName(),
             AggregationBuilders.terms().field(mappingTerm.getFullName()).build()._toAggregation())
+        .size(0)
         .build();
     var aggregation = client.search(aggregationRequest, ObjectNode.class);
     var totalRecords = aggregation.hits().total().value();
     var aggregationResult = collectResult(aggregation.aggregations());
     return Pair.of(totalRecords, aggregationResult);
+  }
+
+  public Map<String, Map<String, Long>> searchTermValue(String name, String field, String value) throws IOException {
+    var searchQuery = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+        .query( q -> q.prefix( m -> m.field(field).value(value)))
+        .aggregations(name, agg -> agg.terms(t -> t.field(field)))
+        .size(0)
+        .build();
+    var aggregation = client.search(searchQuery, ObjectNode.class);
+    return collectResult(aggregation.aggregations());
   }
 }
