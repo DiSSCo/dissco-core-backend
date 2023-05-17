@@ -102,7 +102,8 @@ public class SpecimenController {
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/{version}/full", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenByVersionFull(@PathVariable("prefix") String prefix,
+  public ResponseEntity<JsonApiWrapper> getSpecimenByVersionFull(
+      @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, @PathVariable("version") int version,
       HttpServletRequest request) throws NotFoundException, JsonProcessingException {
     var id = prefix + '/' + suffix;
@@ -189,6 +190,17 @@ public class SpecimenController {
     var path = SANDBOX_URI + request.getRequestURI();
     var aggregations = service.discipline(path);
     return ResponseEntity.ok(aggregations);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "searchTermValue", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> searchTermValue(
+      @RequestParam String term, @RequestParam String value, HttpServletRequest request)
+      throws IOException, UnknownParameterException {
+    log.info("Request text search for term value of term: {} with value: {}", term, value);
+    String path = getPath(request);
+    var result = service.searchTermValue(term, value, path);
+    return ResponseEntity.ok(result);
   }
 }
 

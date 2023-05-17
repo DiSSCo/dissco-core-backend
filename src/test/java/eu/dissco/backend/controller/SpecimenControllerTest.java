@@ -178,4 +178,18 @@ class SpecimenControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
+  @Test
+  void testSearchTermValue() throws Exception {
+    //Given
+    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+    given(service.searchTermValue(anyString(), anyString(), anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+    // When
+    var result = controller.searchTermValue("sourceSystem", "20.500", mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat((result.getBody()).getData()).isEqualTo(data);
+  }
+
 }

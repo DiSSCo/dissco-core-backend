@@ -73,7 +73,7 @@ public enum MappingTerms {
 
   private static Map<String, String> getParamMapping() {
     var paramMap = new HashMap<String, String>();
-    paramMap.put(TYPE.getName(), TYPE.getFullName());
+    paramMap.put(TYPE.name, TYPE.fullName);
     paramMap.put(COUNTRY.name, COUNTRY.fullName);
     paramMap.put(COUNTRY_CODE.name, COUNTRY_CODE.fullName);
     paramMap.put(MIDS_LEVEL.name, MIDS_LEVEL.fullName);

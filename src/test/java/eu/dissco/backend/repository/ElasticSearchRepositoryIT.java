@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import eu.dissco.backend.domain.MappingTerms;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ import org.testcontainers.utility.DockerImageName;
 class ElasticSearchRepositoryIT {
 
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
-      "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.6.1");
+      "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.7.1");
   private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
   private static final String ANNOTATION_INDEX = "annotation";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
@@ -215,6 +214,31 @@ class ElasticSearchRepositoryIT {
     assertThat(aggregation.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
     assertThat(aggregation.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_1, 5L);
     assertThat(responseReceived.getLeft()).isEqualTo(10L);
+  }
+
+  @Test
+  void testSearchTermValue() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      DigitalSpecimen specimen;
+      if (i < 5) {
+        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
+      } else {
+        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_2);
+      }
+      specimenTestRecords.add(specimen);
+    }
+
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.searchTermValue(SOURCE_SYSTEM_ID.getName(),
+        SOURCE_SYSTEM_ID.getFullName(), "20.5000.1025/AN");
+
+    // Then
+    assertThat(responseReceived.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
+    assertThat(responseReceived.get("sourceSystemId")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
   }
 
   @Test

@@ -23,7 +23,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.repository.RepositoryUtils;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
 import java.time.Instant;
@@ -47,6 +46,7 @@ public class SpecimenService {
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
   private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
+  private static final String AGGREGATIONS_TYPE = "aggregations";
   private final Map<String, String> prefixMap = Map.of(
       "dct", "http://purl.org/dc/terms/",
       "dwc", "http://rs.tdwg.org/dwc/terms/",
@@ -242,7 +242,7 @@ public class SpecimenService {
     var pageNumber = getIntParam("pageNumber", params, DEFAULT_PAGE_NUM);
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
-    var specimenPlusOne = elasticRepository.search(mapParams(params), pageNumber, pageSize + 1);
+    var specimenPlusOne = elasticRepository.search(mapParamsKeyword(params), pageNumber, pageSize + 1);
     return wrapListResponse(specimenPlusOne, pageNumber, pageSize, params, path);
   }
 
@@ -271,7 +271,7 @@ public class SpecimenService {
     }
   }
 
-  private Map<String, List<String>> mapParams(MultiValueMap<String, String> params)
+  private Map<String, List<String>> mapParamsKeyword(MultiValueMap<String, String> params)
       throws UnknownParameterException {
     var mappedParams = new HashMap<String, List<String>>();
     for (var entry : params.entrySet()) {
@@ -287,18 +287,30 @@ public class SpecimenService {
 
   public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
       throws IOException, UnknownParameterException {
-    var aggregations = elasticRepository.getAggregations(mapParams(params));
-    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
+    var aggregations = elasticRepository.getAggregations(mapParamsKeyword(params));
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiWrapper discipline(String path) throws IOException {
     var disciplineResult = elasticRepository.getAggregation(TOPIC_DISCIPLINE);
-    var dataNode = new JsonApiData(String.valueOf(path.hashCode()), "aggregations",
+    var dataNode = new JsonApiData(String.valueOf(path.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(disciplineResult.getRight()));
     return new JsonApiWrapper(dataNode,
         new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
   }
 
+  public JsonApiWrapper searchTermValue(String name, String value, String path)
+      throws UnknownParameterException, IOException {
+    var mappedTerm = getMappedTerm(name);
+    if (mappedTerm.isPresent()){
+      var aggregations = elasticRepository.searchTermValue(name, mappedTerm.get(), value);
+      var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
+          mapper.valueToTree(aggregations));
+      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+    } else {
+      throw new UnknownParameterException("Parameter: " + name + " is not recognised");
+    }
+  }
 }

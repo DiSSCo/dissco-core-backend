@@ -3,7 +3,6 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
 import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
-import jakarta.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +13,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.AnnotationService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
