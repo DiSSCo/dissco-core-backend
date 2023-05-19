@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.FORBIDDEN_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -65,6 +66,28 @@ class RestResponseEntityExceptionHandlerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  void testIllegalArgumentException() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new IllegalArgumentException());
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void testUnknownParameterException() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new IllegalArgumentException());
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
 }
