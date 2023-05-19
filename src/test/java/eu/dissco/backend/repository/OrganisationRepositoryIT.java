@@ -1,6 +1,5 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.database.jooq.Tables.ORGANISATION_DO;
 import static eu.dissco.backend.utils.OrganisationUtils.COUNTRY;
 import static eu.dissco.backend.utils.OrganisationUtils.ORGANISATION;
@@ -61,7 +60,7 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getOrganisations(1,1 );
+    var result = repository.getOrganisations(1,2 );
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
@@ -81,12 +80,11 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getCountries(1,1);
+    var result = repository.getCountries(1,2);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
   }
-
 
   private void postToDb(List<OrganisationRecord> organisations) {
     List<Query> queryList = new ArrayList<>();
