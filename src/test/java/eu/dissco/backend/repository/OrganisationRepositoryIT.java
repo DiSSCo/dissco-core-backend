@@ -21,7 +21,7 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
 
   @BeforeEach
   void setup() {
-    repository = new OrganisationRepository(context, MAPPER);
+    repository = new OrganisationRepository(context);
   }
 
   @AfterEach
@@ -41,7 +41,7 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     var expected = List.of(ORGANISATION.name(), museum.name());
 
     // When
-    var result = repository.getOrganisationNames();
+    var result = repository.getOrganisationNames(1,2);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
@@ -61,7 +61,7 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getOrganisations();
+    var result = repository.getOrganisations(1,1 );
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
@@ -81,7 +81,7 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getCountries();
+    var result = repository.getCountries(1,1);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);

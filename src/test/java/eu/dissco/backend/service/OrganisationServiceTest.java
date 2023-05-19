@@ -23,7 +23,6 @@ class OrganisationServiceTest {
   private OrganisationService service;
   @Mock
   private OrganisationRepository repository;
-
   @BeforeEach
   void setup(){
     service = new OrganisationService(repository, MAPPER);
@@ -33,10 +32,12 @@ class OrganisationServiceTest {
   void testGetOrganisationNames(){
     // Given
     List<String> expected = List.of("a", "b");
-    given(repository.getOrganisationNames()).willReturn(expected);
+    int pageNum = 1;
+    int pageSize = expected.size();
+    given(repository.getOrganisationNames(pageNum, pageSize)).willReturn(expected);
 
     // When
-    var result = service.getOrganisationNames();
+    var result = service.getOrganisationNames(pageNum, pageSize);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -45,11 +46,13 @@ class OrganisationServiceTest {
   @Test
   void testGetOrganisations(){
     // Given
-    given(repository.getOrganisations()).willReturn(List.of(ORGANISATION));
+    int pageNum = 1;
+    int pageSize = 1;
+    given(repository.getOrganisations(pageNum, pageSize)).willReturn(List.of(ORGANISATION));
     var expected = givenOrganisationJsonApiWrapper();
 
     // When
-    var received = service.getOrganisations(ORGANISATION_PATH);
+    var received = service.getOrganisations(ORGANISATION_PATH, pageNum, pageSize);
 
     // Then
     assertThat(received).isEqualTo(expected);
@@ -58,11 +61,13 @@ class OrganisationServiceTest {
   @Test
   void testGetCountries(){
     // Given
-    given(repository.getCountries()).willReturn(List.of(COUNTRY));
+    int pageNum = 1;
+    int pageSize = 1;
+    given(repository.getCountries(pageNum, pageSize )).willReturn(List.of(COUNTRY));
     var expected = givenCountryJsonApiWrapper();
 
     // When
-    var received = service.getCountries(ORGANISATION_PATH);
+    var received = service.getCountries(ORGANISATION_PATH, pageNum, pageSize);
 
     // Then
     assertThat(received).isEqualTo(expected);

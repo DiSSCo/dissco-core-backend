@@ -30,7 +30,7 @@ class OrganisationControllerTest {
   @Test
   void testGetOrganisationNames(){
     // When
-    var result = controller.getOrganisationNames();
+    var result = controller.getOrganisationNames(1,1);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -39,7 +39,7 @@ class OrganisationControllerTest {
   @Test
   void testGetOrganisations() {
     // When
-    var result = controller.getOrganisations(mockRequest);
+    var result = controller.getOrganisations(1,1, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -48,7 +48,7 @@ class OrganisationControllerTest {
   @Test
   void testGetCountries() {
     // When
-    var result = controller.getOrganisationCountries(mockRequest);
+    var result = controller.getOrganisationCountries(1,1,mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
