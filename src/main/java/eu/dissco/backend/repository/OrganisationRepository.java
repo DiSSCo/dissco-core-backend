@@ -20,34 +20,36 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class OrganisationRepository {
 
-    private final DSLContext context;
+  private final DSLContext context;
 
-    public List<String> getOrganisationNames(int pageNumber, int pageSize) {
-      int offset = getOffset(pageNumber, pageSize);
-        return context.select(ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
-                .limit(pageSize).offset(offset).fetch(Record1::value1);
-    }
+  public List<String> getOrganisationNames(int pageNumber, int pageSize) {
+    int offset = getOffset(pageNumber, pageSize);
+    return context.select(ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
+        .limit(pageSize).offset(offset).fetch(Record1::value1);
+  }
 
-    public List<OrganisationTuple> getOrganisations(int pageNumber, int pageSize) {
-        int offset = getOffset(pageNumber, pageSize);
-        return context.select(ORGANISATION_DO.ID, ORGANISATION_DO.ORGANISATION_NAME).from(ORGANISATION_DO)
-                .limit(pageSize).offset(offset).fetch(this::mapToOrganisation);
-    }
+  public List<OrganisationTuple> getOrganisations(int pageNumber, int pageSize) {
+    int offset = getOffset(pageNumber, pageSize);
+    return context.select(ORGANISATION_DO.ID, ORGANISATION_DO.ORGANISATION_NAME)
+        .from(ORGANISATION_DO)
+        .limit(pageSize).offset(offset).fetch(this::mapToOrganisation);
+  }
 
-    private OrganisationTuple mapToOrganisation(Record dbRecord) {
-        return new OrganisationTuple(dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME), dbRecord.get(ORGANISATION_DO.ID));
-    }
+  private OrganisationTuple mapToOrganisation(Record dbRecord) {
+    return new OrganisationTuple(dbRecord.get(ORGANISATION_DO.ORGANISATION_NAME),
+        dbRecord.get(ORGANISATION_DO.ID));
+  }
 
-    public List<Country> getCountries(int pageNumber, int pageSize) {
-        int offset = getOffset(pageNumber, pageSize);
-        return context.selectDistinct(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE)
-                .from(ORGANISATION_DO)
-                .groupBy(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE)
-                .limit(pageSize).offset(offset).fetch(this::mapCountry);
-    }
+  public List<Country> getCountries(int pageNumber, int pageSize) {
+    int offset = getOffset(pageNumber, pageSize);
+    return context.selectDistinct(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE)
+        .from(ORGANISATION_DO)
+        .groupBy(ORGANISATION_DO.COUNTRY, ORGANISATION_DO.COUNTRY_CODE)
+        .limit(pageSize).offset(offset).fetch(this::mapCountry);
+  }
 
-
-    private Country mapCountry(Record dbRecord) {
-        return new Country(dbRecord.get(ORGANISATION_DO.COUNTRY), dbRecord.get(ORGANISATION_DO.COUNTRY_CODE));
-    }
+  private Country mapCountry(Record dbRecord) {
+    return new Country(dbRecord.get(ORGANISATION_DO.COUNTRY),
+        dbRecord.get(ORGANISATION_DO.COUNTRY_CODE));
+  }
 }

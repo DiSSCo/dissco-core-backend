@@ -29,58 +29,62 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetOrganisationNames(){
+  void testGetOrganisationNames() {
     // Given
     var museum = new OrganisationTuple("Museum für Naturkunde", "2");
     List<OrganisationRecord> organisationRecords = List.of(
-        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
+        new OrganisationRecord(ORGANISATION.ror(), ORGANISATION.name(), COUNTRY.country(),
+            COUNTRY.countryCode()),
         new OrganisationRecord(museum.ror(), museum.name(), "germany", "DE")
     );
     postToDb(organisationRecords);
     var expected = List.of(ORGANISATION.name(), museum.name());
 
     // When
-    var result = repository.getOrganisationNames(1,2);
+    var result = repository.getOrganisationNames(1, 2);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
   }
 
   @Test
-  void testGetOrganisations(){
+  void testGetOrganisations() {
 
     // Given
     var museum = new OrganisationTuple("Museum für Naturkunde", "2");
     var expected = List.of(ORGANISATION, museum);
 
     List<OrganisationRecord> organisationRecords = List.of(
-        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
+        new OrganisationRecord(ORGANISATION.ror(), ORGANISATION.name(), COUNTRY.country(),
+            COUNTRY.countryCode()),
         new OrganisationRecord(museum.ror(), museum.name(), "germany", "DE")
     );
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getOrganisations(1,2 );
+    var result = repository.getOrganisations(1, 2);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
   }
 
   @Test
-  void testGetCountries(){
+  void testGetCountries() {
 
     // Given
     Country germany = new Country("Germany", "DE");
     var expected = List.of(COUNTRY, germany);
 
     List<OrganisationRecord> organisationRecords = List.of(
-        new OrganisationRecord(ORGANISATION.ror(),ORGANISATION.name(), COUNTRY.country(), COUNTRY.countryCode()),
-        new OrganisationRecord("2", "Museum für Naturkunde", germany.country(), germany.countryCode())
+        new OrganisationRecord(ORGANISATION.ror(), ORGANISATION.name(), COUNTRY.country(),
+            COUNTRY.countryCode()),
+        new OrganisationRecord("2", "Museum für Naturkunde", germany.country(),
+            germany.countryCode())
     );
     postToDb(organisationRecords);
 
     // When
-    var result = repository.getCountries(1,2);
+    var result = repository.getCountries(1, 2);
 
     // Then
     assertThat(result).hasSameElementsAs(expected);
@@ -99,5 +103,8 @@ class OrganisationRepositoryIT extends BaseRepositoryIT {
     context.batch(queryList).execute();
   }
 
-  private record OrganisationRecord(String id, String orgName, String countryName, String countryCode) {}
+  private record OrganisationRecord(String id, String orgName, String countryName,
+                                    String countryCode) {
+
+  }
 }
