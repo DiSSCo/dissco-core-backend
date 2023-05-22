@@ -6,7 +6,6 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
-import eu.dissco.backend.exceptions.UnprocessableEntityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,10 +30,12 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ResponseStatus(HttpStatus.CONFLICT)
   @ExceptionHandler(ConflictException.class)
   public ResponseEntity<ExceptionResponseWrapper> handleException(ConflictException e) {
+
+    var message = "A conflict has occurred. Attempting to create a resource that already exists. ";
     var exceptionResponse =  new ExceptionResponseWrapper(
             HttpStatus.CONFLICT,
-            "Conflict",
-            e.getMessage()
+            "ID Conflict",
+            message
     );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponse);
   }
@@ -42,10 +43,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ExceptionResponseWrapper> handleException(NotFoundException e) {
+    var message = e.getMessage() == null ? "The requested resource was not found. " : e.getMessage();
     var exceptionResponse =  new ExceptionResponseWrapper(
             HttpStatus.NOT_FOUND,
             "Resource Not Found",
-            e.getMessage()
+            message
     );
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exceptionResponse);
   }
@@ -70,17 +72,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
-  }
-
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-  @ExceptionHandler(UnprocessableEntityException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handleException(UnprocessableEntityException e){
-    var exceptionResponse =  new ExceptionResponseWrapper(
-            HttpStatus.UNPROCESSABLE_ENTITY,
-            "Unprocessable Entity",
-            e.getMessage()
-    );
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)

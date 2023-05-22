@@ -33,6 +33,17 @@ class RestResponseEntityExceptionHandlerTest {
   }
 
   @Test
+  void testNotFoundExceptionMessage() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new NotFoundException(""));
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
   void testForbiddenException() {
     // Given
 
@@ -52,17 +63,6 @@ class RestResponseEntityExceptionHandlerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-  }
-
-  @Test
-  void testUnprocessableEntityException() {
-    // Given
-
-    // When
-    var result = exceptionHandler.handleException(new UnprocessableEntityException());
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   @Test
