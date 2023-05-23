@@ -3,10 +3,8 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.FORBIDDEN_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
-import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.UnprocessableEntityException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.exceptions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +33,17 @@ class RestResponseEntityExceptionHandlerTest {
   }
 
   @Test
+  void testNotFoundExceptionMessage() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new NotFoundException(""));
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
   void testForbiddenException() {
     // Given
 
@@ -57,14 +66,24 @@ class RestResponseEntityExceptionHandlerTest {
   }
 
   @Test
-  void testUnprocessableEntityException() {
+  void testIllegalArgumentException() {
     // Given
 
     // When
-    var result = exceptionHandler.handleException(new UnprocessableEntityException());
+    var result = exceptionHandler.handleException(new IllegalArgumentException());
 
     // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
+  @Test
+  void testUnknownParameterException() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new UnknownParameterException(""));
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 }
