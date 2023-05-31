@@ -3,11 +3,11 @@
 # Backend DiSSCo
 The DiSSCo backend provides APIs which can be used by other applications, such as [DiSSCover](https://sandbox.dissco.tech/).
 It handles the logic and preprocesses the items for serialization.
-In general the find/search APIs are open and APIs for create/update/delete are protected by Oauth (Keycloak).
+In general, the find/search APIs are open, and APIs for create, update and delete are protected by Oauth (Keycloak).
 
 All endpoints are based on the [JSON:API](https://jsonapi.org/) specification.
 It follows the guidelines and best practices described in [BiCIKL Deliverable 1.3](https://docs.google.com/document/d/1RgngKSPabEs-Pir6vA25iFDgVorbEZe7duT7L7vQ7QI)
-The organisation endpoints form an exception on this.
+The organisation endpoints are an exception.
 
 The backend provides APIs for the following objects:
 - Digital Specimens
@@ -47,7 +47,7 @@ It follows a generic structure.
 `{endpoint}/{prefix}/{suffix}`
 Optionally, this is followed by a version `/{version}` for a specific version.
 It can also be followed by a particular view on the data such as `/full`
-The full endpoint provide all specimen information including all connected information.
+The full endpoint provides all specimen information including all connected information.
 This means all annotations, all connected digital media objects and all annotations on the connected digital media objects.
 We also provide a JSON-LD view on the data on the `/jsonld` endpoint.
 This endpoint does not comply the JSON:API standard, but follows the [JSON-LD](https://json-ld.org/) implementation.
@@ -55,7 +55,7 @@ This endpoint does not comply the JSON:API standard, but follows the [JSON-LD](h
 Additionally, there are several aggregation and search endpoints.
 In general, they can by filtered by using the following structure.
 `/search?country=Netherlands&midsLevel=1&country=Finland`
-Multiple key=value pairs can be used.
+Multiple key-value pairs can be used.
 When one key should have multiple values, the same key can be repeated (see `country` in the example).
 This provides a generic way to filter searches and aggregations.
 For all terms on which can be filtered see [the MappingTerms class](./src/main/java/eu/dissco/backend/domain/MappingTerms.java).
