@@ -50,8 +50,7 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getLatestAnnotations(int pageNumber, int pageSize,
       String path) throws IOException {
-    var annotationsPlusOne = elasticRepository.getLatestAnnotations(pageNumber,
-        pageSize + 1);
+    var annotationsPlusOne = elasticRepository.getLatestAnnotations(pageNumber, pageSize);
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
@@ -68,7 +67,7 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getAnnotations(int pageNumber, int pageSize,
       String path) {
-    var annotationsPlusOne = repository.getAnnotations(pageNumber, pageSize + 1);
+    var annotationsPlusOne = repository.getAnnotations(pageNumber, pageSize);
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
@@ -106,9 +105,7 @@ public class AnnotationService {
 
   public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
       int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber,
-        pageSize + 1);
-
+    var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {

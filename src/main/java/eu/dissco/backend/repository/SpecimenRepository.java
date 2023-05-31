@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
@@ -26,10 +27,11 @@ public class SpecimenRepository {
 
   public List<DigitalSpecimen> getSpecimensLatest(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
         .from(NEW_DIGITAL_SPECIMEN)
         .offset(offset)
-        .limit(pageSize)
+        .limit(pageSizePlusOne)
         .fetch(this::mapToDigitalSpecimen);
   }
 

@@ -63,7 +63,7 @@ class DigitalMediaObjectServiceTest {
     var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, true);
     var dataNode = dataNodePlusOne.subList(0, pageSize);
     var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(repositoryResponse);
+    given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
 
     // When
     var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
@@ -82,7 +82,7 @@ class DigitalMediaObjectServiceTest {
     var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
     var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, false);
 
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize + 1)).willReturn(repositoryResponse);
+    given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
 
     var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
 

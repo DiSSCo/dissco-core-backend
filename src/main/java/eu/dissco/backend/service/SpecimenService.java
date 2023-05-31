@@ -64,13 +64,13 @@ public class SpecimenService {
   private final MongoRepository mongoRepository;
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path) {
-    var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize + 1);
+    var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize);
     return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
   public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
-    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize + 1);
+    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize );
     return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
@@ -242,7 +242,7 @@ public class SpecimenService {
     var pageNumber = getIntParam("pageNumber", params, DEFAULT_PAGE_NUM);
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
-    var specimenPlusOne = elasticRepository.search(mapParamsKeyword(params), pageNumber, pageSize + 1);
+    var specimenPlusOne = elasticRepository.search(mapParamsKeyword(params), pageNumber, pageSize);
     return wrapListResponse(specimenPlusOne, pageNumber, pageSize, params, path);
   }
 

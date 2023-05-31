@@ -83,7 +83,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(
-        repository.getAnnotationsForUser(userId, pageNumber, pageSize + 1)).willReturn(
+        repository.getAnnotationsForUser(userId, pageNumber, pageSize)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize+1));
 
     // When
@@ -141,7 +141,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    given(repository.getAnnotations(pageNumber, pageSize + 1)).willReturn(
+    given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize+1));
 
     // When
@@ -160,7 +160,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
-    given(repository.getAnnotations(pageNumber, pageSize + 1)).willReturn(
+    given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize));
 
     // When
@@ -178,7 +178,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
     var elasticResponse = Collections.nCopies(pageSize+1, givenAnnotationResponse());
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(elasticResponse);
+    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
@@ -194,7 +194,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, false);
     var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse());
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize + 1)).willReturn(elasticResponse);
+    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);

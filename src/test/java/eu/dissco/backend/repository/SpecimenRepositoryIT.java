@@ -40,7 +40,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     var resultPage2 = repository.getSpecimensLatest(2, 15);
 
     // Then
-    assertThat(resultPage1).hasSize(15);
+    assertThat(resultPage1).hasSize(16);
     assertThat(resultPage2).hasSize(7);
   }
 

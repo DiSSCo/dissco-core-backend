@@ -249,7 +249,7 @@ class ElasticSearchRepositoryIT {
     var givenSpecimens = new ArrayList<DigitalSpecimen>();
     var responseExpected = new ArrayList<DigitalSpecimen>();
 
-    for (int i = 0; i < pageSize; i++) {
+    for (int i = 0; i < pageSize + 1; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
       responseExpected.add(
           givenDigitalSpecimenSourceSystem(HANDLE + PREFIX + "/" + i, HANDLE + SOURCE_SYSTEM_ID_1));
@@ -265,7 +265,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
+    assertThat(responseReceived).hasSize(11).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -307,7 +307,7 @@ class ElasticSearchRepositoryIT {
     int pageSize = 10;
     List<AnnotationResponse> givenAnnotations = new ArrayList<>();
     List<AnnotationResponse> expected = new ArrayList<>();
-    for (int i = 0; i < pageSize; i++) {
+    for (int i = 0; i < pageSize + 1; i++) {
       String id = PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
       expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
@@ -323,7 +323,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(expected);
+    assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
   }
 
   private List<JsonNode> parseAnnotationToElasticFormat(List<AnnotationResponse> annotations) {

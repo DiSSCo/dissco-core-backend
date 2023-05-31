@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.domain.MappingTerms.aggregationList;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
@@ -65,9 +66,11 @@ public class ElasticSearchRepository {
 
   public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
-        .size(pageSize).build();
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
+        .from(offset)
+        .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
   }
@@ -75,11 +78,11 @@ public class ElasticSearchRepository {
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
-
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
         .index(ANNOTATION_INDEX)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
-        .size(pageSize).build();
+        .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
   }
@@ -149,13 +152,14 @@ public class ElasticSearchRepository {
       int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var queries = generateQueries(params);
     var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
-        .size(pageSize).build();
+        .size(pageSizePlusOne).build();
     var searchResult = client.search(searchRequest, ObjectNode.class);
     var totalHits = searchResult.hits().total().value();
     var specimens = searchResult.hits().hits().stream().map(Hit::source)
@@ -212,9 +216,10 @@ public class ElasticSearchRepository {
     return Pair.of(totalRecords, aggregationResult);
   }
 
-  public Map<String, Map<String, Long>> searchTermValue(String name, String field, String value) throws IOException {
+  public Map<String, Map<String, Long>> searchTermValue(String name, String field, String value)
+      throws IOException {
     var searchQuery = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
-        .query( q -> q.prefix( m -> m.field(field).value(value)))
+        .query(q -> q.prefix(m -> m.field(field).value(value)))
         .aggregations(name, agg -> agg.terms(t -> t.field(field)))
         .size(0)
         .build();
