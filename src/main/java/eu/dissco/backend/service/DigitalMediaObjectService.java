@@ -30,7 +30,7 @@ public class DigitalMediaObjectService {
   // Controller Functions
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
       String path) {
-    var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize+1);
+    var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     mediaPlusOne.forEach(media -> dataNodePlusOne.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);

@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,11 +30,12 @@ public class AnnotationRepository {
   }
 
   public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
+    var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .orderBy(NEW_ANNOTATION.CREATED.desc())
-        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
+        .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
   public int getAnnotationForUser(String id, String userId) {
@@ -48,12 +50,12 @@ public class AnnotationRepository {
   public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
       int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
-
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
         .where(NEW_ANNOTATION.CREATOR.eq(userId))
         .orderBy(NEW_ANNOTATION.CREATED)
-        .limit(pageSize).offset(offset).fetch(this::mapToAnnotation);
+        .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
   public List<AnnotationResponse> getForTarget(String id) {

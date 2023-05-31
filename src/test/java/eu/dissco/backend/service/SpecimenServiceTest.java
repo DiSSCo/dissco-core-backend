@@ -86,7 +86,7 @@ class SpecimenServiceTest {
 
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(digitalSpecimens);
+    given(repository.getSpecimensLatest(pageNum, pageSize)).willReturn(digitalSpecimens);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode);
 
     // When
@@ -104,7 +104,7 @@ class SpecimenServiceTest {
     var digitalSpecimens = List.of(givenDigitalSpecimen(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize + 1)).willReturn(digitalSpecimens);
+    given(repository.getSpecimensLatest(pageNum, pageSize)).willReturn(digitalSpecimens);
     var expected = new JsonApiListResponseWrapper(dataNode, linksNode);
 
     // When
@@ -121,7 +121,7 @@ class SpecimenServiceTest {
     int pageNum = 1;
     var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimen(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize + 1)).willReturn(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(specimens);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
         new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH));
 
@@ -139,7 +139,7 @@ class SpecimenServiceTest {
     int pageNum = 2;
     var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize + 1)).willReturn(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(specimens);
     var expected = new JsonApiListResponseWrapper(dataNode,
         new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH));
 
@@ -307,7 +307,7 @@ class SpecimenServiceTest {
     var params = new HashMap<String, List<String>>();
     params.put("q", List.of("Leucanthemum ircutianum"));
     var map = new MultiValueMapAdapter<>(params);
-    given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize + 1))).willReturn(
+    given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize))).willReturn(
         Pair.of(11L, givenDigitalSpecimenList(pageSize + 1)));
     var linksNode = new JsonApiLinksFull(map, pageNum, pageSize, true, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode,
@@ -331,7 +331,7 @@ class SpecimenServiceTest {
     params.put("pageNumber", List.of("2"));
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
-    given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
+    given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
         false, SPECIMEN_PATH);
@@ -356,7 +356,7 @@ class SpecimenServiceTest {
     params.put("pageNumber", List.of("randomString", "anotherRandomString"));
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
-    given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
+    given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
         false, SPECIMEN_PATH);
@@ -383,7 +383,7 @@ class SpecimenServiceTest {
     var mappedParam = Map.of("digitalSpecimen.ods:attributes.dwc:country.keyword",
         List.of("France", "Albania"), "digitalSpecimen.ods:attributes.dwc:typeStatus.keyword",
         List.of("holotype"));
-    given(elasticRepository.search(mappedParam, pageNum, pageSize + 1)).willReturn(
+    given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(params), pageNum, pageSize,
         false, SPECIMEN_PATH);

@@ -64,7 +64,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     mediaObjectsReceived.addAll(pageTwo);
 
     // Then
-    assertThat(pageOne).hasSize(pageSize);
+    assertThat(pageOne).hasSize(pageSize + 1);
     assertThat(pageTwo).hasSize(pageSize);
     assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
         media -> givenDigitalMediaObject(HANDLE + media.id(), HANDLE + media.digitalSpecimenId(),

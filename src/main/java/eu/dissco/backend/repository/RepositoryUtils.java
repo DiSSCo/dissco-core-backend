@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class RepositoryUtils {
 
   public static final String HANDLE_STRING = "https://hdl.handle.net/";
+  protected static final int ONE_TO_CHECK_NEXT = 1;
   private static final String SOURCE_SYSTEM_ID = "ods:sourceSystemId";
 
   private RepositoryUtils() {

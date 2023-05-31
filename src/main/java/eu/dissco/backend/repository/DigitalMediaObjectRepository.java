@@ -3,6 +3,7 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,11 +27,12 @@ public class DigitalMediaObjectRepository {
 
   public List<DigitalMediaObject> getDigitalMediaObjects(int pageNumber, int pageSize) {
     int offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, NEW_DIGITAL_SPECIMEN.VERSION,
             NEW_DIGITAL_SPECIMEN.ID, NEW_DIGITAL_MEDIA_OBJECT.asterisk()).from(NEW_DIGITAL_SPECIMEN)
         .join(NEW_DIGITAL_MEDIA_OBJECT)
         .on(NEW_DIGITAL_SPECIMEN.ID.eq(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID))
-        .offset(offset).limit(pageSize).fetch(this::mapToMultiMediaObject);
+        .offset(offset).limit(pageSizePlusOne).fetch(this::mapToMultiMediaObject);
   }
 
   public DigitalMediaObject getLatestDigitalMediaObjectById(String id) {
