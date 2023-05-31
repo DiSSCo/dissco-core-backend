@@ -13,8 +13,8 @@ public class RepositoryUtils {
     // Utility class
   }
 
-  public static void addUrlToAttributes(JsonNode attributes){
-    if (attributes.get(SOURCE_SYSTEM_ID) != null){
+  public static void addUrlToAttributes(JsonNode attributes) {
+    if (attributes.get(SOURCE_SYSTEM_ID) != null) {
       ((ObjectNode) attributes).put(SOURCE_SYSTEM_ID,
           HANDLE_STRING + attributes.get(SOURCE_SYSTEM_ID).asText());
     }
