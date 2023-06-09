@@ -17,4 +17,8 @@ public class ElasticSearchProperties {
   @Positive
   private int port;
 
+  private String username;
+
+  private String password;
+
 }
