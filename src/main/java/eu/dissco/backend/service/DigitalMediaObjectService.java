@@ -57,7 +57,7 @@ public class DigitalMediaObjectService {
   public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
     var dataNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
-    String type = dataNode.get("digitalMediaObject").get("type").asText();
+    String type = dataNode.get("digitalMediaObject").get("dcterms:type").asText();
     return new JsonApiWrapper(new JsonApiData(id, type, dataNode),
         new JsonApiLinks(path));
   }
