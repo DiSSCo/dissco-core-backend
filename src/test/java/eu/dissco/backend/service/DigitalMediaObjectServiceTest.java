@@ -151,7 +151,7 @@ class DigitalMediaObjectServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         mongoResponse);
 
-    var type = mongoResponse.get("digitalMediaObject").get("type").asText();
+    var type = mongoResponse.get("digitalMediaObject").get("dcterms:type").asText();
 
     var expectedResponse = new JsonApiWrapper(new JsonApiData(ID, type, mongoResponse),
         new JsonApiLinks(DIGITAL_MEDIA_PATH));
@@ -225,7 +225,7 @@ class DigitalMediaObjectServiceTest {
               "version": 1,
               "created": 1667296764,
               "digitalMediaObject": {
-                "type": "2DImageObject",
+                "dcterms:type": "2DImageObject",
                 "digitalSpecimenId": "20.5000.1025/460-A7R-QMJ",
                 "mediaUrl": "https://dissco.com",
                 "format": "image/jpeg",
