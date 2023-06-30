@@ -4,6 +4,7 @@ import lombok.Value;
 
 @Value
 public class JsonApiWrapper {
+
   JsonApiData data;
   JsonApiLinks links;
   JsonApiMeta meta;

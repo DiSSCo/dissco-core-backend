@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 public class ServiceUtils {
-  private ServiceUtils(){}
+
+  private ServiceUtils() {
+  }
 
 
-  protected static JsonNode createVersionNode(List<Integer> versions, ObjectMapper mapper){
+  protected static JsonNode createVersionNode(List<Integer> versions, ObjectMapper mapper) {
     var versionsNode = mapper.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     versions.forEach(arrayNode::add);

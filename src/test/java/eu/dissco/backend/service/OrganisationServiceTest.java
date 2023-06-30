@@ -23,13 +23,14 @@ class OrganisationServiceTest {
   private OrganisationService service;
   @Mock
   private OrganisationRepository repository;
+
   @BeforeEach
-  void setup(){
+  void setup() {
     service = new OrganisationService(repository, MAPPER);
   }
 
   @Test
-  void testGetOrganisationNames(){
+  void testGetOrganisationNames() {
     // Given
     List<String> expected = List.of("a", "b");
     int pageNum = 1;
@@ -44,7 +45,7 @@ class OrganisationServiceTest {
   }
 
   @Test
-  void testGetOrganisations(){
+  void testGetOrganisations() {
     // Given
     int pageNum = 1;
     int pageSize = 1;
@@ -59,11 +60,11 @@ class OrganisationServiceTest {
   }
 
   @Test
-  void testGetCountries(){
+  void testGetCountries() {
     // Given
     int pageNum = 1;
     int pageSize = 1;
-    given(repository.getCountries(pageNum, pageSize )).willReturn(List.of(COUNTRY));
+    given(repository.getCountries(pageNum, pageSize)).willReturn(List.of(COUNTRY));
     var expected = givenCountryJsonApiWrapper();
 
     // When

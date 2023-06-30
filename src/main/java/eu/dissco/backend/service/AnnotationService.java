@@ -76,8 +76,10 @@ public class AnnotationService {
     var event = mapAnnotationRequestToEvent(annotationRequest, userId);
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
-      var annotationResponse = mapper.treeToValue(response.get("annotation"), AnnotationResponse.class);
-      var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(), annotationResponse, mapper);
+      var annotationResponse = mapper.treeToValue(response.get("annotation"),
+          AnnotationResponse.class);
+      var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(),
+          annotationResponse, mapper);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
@@ -108,6 +110,7 @@ public class AnnotationService {
     var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
+
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "annotation_provenance");
     var versionsNode = createVersionNode(versions, mapper);
@@ -143,7 +146,8 @@ public class AnnotationService {
   }
 
   // Response Constructors
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne, int pageNumber, int pageSize, String path){
+  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne,
+      int pageNumber, int pageSize, String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
         new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
@@ -154,7 +158,8 @@ public class AnnotationService {
     mapper.treeToValue(annotationNode, AnnotationResponse.class);
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations, String path){
+  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations,
+      String path) {
     List<JsonApiData> dataNode = new ArrayList<>();
     annotations.forEach(annotation -> dataNode.add(
         new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));

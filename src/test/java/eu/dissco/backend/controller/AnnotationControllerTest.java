@@ -48,7 +48,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotation(){
+  void testGetAnnotation() {
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
 
@@ -84,8 +84,10 @@ class AnnotationControllerTest {
   void testGetAnnotationVersion() throws Exception {
     // Given
     int version = 1;
-    var expectedResponse = ResponseEntity.ok(givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
-    given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(expectedResponse.getBody());
+    var expectedResponse = ResponseEntity.ok(
+        givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
+    given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(
+        expectedResponse.getBody());
 
     // When
     var receivedResponse = controller.getAnnotationByVersion(PREFIX, SUFFIX, version, mockRequest);
@@ -113,7 +115,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testCreateAnnotation() throws Exception{
+  void testCreateAnnotation() throws Exception {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     AnnotationRequest annotation = givenAnnotationRequest();
@@ -131,16 +133,18 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testUpdateAnnotation() throws Exception{
+  void testUpdateAnnotation() throws Exception {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     AnnotationRequest annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(expected);
+    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(
+        expected);
 
     // When
-    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX, mockRequest);
+    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX,
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

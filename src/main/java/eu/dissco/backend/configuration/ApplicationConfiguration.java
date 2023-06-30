@@ -26,7 +26,7 @@ public class ApplicationConfiguration {
   }
 
   @Bean
-  public DateTimeFormatter formatter(){
+  public DateTimeFormatter formatter() {
     return DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
   }
 

@@ -26,7 +26,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     return new JwtAuthenticationToken(jwt, authorities, getPrincipalClaimName(jwt));
   }
 
-  private Stream<GrantedAuthority> converterToStream(Jwt jwt){
+  private Stream<GrantedAuthority> converterToStream(Jwt jwt) {
     return Optional.of(jwtGrantedAuthoritiesConverter.convert(jwt)).stream()
         .flatMap(Collection::stream);
   }

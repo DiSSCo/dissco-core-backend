@@ -25,26 +25,29 @@ public class SpecimenUtils {
     return dataNode;
   }
 
-  public static JsonApiData givenDigitalSpecimenJsonApiData(DigitalSpecimen specimen){
-    return  new JsonApiData(specimen.id(), specimen.type(), MAPPER.valueToTree(specimen));
+  public static JsonApiData givenDigitalSpecimenJsonApiData(DigitalSpecimen specimen) {
+    return new JsonApiData(specimen.id(), specimen.type(), MAPPER.valueToTree(specimen));
   }
 
-  public static List<DigitalSpecimen> givenDigitalSpecimenList(int qty){
+  public static List<DigitalSpecimen> givenDigitalSpecimenList(int qty) {
     List<DigitalSpecimen> digitalSpecimens = new ArrayList<>();
     IntStream.range(0, qty).boxed().toList().forEach(i -> {
       try {
         digitalSpecimens.add(givenDigitalSpecimen(String.valueOf(i)));
-      } catch (JsonProcessingException e) { throw new RuntimeException(e);}
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
     });
     return digitalSpecimens;
   }
 
-  public static List<JsonApiData> givenDigitalSpecimenJsonApiDataList(int qty){
+  public static List<JsonApiData> givenDigitalSpecimenJsonApiDataList(int qty) {
     List<DigitalSpecimen> digitalSpecimen = givenDigitalSpecimenList(qty);
     List<JsonApiData> dataNode = new ArrayList<>();
 
-    digitalSpecimen.forEach(s -> dataNode.add(new JsonApiData(s.id(), s.type(), MAPPER.valueToTree(s))));
-    return  dataNode;
+    digitalSpecimen.forEach(
+        s -> dataNode.add(new JsonApiData(s.id(), s.type(), MAPPER.valueToTree(s))));
+    return dataNode;
   }
 
 }

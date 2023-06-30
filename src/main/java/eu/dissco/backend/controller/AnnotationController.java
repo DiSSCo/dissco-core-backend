@@ -68,8 +68,10 @@ public class AnnotationController {
   }
 
   @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, @PathVariable("version") int version, HttpServletRequest request)
+  public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix, @PathVariable("version") int version,
+      HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
     String path = SANDBOX_URI + request.getRequestURI();
@@ -111,7 +113,8 @@ public class AnnotationController {
   @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, @PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, HttpServletRequest request) throws NoAnnotationFoundException, JsonProcessingException {
+      @PathVariable("suffix") String suffix, HttpServletRequest request)
+      throws NoAnnotationFoundException, JsonProcessingException {
     var path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + suffix;
     var userId = getNameFromToken(authentication);
@@ -167,9 +170,11 @@ public class AnnotationController {
     }
   }
 
-  private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody) throws JsonProcessingException {
-    if (!requestBody.data().type().equals("annotation")){
-      throw new IllegalArgumentException("Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
+  private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
+      throws JsonProcessingException {
+    if (!requestBody.data().type().equals("annotation")) {
+      throw new IllegalArgumentException(
+          "Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
     }
     return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);
   }

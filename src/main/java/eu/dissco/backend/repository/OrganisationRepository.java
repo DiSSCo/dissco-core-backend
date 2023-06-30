@@ -5,9 +5,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import eu.dissco.backend.domain.Country;
 import eu.dissco.backend.domain.OrganisationTuple;
-
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;

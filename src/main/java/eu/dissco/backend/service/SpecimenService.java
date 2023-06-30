@@ -60,6 +60,7 @@ public class SpecimenService {
   private final SpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
   private final DigitalMediaObjectService digitalMediaObjectService;
+  private final MachineAnnotationServiceService masService;
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
 
@@ -70,7 +71,7 @@ public class SpecimenService {
 
   public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
-    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize );
+    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize);
     return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
   }
 
@@ -304,7 +305,7 @@ public class SpecimenService {
   public JsonApiWrapper searchTermValue(String name, String value, String path)
       throws UnknownParameterException, IOException {
     var mappedTerm = getMappedTerm(name);
-    if (mappedTerm.isPresent()){
+    if (mappedTerm.isPresent()) {
       var aggregations = elasticRepository.searchTermValue(name, mappedTerm.get(), value);
       var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
           mapper.valueToTree(aggregations));
@@ -312,5 +313,24 @@ public class SpecimenService {
     } else {
       throw new UnknownParameterException("Parameter: " + name + " is not recognised");
     }
+  }
+
+  public JsonApiListResponseWrapper getMas(String id, String path) {
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var flattenAttributes = flattenAttributes(digitalSpecimen);
+    return masService.getMassForObject(flattenAttributes, path);
+  }
+
+  private JsonNode flattenAttributes(DigitalSpecimen digitalSpecimen) {
+    var objectNode = mapper.createObjectNode();
+    objectNode.put("type", digitalSpecimen.type());
+    objectNode.setAll((ObjectNode) digitalSpecimen.data());
+    return objectNode;
+  }
+
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String path) {
+    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var flattenAttributes = flattenAttributes(digitalSpecimen);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen);
   }
 }

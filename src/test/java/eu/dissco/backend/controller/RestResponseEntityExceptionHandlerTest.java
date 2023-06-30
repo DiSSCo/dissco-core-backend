@@ -3,8 +3,10 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.FORBIDDEN_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.exceptions.*;
+import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

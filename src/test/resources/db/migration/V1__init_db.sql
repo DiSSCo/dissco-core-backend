@@ -30,23 +30,34 @@ CREATE TABLE public.new_annotation (
 	CONSTRAINT new_annotation_pk PRIMARY KEY (id)
 );
 
-CREATE TABLE public.new_digital_media_object (
-	id text NOT NULL,
-	"version" int4 NOT NULL,
-	"type" text NULL,
-	digital_specimen_id text NOT NULL,
-	media_url text NULL,
-	format text NULL,
-	source_system_id text NOT NULL,
-	created timestamptz NOT NULL,
-	last_checked timestamptz NOT NULL,
-	deleted timestamptz NULL,
-	"data" jsonb NULL,
-	original_data jsonb NULL,
-	CONSTRAINT new_digital_media_object_pk PRIMARY KEY (id)
+create table new_digital_media_object
+(
+    id text not null
+        constraint new_digital_media_object_pk
+            primary key,
+    version integer not null,
+    type text,
+    digital_specimen_id text not null,
+    media_url text,
+    format text,
+    source_system_id text not null,
+    created timestamp with time zone not null,
+    last_checked timestamp with time zone not null,
+    deleted timestamp with time zone,
+    data jsonb,
+    original_data jsonb,
+    physical_specimen_id varchar default 'unknown'::character varying not null
 );
-CREATE INDEX new_digital_media_object_id_idx ON public.new_digital_media_object USING btree (id, media_url);
-CREATE UNIQUE INDEX new_digital_media_object_id_version_url ON public.new_digital_media_object USING btree (id, version, media_url);
+
+create index new_digital_media_object_id_idx
+    on new_digital_media_object (id, media_url);
+
+create unique index new_digital_media_object_id_version_url
+    on new_digital_media_object (id, version, media_url);
+
+create index new_digital_media_object_digital_specimen_id_url
+    on new_digital_media_object (digital_specimen_id, media_url);
+
 
 CREATE TABLE public.new_digital_specimen (
 	id text NOT NULL,
@@ -82,4 +93,29 @@ CREATE TABLE public.organisation_do (
 	country_code text NULL,
 	"data" jsonb NULL,
 	CONSTRAINT organisation_do_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE machine_annotation_services
+(
+    id text not null
+        primary key,
+    version integer not null,
+    name varchar not null,
+    created timestamp with time zone not null,
+    administrator text not null,
+    container_image text not null,
+    container_image_tag text not null,
+    target_digital_object_filters jsonb,
+    service_description text,
+    service_state text,
+    source_code_repository text,
+    service_availability text,
+    code_maintainer text,
+    code_license text,
+    dependencies text[],
+    support_contact text,
+    sla_documentation text,
+    topicname text,
+    maxreplicas integer,
+    deleted_on timestamp with time zone
 );

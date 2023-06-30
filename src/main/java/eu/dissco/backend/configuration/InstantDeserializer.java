@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InstantDeserializer extends JsonDeserializer<Instant> {
+
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(
       ZoneOffset.UTC);
+
   @Override
   public Instant deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
     try {

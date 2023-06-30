@@ -1,10 +1,15 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.repository.RepositoryUtils.stringUrl;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.DigitalMediaObject;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -13,6 +18,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.repository.SpecimenRepository;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +30,8 @@ public class DigitalMediaObjectService {
 
   private final DigitalMediaObjectRepository repository;
   private final AnnotationService annotationService;
+  private final SpecimenRepository specimenRepository;
+  private final MachineAnnotationServiceService masService;
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
 
@@ -32,7 +40,8 @@ public class DigitalMediaObjectService {
       String path) {
     var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
-    mediaPlusOne.forEach(media -> dataNodePlusOne.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    mediaPlusOne.forEach(media -> dataNodePlusOne.add(
+        new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
@@ -80,15 +89,44 @@ public class DigitalMediaObjectService {
   public List<JsonApiData> getDigitalMediaForSpecimen(String id) {
     var mediaList = repository.getDigitalMediaForSpecimen(id);
     List<JsonApiData> dataNode = new ArrayList<>();
-    mediaList.forEach(media -> dataNode.add(new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
+    mediaList.forEach(media -> dataNode.add(
+        new JsonApiData(media.id(), media.type(), mapper.valueToTree(media))));
     return dataNode;
   }
 
   // Response Wrapper
-  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber, int pageSize, String path){
+  private JsonApiListResponseWrapper wrapResponse(List<JsonApiData> dataNodePlusOne, int pageNumber,
+      int pageSize, String path) {
     boolean hasNextPage = dataNodePlusOne.size() > pageSize;
     var dataNode = hasNextPage ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
     return new JsonApiListResponseWrapper(dataNode, linksNode);
+  }
+
+  public JsonApiListResponseWrapper getMas(String id, String path) {
+    var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
+    var digitalSpecimen = specimenRepository.getLatestSpecimenById(
+        stringUrl(digitalMedia.digitalSpecimenId()));
+    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
+    return masService.getMassForObject(flattenObjectData, path);
+  }
+
+  private JsonNode flattenAttributes(DigitalMediaObject digitalMedia,
+      DigitalSpecimen digitalSpecimen) {
+    var objectNode = mapper.createObjectNode();
+    objectNode.put("type", digitalMedia.type());
+    objectNode.setAll((ObjectNode) digitalMedia.data());
+    objectNode.put("specimen.type", digitalSpecimen.type());
+    digitalSpecimen.data().fields()
+        .forEachRemaining(field -> objectNode.set("specimen." + field.getKey(), field.getValue()));
+    return objectNode;
+  }
+
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path) {
+    var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
+    var digitalSpecimen = specimenRepository.getLatestSpecimenById(
+        stringUrl(digitalMedia.digitalSpecimenId()));
+    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia);
   }
 }

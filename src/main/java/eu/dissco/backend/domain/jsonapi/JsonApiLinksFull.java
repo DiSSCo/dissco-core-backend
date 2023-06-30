@@ -47,7 +47,7 @@ public class JsonApiLinksFull {
     this.next = (hasNext) ? buildPathPages(pathFull, (pageNum + 1), pageSize, isFirst) : null;
   }
 
-  private String buildPathPages(String baseString, int pageNum, int pageSize){
+  private String buildPathPages(String baseString, int pageNum, int pageSize) {
     return buildPathPages(baseString, pageNum, pageSize, true);
   }
 

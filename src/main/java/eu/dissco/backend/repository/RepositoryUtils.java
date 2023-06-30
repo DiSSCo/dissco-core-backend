@@ -20,6 +20,10 @@ public class RepositoryUtils {
     }
   }
 
+  public static String stringUrl(String handle) {
+    return handle.replace(HANDLE_STRING, "");
+  }
+
   protected static int getOffset(int pageNumber, int pageSize) {
     int offset = 0;
     if (pageNumber > 1) {

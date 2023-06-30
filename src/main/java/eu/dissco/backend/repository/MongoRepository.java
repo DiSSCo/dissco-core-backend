@@ -34,12 +34,14 @@ public class MongoRepository {
 
   public List<Integer> getVersions(String id, String collectionName) throws NotFoundException {
     var collection = database.getCollection(collectionName);
-    var result = collection.find(eq("eventRecord.id", id)).projection(include("eventRecord.version"));
+    var result = collection.find(eq("eventRecord.id", id))
+        .projection(include("eventRecord.version"));
     if (result.first() == null) {
       throw new NotFoundException("Could not find " + id + " in collection: " + collectionName);
     }
     var versions = new ArrayList<Integer>();
-    result.forEach(document -> versions.add(document.getEmbedded(List.of("eventRecord", "version"), Integer.class)));
+    result.forEach(document -> versions.add(
+        document.getEmbedded(List.of("eventRecord", "version"), Integer.class)));
     return versions;
   }
 }

@@ -7,18 +7,20 @@ import lombok.Value;
 
 @Value
 public class JsonApiData {
+
   String id;
   String type;
   JsonNode attributes;
 
   @JsonCreator
-  public JsonApiData(String id, String type, JsonNode attributes){
+  public JsonApiData(String id, String type, JsonNode attributes) {
     this.id = id;
     this.type = type;
     this.attributes = attributes;
   }
 
-  public <T extends Record> JsonApiData(String id, String type, T domainObject, ObjectMapper mapper){
+  public <T extends Record> JsonApiData(String id, String type, T domainObject,
+      ObjectMapper mapper) {
     this.id = id;
     this.type = type;
     this.attributes = mapper.valueToTree(domainObject);

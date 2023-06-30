@@ -32,11 +32,13 @@ public class DigitalMediaObjectUtils {
     return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, 1);
   }
 
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId, int version) {
+  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+      int version) {
     return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, version);
   }
+
   public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
-      String sourceSystemId){
+      String sourceSystemId) {
     return givenDigitalMediaObject(mediaId, specimenId, sourceSystemId, 1);
   }
 
