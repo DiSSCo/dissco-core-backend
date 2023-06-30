@@ -16,41 +16,41 @@ import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 /**
  * Convenience access to all tables in public.
  */
-@SuppressWarnings({"all", "unchecked", "rawtypes"})
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
 
-  /**
-   * The table <code>public.machine_annotation_services</code>.
-   */
-  public static final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
+    /**
+     * The table <code>public.machine_annotation_services</code>.
+     */
+    public static final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
 
-  /**
-   * The table <code>public.new_annotation</code>.
-   */
-  public static final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
+    /**
+     * The table <code>public.new_annotation</code>.
+     */
+    public static final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
-  /**
-   * The table <code>public.new_digital_media_object</code>.
-   */
-  public static final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
+    /**
+     * The table <code>public.new_digital_media_object</code>.
+     */
+    public static final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
 
-  /**
-   * The table <code>public.new_digital_specimen</code>.
-   */
-  public static final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
+    /**
+     * The table <code>public.new_digital_specimen</code>.
+     */
+    public static final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
 
-  /**
-   * The table <code>public.new_user</code>.
-   */
-  public static final NewUser NEW_USER = NewUser.NEW_USER;
+    /**
+     * The table <code>public.new_user</code>.
+     */
+    public static final NewUser NEW_USER = NewUser.NEW_USER;
 
-  /**
-   * The table <code>public.organisation_do</code>.
-   */
-  public static final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
+    /**
+     * The table <code>public.organisation_do</code>.
+     */
+    public static final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
 
-  /**
-   * The table <code>public.organisation_document</code>.
-   */
-  public static final OrganisationDocument ORGANISATION_DOCUMENT = OrganisationDocument.ORGANISATION_DOCUMENT;
+    /**
+     * The table <code>public.organisation_document</code>.
+     */
+    public static final OrganisationDocument ORGANISATION_DOCUMENT = OrganisationDocument.ORGANISATION_DOCUMENT;
 }
