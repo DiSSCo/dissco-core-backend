@@ -1,13 +1,11 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.*;
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -63,7 +61,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         expectedRecords.add(masRecord);
       } else {
         masRecord = MachineAnnotationServiceUtils.givenMasRecord(PREFIX + "ABC-123-XY" + i,
-            Instant.now());
+            CREATED);
       }
       createRecord(masRecord);
     }

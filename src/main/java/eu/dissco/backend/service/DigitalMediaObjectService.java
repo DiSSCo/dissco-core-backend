@@ -1,6 +1,6 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.repository.RepositoryUtils.stringUrl;
+import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -103,7 +103,7 @@ public class DigitalMediaObjectService {
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
-  public JsonApiListResponseWrapper getMas(String id, String path) {
+  public JsonApiListResponseWrapper getMass(String id, String path) {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(
         stringUrl(digitalMedia.digitalSpecimenId()));
@@ -128,5 +128,9 @@ public class DigitalMediaObjectService {
         stringUrl(digitalMedia.digitalSpecimenId()));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia);
+  }
+
+  public String stringUrl(String handle) {
+    return handle.replace(HANDLE_STRING, "");
   }
 }

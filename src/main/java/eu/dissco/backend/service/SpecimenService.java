@@ -315,7 +315,7 @@ public class SpecimenService {
     }
   }
 
-  public JsonApiListResponseWrapper getMas(String id, String path) {
+  public JsonApiListResponseWrapper getMass(String id, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
     return masService.getMassForObject(flattenAttributes, path);

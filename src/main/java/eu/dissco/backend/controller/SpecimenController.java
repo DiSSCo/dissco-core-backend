@@ -212,18 +212,18 @@ public class SpecimenController {
   }
 
   @GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjectGetMas(
+  public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for digital media: {} for all relevant mas", id);
-    var mass = service.getMas(id, path);
+    var mass = service.getMass(id, path);
     return ResponseEntity.ok(mass);
   }
 
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjectRunMas(
+  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException {

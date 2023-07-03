@@ -6,8 +6,9 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_URI;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
@@ -26,6 +27,8 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -204,40 +207,40 @@ class SpecimenControllerTest {
   @Test
   void testGetMas() {
     // Given
-    var response = getMasResponse(SPECIMEN_PATH);
-    given(service.getMas(ID, SPECIMEN_PATH)).willReturn(response);
+    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
+    given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
 
     // When
-    var result = controller.getDigitalMediaObjectGetMas(PREFIX, SUFFIX, mockRequest);
+    var result = controller.getMassForDigitalSpecimen(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isEqualTo(response);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
   void testScheduleMas() throws JsonProcessingException, ConflictException {
     // Given
-    var response = getMasResponse(SPECIMEN_PATH);
-    var request = getMasRequest();
-    given(service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH)).willReturn(response);
+    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
+    var request = givenMasRequest();
+    given(service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH)).willReturn(expectedResponse);
 
     // When
-    var result = controller.getDigitalMediaObjectRunMas(PREFIX, SUFFIX, request, mockRequest);
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-    assertThat(result.getBody()).isEqualTo(response);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
   void testScheduleMasInvalidType() {
     // Given
-    var request = getMasRequest("Invalid Type");
+    var request = givenMasRequest("Invalid Type");
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.getDigitalMediaObjectRunMas(PREFIX, SUFFIX, request, mockRequest));
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
   }
 
 }

@@ -74,7 +74,7 @@ public class MachineAnnotationServiceService {
           scheduledMasRecords.add(
               new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, mapper));
         } catch (JsonProcessingException e) {
-          log.error("Failed to send object to kafka");
+          log.error("Failed to send masRecord: {}  to kafka", masRecord.id());
         }
       } else {
         log.warn("Requested massRecord: {} is not available for the object: {}", masRecord.id(),

@@ -101,18 +101,18 @@ public class DigitalMediaObjectController {
   }
 
   @GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjectGetMas(
+  public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
-    log.info("Received get request for digital media: {} for all relevant mas", id);
-    var mass = service.getMas(id, path);
+    log.info("Received get request for digital media: {}", id);
+    var mass = service.getMass(id, path);
     return ResponseEntity.ok(mass);
   }
 
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjectRunMas(
+  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException {
@@ -131,7 +131,10 @@ public class DigitalMediaObjectController {
     if (!requestBody.data().type().equals("MasRequest")) {
       throw new ConflictException();
     }
-    return Arrays.asList(mapper.treeToValue(requestBody.data().attributes(), String[].class));
+    if (requestBody.data().attributes().get("mass") == null) {
+      throw new IllegalArgumentException();
+    }
+    return Arrays.asList(mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
 
 }

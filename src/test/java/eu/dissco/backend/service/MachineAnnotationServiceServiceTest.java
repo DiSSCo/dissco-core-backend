@@ -4,9 +4,9 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getFlattenedDigitalMedia;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getFlattenedDigitalSpecimen;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,10 +46,10 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getAllMas()).willReturn(List.of(masRecord));
 
     // When
-    var result = service.getMassForObject(getFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
+    var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
 
     // Then
-    assertThat(result).isEqualTo(getMasResponse(masRecord, DIGITAL_MEDIA_PATH));
+    assertThat(result).isEqualTo(givenMasResponse(masRecord, DIGITAL_MEDIA_PATH));
   }
 
   @Test
@@ -59,7 +59,7 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getAllMas()).willReturn(List.of(masRecord));
 
     // When
-    var result = service.getMassForObject(getFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
+    var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
 
     // Then
     assertThat(result.getData()).isEmpty();
@@ -73,11 +73,11 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
 
     // When
-    var result = service.scheduleMass(getFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
+    var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
         digitalSpecimen);
 
     // Then
-    assertThat(result).isEqualTo(getMasResponse(masRecord, SPECIMEN_PATH));
+    assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", digitalSpecimen);
   }
 
@@ -91,7 +91,7 @@ class MachineAnnotationServiceServiceTest {
         .sendObjectToQueue("fancy-topic-name", digitalSpecimen);
 
     // When
-    var result = service.scheduleMass(getFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
+    var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
         digitalSpecimen);
 
     // Then

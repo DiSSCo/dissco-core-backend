@@ -20,7 +20,7 @@ import java.util.List;
 
 public class MachineAnnotationServiceUtils {
 
-  public static JsonApiListResponseWrapper getMasResponse(String path) {
+  public static JsonApiListResponseWrapper givenMasResponse(String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(givenMasRecord().id(), "MachineAnnotationService", givenMasRecord(),
@@ -28,19 +28,19 @@ public class MachineAnnotationServiceUtils {
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
-  public static JsonApiListResponseWrapper getMasResponse(MachineAnnotationServiceRecord masRecord,
-      String path) {
+  public static JsonApiListResponseWrapper givenMasResponse(MachineAnnotationServiceRecord masRecord,
+                                                            String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, MAPPER));
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
-  public static JsonApiRequestWrapper getMasRequest() {
-    return getMasRequest("MasRequest");
+  public static JsonApiRequestWrapper givenMasRequest() {
+    return givenMasRequest("MasRequest");
   }
 
-  public static JsonApiRequestWrapper getMasRequest(String type) {
+  public static JsonApiRequestWrapper givenMasRequest(String type) {
     var mass = List.of(ID);
     var apiRequest = new JsonApiRequest(type, MAPPER.valueToTree(mass));
     return new JsonApiRequestWrapper(apiRequest);
@@ -96,7 +96,7 @@ public class MachineAnnotationServiceUtils {
     );
   }
 
-  public static JsonNode getFlattenedDigitalMedia() throws JsonProcessingException {
+  public static JsonNode givenFlattenedDigitalMedia() throws JsonProcessingException {
     return MAPPER.readValue(
         """
             {
@@ -122,7 +122,7 @@ public class MachineAnnotationServiceUtils {
     );
   }
 
-  public static JsonNode getFlattenedDigitalSpecimen() throws JsonProcessingException {
+  public static JsonNode givenFlattenedDigitalSpecimen() throws JsonProcessingException {
     return MAPPER.readValue(
         """
             {

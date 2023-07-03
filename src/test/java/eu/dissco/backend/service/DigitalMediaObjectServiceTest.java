@@ -1,17 +1,15 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
-import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
+import static eu.dissco.backend.TestUtils.*;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getFlattenedDigitalMedia;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
@@ -31,6 +29,8 @@ import eu.dissco.backend.repository.SpecimenRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -232,14 +232,14 @@ class DigitalMediaObjectServiceTest {
     var digitalMedia = givenDigitalMediaObject(ID);
     var specimenId = "20.5000.1025/460-A7R-QMJ";
     var digitalSpecimen = givenDigitalSpecimen(specimenId);
-    var response = getMasResponse(DIGITAL_MEDIA_PATH);
+    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
-    given(masService.getMassForObject(getFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH)).willReturn(
+    given(masService.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH)).willReturn(
         response);
 
     // When
-    var result = service.getMas(ID, DIGITAL_MEDIA_PATH);
+    var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
 
     // Then
     assertThat(result).isEqualTo(response);
@@ -249,14 +249,13 @@ class DigitalMediaObjectServiceTest {
   void testScheduleMas() throws JsonProcessingException {
     // Given
     var digitalMedia = givenDigitalMediaObject(ID);
-    var specimenId = "20.5000.1025/460-A7R-QMJ";
+    var specimenId = ID_ALT;
     var digitalSpecimen = givenDigitalSpecimen(specimenId);
-    var response = getMasResponse(DIGITAL_MEDIA_PATH);
+    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
-    given(masService.scheduleMass(getFlattenedDigitalMedia(), List.of(ID), DIGITAL_MEDIA_PATH,
-        digitalMedia)).willReturn(
-        response);
+    given(masService.scheduleMass(givenFlattenedDigitalMedia(), List.of(ID), DIGITAL_MEDIA_PATH,
+        digitalMedia)).willReturn(response);
 
     // When
     var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH);

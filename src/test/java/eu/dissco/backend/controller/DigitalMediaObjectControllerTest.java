@@ -9,8 +9,9 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.getMasResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
@@ -21,6 +22,8 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
 import java.util.List;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -118,40 +121,40 @@ class DigitalMediaObjectControllerTest {
   @Test
   void testGetMas() {
     // Given
-    var response = getMasResponse(DIGITAL_MEDIA_PATH);
-    given(service.getMas(ID, DIGITAL_MEDIA_PATH)).willReturn(response);
+    var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
+    given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
 
     // When
-    var result = controller.getDigitalMediaObjectGetMas(PREFIX, SUFFIX, mockRequest);
+    var result = controller.getMassForDigitalMediaObject(PREFIX, SUFFIX, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isEqualTo(response);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
   void testScheduleMas() throws JsonProcessingException, ConflictException {
     // Given
-    var response = getMasResponse(DIGITAL_MEDIA_PATH);
-    var request = getMasRequest();
-    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH)).willReturn(response);
+    var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
+    var request = givenMasRequest();
+    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
 
     // When
-    var result = controller.getDigitalMediaObjectRunMas(PREFIX, SUFFIX, request, mockRequest);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-    assertThat(result.getBody()).isEqualTo(response);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test
   void testScheduleMasInvalidType() {
     // Given
-    var request = getMasRequest("Invalid Type");
+    var request = givenMasRequest("Invalid Type");
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.getDigitalMediaObjectRunMas(PREFIX, SUFFIX, request, mockRequest));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, mockRequest));
   }
 
 }
