@@ -8,17 +8,23 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewDigitalSpecimenRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function17;
 import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row17;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -75,7 +81,8 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
     public final TableField<NewDigitalSpecimenRecord, String> PHYSICAL_SPECIMEN_ID = createField(DSL.name("physical_specimen_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.new_digital_specimen.physical_specimen_type</code>.
+     * The column
+     * <code>public.new_digital_specimen.physical_specimen_type</code>.
      */
     public final TableField<NewDigitalSpecimenRecord, String> PHYSICAL_SPECIMEN_TYPE = createField(DSL.name("physical_specimen_type"), SQLDataType.CLOB.nullable(false), this, "");
 
@@ -90,7 +97,8 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
     public final TableField<NewDigitalSpecimenRecord, String> ORGANIZATION_ID = createField(DSL.name("organization_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.new_digital_specimen.physical_specimen_collection</code>.
+     * The column
+     * <code>public.new_digital_specimen.physical_specimen_collection</code>.
      */
     public final TableField<NewDigitalSpecimenRecord, String> PHYSICAL_SPECIMEN_COLLECTION = createField(DSL.name("physical_specimen_collection"), SQLDataType.CLOB, this, "");
 
@@ -143,14 +151,16 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
     }
 
     /**
-     * Create an aliased <code>public.new_digital_specimen</code> table reference
+     * Create an aliased <code>public.new_digital_specimen</code> table
+     * reference
      */
     public NewDigitalSpecimen(String alias) {
         this(DSL.name(alias), NEW_DIGITAL_SPECIMEN);
     }
 
     /**
-     * Create an aliased <code>public.new_digital_specimen</code> table reference
+     * Create an aliased <code>public.new_digital_specimen</code> table
+     * reference
      */
     public NewDigitalSpecimen(Name alias) {
         this(alias, NEW_DIGITAL_SPECIMEN);
@@ -169,22 +179,17 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.NEW_DIGITAL_SPECIMEN_CREATED_IDX, Indexes.NEW_DIGITAL_SPECIMEN_ID_IDX, Indexes.NEW_DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_IDX);
+        return Arrays.asList(Indexes.NEW_DIGITAL_SPECIMEN_CREATED_IDX, Indexes.NEW_DIGITAL_SPECIMEN_ID_IDX, Indexes.NEW_DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_IDX);
     }
 
     @Override
     public UniqueKey<NewDigitalSpecimenRecord> getPrimaryKey() {
         return Keys.NEW_DIGITAL_SPECIMEN_PK;
-    }
-
-    @Override
-    public List<UniqueKey<NewDigitalSpecimenRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewDigitalSpecimenRecord>>asList(Keys.NEW_DIGITAL_SPECIMEN_PK);
     }
 
     @Override
@@ -195,6 +200,11 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
     @Override
     public NewDigitalSpecimen as(Name alias) {
         return new NewDigitalSpecimen(alias, this);
+    }
+
+    @Override
+    public NewDigitalSpecimen as(Table<?> alias) {
+        return new NewDigitalSpecimen(alias.getQualifiedName(), this);
     }
 
     /**
@@ -213,6 +223,14 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
         return new NewDigitalSpecimen(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public NewDigitalSpecimen rename(Table<?> name) {
+        return new NewDigitalSpecimen(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row17 type methods
     // -------------------------------------------------------------------------
@@ -220,5 +238,20 @@ public class NewDigitalSpecimen extends TableImpl<NewDigitalSpecimenRecord> {
     @Override
     public Row17<String, Integer, String, Short, String, String, String, String, String, String, String, Instant, Instant, Instant, JSONB, JSONB, String> fieldsRow() {
         return (Row17) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function17<? super String, ? super Integer, ? super String, ? super Short, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function17<? super String, ? super Integer, ? super String, ? super Short, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

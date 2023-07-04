@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 @JsonInclude(Include.NON_NULL)
 public class OrganisationDocument {
+
   @JsonProperty("organisation_id")
   private String organisationId;
   @JsonProperty("document_id")

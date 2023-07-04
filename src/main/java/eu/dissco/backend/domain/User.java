@@ -5,4 +5,5 @@ public record User(String firstName,
                    String email,
                    String orcid,
                    String organisation) {
+
 }

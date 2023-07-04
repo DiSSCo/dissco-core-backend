@@ -1,24 +1,34 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
+import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_URI;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +48,7 @@ class SpecimenControllerTest {
 
   @BeforeEach
   void setup() {
-    controller = new SpecimenController(service);
+    controller = new SpecimenController(service, MAPPER);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(SPECIMEN_URI);
   }
@@ -159,7 +169,8 @@ class SpecimenControllerTest {
   void testDiscipline() throws Exception {
     //Given
     var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.discipline(anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+    given(service.discipline(anyString())).willReturn(
+        new JsonApiWrapper(data, new JsonApiLinks("test")));
 
     // When
     var result = controller.discipline(mockRequest);
@@ -182,7 +193,8 @@ class SpecimenControllerTest {
   void testSearchTermValue() throws Exception {
     //Given
     var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.searchTermValue(anyString(), anyString(), anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+    given(service.searchTermValue(anyString(), anyString(), anyString())).willReturn(
+        new JsonApiWrapper(data, new JsonApiLinks("test")));
 
     // When
     var result = controller.searchTermValue("sourceSystem", "20.500", mockRequest);
@@ -190,6 +202,45 @@ class SpecimenControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat((result.getBody()).getData()).isEqualTo(data);
+  }
+
+  @Test
+  void testGetMas() {
+    // Given
+    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
+    given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
+
+    // When
+    var result = controller.getMassForDigitalSpecimen(PREFIX, SUFFIX, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testScheduleMas() throws JsonProcessingException, ConflictException {
+    // Given
+    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
+    var request = givenMasRequest();
+    given(service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH)).willReturn(expectedResponse);
+
+    // When
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    assertThat(result.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testScheduleMasInvalidType() {
+    // Given
+    var request = givenMasRequest("Invalid Type");
+
+    // When / Then
+    assertThrowsExactly(ConflictException.class,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
   }
 
 }

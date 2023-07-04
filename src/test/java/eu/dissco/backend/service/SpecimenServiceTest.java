@@ -14,6 +14,9 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
@@ -47,6 +50,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +72,8 @@ class SpecimenServiceTest {
   @Mock
   private AnnotationService annotationService;
   @Mock
+  private MachineAnnotationServiceService masService;
+  @Mock
   private MongoRepository mongoRepository;
 
   private SpecimenService service;
@@ -74,7 +81,7 @@ class SpecimenServiceTest {
   @BeforeEach
   void setup() {
     service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaObjectService,
-        annotationService, mongoRepository);
+        masService, annotationService, mongoRepository);
   }
 
   @Test
@@ -469,10 +476,44 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testSearchTermUnknown(){
+  void testSearchTermUnknown() {
     // When / Then
-    assertThatThrownBy(() -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH)).isInstanceOf(
+    assertThatThrownBy(
+        () -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH)).isInstanceOf(
         UnknownParameterException.class);
+  }
+
+  @Test
+  void testGetMas() throws JsonProcessingException {
+    // Given
+    var digitalSpecimen = givenDigitalSpecimen(ID);
+    var response = givenMasResponse(SPECIMEN_PATH);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
+    given(masService.getMassForObject(givenFlattenedDigitalSpecimen(), SPECIMEN_PATH)).willReturn(
+        response);
+
+    // When
+    var result = service.getMass(ID, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(response);
+  }
+
+  @Test
+  void testScheduleMas() throws JsonProcessingException {
+    // Given
+    var digitalSpecimen = givenDigitalSpecimen(ID);
+    var response = givenMasResponse(SPECIMEN_PATH);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
+    given(masService.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
+        digitalSpecimen)).willReturn(
+        response);
+
+    // When
+    var result = service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(response);
   }
 
   private String givenJsonLDString() {

@@ -5,7 +5,9 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
+
 import java.time.Instant;
+
 import org.jooq.Field;
 import org.jooq.JSONB;
 import org.jooq.Record1;
@@ -93,14 +95,16 @@ public class NewDigitalSpecimenRecord extends UpdatableRecordImpl<NewDigitalSpec
     }
 
     /**
-     * Setter for <code>public.new_digital_specimen.physical_specimen_type</code>.
+     * Setter for
+     * <code>public.new_digital_specimen.physical_specimen_type</code>.
      */
     public void setPhysicalSpecimenType(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>public.new_digital_specimen.physical_specimen_type</code>.
+     * Getter for
+     * <code>public.new_digital_specimen.physical_specimen_type</code>.
      */
     public String getPhysicalSpecimenType() {
         return (String) get(5);
@@ -135,14 +139,16 @@ public class NewDigitalSpecimenRecord extends UpdatableRecordImpl<NewDigitalSpec
     }
 
     /**
-     * Setter for <code>public.new_digital_specimen.physical_specimen_collection</code>.
+     * Setter for
+     * <code>public.new_digital_specimen.physical_specimen_collection</code>.
      */
     public void setPhysicalSpecimenCollection(String value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>public.new_digital_specimen.physical_specimen_collection</code>.
+     * Getter for
+     * <code>public.new_digital_specimen.physical_specimen_collection</code>.
      */
     public String getPhysicalSpecimenCollection() {
         return (String) get(8);
@@ -696,5 +702,6 @@ public class NewDigitalSpecimenRecord extends UpdatableRecordImpl<NewDigitalSpec
         setData(data);
         setOriginalData(originalData);
         setDwcaId(dwcaId);
+        resetChangedOnNotNull();
     }
 }

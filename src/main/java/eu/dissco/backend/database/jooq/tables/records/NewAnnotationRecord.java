@@ -5,7 +5,9 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
+
 import java.time.Instant;
+
 import org.jooq.Field;
 import org.jooq.JSONB;
 import org.jooq.Record1;
@@ -659,5 +661,6 @@ public class NewAnnotationRecord extends UpdatableRecordImpl<NewAnnotationRecord
         setGenerated(generated);
         setLastChecked(lastChecked);
         setDeleted(deleted);
+        resetChangedOnNotNull();
     }
 }

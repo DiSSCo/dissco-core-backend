@@ -4,16 +4,17 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
-import eu.dissco.backend.database.jooq.tables.NewMapping;
-import eu.dissco.backend.database.jooq.tables.NewSourceSystem;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 import eu.dissco.backend.database.jooq.tables.OrganisationDo;
 import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
+
 import java.util.Arrays;
 import java.util.List;
+
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -33,6 +34,11 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.machine_annotation_services</code>.
+     */
+    public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
+
+    /**
      * The table <code>public.new_annotation</code>.
      */
     public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
@@ -46,16 +52,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.new_digital_specimen</code>.
      */
     public final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
-
-    /**
-     * The table <code>public.new_mapping</code>.
-     */
-    public final NewMapping NEW_MAPPING = NewMapping.NEW_MAPPING;
-
-    /**
-     * The table <code>public.new_source_system</code>.
-     */
-    public final NewSourceSystem NEW_SOURCE_SYSTEM = NewSourceSystem.NEW_SOURCE_SYSTEM;
 
     /**
      * The table <code>public.new_user</code>.
@@ -87,14 +83,14 @@ public class Public extends SchemaImpl {
 
     @Override
     public final List<Table<?>> getTables() {
-        return Arrays.<Table<?>>asList(
+        return Arrays.asList(
+            MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             NewAnnotation.NEW_ANNOTATION,
             NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
             NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
-            NewMapping.NEW_MAPPING,
-            NewSourceSystem.NEW_SOURCE_SYSTEM,
             NewUser.NEW_USER,
             OrganisationDo.ORGANISATION_DO,
-            OrganisationDocument.ORGANISATION_DOCUMENT);
+            OrganisationDocument.ORGANISATION_DOCUMENT
+        );
     }
 }

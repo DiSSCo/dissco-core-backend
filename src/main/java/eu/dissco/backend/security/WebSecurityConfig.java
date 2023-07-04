@@ -19,11 +19,11 @@ public class WebSecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-            .requestMatchers(HttpMethod.GET, "**").permitAll()
-            .anyRequest().authenticated());
+        .requestMatchers(HttpMethod.GET, "**").permitAll()
+        .anyRequest().authenticated());
 
     http.oauth2ResourceServer(jwtoauth2ResourceServer -> jwtoauth2ResourceServer
-            .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)));
+        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)));
 
     http.sessionManagement(sessionManagement -> sessionManagement
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));

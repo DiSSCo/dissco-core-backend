@@ -13,11 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InstantSerializer extends JsonSerializer<Instant> {
+
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(
       ZoneOffset.UTC);
+
   @Override
   public void serialize(Instant value, JsonGenerator jsonGenerator,
-      SerializerProvider serializerProvider)  {
+      SerializerProvider serializerProvider) {
     try {
       jsonGenerator.writeString(formatter.format(value));
     } catch (IOException e) {

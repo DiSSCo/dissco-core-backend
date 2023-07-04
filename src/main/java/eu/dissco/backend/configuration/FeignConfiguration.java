@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class FeignConfiguration {
+
   @Bean
-  public Client feignClient()
-  {
+  public Client feignClient() {
     return new Client.Default(getSSLSocketFactory(), new NoopHostnameVerifier());
   }
 
@@ -26,11 +26,13 @@ public class FeignConfiguration {
     try {
       TrustStrategy acceptingTrustStrategy = new TrustStrategy() {
         @Override
-        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        public boolean isTrusted(X509Certificate[] chain, String authType)
+            throws CertificateException {
           return true;
         }
       };
-      SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+      SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+          .build();
       return sslContext.getSocketFactory();
     } catch (Exception e) {
       log.error("An exception occurred when pushing annotation to annotation-processor", e);

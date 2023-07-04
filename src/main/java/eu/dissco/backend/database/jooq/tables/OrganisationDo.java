@@ -7,15 +7,19 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.OrganisationDoRecord;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function7;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row7;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -116,17 +120,12 @@ public class OrganisationDo extends TableImpl<OrganisationDoRecord> {
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
     public UniqueKey<OrganisationDoRecord> getPrimaryKey() {
         return Keys.ORGANISATION_DO_PKEY;
-    }
-
-    @Override
-    public List<UniqueKey<OrganisationDoRecord>> getKeys() {
-        return Arrays.<UniqueKey<OrganisationDoRecord>>asList(Keys.ORGANISATION_DO_PKEY);
     }
 
     @Override
@@ -137,6 +136,11 @@ public class OrganisationDo extends TableImpl<OrganisationDoRecord> {
     @Override
     public OrganisationDo as(Name alias) {
         return new OrganisationDo(alias, this);
+    }
+
+    @Override
+    public OrganisationDo as(Table<?> alias) {
+        return new OrganisationDo(alias.getQualifiedName(), this);
     }
 
     /**
@@ -155,6 +159,14 @@ public class OrganisationDo extends TableImpl<OrganisationDoRecord> {
         return new OrganisationDo(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public OrganisationDo rename(Table<?> name) {
+        return new OrganisationDo(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row7 type methods
     // -------------------------------------------------------------------------
@@ -162,5 +174,20 @@ public class OrganisationDo extends TableImpl<OrganisationDoRecord> {
     @Override
     public Row7<String, String, String, String, String, String, JSONB> fieldsRow() {
         return (Row7) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function7<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

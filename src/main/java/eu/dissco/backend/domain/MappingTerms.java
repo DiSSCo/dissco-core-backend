@@ -19,7 +19,7 @@ public enum MappingTerms {
   ORGANISATION_NAME("organisationName",
       "digitalSpecimen.ods:attributes.ods:organisationName.keyword"),
   SOURCE_SYSTEM_ID("sourceSystemId", "digitalSpecimen.ods:attributes.ods:sourceSystemId.keyword"),
-  SPECIMEN_NAME("type", "digitalSpecimen.ods:type.keyword"),
+  SPECIMEN_NAME("specimenName", "digitalSpecimen.ods:type.keyword"),
   DATASET_ID("datasetId", "digitalSpecimen.ods:attributes.ods:datasetId.keyword"),
   KINGDOM("kingdom", "digitalSpecimen.ods:attributes.dwc:kingdom.keyword"),
   CLASS("class", "digitalSpecimen.ods:attributes.dwc:class.keyword"),

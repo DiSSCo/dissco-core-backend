@@ -7,15 +7,21 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.OrganisationDocumentRecord;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function5;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row5;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -80,14 +86,16 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
     }
 
     /**
-     * Create an aliased <code>public.organisation_document</code> table reference
+     * Create an aliased <code>public.organisation_document</code> table
+     * reference
      */
     public OrganisationDocument(String alias) {
         this(DSL.name(alias), ORGANISATION_DOCUMENT);
     }
 
     /**
-     * Create an aliased <code>public.organisation_document</code> table reference
+     * Create an aliased <code>public.organisation_document</code> table
+     * reference
      */
     public OrganisationDocument(Name alias) {
         this(alias, ORGANISATION_DOCUMENT);
@@ -106,7 +114,7 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
@@ -115,17 +123,16 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
     }
 
     @Override
-    public List<UniqueKey<OrganisationDocumentRecord>> getKeys() {
-        return Arrays.<UniqueKey<OrganisationDocumentRecord>>asList(Keys.ORGANISATION_DOCUMENT_PKEY);
-    }
-
-    @Override
     public List<ForeignKey<OrganisationDocumentRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<OrganisationDocumentRecord, ?>>asList(Keys.ORGANISATION_DOCUMENT__FK_ORGANISATION);
+        return Arrays.asList(Keys.ORGANISATION_DOCUMENT__FK_ORGANISATION);
     }
 
     private transient OrganisationDo _organisationDo;
 
+    /**
+     * Get the implicit join path to the <code>public.organisation_do</code>
+     * table.
+     */
     public OrganisationDo organisationDo() {
         if (_organisationDo == null)
             _organisationDo = new OrganisationDo(this, Keys.ORGANISATION_DOCUMENT__FK_ORGANISATION);
@@ -141,6 +148,11 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
     @Override
     public OrganisationDocument as(Name alias) {
         return new OrganisationDocument(alias, this);
+    }
+
+    @Override
+    public OrganisationDocument as(Table<?> alias) {
+        return new OrganisationDocument(alias.getQualifiedName(), this);
     }
 
     /**
@@ -159,6 +171,14 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
         return new OrganisationDocument(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public OrganisationDocument rename(Table<?> name) {
+        return new OrganisationDocument(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row5 type methods
     // -------------------------------------------------------------------------
@@ -166,5 +186,20 @@ public class OrganisationDocument extends TableImpl<OrganisationDocumentRecord> 
     @Override
     public Row5<String, String, String, String, JSONB> fieldsRow() {
         return (Row5) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function5<? super String, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super String, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

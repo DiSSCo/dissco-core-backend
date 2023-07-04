@@ -21,11 +21,11 @@ public class OrganisationUtils {
   }
 
   public static JsonApiData givenOrganisationData(OrganisationTuple organisation) {
-    return new JsonApiData(organisation.ror(),"organisation", organisation, MAPPER);
+    return new JsonApiData(organisation.ror(), "organisation", organisation, MAPPER);
   }
 
   public static JsonApiData givenCountryData(Country country) {
-    return new JsonApiData(country.countryCode(),"country", country, MAPPER);
+    return new JsonApiData(country.countryCode(), "country", country, MAPPER);
   }
 
   public static JsonApiData givenCountryData() {

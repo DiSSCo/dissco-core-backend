@@ -53,7 +53,9 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     var result = repository.getLatestSpecimenById("20.5000.1025/ABC-123-XY3");
 
     // Then
-    assertThat(result).isEqualTo(givenDigitalSpecimenSourceSystem(HANDLE + "20.5000.1025/ABC-123-XY3", HANDLE + SOURCE_SYSTEM_ID_1));
+    assertThat(result).isEqualTo(
+        givenDigitalSpecimenSourceSystem(HANDLE + "20.5000.1025/ABC-123-XY3",
+            HANDLE + SOURCE_SYSTEM_ID_1));
   }
 
   private void populateSpecimenTable() throws JsonProcessingException {

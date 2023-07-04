@@ -8,17 +8,23 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewDigitalMediaObjectRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function13;
 import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row12;
+import org.jooq.Records;
+import org.jooq.Row13;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -65,7 +71,8 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
     public final TableField<NewDigitalMediaObjectRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.new_digital_media_object.digital_specimen_id</code>.
+     * The column
+     * <code>public.new_digital_media_object.digital_specimen_id</code>.
      */
     public final TableField<NewDigitalMediaObjectRecord, String> DIGITAL_SPECIMEN_ID = createField(DSL.name("digital_specimen_id"), SQLDataType.CLOB.nullable(false), this, "");
 
@@ -109,6 +116,12 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
      */
     public final TableField<NewDigitalMediaObjectRecord, JSONB> ORIGINAL_DATA = createField(DSL.name("original_data"), SQLDataType.JSONB, this, "");
 
+    /**
+     * The column
+     * <code>public.new_digital_media_object.physical_specimen_id</code>.
+     */
+    public final TableField<NewDigitalMediaObjectRecord, String> PHYSICAL_SPECIMEN_ID = createField(DSL.name("physical_specimen_id"), SQLDataType.VARCHAR.nullable(false).defaultValue(DSL.field(DSL.raw("'unknown'::character varying"), SQLDataType.VARCHAR)), this, "");
+
     private NewDigitalMediaObject(Name alias, Table<NewDigitalMediaObjectRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -118,14 +131,16 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
     }
 
     /**
-     * Create an aliased <code>public.new_digital_media_object</code> table reference
+     * Create an aliased <code>public.new_digital_media_object</code> table
+     * reference
      */
     public NewDigitalMediaObject(String alias) {
         this(DSL.name(alias), NEW_DIGITAL_MEDIA_OBJECT);
     }
 
     /**
-     * Create an aliased <code>public.new_digital_media_object</code> table reference
+     * Create an aliased <code>public.new_digital_media_object</code> table
+     * reference
      */
     public NewDigitalMediaObject(Name alias) {
         this(alias, NEW_DIGITAL_MEDIA_OBJECT);
@@ -144,22 +159,17 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.NEW_DIGITAL_MEDIA_OBJECT_ID_IDX, Indexes.NEW_DIGITAL_MEDIA_OBJECT_ID_VERSION_URL);
+        return Arrays.asList(Indexes.NEW_DIGITAL_MEDIA_OBJECT_DIGITAL_SPECIMEN_ID_URL, Indexes.NEW_DIGITAL_MEDIA_OBJECT_ID_IDX, Indexes.NEW_DIGITAL_MEDIA_OBJECT_ID_VERSION_URL);
     }
 
     @Override
     public UniqueKey<NewDigitalMediaObjectRecord> getPrimaryKey() {
         return Keys.NEW_DIGITAL_MEDIA_OBJECT_PK;
-    }
-
-    @Override
-    public List<UniqueKey<NewDigitalMediaObjectRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewDigitalMediaObjectRecord>>asList(Keys.NEW_DIGITAL_MEDIA_OBJECT_PK);
     }
 
     @Override
@@ -170,6 +180,11 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
     @Override
     public NewDigitalMediaObject as(Name alias) {
         return new NewDigitalMediaObject(alias, this);
+    }
+
+    @Override
+    public NewDigitalMediaObject as(Table<?> alias) {
+        return new NewDigitalMediaObject(alias.getQualifiedName(), this);
     }
 
     /**
@@ -188,12 +203,35 @@ public class NewDigitalMediaObject extends TableImpl<NewDigitalMediaObjectRecord
         return new NewDigitalMediaObject(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public NewDigitalMediaObject rename(Table<?> name) {
+        return new NewDigitalMediaObject(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
-    // Row12 type methods
+    // Row13 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row12<String, Integer, String, String, String, String, String, Instant, Instant, Instant, JSONB, JSONB> fieldsRow() {
-        return (Row12) super.fieldsRow();
+    public Row13<String, Integer, String, String, String, String, String, Instant, Instant, Instant, JSONB, JSONB, String> fieldsRow() {
+        return (Row13) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function13<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function13<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

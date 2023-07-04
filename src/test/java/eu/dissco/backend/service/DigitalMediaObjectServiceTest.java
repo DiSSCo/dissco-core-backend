@@ -1,14 +1,15 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
+import static eu.dissco.backend.TestUtils.*;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
@@ -24,9 +25,12 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.repository.SpecimenRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,13 +47,18 @@ class DigitalMediaObjectServiceTest {
   @Mock
   private AnnotationService annotationService;
   @Mock
+  private MachineAnnotationServiceService masService;
+  @Mock
   private MongoRepository mongoRepository;
+  @Mock
+  private SpecimenRepository specimenRepository;
 
   private DigitalMediaObjectService service;
 
   @BeforeEach
   void setup() {
-    service = new DigitalMediaObjectService(repository, annotationService, mongoRepository, MAPPER);
+    service = new DigitalMediaObjectService(repository, annotationService, specimenRepository,
+        masService, mongoRepository, MAPPER);
   }
 
   @ParameterizedTest
@@ -58,7 +67,7 @@ class DigitalMediaObjectServiceTest {
     // Given
     int pageSize = 10;
 
-    var repositoryResponse = Collections.nCopies(pageSize+1, givenDigitalMediaObject(ID));
+    var repositoryResponse = Collections.nCopies(pageSize + 1, givenDigitalMediaObject(ID));
     var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
     var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, true);
     var dataNode = dataNodePlusOne.subList(0, pageSize);
@@ -109,7 +118,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetAnnotationsOnDigitalMedia(){
+  void testGetAnnotationsOnDigitalMedia() {
     // Given
     var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
     given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
@@ -215,6 +224,44 @@ class DigitalMediaObjectServiceTest {
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetMas() throws JsonProcessingException {
+    // Given
+    var digitalMedia = givenDigitalMediaObject(ID);
+    var specimenId = ID_ALT;
+    var digitalSpecimen = givenDigitalSpecimen(specimenId);
+    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+    given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
+    given(masService.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH)).willReturn(
+        response);
+
+    // When
+    var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(response);
+  }
+
+  @Test
+  void testScheduleMas() throws JsonProcessingException {
+    // Given
+    var digitalMedia = givenDigitalMediaObject(ID);
+    var specimenId = ID_ALT;
+    var digitalSpecimen = givenDigitalSpecimen(specimenId);
+    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+    given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
+    given(masService.scheduleMass(givenFlattenedDigitalMedia(), List.of(ID), DIGITAL_MEDIA_PATH,
+        digitalMedia)).willReturn(response);
+
+    // When
+    var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(response);
   }
 
   private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {

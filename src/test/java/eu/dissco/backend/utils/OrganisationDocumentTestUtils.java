@@ -7,10 +7,12 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import eu.dissco.backend.domain.OrganisationDocument;
 
 public class OrganisationDocumentTestUtils {
-  private OrganisationDocumentTestUtils(){}
+
+  private OrganisationDocumentTestUtils() {
+  }
 
 
-  public static OrganisationDocument givenOrganisationDocument(){
+  public static OrganisationDocument givenOrganisationDocument() {
     var doc = new OrganisationDocument();
     doc.setOrganisationId(ID);
     doc.setDocumentId(ID_ALT);

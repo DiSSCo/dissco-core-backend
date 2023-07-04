@@ -20,12 +20,12 @@ class OrganisationDocumentServiceTest {
   private OrganisationDocumentController controller;
 
   @BeforeEach
-  void setup(){
+  void setup() {
     controller = new OrganisationDocumentController(service);
   }
 
   @Test
-  void testCreateDocument(){
+  void testCreateDocument() {
     // Given
     var requestBody = new OrganisationDocument();
     given(service.createNewDocument(requestBody)).willReturn(requestBody);

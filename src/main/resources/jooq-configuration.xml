@@ -18,9 +18,8 @@
         organisation_do |
         organisation_document |
         new_annotation |
-        new_mapping |
-        new_source_system |
-        new_user
+        new_user |
+        machine_annotation_services
       </includes>
       <forcedTypes>
         <forcedType>

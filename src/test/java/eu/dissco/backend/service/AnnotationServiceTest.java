@@ -84,7 +84,7 @@ class AnnotationServiceTest {
         userId, annotationId, true);
     given(
         repository.getAnnotationsForUser(userId, pageNumber, pageSize)).willReturn(
-        givenAnnotationResponseList(annotationId, pageSize+1));
+        givenAnnotationResponseList(annotationId, pageSize + 1));
 
     // When
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize,
@@ -95,7 +95,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetAnnotationForTargetObject(){
+  void testGetAnnotationForTargetObject() {
     // Given
     var expected = List.of(givenAnnotationResponse());
     given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(expected);
@@ -108,7 +108,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetAnnotationForTarget(){
+  void testGetAnnotationForTarget() {
     var repositoryResponse = givenAnnotationResponseList(ID, 1);
     var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
     given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(repositoryResponse);
@@ -142,7 +142,7 @@ class AnnotationServiceTest {
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
-        givenAnnotationResponseList(annotationId, pageSize+1));
+        givenAnnotationResponseList(annotationId, pageSize + 1));
 
     // When
     var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
@@ -177,7 +177,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize+1, givenAnnotationResponse());
+    var elasticResponse = Collections.nCopies(pageSize + 1, givenAnnotationResponse());
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
@@ -186,6 +186,7 @@ class AnnotationServiceTest {
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
+
   @Test
   void testGetLatestAnnotationsLastPage() throws IOException {
     int pageSize = 15;
@@ -239,7 +240,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationIsNull() throws Exception{
+  void testPersistAnnotationIsNull() throws Exception {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))
@@ -261,7 +262,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testUpdateAnnotation() throws Exception{
+  void testUpdateAnnotation() throws Exception {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
@@ -293,23 +294,28 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testUpdateAnnotationDoesNotExist(){
+  void testUpdateAnnotationDoesNotExist() {
     // Given
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () ->service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
+        () -> service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN,
+            ANNOTATION_PATH));
   }
 
   @Test
-  void testGetAnnotationsByVersion() throws Exception{
+  void testGetAnnotationsByVersion() throws Exception {
     // Given
     int version = 1;
     var annotationNode = MAPPER.createObjectNode();
-    annotationNode.set("annotation", MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, ID)));
-    given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(annotationNode);
-    var expected = new JsonApiWrapper(new JsonApiData(ID, "Annotation", annotationNode.get("annotation")), new JsonApiLinks(ANNOTATION_PATH));
+    annotationNode.set("annotation",
+        MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, ID)));
+    given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(
+        annotationNode);
+    var expected = new JsonApiWrapper(
+        new JsonApiData(ID, "Annotation", annotationNode.get("annotation")),
+        new JsonApiLinks(ANNOTATION_PATH));
 
     // When
     var result = service.getAnnotationByVersion(ID, version, ANNOTATION_PATH);
@@ -329,8 +335,9 @@ class AnnotationServiceTest {
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
-    try (var mockedStatic = mockStatic(ServiceUtils.class)){
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER)).thenReturn(versionsNode);
+    try (var mockedStatic = mockStatic(ServiceUtils.class)) {
+      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
+          .thenReturn(versionsNode);
       // When
       var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
 
@@ -377,7 +384,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testDeleteAnnotation() throws Exception{
+  void testDeleteAnnotation() throws Exception {
     // Given
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
@@ -389,13 +396,13 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testDeleteAnnotationDoesNotExist() throws Exception{
+  void testDeleteAnnotationDoesNotExist() throws Exception {
     // Given
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () ->service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
+        () -> service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
   }
 
   private AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation, String userId) {

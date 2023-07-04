@@ -7,16 +7,20 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewAnnotationRecord;
+
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function16;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row16;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -162,17 +166,12 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
     public UniqueKey<NewAnnotationRecord> getPrimaryKey() {
         return Keys.NEW_ANNOTATION_PK;
-    }
-
-    @Override
-    public List<UniqueKey<NewAnnotationRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewAnnotationRecord>>asList(Keys.NEW_ANNOTATION_PK);
     }
 
     @Override
@@ -183,6 +182,11 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
     @Override
     public NewAnnotation as(Name alias) {
         return new NewAnnotation(alias, this);
+    }
+
+    @Override
+    public NewAnnotation as(Table<?> alias) {
+        return new NewAnnotation(alias.getQualifiedName(), this);
     }
 
     /**
@@ -201,6 +205,14 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
         return new NewAnnotation(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public NewAnnotation rename(Table<?> name) {
+        return new NewAnnotation(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row16 type methods
     // -------------------------------------------------------------------------
@@ -208,5 +220,20 @@ public class NewAnnotation extends TableImpl<NewAnnotationRecord> {
     @Override
     public Row16<String, Integer, String, String, String, String, JSONB, JSONB, Integer, String, Instant, String, JSONB, Instant, Instant, Instant> fieldsRow() {
         return (Row16) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function16<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super Integer, ? super String, ? super Instant, ? super String, ? super JSONB, ? super Instant, ? super Instant, ? super Instant, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function16<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super Integer, ? super String, ? super Instant, ? super String, ? super JSONB, ? super Instant, ? super Instant, ? super Instant, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

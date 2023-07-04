@@ -99,7 +99,8 @@ public class TestUtils {
     return givenDigitalSpecimen(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, String sourceSystem)
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId,
+      String sourceSystem)
       throws JsonProcessingException {
     return givenDigitalSpecimen(id, physicalId, 1, sourceSystem);
   }

@@ -7,15 +7,19 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
+
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function8;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row8;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -121,17 +125,12 @@ public class NewUser extends TableImpl<NewUserRecord> {
 
     @Override
     public Schema getSchema() {
-        return Public.PUBLIC;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
     public UniqueKey<NewUserRecord> getPrimaryKey() {
         return Keys.NEW_USER_PKEY;
-    }
-
-    @Override
-    public List<UniqueKey<NewUserRecord>> getKeys() {
-        return Arrays.<UniqueKey<NewUserRecord>>asList(Keys.NEW_USER_PKEY);
     }
 
     @Override
@@ -142,6 +141,11 @@ public class NewUser extends TableImpl<NewUserRecord> {
     @Override
     public NewUser as(Name alias) {
         return new NewUser(alias, this);
+    }
+
+    @Override
+    public NewUser as(Table<?> alias) {
+        return new NewUser(alias.getQualifiedName(), this);
     }
 
     /**
@@ -160,6 +164,14 @@ public class NewUser extends TableImpl<NewUserRecord> {
         return new NewUser(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public NewUser rename(Table<?> name) {
+        return new NewUser(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row8 type methods
     // -------------------------------------------------------------------------
@@ -167,5 +179,20 @@ public class NewUser extends TableImpl<NewUserRecord> {
     @Override
     public Row8<String, String, String, String, String, String, Instant, Instant> fieldsRow() {
         return (Row8) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function8<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

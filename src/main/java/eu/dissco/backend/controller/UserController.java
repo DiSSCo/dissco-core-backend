@@ -52,7 +52,8 @@ public class UserController {
     checkAuthorisation(tokenId, request.getData().getId());
     var response = service.createNewUser(request);
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.getData().getId())));
+        .body(
+            new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.getData().getId())));
   }
 
   @ResponseStatus(HttpStatus.OK)
