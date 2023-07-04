@@ -106,7 +106,7 @@ public class DigitalMediaObjectController {
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
-    log.info("Received get request for digital media: {}", id);
+    log.info("Received get request for mass for digital media: {}", id);
     var mass = service.getMass(id, path);
     return ResponseEntity.ok(mass);
   }
@@ -119,9 +119,7 @@ public class DigitalMediaObjectController {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
     var masIds = getMassFromRequest(requestBody);
-    log.info("Received get request to run mass: {} on digital media: {} for all relevant mas",
-        masIds,
-        id);
+    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds, id);
     var massResponse = service.scheduleMass(id, masIds, path);
     return ResponseEntity.accepted().body(massResponse);
   }

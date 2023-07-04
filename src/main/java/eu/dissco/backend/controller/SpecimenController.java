@@ -217,7 +217,7 @@ public class SpecimenController {
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
-    log.info("Received get request for digital media: {} for all relevant mas", id);
+    log.info("Received get request for mass for digital specimen: {}", id);
     var mass = service.getMass(id, path);
     return ResponseEntity.ok(mass);
   }
@@ -230,19 +230,20 @@ public class SpecimenController {
     var id = prefix + '/' + suffix;
     var path = SANDBOX_URI + request.getRequestURI();
     var masIds = getMassFromRequest(requestBody);
-    log.info("Received get request to run mass: {} on digital media: {} for all relevant mas",
-        masIds,
-        id);
+      log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}", masIds, id);
     var massResponse = service.scheduleMass(id, masIds, path);
     return ResponseEntity.accepted().body(massResponse);
   }
 
   private List<String> getMassFromRequest(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException, ConflictException {
-    if (!requestBody.data().type().equals("MasRequest")) {
-      throw new ConflictException();
-    }
-    return Arrays.asList(mapper.treeToValue(requestBody.data().attributes(), String[].class));
+      if (!requestBody.data().type().equals("MasRequest")) {
+          throw new ConflictException();
+      }
+      if (requestBody.data().attributes().get("mass") == null) {
+          throw new IllegalArgumentException();
+      }
+      return Arrays.asList(mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
 }
 
