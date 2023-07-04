@@ -230,7 +230,7 @@ class DigitalMediaObjectServiceTest {
   void testGetMas() throws JsonProcessingException {
     // Given
     var digitalMedia = givenDigitalMediaObject(ID);
-    var specimenId = "20.5000.1025/460-A7R-QMJ";
+    var specimenId = ID_ALT;
     var digitalSpecimen = givenDigitalSpecimen(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);

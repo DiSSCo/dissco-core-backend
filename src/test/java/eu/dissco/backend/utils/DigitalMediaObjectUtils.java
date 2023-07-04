@@ -1,10 +1,5 @@
 package eu.dissco.backend.utils;
 
-import static eu.dissco.backend.TestUtils.CREATED;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalMediaObject;
@@ -16,6 +11,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import static eu.dissco.backend.TestUtils.*;
+
 public class DigitalMediaObjectUtils {
 
   public static final String DIGITAL_MEDIA_URI = "/api/v1/digitalmedia";
@@ -23,7 +20,7 @@ public class DigitalMediaObjectUtils {
 
   // Media Object
   public static DigitalMediaObject givenDigitalMediaObject(String id) {
-    return new DigitalMediaObject(id, 1, CREATED, "2DImageObject", "20.5000.1025/460-A7R-QMJ",
+    return new DigitalMediaObject(id, 1, CREATED, "2DImageObject", ID_ALT,
         "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
         givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }

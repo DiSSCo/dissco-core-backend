@@ -17,6 +17,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 public class MachineAnnotationServiceUtils {
 
@@ -41,7 +42,7 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static JsonApiRequestWrapper givenMasRequest(String type) {
-    var mass = List.of(ID);
+    var mass = Map.of("mass", List.of(ID));
     var apiRequest = new JsonApiRequest(type, MAPPER.valueToTree(mass));
     return new JsonApiRequestWrapper(apiRequest);
   }
