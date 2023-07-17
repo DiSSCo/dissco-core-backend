@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.controller.ControllerUtils.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.Collections;
 import java.util.List;
@@ -63,13 +65,15 @@ class AnnotationServiceTest {
   @Mock
   private MongoRepository mongoRepository;
 
+  public DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
+
   private AnnotationService service;
 
 
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, MAPPER);
+        mongoRepository, MAPPER, formatter);
   }
 
   @Test
@@ -205,7 +209,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotation() throws Exception {
+  void testPersistAnnotation() {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID_ALT);
@@ -240,7 +244,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationIsNull() throws Exception {
+  void testPersistAnnotationIsNull() {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))

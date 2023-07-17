@@ -22,6 +22,7 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +35,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
+  private static final String ANNOTATION = "annotation";
+  private static final String VERSION = "version";
+
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
+  private final DateTimeFormatter formatter;
 
   // Used by Controller
 
@@ -57,8 +62,8 @@ public class AnnotationService {
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
     var eventNode = mongoRepository.getByVersion(id, version, "annotation_provenance");
-    var annotationNode = (ObjectNode) eventNode.get("annotation");
-    annotationNode.set("version", eventNode.get("version"));
+    var annotationNode = (ObjectNode) eventNode.get(ANNOTATION);
+    annotationNode.set(VERSION, eventNode.get(VERSION));
     validateAnnotationNode(annotationNode);
     var type = annotationNode.get("type").asText();
     var dataNode = new JsonApiData(id, type, annotationNode);
@@ -72,17 +77,33 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(AnnotationRequest annotationRequest, String userId,
-      String path) throws JsonProcessingException {
+      String path) {
     var event = mapAnnotationRequestToEvent(annotationRequest, userId);
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
-      var annotationResponse = mapper.treeToValue(response.get("annotation"),
-          AnnotationResponse.class);
+      AnnotationResponse annotationResponse = parseToAnnotationResponse(response);
       var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(),
           annotationResponse, mapper);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
+  }
+
+  private AnnotationResponse parseToAnnotationResponse(JsonNode response) {
+    return new AnnotationResponse(
+            response.get("id").asText(),
+            response.get(VERSION).asInt(),
+            response.get(ANNOTATION).get("type").asText(),
+            response.get(ANNOTATION).get("motivation").asText(),
+            response.get(ANNOTATION).get("target"),
+            response.get(ANNOTATION).get("body"),
+            response.get(ANNOTATION).get("preferenceScore").asInt(),
+            response.get(ANNOTATION).get("creator").asText(),
+            Instant.from(formatter.parse(response.get(ANNOTATION).get("created").asText())),
+            response.get(ANNOTATION).get("generator"),
+            Instant.from(formatter.parse(response.get(ANNOTATION).get("generated").asText())),
+            null
+    );
   }
 
   @NotNull
