@@ -10,7 +10,6 @@ public class JsonApiWrapper {
   JsonApiLinks links;
   JsonApiMeta meta;
 
-
   @JsonCreator
   public JsonApiWrapper(JsonApiData data, JsonApiLinks links) {
     this.data = data;
