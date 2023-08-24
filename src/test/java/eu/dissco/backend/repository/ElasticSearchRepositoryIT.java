@@ -21,6 +21,7 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.datatype.jsr310.ser.YearSerializer;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimen;
 import java.io.IOException;
@@ -139,6 +140,27 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
     assertThat(responseReceived.getRight()).contains(
         givenDigitalSpecimen(HANDLE + targetId, physicalId, HANDLE + SOURCE_SYSTEM_ID_1));
+  }
+
+  @Test
+  void testGetSpecimens() throws Exception {
+    // Given
+    int pageNumber = 0;
+    int pageSize = 10;
+    long totalHits = 15L;
+    var digitalSpecimens = new ArrayList<DigitalSpecimen>();
+    for (int i = 0; i < totalHits; i++) {
+      String id = PREFIX + "/" + i;
+      digitalSpecimens.add(givenDigitalSpecimen(id));
+    }
+    postDigitalSpecimens(parseToElasticFormat(digitalSpecimens));
+
+    // When
+    var responseReceived = repository.getSpecimens(pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
+    assertThat(responseReceived.getRight()).hasSize(pageSize+1);
   }
 
   @Test
@@ -265,7 +287,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(11).hasSameElementsAs(responseExpected);
+    assertThat(responseReceived.getRight()).hasSize(11).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -293,7 +315,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived).hasSize(pageSize).hasSameElementsAs(responseExpected);
+    assertThat(responseReceived.getRight()).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
   private List<JsonNode> parseToElasticFormat(List<DigitalSpecimen> givenSpecimens) {
@@ -324,6 +346,32 @@ class ElasticSearchRepositoryIT {
 
     // Then
     assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
+  }
+
+  @Test
+  void testGetAnnotationsForCreator() throws IOException {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    var totalHits = 15L;
+    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
+    List<AnnotationResponse> expected = new ArrayList<>();
+    for (long i = 0; i < totalHits; i++) {
+      String id = PREFIX + "/" + i;
+      if (i <= pageSize) {
+        expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
+      }
+      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
+      givenAnnotations.add(givenAnnotationResponse("A different User", id + "1"));
+    }
+    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
+
+    // When
+    var responseReceived = repository.getAnnotationsForCreator(USER_ID_TOKEN, pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
+    assertThat(responseReceived.getRight()).isEqualTo(expected);
   }
 
   private List<JsonNode> parseAnnotationToElasticFormat(List<AnnotationResponse> annotations) {

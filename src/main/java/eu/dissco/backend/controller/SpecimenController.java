@@ -57,7 +57,7 @@ public class SpecimenController {
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimen(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) throws IOException {
     log.info("Received get request for specimen");
     var path = SANDBOX_URI + request.getRequestURI();
     var specimen = service.getSpecimen(pageNumber, pageSize, path);

@@ -31,6 +31,8 @@ import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -45,6 +47,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,22 +80,23 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetAnnotationsForUser() {
+  void testGetAnnotationsForUser() throws Exception {
     // Given
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
     int pageNumber = 1;
     int pageSize = 15;
+    var totalCount = 30L;
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    given(
-        repository.getAnnotationsForUser(userId, pageNumber, pageSize)).willReturn(
-        givenAnnotationResponseList(annotationId, pageSize + 1));
+    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+
+    given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
+        .willReturn(Pair.of(totalCount,givenAnnotationResponseList(annotationId, pageSize + 1)));
 
     // When
-    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize,
-        path);
+    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);

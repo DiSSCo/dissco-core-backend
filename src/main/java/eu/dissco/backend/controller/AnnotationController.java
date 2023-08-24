@@ -135,7 +135,7 @@ public class AnnotationController {
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
-      Authentication authentication) {
+      Authentication authentication)throws IOException {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
     String path = SANDBOX_URI + request.getRequestURI();

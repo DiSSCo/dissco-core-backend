@@ -31,4 +31,12 @@ public class JsonApiListResponseWrapper {
     this.meta = null;
   }
 
+  public JsonApiListResponseWrapper(List<JsonApiData> domainObjectPlusOne, int pageNumber,
+      int pageSize, String path, JsonApiMeta meta) {
+    boolean hasNextPage = domainObjectPlusOne.size() > pageSize;
+    this.data = hasNextPage ? domainObjectPlusOne.subList(0, pageSize) : domainObjectPlusOne;
+    this.links = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
+    this.meta = meta;
+  }
+
 }

@@ -152,7 +152,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotationsForUserJsonResponse() {
+  void testGetAnnotationsForUserJsonResponse() throws Exception {
     // Given
     givenAuthentication(USER_ID_TOKEN);
 
