@@ -2,3 +2,9 @@
 # Issue: snappy-java high issue, https://www.cvedetails.com/cve/CVE-2023-34453/
 # Solution: Spring needs to update its version
 CVE-2023-34455
+
+# Date: August 24, 2023
+# Issue: snappy-java used by kafka, which is used by spring-kafka
+# Solution: Spring needs to update its version
+CVE-2023-34453
+CVE-2023-34454
