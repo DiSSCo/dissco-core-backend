@@ -103,6 +103,29 @@ class AnnotationServiceTest {
   }
 
   @Test
+  void testGetAnnotationsForUserLastPage() throws Exception {
+    // Given
+    String userId = USER_ID_TOKEN;
+    String annotationId = "123";
+    int pageNumber = 2;
+    int pageSize = 15;
+    var totalCount = 30L;
+    String path = SANDBOX_URI + "api/v1/annotations/creator/json";
+    var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+        userId, annotationId, false);
+    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+
+    given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
+        .willReturn(Pair.of(totalCount,givenAnnotationResponseList(annotationId, pageSize)));
+
+    // When
+    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @Test
   void testGetAnnotationForTargetObject() {
     // Given
     var expected = List.of(givenAnnotationResponse());

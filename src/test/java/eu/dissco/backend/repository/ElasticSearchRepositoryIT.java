@@ -374,6 +374,27 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getRight()).isEqualTo(expected);
   }
 
+  @Test
+  void testGetAnnotationsForCreatorEmpty() throws IOException {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    var totalHits = 0L;
+    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
+    for (long i = 0; i < 5; i++) {
+      String id = PREFIX + "/" + i;
+      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
+    }
+    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
+
+    // When
+    var responseReceived = repository.getAnnotationsForCreator("a different user", pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived.getLeft()).isZero();
+    assertThat(responseReceived.getRight()).isEmpty();
+  }
+
   private List<JsonNode> parseAnnotationToElasticFormat(List<AnnotationResponse> annotations) {
     return annotations.stream().map(this::annotationToElasticFormat).toList();
   }
