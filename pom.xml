@@ -21,6 +21,7 @@
     <spring-cloud-starter-openfeign.version>4.0.2</spring-cloud-starter-openfeign.version>
     <feign-okhttp.version>12.3</feign-okhttp.version>
     <springdoc.version>2.1.0</springdoc.version>
+    <kafka.version>3.5.1</kafka.version>
     <mongodb-driver.version>3.12.13</mongodb-driver.version>
     <testcontainers.version>1.17.6</testcontainers.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
