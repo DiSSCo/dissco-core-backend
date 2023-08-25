@@ -2,15 +2,12 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
-import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
-import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalSpecimen;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -24,16 +21,6 @@ public class SpecimenRepository {
 
   private final DSLContext context;
   private final ObjectMapper mapper;
-
-  public List<DigitalSpecimen> getSpecimensLatest(int pageNumber, int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
-        .from(NEW_DIGITAL_SPECIMEN)
-        .offset(offset)
-        .limit(pageSizePlusOne)
-        .fetch(this::mapToDigitalSpecimen);
-  }
 
   public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(NEW_DIGITAL_SPECIMEN.asterisk())

@@ -31,20 +31,6 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetSpecimenLatest() throws JsonProcessingException {
-    // Given
-    populateSpecimenTable();
-
-    // When
-    var resultPage1 = repository.getSpecimensLatest(1, 15);
-    var resultPage2 = repository.getSpecimensLatest(2, 15);
-
-    // Then
-    assertThat(resultPage1).hasSize(16);
-    assertThat(resultPage2).hasSize(7);
-  }
-
-  @Test
   void testGetSpecimenById() throws JsonProcessingException {
     // Given
     populateSpecimenTable();

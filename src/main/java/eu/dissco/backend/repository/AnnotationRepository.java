@@ -47,17 +47,6 @@ public class AnnotationRepository {
         .fetch().size();
   }
 
-  public List<AnnotationResponse> getAnnotationsForUser(String userId, int pageNumber,
-      int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.CREATOR.eq(userId))
-        .orderBy(NEW_ANNOTATION.CREATED)
-        .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
-  }
-
   public List<AnnotationResponse> getForTarget(String id) {
     return context.select(NEW_ANNOTATION.asterisk())
         .from(NEW_ANNOTATION)
