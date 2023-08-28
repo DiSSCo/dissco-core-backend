@@ -64,15 +64,16 @@ public class SpecimenService {
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
 
-  public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path) {
-    var digitalSpecimenList = repository.getSpecimensLatest(pageNumber, pageSize);
-    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
+  public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
+      throws IOException {
+    var elasticSearchResults = elasticRepository.getSpecimens(pageNumber, pageSize);
+    return wrapListResponse(elasticSearchResults, pageSize, pageNumber, path);
   }
 
   public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
-    var digitalSpecimenList = elasticRepository.getLatestSpecimen(pageNumber, pageSize);
-    return wrapListResponse(digitalSpecimenList, pageSize, pageNumber, path);
+    var elasticSearchResults = elasticRepository.getLatestSpecimen(pageNumber, pageSize);
+    return wrapListResponse(elasticSearchResults, pageSize, pageNumber, path);
   }
 
   public JsonApiWrapper getSpecimenById(String id, String path) {
@@ -214,18 +215,21 @@ public class SpecimenService {
     );
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<DigitalSpecimen> digitalSpecimenList,
+  private JsonApiListResponseWrapper wrapListResponse(
+      Pair<Long, List<DigitalSpecimen>> elasticSearchResults,
       int pageSize, int pageNumber, String path) {
+    var digitalSpecimenList = elasticSearchResults.getRight();
     var dataNodePlusOne = digitalSpecimenList.stream()
         .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
-    return new JsonApiListResponseWrapper(dataNode, linksNode);
+    var metaNode = new JsonApiMeta(elasticSearchResults.getLeft());
+    return new JsonApiListResponseWrapper(dataNode, linksNode, metaNode);
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(
+  private JsonApiListResponseWrapper wrapListResponseSearchResults(
       Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
@@ -244,7 +248,7 @@ public class SpecimenService {
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
     var specimenPlusOne = elasticRepository.search(mapParamsKeyword(params), pageNumber, pageSize);
-    return wrapListResponse(specimenPlusOne, pageNumber, pageSize, params, path);
+    return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, params, path);
   }
 
   private void removePaginationParams(MultiValueMap<String, String> params) {

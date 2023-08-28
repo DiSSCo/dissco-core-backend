@@ -64,15 +64,14 @@ public class ElasticSearchRepository {
     return queries;
   }
 
-  public List<DigitalSpecimen> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+  public Pair<Long, List<DigitalSpecimen>> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .from(offset)
         .size(pageSizePlusOne).build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
+    return getDigitalSpecimenSearchResults(searchRequest);
   }
 
   public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
@@ -88,7 +87,7 @@ public class ElasticSearchRepository {
   }
 
   private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
-    var annotation = json.get("annotation");
+    var annotation = json.get(ANNOTATION_INDEX);
     var createdOn = parseDate(annotation.get(FIELD_CREATED));
     var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
     return new AnnotationResponse(
@@ -148,6 +147,30 @@ public class ElasticSearchRepository {
     }
   }
 
+  public Pair<Long, List<AnnotationResponse>> getAnnotationsForCreator(String userId, int pageNumber, int pageSize) throws IOException{
+    var fieldName = "annotation.creator";
+    var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+
+    var searchRequest = SearchRequest.of(sr ->
+        sr.index(ANNOTATION_INDEX)
+        .query(q -> q
+            .match(t -> t
+                .field(fieldName)
+                .query(userId)))
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+        .from(offset)
+        .size(pageSizePlusOne));
+    var searchResult = client.search(searchRequest, ObjectNode.class);
+    if (searchResult.hits().total() != null) {
+      var totalHits = searchResult.hits().total().value();
+      var annotationResponses = searchResult.hits().hits().stream().map(Hit::source)
+          .map(this::mapToAnnotationResponse).toList();
+      return Pair.of(totalHits, annotationResponses);
+    }
+    return Pair.of(0L, new ArrayList<>());
+  }
+
   public Pair<Long, List<DigitalSpecimen>> search(Map<String, List<String>> params, int pageNumber,
       int pageSize)
       throws IOException {
@@ -160,9 +183,26 @@ public class ElasticSearchRepository {
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
         .size(pageSizePlusOne).build();
+    return getDigitalSpecimenSearchResults(searchRequest);
+  }
+
+  public Pair<Long, List<DigitalSpecimen>> getSpecimens(int pageNumber, int pageSize) throws IOException {
+    var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+    var searchRequest = new SearchRequest.Builder()
+        .index(DIGITAL_SPECIMEN_INDEX)
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+        .from(offset)
+        .size(pageSizePlusOne)
+        .build();
+    return getDigitalSpecimenSearchResults(searchRequest);
+  }
+
+  private Pair<Long, List<DigitalSpecimen>> getDigitalSpecimenSearchResults(SearchRequest searchRequest) throws IOException{
     var searchResult = client.search(searchRequest, ObjectNode.class);
     var totalHits = searchResult.hits().total().value();
-    var specimens = searchResult.hits().hits().stream().map(Hit::source)
+    var specimens = searchResult.hits().hits().stream()
+        .map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
     return Pair.of(totalHits, specimens);
   }

@@ -32,6 +32,7 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -85,16 +86,16 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimen() {
+  void testGetSpecimen() throws Exception {
     // Given
     int pageNum = 1;
     int pageSize = 10;
     var digitalSpecimens = givenDigitalSpecimenList(pageSize + 1);
-
+    var totalResults = 20L;
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize)).willReturn(digitalSpecimens);
-    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode);
+    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode, new JsonApiMeta(totalResults));
+    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(Pair.of(totalResults, digitalSpecimens));
 
     // When
     var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -104,15 +105,16 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenLastPage() throws JsonProcessingException {
+  void testGetSpecimenLastPage() throws Exception{
     // Given
     int pageNum = 1;
     int pageSize = 10;
     var digitalSpecimens = List.of(givenDigitalSpecimen(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
-    given(repository.getSpecimensLatest(pageNum, pageSize)).willReturn(digitalSpecimens);
-    var expected = new JsonApiListResponseWrapper(dataNode, linksNode);
+    var totalResults = 10L;
+    var expected = new JsonApiListResponseWrapper(dataNode, linksNode, new JsonApiMeta(totalResults));
+    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(Pair.of(totalResults, digitalSpecimens));
 
     // When
     var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -126,11 +128,13 @@ class SpecimenServiceTest {
     // Given
     int pageSize = 10;
     int pageNum = 1;
+    var totalResults = 20L;
     var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimen(ID));
+    var elasticSearchResults = Pair.of( totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
-        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH));
+        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH), new JsonApiMeta(totalResults));
 
     // When
     var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -144,11 +148,13 @@ class SpecimenServiceTest {
     // Given
     int pageSize = 10;
     int pageNum = 2;
+    long totalResults = 20L;
     var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
+    var elasticSearchResults = Pair.of( totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(specimens);
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode,
-        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH));
+        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH), new JsonApiMeta(totalResults));
 
     // When
     var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);

@@ -87,56 +87,6 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsForUser() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    int pageNumber = 1;
-    int pageSize = 11;
-    List<AnnotationResponse> annotationsNonTarget = List.of(
-        givenAnnotationResponse("test", "test"));
-    postAnnotations(annotationsNonTarget);
-
-    List<String> annotationIds = IntStream.rangeClosed(0, pageSize - 1).boxed()
-        .map(Object::toString).toList();
-    List<AnnotationResponse> expectedResponse = new ArrayList<>();
-
-    for (String id : annotationIds) {
-      expectedResponse.add(givenAnnotationResponse(userId, id));
-    }
-    postAnnotations(expectedResponse);
-
-    // When
-    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
-  void testGetAnnotationsForUserSecondPage() {
-    // Given
-    String userId = USER_ID_TOKEN;
-    int pageNumber = 2;
-    int pageSize = 11;
-    List<AnnotationResponse> annotationsNonTarget = List.of(
-        givenAnnotationResponse("test", "test"));
-    postAnnotations(annotationsNonTarget);
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize * 2) - 1).boxed()
-        .map(Object::toString).toList();
-    List<AnnotationResponse> annotations = new ArrayList<>();
-    for (String id : annotationIds) {
-      annotations.add(givenAnnotationResponse(userId, id));
-    }
-    postAnnotations(annotations);
-
-    // When
-    var receivedResponse = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
-
-    // Then
-    assertThat(receivedResponse).hasSize(pageSize);
-  }
-
-  @Test
   void testGetForTarget() {
     // Given
     MAPPER.setSerializationInclusion(Include.ALWAYS);

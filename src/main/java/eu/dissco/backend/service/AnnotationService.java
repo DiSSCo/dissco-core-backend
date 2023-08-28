@@ -14,6 +14,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -91,18 +93,18 @@ public class AnnotationService {
 
   private AnnotationResponse parseToAnnotationResponse(JsonNode response) {
     return new AnnotationResponse(
-            response.get("id").asText(),
-            response.get(VERSION).asInt(),
-            response.get(ANNOTATION).get("type").asText(),
-            response.get(ANNOTATION).get("motivation").asText(),
-            response.get(ANNOTATION).get("target"),
-            response.get(ANNOTATION).get("body"),
-            response.get(ANNOTATION).get("preferenceScore").asInt(),
-            response.get(ANNOTATION).get("creator").asText(),
-            Instant.from(formatter.parse(response.get(ANNOTATION).get("created").asText())),
-            response.get(ANNOTATION).get("generator"),
-            Instant.from(formatter.parse(response.get(ANNOTATION).get("generated").asText())),
-            null
+        response.get("id").asText(),
+        response.get(VERSION).asInt(),
+        response.get(ANNOTATION).get("type").asText(),
+        response.get(ANNOTATION).get("motivation").asText(),
+        response.get(ANNOTATION).get("target"),
+        response.get(ANNOTATION).get("body"),
+        response.get(ANNOTATION).get("preferenceScore").asInt(),
+        response.get(ANNOTATION).get("creator").asText(),
+        Instant.from(formatter.parse(response.get(ANNOTATION).get("created").asText())),
+        response.get(ANNOTATION).get("generator"),
+        Instant.from(formatter.parse(response.get(ANNOTATION).get("generated").asText())),
+        null
     );
   }
 
@@ -127,9 +129,10 @@ public class AnnotationService {
   }
 
   public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
-      int pageSize, String path) {
-    var annotationsPlusOne = repository.getAnnotationsForUser(userId, pageNumber, pageSize);
-    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
+      int pageSize, String path) throws IOException {
+    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(userId, pageNumber,
+        pageSize);
+    return wrapListResponseElasticSearchResults(elasticSearchResults, pageNumber, pageSize, path);
   }
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
@@ -167,6 +170,10 @@ public class AnnotationService {
   }
 
   // Response Constructors
+  private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
+    mapper.treeToValue(annotationNode, AnnotationResponse.class);
+  }
+
   private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne,
       int pageNumber, int pageSize, String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
@@ -175,8 +182,15 @@ public class AnnotationService {
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
-  private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
-    mapper.treeToValue(annotationNode, AnnotationResponse.class);
+  private JsonApiListResponseWrapper wrapListResponseElasticSearchResults(
+      Pair<Long, List<AnnotationResponse>> elasticSearchResults, int pageNumber, int pageSize,
+      String path) {
+    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+    var annotationsPlusOne = elasticSearchResults.getRight();
+    annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
+        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+    return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path,
+        new JsonApiMeta(elasticSearchResults.getLeft()));
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations,

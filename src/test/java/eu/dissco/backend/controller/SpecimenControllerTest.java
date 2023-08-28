@@ -54,7 +54,7 @@ class SpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimen() {
+  void testGetSpecimen() throws Exception{
     // When
     var result = controller.getSpecimen(1, 1, mockRequest);
 
