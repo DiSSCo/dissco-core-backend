@@ -4,22 +4,17 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
+import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
-import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
-import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-import eu.dissco.backend.database.jooq.tables.OrganisationDo;
-import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
+import eu.dissco.backend.database.jooq.tables.records.DigitalMediaObjectRecord;
+import eu.dissco.backend.database.jooq.tables.records.DigitalSpecimenRecord;
 import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
 import eu.dissco.backend.database.jooq.tables.records.NewAnnotationRecord;
-import eu.dissco.backend.database.jooq.tables.records.NewDigitalMediaObjectRecord;
-import eu.dissco.backend.database.jooq.tables.records.NewDigitalSpecimenRecord;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
-import eu.dissco.backend.database.jooq.tables.records.OrganisationDoRecord;
-import eu.dissco.backend.database.jooq.tables.records.OrganisationDocumentRecord;
 
-import org.jooq.ForeignKey;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -37,17 +32,9 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<DigitalMediaObjectRecord> DIGITAL_MEDIA_OBJECT_PK = Internal.createUniqueKey(DigitalMediaObject.DIGITAL_MEDIA_OBJECT, DSL.name("digital_media_object_pk"), new TableField[] { DigitalMediaObject.DIGITAL_MEDIA_OBJECT.ID }, true);
+    public static final UniqueKey<DigitalSpecimenRecord> DIGITAL_SPECIMEN_PK = Internal.createUniqueKey(DigitalSpecimen.DIGITAL_SPECIMEN, DSL.name("digital_specimen_pk"), new TableField[] { DigitalSpecimen.DIGITAL_SPECIMEN.ID }, true);
     public static final UniqueKey<MachineAnnotationServicesRecord> MACHINE_ANNOTATION_SERVICES_PKEY = Internal.createUniqueKey(MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES, DSL.name("machine_annotation_services_pkey"), new TableField[] { MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES.ID }, true);
     public static final UniqueKey<NewAnnotationRecord> NEW_ANNOTATION_PK = Internal.createUniqueKey(NewAnnotation.NEW_ANNOTATION, DSL.name("new_annotation_pk"), new TableField[] { NewAnnotation.NEW_ANNOTATION.ID }, true);
-    public static final UniqueKey<NewDigitalMediaObjectRecord> NEW_DIGITAL_MEDIA_OBJECT_PK = Internal.createUniqueKey(NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, DSL.name("new_digital_media_object_pk"), new TableField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.ID }, true);
-    public static final UniqueKey<NewDigitalSpecimenRecord> NEW_DIGITAL_SPECIMEN_PK = Internal.createUniqueKey(NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN, DSL.name("new_digital_specimen_pk"), new TableField[] { NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN.ID }, true);
     public static final UniqueKey<NewUserRecord> NEW_USER_PKEY = Internal.createUniqueKey(NewUser.NEW_USER, DSL.name("new_user_pkey"), new TableField[] { NewUser.NEW_USER.ID }, true);
-    public static final UniqueKey<OrganisationDoRecord> ORGANISATION_DO_PKEY = Internal.createUniqueKey(OrganisationDo.ORGANISATION_DO, DSL.name("organisation_do_pkey"), new TableField[] { OrganisationDo.ORGANISATION_DO.ID }, true);
-    public static final UniqueKey<OrganisationDocumentRecord> ORGANISATION_DOCUMENT_PKEY = Internal.createUniqueKey(OrganisationDocument.ORGANISATION_DOCUMENT, DSL.name("organisation_document_pkey"), new TableField[] { OrganisationDocument.ORGANISATION_DOCUMENT.DOCUMENT_ID }, true);
-
-    // -------------------------------------------------------------------------
-    // FOREIGN KEY definitions
-    // -------------------------------------------------------------------------
-
-    public static final ForeignKey<OrganisationDocumentRecord, OrganisationDoRecord> ORGANISATION_DOCUMENT__FK_ORGANISATION = Internal.createForeignKey(OrganisationDocument.ORGANISATION_DOCUMENT, DSL.name("fk_organisation"), new TableField[] { OrganisationDocument.ORGANISATION_DOCUMENT.ORGANISATION_ID }, Keys.ORGANISATION_DO_PKEY, new TableField[] { OrganisationDo.ORGANISATION_DO.ID }, true);
 }

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import eu.dissco.backend.configuration.InstantDeserializer;
 import eu.dissco.backend.configuration.InstantSerializer;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -85,30 +85,30 @@ public class TestUtils {
   }
 
   // Digital Specimen
-  public static DigitalSpecimen givenDigitalSpecimen(String id) throws JsonProcessingException {
+  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id) throws JsonProcessingException {
     return givenDigitalSpecimen(id, "global_id_123123");
   }
 
-  public static DigitalSpecimen givenDigitalSpecimenSourceSystem(String id, String sourceSystem)
+  public static DigitalSpecimenWrapper givenDigitalSpecimenSourceSystem(String id, String sourceSystem)
       throws JsonProcessingException {
     return givenDigitalSpecimen(id, "global_id_123123", 1, sourceSystem);
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId)
+  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId)
       throws JsonProcessingException {
     return givenDigitalSpecimen(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId,
+  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId,
       String sourceSystem)
       throws JsonProcessingException {
     return givenDigitalSpecimen(id, physicalId, 1, sourceSystem);
   }
 
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, int version,
+  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId, int version,
       String sourceSystemId)
       throws JsonProcessingException {
-    return new DigitalSpecimen(
+    return new DigitalSpecimenWrapper(
         id,
         1,
         version,

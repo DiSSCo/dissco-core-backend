@@ -2,7 +2,7 @@ package eu.dissco.backend.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DigitalMediaObject;
+import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -19,29 +19,29 @@ public class DigitalMediaObjectUtils {
   public static final String DIGITAL_MEDIA_PATH = SANDBOX_URI + DIGITAL_MEDIA_URI;
 
   // Media Object
-  public static DigitalMediaObject givenDigitalMediaObject(String id) {
-    return new DigitalMediaObject(id, 1, CREATED, "2DImageObject", ID_ALT,
+  public static DigitalMediaObjectWrapper givenDigitalMediaObject(String id) {
+    return new DigitalMediaObjectWrapper(id, 1, CREATED, "2DImageObject", ID_ALT,
         "https://dissco.com", "image/jpeg", "20.5000.1025/GW0-TYL-YRU",
         givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }
 
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId) {
+  public static DigitalMediaObjectWrapper givenDigitalMediaObject(String mediaId, String specimenId) {
     return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, 1);
   }
 
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+  public static DigitalMediaObjectWrapper givenDigitalMediaObject(String mediaId, String specimenId,
       int version) {
     return givenDigitalMediaObject(mediaId, specimenId, SOURCE_SYSTEM_ID_1, version);
   }
 
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+  public static DigitalMediaObjectWrapper givenDigitalMediaObject(String mediaId, String specimenId,
       String sourceSystemId) {
     return givenDigitalMediaObject(mediaId, specimenId, sourceSystemId, 1);
   }
 
-  public static DigitalMediaObject givenDigitalMediaObject(String mediaId, String specimenId,
+  public static DigitalMediaObjectWrapper givenDigitalMediaObject(String mediaId, String specimenId,
       String sourceSystemId, int version) {
-    return new DigitalMediaObject(mediaId, version, CREATED, "2DImageObject", specimenId,
+    return new DigitalMediaObjectWrapper(mediaId, version, CREATED, "2DImageObject", specimenId,
         "https://dissco.com", "image/jpeg", sourceSystemId,
         givenDigitalMediaObjectData(), givenDigitalMediaObjectOriginalData());
   }

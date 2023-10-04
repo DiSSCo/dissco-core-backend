@@ -8,7 +8,7 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.controller.ControllerUtils.DATE_STRING;
+import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
@@ -59,6 +59,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class AnnotationServiceTest {
 
+  public DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING)
+      .withZone(ZoneOffset.UTC);
   @Mock
   private AnnotationRepository repository;
   @Mock
@@ -67,9 +69,6 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
-
-  public DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
-
   private AnnotationService service;
 
 
@@ -90,10 +89,11 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
+        new JsonApiMeta(totalCount));
 
     given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
-        .willReturn(Pair.of(totalCount,givenAnnotationResponseList(annotationId, pageSize + 1)));
+        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
 
     // When
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
@@ -113,10 +113,11 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
-    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
+        new JsonApiMeta(totalCount));
 
     given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
-        .willReturn(Pair.of(totalCount,givenAnnotationResponseList(annotationId, pageSize)));
+        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
 
     // When
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);

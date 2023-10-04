@@ -1,13 +1,12 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
-import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
-import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
+import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -22,40 +21,28 @@ public class SpecimenRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public DigitalSpecimen getLatestSpecimenById(String id) {
-    return context.select(NEW_DIGITAL_SPECIMEN.asterisk())
-        .from(NEW_DIGITAL_SPECIMEN)
-        .where(NEW_DIGITAL_SPECIMEN.ID.eq(id))
+  public DigitalSpecimenWrapper getLatestSpecimenById(String id) {
+    return context.select(DIGITAL_SPECIMEN.asterisk())
+        .from(DIGITAL_SPECIMEN)
+        .where(DIGITAL_SPECIMEN.ID.eq(id))
         .fetchOne(this::mapToDigitalSpecimen);
   }
 
-  private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
+  private DigitalSpecimenWrapper mapToDigitalSpecimen(Record dbRecord) {
     try {
-      return new DigitalSpecimen(
-          HANDLE_STRING + dbRecord.get(NEW_DIGITAL_SPECIMEN.ID),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.MIDSLEVEL),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.VERSION),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.CREATED),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.TYPE),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.DATASET),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_COLLECTION),
-          HANDLE_STRING + dbRecord.get(NEW_DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID),
-          getData(dbRecord),
-          mapper.readTree(dbRecord.get(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA).data()),
-          dbRecord.get(NEW_DIGITAL_SPECIMEN.DWCA_ID));
+      var ds = mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
+          .withOdsId("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
+          .withOdsType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
+          .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
+          .withOdsCreated(dbRecord.get(DIGITAL_SPECIMEN.CREATED).toString())
+          .withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));
+      return new DigitalSpecimenWrapper(
+          ds,
+          mapper.readTree(dbRecord.get(DIGITAL_SPECIMEN.ORIGINAL_DATA).data()));
     } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      throw new DisscoJsonBMappingException(
+          "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), e);
     }
-  }
-
-  private JsonNode getData(Record dbRecord) throws JsonProcessingException {
-    var attributes = mapper.readTree(dbRecord.get(NEW_DIGITAL_SPECIMEN.DATA).data());
-    addUrlToAttributes(attributes);
-    return attributes;
   }
 
 }

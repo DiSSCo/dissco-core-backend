@@ -4,13 +4,11 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
+import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
-import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
-import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-import eu.dissco.backend.database.jooq.tables.OrganisationDo;
-import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
 
 /**
@@ -18,6 +16,16 @@ import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>public.digital_media_object</code>.
+     */
+    public static final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
+
+    /**
+     * The table <code>public.digital_specimen</code>.
+     */
+    public static final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
 
     /**
      * The table <code>public.machine_annotation_services</code>.
@@ -30,27 +38,7 @@ public class Tables {
     public static final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
     /**
-     * The table <code>public.new_digital_media_object</code>.
-     */
-    public static final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
-
-    /**
-     * The table <code>public.new_digital_specimen</code>.
-     */
-    public static final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
-
-    /**
      * The table <code>public.new_user</code>.
      */
     public static final NewUser NEW_USER = NewUser.NEW_USER;
-
-    /**
-     * The table <code>public.organisation_do</code>.
-     */
-    public static final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
-
-    /**
-     * The table <code>public.organisation_document</code>.
-     */
-    public static final OrganisationDocument ORGANISATION_DOCUMENT = OrganisationDocument.ORGANISATION_DOCUMENT;
 }

@@ -4,13 +4,11 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
+import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
-import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
-import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-import eu.dissco.backend.database.jooq.tables.OrganisationDo;
-import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +32,16 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.digital_media_object</code>.
+     */
+    public final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
+
+    /**
+     * The table <code>public.digital_specimen</code>.
+     */
+    public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
+
+    /**
      * The table <code>public.machine_annotation_services</code>.
      */
     public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
@@ -44,29 +52,9 @@ public class Public extends SchemaImpl {
     public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
     /**
-     * The table <code>public.new_digital_media_object</code>.
-     */
-    public final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
-
-    /**
-     * The table <code>public.new_digital_specimen</code>.
-     */
-    public final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
-
-    /**
      * The table <code>public.new_user</code>.
      */
     public final NewUser NEW_USER = NewUser.NEW_USER;
-
-    /**
-     * The table <code>public.organisation_do</code>.
-     */
-    public final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
-
-    /**
-     * The table <code>public.organisation_document</code>.
-     */
-    public final OrganisationDocument ORGANISATION_DOCUMENT = OrganisationDocument.ORGANISATION_DOCUMENT;
 
     /**
      * No further instances allowed
@@ -84,13 +72,11 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
+            DigitalSpecimen.DIGITAL_SPECIMEN,
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             NewAnnotation.NEW_ANNOTATION,
-            NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
-            NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
-            NewUser.NEW_USER,
-            OrganisationDo.ORGANISATION_DO,
-            OrganisationDocument.ORGANISATION_DOCUMENT
+            NewUser.NEW_USER
         );
     }
 }

@@ -116,8 +116,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
-      String path)
-      throws NoAnnotationFoundException, JsonProcessingException {
+      String path) throws NoAnnotationFoundException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
       return persistAnnotation(annotation, userId, path);

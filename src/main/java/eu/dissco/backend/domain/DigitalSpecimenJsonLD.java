@@ -9,7 +9,6 @@ public record DigitalSpecimenJsonLD(
     @JsonProperty("@type") String type,
     @JsonProperty("@context") JsonNode context,
     @JsonProperty("ods:primarySpecimenData") JsonNode primaryData,
-    @JsonProperty("ods:sourceSystemId") String sourceSystemId,
     @JsonProperty("ods:hasSpecimenMedia") List<String> digitalMediaObjects
 ) {
 

@@ -21,9 +21,8 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.datatype.jsr310.ser.YearSerializer;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -122,7 +121,7 @@ class ElasticSearchRepositoryIT {
   @MethodSource("provideKeyValue")
   void testSearch(String field, String value, Long totalHits) throws IOException {
     // Given
-    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
     String targetId = PREFIX + "/0";
     var physicalId = "global_id_45634";
     var targetSpecimen = givenDigitalSpecimen(targetId, physicalId);
@@ -148,7 +147,7 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 0;
     int pageSize = 10;
     long totalHits = 15L;
-    var digitalSpecimens = new ArrayList<DigitalSpecimen>();
+    var digitalSpecimens = new ArrayList<DigitalSpecimenWrapper>();
     for (int i = 0; i < totalHits; i++) {
       String id = PREFIX + "/" + i;
       digitalSpecimens.add(givenDigitalSpecimen(id));
@@ -168,7 +167,7 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 2;
     int pageSize = 5;
-    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -189,9 +188,9 @@ class ElasticSearchRepositoryIT {
   @Test
   void testAggregations() throws IOException {
     // Given
-    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimen specimen;
+      DigitalSpecimenWrapper specimen;
       if (i < 5) {
         specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
       } else {
@@ -215,9 +214,9 @@ class ElasticSearchRepositoryIT {
   @Test
   void testAggregation() throws IOException {
     // Given
-    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimen specimen;
+      DigitalSpecimenWrapper specimen;
       if (i < 5) {
         specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
       } else {
@@ -241,9 +240,9 @@ class ElasticSearchRepositoryIT {
   @Test
   void testSearchTermValue() throws IOException {
     // Given
-    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimen specimen;
+      DigitalSpecimenWrapper specimen;
       if (i < 5) {
         specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
       } else {
@@ -268,8 +267,8 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageSize = 10;
     int pageNumber = 1;
-    var givenSpecimens = new ArrayList<DigitalSpecimen>();
-    var responseExpected = new ArrayList<DigitalSpecimen>();
+    var givenSpecimens = new ArrayList<DigitalSpecimenWrapper>();
+    var responseExpected = new ArrayList<DigitalSpecimenWrapper>();
 
     for (int i = 0; i < pageSize + 1; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -295,8 +294,8 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageSize = 10;
     int pageNumber = 2;
-    List<DigitalSpecimen> givenSpecimens = new ArrayList<>();
-    List<DigitalSpecimen> responseExpected = new ArrayList<>();
+    List<DigitalSpecimenWrapper> givenSpecimens = new ArrayList<>();
+    List<DigitalSpecimenWrapper> responseExpected = new ArrayList<>();
 
     for (int i = 0; i < pageSize; i++) {
       var specimen = givenDigitalSpecimen(PREFIX + "/" + i);
@@ -318,7 +317,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getRight()).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
-  private List<JsonNode> parseToElasticFormat(List<DigitalSpecimen> givenSpecimens) {
+  private List<JsonNode> parseToElasticFormat(List<DigitalSpecimenWrapper> givenSpecimens) {
     return givenSpecimens.stream().map(this::toElasticFormat).toList();
   }
 
@@ -399,7 +398,7 @@ class ElasticSearchRepositoryIT {
     return annotations.stream().map(this::annotationToElasticFormat).toList();
   }
 
-  private JsonNode toElasticFormat(DigitalSpecimen specimen) {
+  private JsonNode toElasticFormat(DigitalSpecimenWrapper specimen) {
     var objectNode = MAPPER.createObjectNode();
     objectNode.put("id", specimen.id());
     objectNode.put("midsLevel", specimen.midsLevel());
@@ -414,14 +413,14 @@ class ElasticSearchRepositoryIT {
     return objectNode;
   }
 
-  private DigitalSpecimen givenOlderSpecimen(String id) throws JsonProcessingException {
+  private DigitalSpecimenWrapper givenOlderSpecimen(String id) throws JsonProcessingException {
     return givenOlderSpecimen(id, SOURCE_SYSTEM_ID_1);
   }
 
-  private DigitalSpecimen givenOlderSpecimen(String id, String sourceSystem)
+  private DigitalSpecimenWrapper givenOlderSpecimen(String id, String sourceSystem)
       throws JsonProcessingException {
     var spec = givenDigitalSpecimenSourceSystem(id, sourceSystem);
-    return new DigitalSpecimen(
+    return new DigitalSpecimenWrapper(
         spec.id(),
         spec.midsLevel(),
         spec.version(),

@@ -7,7 +7,6 @@ import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +15,7 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.DigitalMediaObject;
+import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -30,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -176,7 +174,7 @@ class DigitalMediaObjectServiceTest {
   void testGetDigitalMediaObjectFull() {
     // Given
     List<String> mediaIds = List.of("1", "2", "3");
-    List<DigitalMediaObject> mediaObjects = new ArrayList<>();
+    List<DigitalMediaObjectWrapper> mediaObjects = new ArrayList<>();
     List<DigitalMediaObjectFull> responseExpected = new ArrayList<>();
 
     for (String id : mediaIds) {

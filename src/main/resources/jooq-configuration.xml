@@ -13,10 +13,8 @@
     <database>
       <name>org.jooq.meta.postgres.PostgresDatabase</name>
       <inputSchema>public</inputSchema>
-      <includes>new_digital_specimen |
-        new_digital_media_object |
-        organisation_do |
-        organisation_document |
+      <includes>digital_specimen |
+        digital_media_object |
         new_annotation |
         new_user |
         machine_annotation_services

@@ -13,8 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.DigitalMediaObject;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,12 +50,12 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = ID_ALT;
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObject> mediaObjectsAll = new ArrayList<>();
+    List<DigitalMediaObjectWrapper> mediaObjectsAll = new ArrayList<>();
     for (int i = 0; i < pageSize * 2; i++) {
       mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i), specimenId));
     }
     postMediaObjects(mediaObjectsAll);
-    List<DigitalMediaObject> mediaObjectsReceived = new ArrayList<>();
+    List<DigitalMediaObjectWrapper> mediaObjectsReceived = new ArrayList<>();
 
     // When
     var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
@@ -92,7 +92,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
   void testGetDigitalMediaForSpecimen() throws JsonProcessingException {
     // Given
     String specimenId = ID_ALT;
-    List<DigitalMediaObject> postedMediaObjects = List.of(
+    List<DigitalMediaObjectWrapper> postedMediaObjects = List.of(
         givenDigitalMediaObject(ID, specimenId),
         givenDigitalMediaObject("aa", specimenId));
     postMediaObjects(postedMediaObjects);
@@ -119,7 +119,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = "specimenId";
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObject> mediaObjects = List.of(
+    List<DigitalMediaObjectWrapper> mediaObjects = List.of(
         givenDigitalMediaObject(ID, specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
         givenDigitalMediaObject(ID_ALT, specimenId, HANDLE + SOURCE_SYSTEM_ID_1));
     postMediaObjects(mediaObjects);
@@ -131,9 +131,9 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
   }
 
-  private void postMediaObjects(List<DigitalMediaObject> mediaObjects) {
+  private void postMediaObjects(List<DigitalMediaObjectWrapper> mediaObjects) {
     List<Query> queryList = new ArrayList<>();
-    for (DigitalMediaObject mediaObject : mediaObjects) {
+    for (DigitalMediaObjectWrapper mediaObject : mediaObjects) {
       var query = context.insertInto(NEW_DIGITAL_MEDIA_OBJECT)
           .set(NEW_DIGITAL_MEDIA_OBJECT.ID, mediaObject.id())
           .set(NEW_DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.version())
@@ -143,7 +143,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
           .set(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.mediaUrl())
           .set(NEW_DIGITAL_MEDIA_OBJECT.FORMAT, mediaObject.format())
           .set(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID, mediaObject.sourceSystemId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.data().toString()))
+          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.digitalEntity().toString()))
           .set(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
               JSONB.jsonb(mediaObject.originalData().toString()))
           .set(NEW_DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.created())
@@ -155,7 +155,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
           .set(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.mediaUrl())
           .set(NEW_DIGITAL_MEDIA_OBJECT.FORMAT, mediaObject.format())
           .set(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID, mediaObject.sourceSystemId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.data().toString()))
+          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.digitalEntity().toString()))
           .set(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
               JSONB.jsonb(mediaObject.originalData().toString()))
           .set(NEW_DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.created());
@@ -164,7 +164,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     context.batch(queryList).execute();
   }
 
-  private void postDigitalSpecimen(DigitalSpecimen specimen) {
+  private void postDigitalSpecimen(DigitalSpecimenWrapper specimen) {
     context.insertInto(NEW_DIGITAL_SPECIMEN).set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())
         .set(NEW_DIGITAL_SPECIMEN.VERSION, specimen.version())
         .set(NEW_DIGITAL_SPECIMEN.TYPE, specimen.type())

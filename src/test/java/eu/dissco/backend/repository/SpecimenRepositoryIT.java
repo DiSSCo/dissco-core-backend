@@ -9,7 +9,7 @@ import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import java.util.ArrayList;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
@@ -45,14 +45,14 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   private void populateSpecimenTable() throws JsonProcessingException {
-    var specimens = new ArrayList<DigitalSpecimen>();
+    var specimens = new ArrayList<DigitalSpecimenWrapper>();
     for (int i = 0; i < 22; i++) {
       specimens.add(givenDigitalSpecimen("20.5000.1025/ABC-123-XY" + i));
     }
     insertIntoDatabase(specimens);
   }
 
-  private void insertIntoDatabase(ArrayList<DigitalSpecimen> specimens) {
+  private void insertIntoDatabase(ArrayList<DigitalSpecimenWrapper> specimens) {
     for (var specimen : specimens) {
       context.insertInto(NEW_DIGITAL_SPECIMEN)
           .set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())

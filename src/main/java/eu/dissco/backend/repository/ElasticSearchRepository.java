@@ -1,9 +1,9 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.domain.MappingTerms.aggregationList;
+import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
-import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -18,11 +18,14 @@ import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
-import eu.dissco.backend.domain.DigitalSpecimen;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerms;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,11 +44,12 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
-  private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
+  private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen-um";
   private static final String ANNOTATION_INDEX = "annotation";
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
+  private final ObjectMapper mapper;
 
   private List<Query> generateQueries(Map<String, List<String>> params) {
     var queries = new ArrayList<Query>();
@@ -64,7 +68,8 @@ public class ElasticSearchRepository {
     return queries;
   }
 
-  public Pair<Long, List<DigitalSpecimen>> getLatestSpecimen(int pageNumber, int pageSize) throws IOException {
+  public Pair<Long, List<DigitalSpecimenWrapper>> getLatestSpecimen(int pageNumber, int pageSize)
+      throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
@@ -105,27 +110,21 @@ public class ElasticSearchRepository {
         null);
   }
 
-  private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
-    var digitalSpecimen = json.get("digitalSpecimen");
-    var attributes = digitalSpecimen.get("ods:attributes");
-    addUrlToAttributes(attributes);
-    var createdOn = parseDate(json.get(FIELD_CREATED));
-    return new DigitalSpecimen(
-        HANDLE_STRING + json.get("id").asText(),
-        json.get("midsLevel").asInt(),
-        json.get("version").asInt(),
-        createdOn,
-        getText(digitalSpecimen, "ods:type"),
-        getText(digitalSpecimen, "ods:physicalSpecimenId"),
-        getText(attributes, "ods:physicalSpecimenIdType"),
-        getText(attributes, "ods:specimenName"),
-        getText(attributes, "ods:organisationId"),
-        getText(attributes, "ods:datasetId"),
-        getText(attributes, "ods:physicalSpecimenCollection"),
-        getText(attributes, "ods:sourceSystemId"),
-        attributes,
-        digitalSpecimen.get("ods:originalAttributes"),
-        getText(attributes, "dwca:id"));
+  private DigitalSpecimenWrapper mapToDigitalSpecimen(ObjectNode json) {
+
+    try {
+      var digitalSpecimen = mapper.treeToValue(json.get("digitalSpecimen").get("ods:attributes"),
+          DigitalSpecimen.class);
+      return new DigitalSpecimenWrapper(
+          digitalSpecimen.withOdsId(DOI_STRING + json.get("id").asText())
+              .withOdsType(json.get("digitalSpecimen").get("ods:type").asText())
+              .withOdsMidsLevel(json.get("midsLevel").asInt())
+              .withOdsCreated(json.get(FIELD_CREATED).asText())
+              .withOdsVersion(json.get("version").asInt()),
+          json.get("digitalSpecimen").get("ods:originalAttributes"));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Instant parseDate(JsonNode instantNode) {
@@ -147,20 +146,21 @@ public class ElasticSearchRepository {
     }
   }
 
-  public Pair<Long, List<AnnotationResponse>> getAnnotationsForCreator(String userId, int pageNumber, int pageSize) throws IOException{
+  public Pair<Long, List<AnnotationResponse>> getAnnotationsForCreator(String userId,
+      int pageNumber, int pageSize) throws IOException {
     var fieldName = "annotation.creator";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 
     var searchRequest = SearchRequest.of(sr ->
         sr.index(ANNOTATION_INDEX)
-        .query(q -> q
-            .match(t -> t
-                .field(fieldName)
-                .query(userId)))
-        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
-        .from(offset)
-        .size(pageSizePlusOne));
+            .query(q -> q
+                .match(t -> t
+                    .field(fieldName)
+                    .query(userId)))
+            .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+            .from(offset)
+            .size(pageSizePlusOne));
     var searchResult = client.search(searchRequest, ObjectNode.class);
     if (searchResult.hits().total() != null) {
       var totalHits = searchResult.hits().total().value();
@@ -171,7 +171,8 @@ public class ElasticSearchRepository {
     return Pair.of(0L, new ArrayList<>());
   }
 
-  public Pair<Long, List<DigitalSpecimen>> search(Map<String, List<String>> params, int pageNumber,
+  public Pair<Long, List<DigitalSpecimenWrapper>> search(Map<String, List<String>> params,
+      int pageNumber,
       int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
@@ -186,7 +187,8 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public Pair<Long, List<DigitalSpecimen>> getSpecimens(int pageNumber, int pageSize) throws IOException {
+  public Pair<Long, List<DigitalSpecimenWrapper>> getSpecimens(int pageNumber, int pageSize)
+      throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
@@ -198,7 +200,8 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  private Pair<Long, List<DigitalSpecimen>> getDigitalSpecimenSearchResults(SearchRequest searchRequest) throws IOException{
+  private Pair<Long, List<DigitalSpecimenWrapper>> getDigitalSpecimenSearchResults(
+      SearchRequest searchRequest) throws IOException {
     var searchResult = client.search(searchRequest, ObjectNode.class);
     var totalHits = searchResult.hits().total().value();
     var specimens = searchResult.hits().hits().stream()
