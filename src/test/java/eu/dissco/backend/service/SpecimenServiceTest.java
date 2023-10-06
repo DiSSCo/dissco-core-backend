@@ -512,7 +512,7 @@ class SpecimenServiceTest {
     var response = givenMasResponse(SPECIMEN_PATH);
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen)).willReturn(
+        digitalSpecimen, digitalSpecimen.id())).willReturn(
         response);
 
     // When

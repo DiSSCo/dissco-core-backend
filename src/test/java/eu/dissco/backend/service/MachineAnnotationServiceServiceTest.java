@@ -31,12 +31,14 @@ class MachineAnnotationServiceServiceTest {
   private MachineAnnotationServiceRepository repository;
   @Mock
   private KafkaPublisherService kafkaPublisherService;
+  @Mock
+  private MasJobRecordService masJobRecordService;
 
   private MachineAnnotationServiceService service;
 
   @BeforeEach
   void setup() {
-    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService, MAPPER);
+    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService, masJobRecordService, MAPPER);
   }
 
   @Test
@@ -74,7 +76,7 @@ class MachineAnnotationServiceServiceTest {
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen);
+        digitalSpecimen, digitalSpecimen.id());
 
     // Then
     assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
@@ -92,7 +94,7 @@ class MachineAnnotationServiceServiceTest {
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen);
+        digitalSpecimen, digitalSpecimen.id());
 
     // Then
     assertThat(result.getData()).isEmpty();

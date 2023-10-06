@@ -127,7 +127,7 @@ public class DigitalMediaObjectService {
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(
         stringUrl(digitalMedia.digitalSpecimenId()));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id);
   }
 
   public String stringUrl(String handle) {

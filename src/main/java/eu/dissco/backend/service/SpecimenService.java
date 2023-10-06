@@ -335,6 +335,6 @@ public class SpecimenService {
   public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id);
   }
 }

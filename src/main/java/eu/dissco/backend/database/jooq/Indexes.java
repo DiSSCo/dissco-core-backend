@@ -4,6 +4,7 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 
@@ -23,6 +24,8 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index MAS_JOB_RECORD_CREATED_IDX = Internal.createIndex(DSL.name("mas_job_record_created_idx"), MasJobRecord.MAS_JOB_RECORD, new OrderField[] { MasJobRecord.MAS_JOB_RECORD.TIME_STARTED }, false);
+    public static final Index MAS_JOB_RECORD_JOB_ID_INDEX = Internal.createIndex(DSL.name("mas_job_record_job_id_index"), MasJobRecord.MAS_JOB_RECORD, new OrderField[] { MasJobRecord.MAS_JOB_RECORD.JOB_ID }, false);
     public static final Index NEW_DIGITAL_MEDIA_OBJECT_DIGITAL_SPECIMEN_ID_URL = Internal.createIndex(DSL.name("new_digital_media_object_digital_specimen_id_url"), NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, new OrderField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL }, false);
     public static final Index NEW_DIGITAL_MEDIA_OBJECT_ID_IDX = Internal.createIndex(DSL.name("new_digital_media_object_id_idx"), NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, new OrderField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.ID, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL }, false);
     public static final Index NEW_DIGITAL_MEDIA_OBJECT_ID_VERSION_URL = Internal.createIndex(DSL.name("new_digital_media_object_id_version_url"), NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT, new OrderField[] { NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.ID, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.VERSION, NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL }, true);
