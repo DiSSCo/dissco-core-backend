@@ -104,7 +104,7 @@ public class MachineAnnotationServiceService {
     masRecords.removeAll(availableRecords);
     if (!masRecords.isEmpty()) {
       var masIds = masRecords.stream().map(MachineAnnotationServiceRecord::id).toList();
-      log.warn("Requested massRecord: {} is not available for the object: {}", masIds, targetId);
+      log.warn("Requested massRecords: {} are not available for the object: {}", masIds, targetId);
     }
   }
 }
