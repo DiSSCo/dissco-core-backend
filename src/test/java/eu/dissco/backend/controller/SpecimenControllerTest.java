@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
+import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -242,6 +244,18 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
+  }
+
+  @Test
+  void testScheduleMasNoAttribute() {
+    // Given
+    var mass = Map.of("somethingElse", List.of(ID));
+    var apiRequest = new JsonApiRequest("MasRequest", MAPPER.valueToTree(mass));
+    var request = new JsonApiRequestWrapper(apiRequest);
+
+    // When / Then
+    assertThrowsExactly(IllegalArgumentException.class,
         () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
   }
 

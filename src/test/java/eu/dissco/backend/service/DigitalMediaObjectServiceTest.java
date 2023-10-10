@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -32,13 +33,17 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
+import eu.dissco.backend.schema.DigitalEntity;
+import eu.dissco.backend.schema.EntityRelationships;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,6 +63,12 @@ class DigitalMediaObjectServiceTest {
   private SpecimenRepository specimenRepository;
 
   private DigitalMediaObjectService service;
+
+  static Stream<List<EntityRelationships>> missingSpecimenDoiAttributes() {
+    return Stream.of(List.of(), List.of(
+        new EntityRelationships().withObjectEntityIri(SOURCE_SYSTEM_ID_1)
+            .withEntityRelationshipType("hasSourceSystem")));
+  }
 
   @BeforeEach
   void setup() {
@@ -241,6 +252,25 @@ class DigitalMediaObjectServiceTest {
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
+    given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
+        response);
+
+    // When
+    var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(response);
+  }
+
+  @ParameterizedTest
+  @MethodSource("missingSpecimenDoiAttributes")
+  void testGetMasWithoutSpecimenId(List<EntityRelationships> entityRelationships) {
+    // Given
+    var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
+    digitalMedia.digitalEntity().setEntityRelationships(entityRelationships);
+    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+    given(specimenRepository.getLatestSpecimenById(null)).willReturn(null);
     given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
         response);
 
