@@ -2,8 +2,7 @@ package eu.dissco.backend.domain;
 
 public enum AnnotationState {
   SCHEDULED("scheduled"),
-  FAILED("failed"),
-  COMPLETED("completed");
+  FAILED("failed");
 
   private final String state;
 
@@ -11,8 +10,7 @@ public enum AnnotationState {
     this.state = s;
   }
 
-  @Override
-  public String toString(){
+  public String getState(){
     return state;
   }
 

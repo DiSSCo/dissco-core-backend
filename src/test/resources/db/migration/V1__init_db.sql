@@ -110,15 +110,15 @@ CREATE TABLE public.machine_annotation_services
     deleted_on                    timestamp with time zone
 );
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-create type "state" as enum ('scheduled', 'failed', 'completed');
+CREATE
+EXTENSION IF NOT EXISTS "uuid-ossp";
 
 create table mas_job_record
 (
     job_id         uuid default uuid_generate_v4() not null
         constraint mas_job_record_pk
             primary key,
-    state          "state"                         not null,
+    state          text                            not null,
     creator_id     text                            not null,
     time_started   timestamp with time zone        not null,
     time_completed timestamp with time zone,
