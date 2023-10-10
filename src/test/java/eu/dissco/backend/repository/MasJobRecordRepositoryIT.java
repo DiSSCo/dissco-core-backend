@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     // Given
     context.insertInto(MAS_JOB_RECORD)
         .set(MAS_JOB_RECORD.JOB_ID, JOB_ID)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.SCHEDULED.toString())
+        .set(MAS_JOB_RECORD.STATE, AnnotationState.SCHEDULED)
         .set(MAS_JOB_RECORD.CREATOR_ID, ID)
         .set(MAS_JOB_RECORD.TIME_STARTED, CREATED)
         .set(MAS_JOB_RECORD.TARGET_ID, ID_ALT)
@@ -57,7 +58,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(timestamp).isNotNull();
-    assertThat(state).isEqualTo(AnnotationState.FAILED.toString());
+    assertThat(state).isEqualTo(AnnotationState.FAILED);
   }
 
 

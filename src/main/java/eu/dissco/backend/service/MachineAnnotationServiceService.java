@@ -74,11 +74,8 @@ public class MachineAnnotationServiceService {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<UUID> failedRecords = new ArrayList<>();
-    var availableRecords = masRecords.stream()
-        .filter(masRecord -> checkIfMasComplies(flattenObjectData, masRecord))
-        .collect(Collectors.toSet());
+    var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
     var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId);
-
     for (var masRecord : availableRecords) {
       try {
         var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));
@@ -90,7 +87,6 @@ public class MachineAnnotationServiceService {
         failedRecords.add(masRecordJobIds.get(masRecord.id()));
       }
     }
-    logNotAvailableRecords(new HashSet<>(masRecords), availableRecords, targetId);
     if (!failedRecords.isEmpty()) {
       mjrService.markMasJobRecordAsFailed(failedRecords);
     }
@@ -99,12 +95,20 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(scheduledMasRecords.size()));
   }
 
-  private void logNotAvailableRecords(Set<MachineAnnotationServiceRecord> masRecords,
-      Set<MachineAnnotationServiceRecord> availableRecords, String targetId) {
-    masRecords.removeAll(availableRecords);
-    if (!masRecords.isEmpty()) {
-      var masIds = masRecords.stream().map(MachineAnnotationServiceRecord::id).toList();
-      log.warn("Requested massRecords: {} are not available for the object: {}", masIds, targetId);
+
+  private Set<MachineAnnotationServiceRecord> filterAvailableRecords(
+      List<MachineAnnotationServiceRecord> masRecords, JsonNode flattenObjectData, Object object) {
+    var availableRecords = new HashSet<MachineAnnotationServiceRecord>();
+    for (var masRecord : masRecords) {
+      if (checkIfMasComplies(flattenObjectData, masRecord)) {
+        availableRecords.add(masRecord);
+      } else {
+        log.warn("Requested massRecords: {} are not available for the object: {}", masRecord.id(),
+            object);
+      }
     }
+    return availableRecords;
   }
+
+
 }

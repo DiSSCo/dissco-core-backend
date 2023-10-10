@@ -30,15 +30,15 @@ public class MasJobRecordRepository {
 
   public void markMasJobRecordsAsFailed(List<UUID> ids){
     context.update(MAS_JOB_RECORD)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.FAILED.toString())
+        .set(MAS_JOB_RECORD.STATE, AnnotationState.FAILED)
         .set(MAS_JOB_RECORD.TIME_COMPLETED, Instant.now())
         .where(MAS_JOB_RECORD.JOB_ID.in(ids))
         .execute();
   }
 
-  private Record4<String, String, String, Instant> mjrToRecord(MasJobRecord masJobRecord){
+  private Record4<AnnotationState, String, String, Instant> mjrToRecord(MasJobRecord masJobRecord){
     var dbRecord = context.newRecord(MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID, MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED);
-    dbRecord.set(MAS_JOB_RECORD.STATE, masJobRecord.state().toString());
+    dbRecord.set(MAS_JOB_RECORD.STATE, masJobRecord.state());
     dbRecord.set(MAS_JOB_RECORD.CREATOR_ID, masJobRecord.creatorId());
     dbRecord.set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId());
     dbRecord.set(MAS_JOB_RECORD.TIME_STARTED, Instant.now());

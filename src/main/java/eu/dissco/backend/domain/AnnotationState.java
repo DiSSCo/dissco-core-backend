@@ -2,7 +2,8 @@ package eu.dissco.backend.domain;
 
 public enum AnnotationState {
   SCHEDULED("scheduled"),
-  FAILED("FAILED");
+  FAILED("failed"),
+  COMPLETED("completed");
 
   private final String state;
 

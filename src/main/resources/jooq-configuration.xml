@@ -15,8 +15,6 @@
       <inputSchema>public</inputSchema>
       <includes>new_digital_specimen |
         new_digital_media_object |
-        organisation_do |
-        organisation_document |
         new_annotation |
         new_user |
         machine_annotation_services |
@@ -26,6 +24,11 @@
         <forcedType>
           <name>INSTANT</name>
           <includeTypes>TIMESTAMPTZ</includeTypes>
+        </forcedType>
+        <forcedType>
+          <userType>eu.dissco.backend.domain.AnnotationState</userType>
+          <enumConverter>true</enumConverter>
+          <includeTypes>state</includeTypes>
         </forcedType>
       </forcedTypes>
     </database>

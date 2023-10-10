@@ -21,16 +21,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class MasJobRecordServiceTest {
+
   private MasJobRecordService masJobRecordService;
   @Mock
   private MasJobRecordRepository masJobRecordRepository;
+
   @BeforeEach
-  void setup(){
+  void setup() {
     masJobRecordService = new MasJobRecordService(masJobRecordRepository);
   }
 
   @Test
-  void testCreateMasJobRecord(){
+  void testCreateMasJobRecord() {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
@@ -45,7 +47,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testMarkMasJobRecordAsFailed(){
+  void testMarkMasJobRecordAsFailed() {
     // When
     masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));
 

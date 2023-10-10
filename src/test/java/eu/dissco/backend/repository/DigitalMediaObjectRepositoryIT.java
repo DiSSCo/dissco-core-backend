@@ -96,7 +96,6 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         givenDigitalMediaObject(ID, specimenId),
         givenDigitalMediaObject("aa", specimenId));
     postMediaObjects(postedMediaObjects);
-    List<JsonApiData> expectedResponse = new ArrayList<>();
 
     var specimen = givenDigitalSpecimen(specimenId);
     postDigitalSpecimen(specimen);

@@ -8,6 +8,7 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
+import eu.dissco.backend.domain.AnnotationState;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.EnumConverter;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -64,7 +66,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     /**
      * The column <code>public.mas_job_record.state</code>.
      */
-    public final TableField<MasJobRecordRecord, String> STATE = createField(DSL.name("state"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<MasJobRecordRecord, AnnotationState> STATE = createField(DSL.name("state"), org.jooq.impl.DefaultDataType.getDefaultDataType("\"public\".\"state\"").nullable(false), this, "", new EnumConverter<Object, AnnotationState>(Object.class, AnnotationState.class));
 
     /**
      * The column <code>public.mas_job_record.creator_id</code>.
@@ -89,7 +91,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     /**
      * The column <code>public.mas_job_record.target_id</code>.
      */
-    public final TableField<MasJobRecordRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB, this, "");
+    public final TableField<MasJobRecordRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
@@ -183,14 +185,14 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<UUID, String, String, Instant, Instant, JSONB, String> fieldsRow() {
+    public Row7<UUID, AnnotationState, String, Instant, Instant, JSONB, String> fieldsRow() {
         return (Row7) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function7<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function7<? super UUID, ? super AnnotationState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -198,7 +200,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super UUID, ? super AnnotationState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

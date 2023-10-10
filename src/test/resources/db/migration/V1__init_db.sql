@@ -111,18 +111,19 @@ CREATE TABLE public.machine_annotation_services
 );
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+create type "state" as enum ('scheduled', 'failed', 'completed');
 
 create table mas_job_record
 (
     job_id         uuid default uuid_generate_v4() not null
         constraint mas_job_record_pk
             primary key,
-    state          text                            not null,
+    state          "state"                         not null,
     creator_id     text                            not null,
     time_started   timestamp with time zone        not null,
     time_completed timestamp with time zone,
     annotations    jsonb,
-    target_id      text
+    target_id      text                            not null
 );
 
 create index mas_job_record_created_idx
