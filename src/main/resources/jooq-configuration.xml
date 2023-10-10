@@ -1,7 +1,7 @@
 <configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.16.6.xsd">
   <jdbc>
     <driver>org.postgresql.Driver</driver>
-    <url></url>
+    <url><url>
     <user></user>
     <password></password>
   </jdbc>
@@ -24,11 +24,6 @@
         <forcedType>
           <name>INSTANT</name>
           <includeTypes>TIMESTAMPTZ</includeTypes>
-        </forcedType>
-        <forcedType>
-          <userType>eu.dissco.backend.domain.AnnotationState</userType>
-          <enumConverter>true</enumConverter>
-          <includeTypes>state</includeTypes>
         </forcedType>
       </forcedTypes>
     </database>

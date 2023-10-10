@@ -41,7 +41,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     // Given
     context.insertInto(MAS_JOB_RECORD)
         .set(MAS_JOB_RECORD.JOB_ID, JOB_ID)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.SCHEDULED)
+        .set(MAS_JOB_RECORD.STATE, AnnotationState.SCHEDULED.getState())
         .set(MAS_JOB_RECORD.CREATOR_ID, ID)
         .set(MAS_JOB_RECORD.TIME_STARTED, CREATED)
         .set(MAS_JOB_RECORD.TARGET_ID, ID_ALT)
@@ -58,7 +58,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(timestamp).isNotNull();
-    assertThat(state).isEqualTo(AnnotationState.FAILED);
+    assertThat(state).isEqualTo(AnnotationState.FAILED.getState());
   }
 
 
