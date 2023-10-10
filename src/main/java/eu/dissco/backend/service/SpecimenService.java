@@ -104,7 +104,8 @@ public class SpecimenService {
         new DigitalSpecimenFull(specimen.digitalSpecimen(), specimen.originalData(),
             digitalMedia, annotation));
     return new JsonApiWrapper(
-        new JsonApiData(id, specimen.digitalSpecimen().getOdsType(), attributeNode),
+        new JsonApiData(specimen.digitalSpecimen().getOdsId(),
+            specimen.digitalSpecimen().getOdsType(), attributeNode),
         new JsonApiLinks(path));
   }
 
@@ -198,12 +199,13 @@ public class SpecimenService {
 
   private DigitalSpecimenWrapper mapResultToSpecimen(JsonNode result)
       throws JsonProcessingException {
-    var digitalSpecimenNode = result.get("digitalSpecimen");
+    var digitalSpecimenNode = result.get("digitalSpecimenWrapper");
     var ds = mapper.treeToValue(digitalSpecimenNode.get("ods:attributes"), DigitalSpecimen.class)
-        .withOdsId(DOI_STRING + digitalSpecimenNode.get("id").asText())
-        .withOdsMidsLevel(digitalSpecimenNode.get("midsLevel").asInt())
-        .withOdsVersion(digitalSpecimenNode.get("version").asInt())
-        .withOdsCreated(digitalSpecimenNode.get("created").asText());
+        .withOdsId(DOI_STRING + result.get("id").asText())
+        .withOdsType(digitalSpecimenNode.get("ods:type").asText())
+        .withOdsMidsLevel(result.get("midsLevel").asInt())
+        .withOdsVersion(result.get("version").asInt())
+        .withOdsCreated(result.get("created").asText());
     return new DigitalSpecimenWrapper(
         ds,
         digitalSpecimenNode.get("ods:originalAttributes")

@@ -1,7 +1,6 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
-import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
@@ -59,7 +58,7 @@ public class DigitalMediaObjectRepository {
   private DigitalMediaObjectWrapper mapToMultiMediaObject(Record dbRecord) {
     try {
       var digitalMediaObject = mapper.readValue(dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
-          DigitalEntity.class)
+              DigitalEntity.class)
           .withOdsId(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
           .withOdsType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
           .withOdsCreated(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED).toString())
@@ -69,7 +68,8 @@ public class DigitalMediaObjectRepository {
           mapper.readTree(dbRecord.get(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA).data()));
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException(
-          "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(), e);
+          "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
+          e);
     }
   }
 

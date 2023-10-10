@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.FORBIDDEN_MESSAGE;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenJsonApiData;
 import static eu.dissco.backend.TestUtils.givenUserRequest;
@@ -11,6 +12,7 @@ import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +20,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
+  private final String USER_URL = "/api/v1/users/";
+  MockHttpServletRequest mockRequest;
+  @Mock
+  private ApplicationProperties applicationProperties;
   @Mock
   private UserService service;
   @Mock
@@ -31,7 +38,8 @@ class UserControllerTest {
 
   @BeforeEach
   void setup() {
-    controller = new UserController(service);
+    controller = new UserController(applicationProperties, MAPPER, service);
+    mockRequest = new MockHttpServletRequest();
   }
 
   @Test
@@ -39,9 +47,11 @@ class UserControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     given(service.createNewUser(givenUserRequest())).willReturn(givenJsonApiData());
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    mockRequest.setRequestURI(USER_URL + USER_ID_TOKEN);
 
     // When
-    var result = controller.createNewUser(authentication, givenUserRequest());
+    var result = controller.createNewUser(authentication, givenUserRequest(), mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -56,7 +66,7 @@ class UserControllerTest {
     // When
     var exception = assertThrowsExactly(ForbiddenException.class,
         () -> controller.createNewUser(authentication,
-            givenUserRequest("f3cdgcb7-9324-4bb4-9f41-d7dfae4a44b1")));
+            givenUserRequest("f3cdgcb7-9324-4bb4-9f41-d7dfae4a44b1"), mockRequest));
 
     // Then
     assertThat(exception).hasMessage(FORBIDDEN_MESSAGE);
@@ -67,9 +77,11 @@ class UserControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     given(service.findUser(USER_ID_TOKEN)).willReturn(givenJsonApiData());
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    mockRequest.setRequestURI(USER_URL + USER_ID_TOKEN);
 
     // When
-    var result = controller.getUser(authentication, USER_ID_TOKEN);
+    var result = controller.getUser(authentication, USER_ID_TOKEN, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -81,9 +93,12 @@ class UserControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     given(service.updateUser(USER_ID_TOKEN, givenUserRequest())).willReturn(givenJsonApiData());
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    mockRequest.setRequestURI(USER_URL + USER_ID_TOKEN);
 
     // When
-    var result = controller.updateUser(authentication, USER_ID_TOKEN, givenUserRequest());
+    var result = controller.updateUser(authentication, USER_ID_TOKEN, givenUserRequest(),
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

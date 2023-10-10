@@ -35,7 +35,7 @@ public class DigitalMediaObjectController extends BaseController {
 
   public DigitalMediaObjectController(ApplicationProperties applicationProperties,
       ObjectMapper mapper, DigitalMediaObjectService service) {
-    super(applicationProperties, mapper);
+    super(mapper, applicationProperties);
     this.service = service;
   }
 

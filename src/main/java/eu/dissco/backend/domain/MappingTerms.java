@@ -7,30 +7,44 @@ import java.util.Optional;
 import java.util.Set;
 
 public enum MappingTerms {
-  TYPE("type", "digitalSpecimen.ods:type.keyword"),
-  COUNTRY("country", "digitalSpecimen.ods:attributes.occurrences.location.dwc:country.keyword"),
-  COUNTRY_CODE("countryCode", "digitalSpecimen.ods:attributes.occurrences.location.dwc:countryCode.keyword"),
+  TYPE("type", "digitalSpecimenWrapper.ods:type.keyword"),
+  COUNTRY("country",
+      "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:country.keyword"),
+  COUNTRY_CODE("countryCode",
+      "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:countryCode.keyword"),
   MIDS_LEVEL("midsLevel", "midsLevel"),
-  PHYSICAL_SPECIMEN_ID("physicalSpecimenId", "digitalSpecimen.ods:attributes.ods:physicalSpecimenId.keyword"),
-  TYPE_STATUS("typeStatus", "digitalSpecimen.ods:attributes.dwc:identification.dwc:typeStatus.keyword"),
-  LICENSE("license", "digitalSpecimen.ods:attributes.dcterms:license.keyword"),
-  HAS_MEDIA("hasMedia", "digitalSpecimen.ods:attributes.ods:hasMedia.keyword"),
-  ORGANISATION_ID("organisationId", "digitalSpecimen.ods:attributes.dwc:institutionId.keyword"),
+  PHYSICAL_SPECIMEN_ID("physicalSpecimenId",
+      "digitalSpecimenWrapper.ods:attributes.ods:physicalSpecimenId.keyword"),
+  TYPE_STATUS("typeStatus",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:typeStatus.keyword"),
+  LICENSE("license", "digitalSpecimenWrapper.ods:attributes.dcterms:license.keyword"),
+  HAS_MEDIA("hasMedia", "digitalSpecimenWrapper.ods:attributes.ods:hasMedia.keyword"),
+  ORGANISATION_ID("organisationId",
+      "digitalSpecimenWrapper.ods:attributes.dwc:institutionId.keyword"),
   ORGANISATION_NAME("organisationName",
-      "digitalSpecimen.ods:attributes.dwc:institutionName.keyword"),
-  SOURCE_SYSTEM_ID("sourceSystemId", "digitalSpecimen.ods:attributes.ods:sourceSystem.keyword"),
-  SPECIMEN_NAME("specimenName", "digitalSpecimen.ods:attributes.ods:specimenName.keyword"),
-  DATASET_ID("datasetId", "digitalSpecimen.ods:attributes.dwc:datasetName.keyword"),
-  KINGDOM("kingdom", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword"),
-  CLASS("class", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:class.keyword"),
-  FAMILY("family", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:family.keyword"),
-  GENUS("genus", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:genus.keyword"),
-  ORDER("order", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:order.keyword"),
-  PHYLUM("phylum", "digitalSpecimen.ods:attributes.dwc:identification.taxonIdentifications.dwc:phylum.keyword"),
-  BASIS_OF_RECORD("basisOfRecord", "digitalSpecimen.ods:attributes.dwc:basisOfRecord.keyword"),
+      "digitalSpecimenWrapper.ods:attributes.dwc:institutionName.keyword"),
+  SOURCE_SYSTEM_ID("sourceSystemId",
+      "digitalSpecimenWrapper.ods:attributes.ods:sourceSystem.keyword"),
+  SPECIMEN_NAME("specimenName", "digitalSpecimenWrapper.ods:attributes.ods:specimenName.keyword"),
+  DATASET_NAME("datasetName", "digitalSpecimenWrapper.ods:attributes.dwc:datasetName.keyword"),
+  KINGDOM("kingdom",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword"),
+  CLASS("class",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:class.keyword"),
+  FAMILY("family",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:family.keyword"),
+  GENUS("genus",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:genus.keyword"),
+  ORDER("order",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:order.keyword"),
+  PHYLUM("phylum",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:phylum.keyword"),
+  BASIS_OF_RECORD("basisOfRecord",
+      "digitalSpecimenWrapper.ods:attributes.dwc:basisOfRecord.keyword"),
   LIVING_OR_PRESERVED("livingOrPreserved",
-      "digitalSpecimen.ods:attributes.ods:livingOrPreserved.keyword"),
-  TOPIC_DISCIPLINE("topicDiscipline", "digitalSpecimen.ods:attributes.ods:topicDiscipline.keyword"),
+      "digitalSpecimenWrapper.ods:attributes.ods:livingOrPreserved.keyword"),
+  TOPIC_DISCIPLINE("topicDiscipline",
+      "digitalSpecimenWrapper.ods:attributes.ods:topicDiscipline.keyword"),
   QUERY("q", "q");
 
   public static final Set<MappingTerms> aggregationList = getAggregationList();
@@ -58,7 +72,7 @@ public enum MappingTerms {
     aggregationTerms.add(ORGANISATION_NAME);
     aggregationTerms.add(ORGANISATION_ID);
     aggregationTerms.add(SOURCE_SYSTEM_ID);
-    aggregationTerms.add(DATASET_ID);
+    aggregationTerms.add(DATASET_NAME);
     aggregationTerms.add(KINGDOM);
     aggregationTerms.add(CLASS);
     aggregationTerms.add(FAMILY);

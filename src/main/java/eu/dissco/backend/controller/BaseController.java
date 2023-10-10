@@ -15,12 +15,11 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public abstract class BaseController {
 
-  private final ApplicationProperties applicationProperties;
-  protected final ObjectMapper mapper;
-
+  public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
   protected static final String DEFAULT_PAGE_NUM = "1";
   protected static final String DEFAULT_PAGE_SIZE = "10";
-  public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+  protected final ObjectMapper mapper;
+  private final ApplicationProperties applicationProperties;
 
   protected String getPath(HttpServletRequest request) {
     var path = applicationProperties.getBaseUrl() + request.getRequestURI();
@@ -39,6 +38,7 @@ public abstract class BaseController {
     if (requestBody.data().attributes().get("mass") == null) {
       throw new IllegalArgumentException();
     }
-    return Arrays.asList(mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
+    return Arrays.asList(
+        mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
 }

@@ -1,22 +1,29 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.*;
+import static eu.dissco.backend.TestUtils.DOI;
+import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
+import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
+import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -28,7 +35,6 @@ import eu.dissco.backend.repository.SpecimenRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,8 +111,9 @@ class DigitalMediaObjectServiceTest {
     // Given
     var mediaObject = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
-    var expected = new JsonApiWrapper(new JsonApiData(mediaObject.id(), mediaObject.type(),
-        MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
+    var expected = new JsonApiWrapper(
+        new JsonApiData(mediaObject.digitalEntity().getOdsId(), mediaObject.digitalEntity()
+            .getOdsType(), MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
     var responseReceived = service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH);
@@ -158,9 +165,10 @@ class DigitalMediaObjectServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         mongoResponse);
 
-    var type = mongoResponse.get("digitalMediaObject").get("dcterms:type").asText();
+    var type = mongoResponse.get("digitalMediaObjectWrapper").get("ods:type").asText();
 
-    var expectedResponse = new JsonApiWrapper(new JsonApiData(ID, type, mongoResponse),
+    var expectedResponse = new JsonApiWrapper(
+        new JsonApiData(DOI + ID, type, MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
         new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
@@ -199,8 +207,8 @@ class DigitalMediaObjectServiceTest {
     // Given
     var mediaObject = givenDigitalMediaObject(ID);
     var responseExpected = List.of(new JsonApiData(
-        mediaObject.id(),
-        mediaObject.type(),
+        mediaObject.digitalEntity().getOdsId(),
+        mediaObject.digitalEntity().getOdsType(),
         MAPPER.valueToTree(mediaObject)));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
 
@@ -227,13 +235,13 @@ class DigitalMediaObjectServiceTest {
   @Test
   void testGetMas() throws JsonProcessingException {
     // Given
-    var digitalMedia = givenDigitalMediaObject(ID);
-    var specimenId = ID_ALT;
-    var digitalSpecimen = givenDigitalSpecimen(specimenId);
+    var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
+    var specimenId = HANDLE + ID_ALT;
+    var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
-    given(masService.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH)).willReturn(
+    given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
         response);
 
     // When
@@ -246,14 +254,14 @@ class DigitalMediaObjectServiceTest {
   @Test
   void testScheduleMas() throws JsonProcessingException {
     // Given
-    var digitalMedia = givenDigitalMediaObject(ID);
-    var specimenId = ID_ALT;
-    var digitalSpecimen = givenDigitalSpecimen(specimenId);
+    var digitalMediaWrapper = givenDigitalMediaObject(HANDLE + ID);
+    var specimenId = HANDLE + ID_ALT;
+    var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
-    given(masService.scheduleMass(givenFlattenedDigitalMedia(), List.of(ID), DIGITAL_MEDIA_PATH,
-        digitalMedia)).willReturn(response);
+    given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(DIGITAL_MEDIA_PATH),
+        eq(digitalMediaWrapper))).willReturn(response);
 
     // When
     var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH);
@@ -264,28 +272,34 @@ class DigitalMediaObjectServiceTest {
 
   private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
     return MAPPER.readValue(
-        """
+        """ 
             {
-              "id": "20.5000.1025/ABC-123-XYZ",
-              "version": 1,
-              "created": 1667296764,
-              "digitalMediaObject": {
-                "dcterms:type": "2DImageObject",
-                "digitalSpecimenId": "20.5000.1025/460-A7R-QMJ",
-                "mediaUrl": "https://dissco.com",
-                "format": "image/jpeg",
-                "sourceSystemId": "20.5000.1025/GW0-TYL-YRU",
-                "data": {
-                "dcterms:title": "19942272",
-                "dcterms:publisher": "Royal Botanic Garden Edinburgh"
-                },
-                "originalData": {
-                "dcterms:title": "19942272",
-                "dcterms:type": "StillImage"
+                "id": "20.5000.1025/ABC-123-XYZ",
+                "version": 1,
+                "created": "2022-11-01T09:59:24Z",
+                "digitalMediaObjectWrapper": {
+                  "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+                  "ods:digitalSpecimenId": "TEST/1DZ-PB3-35C",
+                  "ods:attributes": {
+                    "ac:accessUri": "https://dissco.com",
+                    "dcterms:format": "image/jpeg",
+                    "assertions": [],
+                    "citations": [],
+                    "identifiers": [],
+                    "entityRelationships": [
+                      {
+                        "entityRelationshipType": "hasDigitalSpecimen",
+                        "objectEntityIri": "https://hdl.handle.net/20.5000.1025/AAA-111-ZZZ"
+                      }
+                    ]
+                  },
+                  "ods:originalAttributes": {
+                    "dcterms:type": "StillImage",
+                    "dcterms:title": "19942272"
+                  }
                 }
               }
-            }
-                        """, JsonNode.class
+                          """, JsonNode.class
     );
   }
 }

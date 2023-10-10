@@ -1,8 +1,5 @@
 package eu.dissco.backend.repository;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 public class RepositoryUtils {
 
   public static final String HANDLE_STRING = "https://hdl.handle.net/";

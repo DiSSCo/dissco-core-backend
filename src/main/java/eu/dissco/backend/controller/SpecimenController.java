@@ -36,9 +36,9 @@ public class SpecimenController extends BaseController {
 
   private final SpecimenService service;
 
-  public SpecimenController(SpecimenService service, ObjectMapper mapper,
-      ApplicationProperties applicationProperties) {
-    super(applicationProperties, mapper);
+  public SpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
+      SpecimenService service) {
+    super(mapper, applicationProperties);
     this.service = service;
   }
 

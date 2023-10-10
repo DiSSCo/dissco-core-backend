@@ -193,14 +193,14 @@ public class DigitalSpecimenRecord extends UpdatableRecordImpl<DigitalSpecimenRe
     }
 
     /**
-     * Setter for <code>public.digital_specimen.digitalEntity</code>.
+     * Setter for <code>public.digital_specimen.data</code>.
      */
     public void setData(JSONB value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>public.digital_specimen.digitalEntity</code>.
+     * Getter for <code>public.digital_specimen.data</code>.
      */
     public JSONB getData() {
         return (JSONB) get(12);

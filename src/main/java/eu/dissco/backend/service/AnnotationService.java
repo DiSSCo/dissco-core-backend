@@ -49,6 +49,13 @@ public class AnnotationService {
 
   // Used by Controller
 
+  @NotNull
+  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
+      String userId) {
+    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
+        annotation.target(), annotation.body());
+  }
+
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
     var dataNode = new JsonApiData(id, annotation.type(), annotation, mapper);
@@ -106,13 +113,6 @@ public class AnnotationService {
         Instant.from(formatter.parse(response.get(ANNOTATION).get("generated").asText())),
         null
     );
-  }
-
-  @NotNull
-  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
-      String userId) {
-    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
-        annotation.target(), annotation.body());
   }
 
   public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,

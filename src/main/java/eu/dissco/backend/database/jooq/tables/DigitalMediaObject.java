@@ -96,9 +96,9 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
     public final TableField<DigitalMediaObjectRecord, Instant> DELETED = createField(DSL.name("deleted"), SQLDataType.INSTANT, this, "");
 
     /**
-     * The column <code>public.digital_media_object.digitalEntity</code>.
+     * The column <code>public.digital_media_object.data</code>.
      */
-    public final TableField<DigitalMediaObjectRecord, JSONB> DATA = createField(DSL.name("digitalEntity"), SQLDataType.JSONB.nullable(false), this, "");
+    public final TableField<DigitalMediaObjectRecord, JSONB> DATA = createField(DSL.name("data"), SQLDataType.JSONB.nullable(false), this, "");
 
     /**
      * The column <code>public.digital_media_object.original_data</code>.

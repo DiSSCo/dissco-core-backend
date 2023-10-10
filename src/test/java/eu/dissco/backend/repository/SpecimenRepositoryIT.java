@@ -1,15 +1,16 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
+import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import java.time.Instant;
 import java.util.ArrayList;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
@@ -27,7 +28,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
 
   @AfterEach
   void destroy() {
-    context.truncate(NEW_DIGITAL_SPECIMEN).execute();
+    context.truncate(DIGITAL_SPECIMEN).execute();
   }
 
   @Test
@@ -40,38 +41,44 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(result).isEqualTo(
-        givenDigitalSpecimenSourceSystem(HANDLE + "20.5000.1025/ABC-123-XY3",
-            HANDLE + SOURCE_SYSTEM_ID_1));
+        givenDigitalSpecimenSourceSystem(DOI + "20.5000.1025/ABC-123-XY3", SOURCE_SYSTEM_ID_1));
   }
 
   private void populateSpecimenTable() throws JsonProcessingException {
     var specimens = new ArrayList<DigitalSpecimenWrapper>();
     for (int i = 0; i < 22; i++) {
-      specimens.add(givenDigitalSpecimen("20.5000.1025/ABC-123-XY" + i));
+      specimens.add(givenDigitalSpecimenWrapper("20.5000.1025/ABC-123-XY" + i));
     }
     insertIntoDatabase(specimens);
   }
 
-  private void insertIntoDatabase(ArrayList<DigitalSpecimenWrapper> specimens) {
-    for (var specimen : specimens) {
-      context.insertInto(NEW_DIGITAL_SPECIMEN)
-          .set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())
-          .set(NEW_DIGITAL_SPECIMEN.VERSION, specimen.version())
-          .set(NEW_DIGITAL_SPECIMEN.TYPE, specimen.type())
-          .set(NEW_DIGITAL_SPECIMEN.MIDSLEVEL, (short) specimen.midsLevel())
-          .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID, specimen.physicalSpecimenId())
-          .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE, specimen.physicalSpecimenIdType())
-          .set(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, specimen.specimenName())
-          .set(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID, specimen.organisationId())
-          .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_COLLECTION,
-              specimen.physicalSpecimenCollection())
-          .set(NEW_DIGITAL_SPECIMEN.DATASET, specimen.datasetId())
-          .set(NEW_DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID, specimen.sourceSystemId())
-          .set(NEW_DIGITAL_SPECIMEN.CREATED, specimen.created())
-          .set(NEW_DIGITAL_SPECIMEN.LAST_CHECKED, specimen.created())
-          .set(NEW_DIGITAL_SPECIMEN.DATA, JSONB.jsonb(specimen.data().toString()))
-          .set(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimen.originalData().toString()))
-          .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId())
+  private void insertIntoDatabase(ArrayList<DigitalSpecimenWrapper> specimens)
+      throws JsonProcessingException {
+    for (var specimenWrapper : specimens) {
+      context.insertInto(DIGITAL_SPECIMEN)
+          .set(DIGITAL_SPECIMEN.ID, specimenWrapper.digitalSpecimen().getOdsId())
+          .set(DIGITAL_SPECIMEN.VERSION, specimenWrapper.digitalSpecimen().getOdsVersion())
+          .set(DIGITAL_SPECIMEN.TYPE, specimenWrapper.digitalSpecimen().getOdsType())
+          .set(DIGITAL_SPECIMEN.MIDSLEVEL,
+              specimenWrapper.digitalSpecimen().getOdsMidsLevel().shortValue())
+          .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,
+              specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenId())
+          .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE,
+              specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenIdType().value())
+          .set(DIGITAL_SPECIMEN.SPECIMEN_NAME,
+              specimenWrapper.digitalSpecimen().getOdsSpecimenName())
+          .set(DIGITAL_SPECIMEN.ORGANIZATION_ID,
+              specimenWrapper.digitalSpecimen().getDwcInstitutionId())
+          .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
+              specimenWrapper.digitalSpecimen().getOdsSourceSystem())
+          .set(DIGITAL_SPECIMEN.CREATED,
+              Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
+          .set(DIGITAL_SPECIMEN.LAST_CHECKED,
+              Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
+          .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
+              MAPPER.writeValueAsString(specimenWrapper.digitalSpecimen())))
+          .set(DIGITAL_SPECIMEN.ORIGINAL_DATA,
+              JSONB.jsonb(specimenWrapper.originalData().toString()))
           .execute();
     }
   }

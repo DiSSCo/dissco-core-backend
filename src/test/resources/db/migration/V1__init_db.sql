@@ -30,70 +30,56 @@ CREATE TABLE public.new_annotation (
 	CONSTRAINT new_annotation_pk PRIMARY KEY (id)
 );
 
-create table new_digital_media_object
+create table digital_media_object
 (
     id text not null
-        constraint new_digital_media_object_pk
+        constraint digital_media_object_pk
             primary key,
     version integer not null,
     type text,
     digital_specimen_id text not null,
-    media_url text,
-    format text,
+    media_url text not null,
+    created timestamp with time zone not null,
+    last_checked timestamp with time zone not null,
+    deleted timestamp with time zone,
+    data jsonb not null,
+    original_data jsonb not null
+);
+
+create index digital_media_object_id_idx
+    on digital_media_object (id, media_url);
+
+create unique index digital_media_object_id_version_url
+    on digital_media_object (id, version, media_url);
+
+create index digital_media_object_digital_specimen_id_url
+    on digital_media_object (digital_specimen_id, media_url);
+
+
+create table digital_specimen
+(
+    id text not null
+        constraint digital_specimen_pk
+            primary key,
+    version integer not null,
+    type text not null,
+    midslevel smallint not null,
+    physical_specimen_id text not null,
+    physical_specimen_type text not null,
+    specimen_name text,
+    organization_id text not null,
     source_system_id text not null,
     created timestamp with time zone not null,
     last_checked timestamp with time zone not null,
     deleted timestamp with time zone,
     data jsonb,
-    original_data jsonb,
-    physical_specimen_id varchar default 'unknown'::character varying not null
+    original_data jsonb
 );
+create index digital_specimen_created_idx
+    on digital_specimen (created);
 
-create index new_digital_media_object_id_idx
-    on new_digital_media_object (id, media_url);
-
-create unique index new_digital_media_object_id_version_url
-    on new_digital_media_object (id, version, media_url);
-
-create index new_digital_media_object_digital_specimen_id_url
-    on new_digital_media_object (digital_specimen_id, media_url);
-
-
-CREATE TABLE public.new_digital_specimen (
-	id text NOT NULL,
-	"version" int4 NOT NULL,
-	"type" text NOT NULL,
-	midslevel int2 NOT NULL,
-	physical_specimen_id text NOT NULL,
-	physical_specimen_type text NOT NULL,
-	specimen_name text NULL,
-	organization_id text NOT NULL,
-	physical_specimen_collection text NULL,
-	dataset text NULL,
-	source_system_id text NOT NULL,
-	created timestamptz NOT NULL,
-	last_checked timestamptz NOT NULL,
-	deleted timestamptz NULL,
-	"data" jsonb NULL,
-	original_data jsonb NULL,
-	dwca_id text NULL,
-	CONSTRAINT new_digital_specimen_pk PRIMARY KEY (id)
-);
-CREATE INDEX new_digital_specimen_created_idx ON public.new_digital_specimen USING btree (created);
-CREATE INDEX new_digital_specimen_id_idx ON public.new_digital_specimen USING btree (id, created);
-CREATE INDEX new_digital_specimen_physical_specimen_id_idx ON public.new_digital_specimen USING btree (physical_specimen_id);
-
-
-CREATE TABLE public.organisation_do (
-	id text NOT NULL,
-	organisation_name text NULL,
-	organisation_code text NULL,
-	city text NULL,
-	country text NULL,
-	country_code text NULL,
-	"data" jsonb NULL,
-	CONSTRAINT organisation_do_pkey PRIMARY KEY (id)
-);
+create index digital_specimen_physical_specimen_id_idx
+    on digital_specimen (physical_specimen_id);
 
 CREATE TABLE machine_annotation_services
 (

@@ -9,7 +9,6 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -19,11 +18,10 @@ import static org.mockito.BDDMockito.given;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
 import java.util.List;
-
-import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,12 +35,14 @@ class DigitalMediaObjectControllerTest {
 
   @Mock
   private DigitalMediaObjectService service;
+  @Mock
+  private ApplicationProperties applicationProperties;
   private DigitalMediaObjectController controller;
   private MockHttpServletRequest mockRequest;
 
   @BeforeEach
   void setup() {
-    controller = new DigitalMediaObjectController(service, MAPPER);
+    controller = new DigitalMediaObjectController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
   }
@@ -56,6 +56,7 @@ class DigitalMediaObjectControllerTest {
     given(service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH)).willReturn(
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, pageNumber, pageSize,
             mediaIds));
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var responseReceived = controller.getDigitalMediaObjects(pageNumber, pageSize,
@@ -69,6 +70,7 @@ class DigitalMediaObjectControllerTest {
     // Given
     given(service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH)).willReturn(
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var responseReceived = controller.getDigitalMediaObjectById(PREFIX, SUFFIX, mockRequest);
@@ -92,6 +94,7 @@ class DigitalMediaObjectControllerTest {
     int version = 1;
     given(service.getDigitalMediaObjectByVersion(ID, version, DIGITAL_MEDIA_PATH)).willReturn(
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, SUFFIX, version,
@@ -106,9 +109,9 @@ class DigitalMediaObjectControllerTest {
     // Given
     var responseExpected = givenAnnotationJsonResponseNoPagination(USER_ID_TOKEN,
         List.of("1", "2"));
-
     given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(
         responseExpected);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var responseReceived = controller.getMediaAnnotationsById(PREFIX, SUFFIX, mockRequest);
@@ -123,6 +126,7 @@ class DigitalMediaObjectControllerTest {
     // Given
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.getMassForDigitalMediaObject(PREFIX, SUFFIX, mockRequest);
@@ -138,6 +142,7 @@ class DigitalMediaObjectControllerTest {
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     var request = givenMasRequest();
     given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, mockRequest);

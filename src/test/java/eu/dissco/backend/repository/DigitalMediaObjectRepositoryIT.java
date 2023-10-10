@@ -1,12 +1,14 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
+import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_MEDIA_OBJECT;
-import static eu.dissco.backend.database.jooq.Tables.NEW_DIGITAL_SPECIMEN;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
+import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
+import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,7 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -37,8 +39,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
   @AfterEach
   void destroy() {
-    context.truncate(NEW_DIGITAL_SPECIMEN).execute();
-    context.truncate(NEW_DIGITAL_MEDIA_OBJECT).execute();
+    context.truncate(DIGITAL_SPECIMEN).execute();
+    context.truncate(DIGITAL_MEDIA_OBJECT).execute();
   }
 
   @Test
@@ -48,7 +50,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     int pageNum2 = 2;
     int pageSize = 10;
     String specimenId = ID_ALT;
-    var specimen = givenDigitalSpecimen(specimenId);
+    var specimen = givenDigitalSpecimenWrapper(specimenId);
     postDigitalSpecimen(specimen);
     List<DigitalMediaObjectWrapper> mediaObjectsAll = new ArrayList<>();
     for (int i = 0; i < pageSize * 2; i++) {
@@ -67,8 +69,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     assertThat(pageOne).hasSize(pageSize + 1);
     assertThat(pageTwo).hasSize(pageSize);
     assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
-        media -> givenDigitalMediaObject(HANDLE + media.id(), HANDLE + media.digitalSpecimenId(),
-            HANDLE + SOURCE_SYSTEM_ID_1)).toList());
+        media -> givenDigitalMediaObject(DOI + media.digitalEntity().getOdsId(),
+            specimenId, SOURCE_SYSTEM_ID_1)).toList());
   }
 
   @Test
@@ -77,7 +79,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
 
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-    var specimen = givenDigitalSpecimen(ID_ALT);
+    var specimen = givenDigitalSpecimenWrapper(ID_ALT);
     postDigitalSpecimen(specimen);
 
     // When
@@ -85,7 +87,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedResponse).isEqualTo(
-        givenDigitalMediaObject(HANDLE + ID, HANDLE + ID_ALT, HANDLE + SOURCE_SYSTEM_ID_1, 2));
+        givenDigitalMediaObject(DOI + ID, ID_ALT, SOURCE_SYSTEM_ID_1, 2));
   }
 
   @Test
@@ -96,9 +98,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
         givenDigitalMediaObject(ID, specimenId),
         givenDigitalMediaObject("aa", specimenId));
     postMediaObjects(postedMediaObjects);
-    List<JsonApiData> expectedResponse = new ArrayList<>();
 
-    var specimen = givenDigitalSpecimen(specimenId);
+    var specimen = givenDigitalSpecimenWrapper(specimenId);
     postDigitalSpecimen(specimen);
 
     // When
@@ -107,9 +108,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(receivedResponse).hasSameElementsAs(
         List.of(
-            givenDigitalMediaObject(HANDLE + ID, HANDLE + specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
-            givenDigitalMediaObject(HANDLE + "aa", HANDLE + specimenId,
-                HANDLE + SOURCE_SYSTEM_ID_1)));
+            givenDigitalMediaObject(DOI + ID, specimenId, SOURCE_SYSTEM_ID_1),
+            givenDigitalMediaObject(DOI + "aa", specimenId, SOURCE_SYSTEM_ID_1)));
   }
 
   @Test
@@ -117,7 +117,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     // Given
     List<String> expectedResponse = List.of(ID, ID_ALT);
     String specimenId = "specimenId";
-    var specimen = givenDigitalSpecimen(specimenId);
+    var specimen = givenDigitalSpecimenWrapper(specimenId);
     postDigitalSpecimen(specimen);
     List<DigitalMediaObjectWrapper> mediaObjects = List.of(
         givenDigitalMediaObject(ID, specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
@@ -131,57 +131,69 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
   }
 
-  private void postMediaObjects(List<DigitalMediaObjectWrapper> mediaObjects) {
+  private void postMediaObjects(List<DigitalMediaObjectWrapper> mediaObjects)
+      throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (DigitalMediaObjectWrapper mediaObject : mediaObjects) {
-      var query = context.insertInto(NEW_DIGITAL_MEDIA_OBJECT)
-          .set(NEW_DIGITAL_MEDIA_OBJECT.ID, mediaObject.id())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.version())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.type())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.created())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, mediaObject.digitalSpecimenId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.mediaUrl())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.FORMAT, mediaObject.format())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID, mediaObject.sourceSystemId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.digitalEntity().toString()))
-          .set(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
+      var specimenId = mediaObject.digitalEntity().getEntityRelationships().get(0)
+          .getObjectEntityIri();
+      var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.digitalEntity().getOdsId())
+          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.digitalEntity().getOdsVersion())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.digitalEntity().getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.CREATED,
+              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+          .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
+          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.digitalEntity().getAcAccessUri())
+          .set(DIGITAL_MEDIA_OBJECT.DATA,
+              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject.digitalEntity())))
+          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
               JSONB.jsonb(mediaObject.originalData().toString()))
-          .set(NEW_DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.created())
-          .onConflict(NEW_DIGITAL_SPECIMEN.ID).doUpdate()
-          .set(NEW_DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.version())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.type())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.created())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, mediaObject.digitalSpecimenId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.mediaUrl())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.FORMAT, mediaObject.format())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.SOURCE_SYSTEM_ID, mediaObject.sourceSystemId())
-          .set(NEW_DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(mediaObject.digitalEntity().toString()))
-          .set(NEW_DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
+          .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
+              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+          .onConflict(DIGITAL_SPECIMEN.ID).doUpdate()
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.digitalEntity().getOdsId())
+          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.digitalEntity().getOdsVersion())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.digitalEntity().getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.CREATED,
+              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+          .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
+          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.digitalEntity().getAcAccessUri())
+          .set(DIGITAL_MEDIA_OBJECT.DATA,
+              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject.digitalEntity())))
+          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
               JSONB.jsonb(mediaObject.originalData().toString()))
-          .set(NEW_DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.created());
+          .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
+              Instant.parse(mediaObject.digitalEntity().getOdsCreated()));
       queryList.add(query);
     }
     context.batch(queryList).execute();
   }
 
-  private void postDigitalSpecimen(DigitalSpecimenWrapper specimen) {
-    context.insertInto(NEW_DIGITAL_SPECIMEN).set(NEW_DIGITAL_SPECIMEN.ID, specimen.id())
-        .set(NEW_DIGITAL_SPECIMEN.VERSION, specimen.version())
-        .set(NEW_DIGITAL_SPECIMEN.TYPE, specimen.type())
-        .set(NEW_DIGITAL_SPECIMEN.MIDSLEVEL, (short) specimen.midsLevel())
-        .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID, specimen.physicalSpecimenId())
-        .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE, specimen.physicalSpecimenIdType())
-        .set(NEW_DIGITAL_SPECIMEN.SPECIMEN_NAME, specimen.specimenName())
-        .set(NEW_DIGITAL_SPECIMEN.ORGANIZATION_ID, specimen.organisationId())
-        .set(NEW_DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_COLLECTION,
-            specimen.physicalSpecimenCollection())
-        .set(NEW_DIGITAL_SPECIMEN.DATASET, specimen.datasetId())
-        .set(NEW_DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID, specimen.sourceSystemId())
-        .set(NEW_DIGITAL_SPECIMEN.CREATED, specimen.created())
-        .set(NEW_DIGITAL_SPECIMEN.LAST_CHECKED, specimen.created())
-        .set(NEW_DIGITAL_SPECIMEN.DATA, JSONB.jsonb(specimen.data().toString()))
-        .set(NEW_DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimen.originalData().toString()))
-        .set(NEW_DIGITAL_SPECIMEN.DWCA_ID, specimen.dwcaId())
+  private void postDigitalSpecimen(DigitalSpecimenWrapper specimenWrapper)
+      throws JsonProcessingException {
+    context.insertInto(DIGITAL_SPECIMEN)
+        .set(DIGITAL_SPECIMEN.ID, specimenWrapper.digitalSpecimen().getOdsId())
+        .set(DIGITAL_SPECIMEN.VERSION, specimenWrapper.digitalSpecimen().getOdsVersion())
+        .set(DIGITAL_SPECIMEN.TYPE, specimenWrapper.digitalSpecimen().getOdsType())
+        .set(DIGITAL_SPECIMEN.MIDSLEVEL,
+            specimenWrapper.digitalSpecimen().getOdsMidsLevel().shortValue())
+        .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,
+            specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenId())
+        .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE,
+            specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenIdType().value())
+        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, specimenWrapper.digitalSpecimen().getOdsSpecimenName())
+        .set(DIGITAL_SPECIMEN.ORGANIZATION_ID,
+            specimenWrapper.digitalSpecimen().getDwcInstitutionId())
+        .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
+            specimenWrapper.digitalSpecimen().getOdsSourceSystem())
+        .set(DIGITAL_SPECIMEN.CREATED,
+            Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
+        .set(DIGITAL_SPECIMEN.LAST_CHECKED,
+            Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
+        .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
+            MAPPER.writeValueAsString(specimenWrapper.digitalSpecimen())))
+        .set(DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimenWrapper.originalData().toString()))
         .execute();
   }
 

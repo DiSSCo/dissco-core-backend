@@ -116,9 +116,9 @@ public class DigitalSpecimen extends TableImpl<DigitalSpecimenRecord> {
     public final TableField<DigitalSpecimenRecord, Instant> DELETED = createField(DSL.name("deleted"), SQLDataType.INSTANT, this, "");
 
     /**
-     * The column <code>public.digital_specimen.digitalEntity</code>.
+     * The column <code>public.digital_specimen.data</code>.
      */
-    public final TableField<DigitalSpecimenRecord, JSONB> DATA = createField(DSL.name("digitalEntity"), SQLDataType.JSONB, this, "");
+    public final TableField<DigitalSpecimenRecord, JSONB> DATA = createField(DSL.name("data"), SQLDataType.JSONB, this, "");
 
     /**
      * The column <code>public.digital_specimen.original_data</code>.

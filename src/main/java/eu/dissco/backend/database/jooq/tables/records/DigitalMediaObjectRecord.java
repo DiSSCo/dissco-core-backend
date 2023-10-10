@@ -137,14 +137,14 @@ public class DigitalMediaObjectRecord extends UpdatableRecordImpl<DigitalMediaOb
     }
 
     /**
-     * Setter for <code>public.digital_media_object.digitalEntity</code>.
+     * Setter for <code>public.digital_media_object.data</code>.
      */
     public void setData(JSONB value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>public.digital_media_object.digitalEntity</code>.
+     * Getter for <code>public.digital_media_object.data</code>.
      */
     public JSONB getData() {
         return (JSONB) get(8);

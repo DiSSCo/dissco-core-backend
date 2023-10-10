@@ -6,7 +6,6 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -24,11 +23,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
-
-import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,17 +42,19 @@ class SpecimenControllerTest {
   MockHttpServletRequest mockRequest;
   @Mock
   private SpecimenService service;
+  @Mock
+  private ApplicationProperties applicationProperties;
   private SpecimenController controller;
 
   @BeforeEach
   void setup() {
-    controller = new SpecimenController(service, MAPPER);
+    controller = new SpecimenController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(SPECIMEN_URI);
   }
 
   @Test
-  void testGetSpecimen() throws Exception{
+  void testGetSpecimen() throws Exception {
     // When
     var result = controller.getSpecimen(1, 1, mockRequest);
 
@@ -209,6 +209,7 @@ class SpecimenControllerTest {
     // Given
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.getMassForDigitalSpecimen(PREFIX, SUFFIX, mockRequest);
@@ -224,6 +225,7 @@ class SpecimenControllerTest {
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     given(service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH)).willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest);

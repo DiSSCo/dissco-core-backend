@@ -14,7 +14,13 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.schema.DigitalSpecimen;
+import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIdType;
+import eu.dissco.backend.schema.DigitalSpecimen.OdsTopicDiscipline;
+import eu.dissco.backend.schema.Location;
+import eu.dissco.backend.schema.Occurrences;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public class TestUtils {
@@ -24,17 +30,20 @@ public class TestUtils {
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
   public static final String HANDLE = "https://hdl.handle.net/";
+  public static final String DOI = "https://doi.org/";
   public static final String PREFIX = "20.5000.1025";
   public static final String SUFFIX = "ABC-123-XYZ";
   public static final String ID = PREFIX + "/" + SUFFIX;
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
-  public static final String SOURCE_SYSTEM_ID_1 = "20.5000.1025/3XA-8PT-SAY";
-  public static final String SOURCE_SYSTEM_ID_2 = "20.5000.1025/ANO-THE-RAY";
+  public static final String SOURCE_SYSTEM_ID_1 = HANDLE + "20.5000.1025/3XA-8PT-SAY";
+  public static final String SOURCE_SYSTEM_ID_2 = HANDLE + "20.5000.1025/ANO-THE-RAY";
 
   public static final ObjectMapper MAPPER;
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
+
+  public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 
   static {
     var mapper = new ObjectMapper().findAndRegisterModules();
@@ -85,45 +94,35 @@ public class TestUtils {
   }
 
   // Digital Specimen
-  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id) throws JsonProcessingException {
-    return givenDigitalSpecimen(id, "global_id_123123");
-  }
-
-  public static DigitalSpecimenWrapper givenDigitalSpecimenSourceSystem(String id, String sourceSystem)
+  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id)
       throws JsonProcessingException {
-    return givenDigitalSpecimen(id, "global_id_123123", 1, sourceSystem);
+    return givenDigitalSpecimenWrapper(id, "global_id_123123");
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId)
-      throws JsonProcessingException {
-    return givenDigitalSpecimen(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
-  }
-
-  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId,
+  public static DigitalSpecimenWrapper givenDigitalSpecimenSourceSystem(String id,
       String sourceSystem)
       throws JsonProcessingException {
-    return givenDigitalSpecimen(id, physicalId, 1, sourceSystem);
+    return givenDigitalSpecimenWrapper(id, "global_id_123123", 1, sourceSystem);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimen(String id, String physicalId, int version,
+  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId)
+      throws JsonProcessingException {
+    return givenDigitalSpecimenWrapper(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
+  }
+
+  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
+      String sourceSystem)
+      throws JsonProcessingException {
+    return givenDigitalSpecimenWrapper(id, physicalId, 1, sourceSystem);
+  }
+
+  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
+      Integer version,
       String sourceSystemId)
       throws JsonProcessingException {
     return new DigitalSpecimenWrapper(
-        id,
-        1,
-        version,
-        CREATED,
-        "BotanySpecimen",
-        physicalId,
-        "cetaf",
-        "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-        "https://ror.org/0349vqz63",
-        "Royal Botanic Garden Edinburgh Herbarium",
-        "http://biocol.org/urn:lsid:biocol.org:col:15670",
-        sourceSystemId,
-        givenSpecimenData(sourceSystemId),
-        givenSpecimenOriginalData(),
-        "http://data.rbge.org.uk/herb/E00586417");
+        givenSpecimenData(id, physicalId, version, sourceSystemId),
+        givenSpecimenOriginalData());
   }
 
   private static JsonNode givenSpecimenOriginalData() throws JsonProcessingException {
@@ -158,23 +157,29 @@ public class TestUtils {
             """, JsonNode.class);
   }
 
-  private static JsonNode givenSpecimenData(String sourceSystemId) {
-    var node = MAPPER.createObjectNode();
-    node.put("dwca:id", "http://data.rbge.org.uk/herb/E00586417");
-    node.put("ods:modified", "03/12/2012");
-    node.put("ods:datasetId", "Royal Botanic Garden Edinburgh Herbarium");
-    node.put("ods:objectType", "");
-    node.put("dcterms:license", "http://creativecommons.org/licenses/by/4.0/legalcode");
-    node.put("ods:specimenName", "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.");
-    node.put("ods:organisationId", "https://ror.org/0349vqz63");
-    node.put("ods:sourceSystemId", sourceSystemId);
-    node.put("ods:physicalSpecimenIdType", "cetaf");
-    node.put("ods:physicalSpecimenCollection", "http://biocol.org/urn:lsid:biocol.org:col:15670");
-    node.put("ods:specimenName", "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.");
-    node.put("dwc:typeStatus", "holotype");
-    node.put("dwc:country", "Scotland");
-    node.put("ods:hasMedia", "true");
-    return node;
+  private static DigitalSpecimen givenSpecimenData(String id, String physicalId, Integer version,
+      String sourceSystemId) {
+    return new DigitalSpecimen()
+        .withOdsId(id)
+        .withOdsPhysicalSpecimenId(physicalId)
+        .withOdsVersion(version)
+        .withOdsMidsLevel(0)
+        .withOdsCreated(CREATED.toString())
+        .withOdsType(DIGITAL_SPECIMEN_TYPE)
+        .withOdsTopicDiscipline(OdsTopicDiscipline.BOTANY)
+        .withDctermsModified("03/12/2012")
+        .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
+        .withDwcPreparations("")
+        .withDctermsLicense("http://creativecommons.org/licenses/by/4.0/legalcode")
+        .withOdsSpecimenName("Leucanthemum ircutianum (Turcz.) Turcz.ex DC.")
+        .withDwcInstitutionId("https://ror.org/0349vqz63")
+        .withDwcInstitutionName("Royal Botanic Garden Edinburgh Herbarium")
+        .withOdsSourceSystem(sourceSystemId)
+        .withOdsPhysicalSpecimenIdType(OdsPhysicalSpecimenIdType.RESOLVABLE)
+        .withOdsMarkedAsType(Boolean.TRUE)
+        .withOdsHasMedia(Boolean.TRUE)
+        .withOccurrences(
+            List.of(new Occurrences().withLocation(new Location().withDwcCountry("Scotland"))));
   }
 
   public static Map<String, Map<String, Long>> givenAggregationMap() {

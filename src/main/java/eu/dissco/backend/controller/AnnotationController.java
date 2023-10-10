@@ -41,7 +41,7 @@ public class AnnotationController extends BaseController {
 
   public AnnotationController(
       ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service) {
-    super(applicationProperties, mapper);
+    super(mapper, applicationProperties);
     this.service = service;
   }
 

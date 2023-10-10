@@ -36,7 +36,7 @@ public class UserController extends BaseController {
 
   public UserController(ApplicationProperties applicationProperties,
       ObjectMapper mapper, UserService service) {
-    super(applicationProperties, mapper);
+    super(mapper, applicationProperties);
     this.service = service;
   }
 

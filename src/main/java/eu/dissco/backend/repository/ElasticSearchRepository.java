@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerms;
+import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
+import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
 import java.time.Instant;
@@ -44,12 +46,12 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
-  private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen-um";
-  private static final String ANNOTATION_INDEX = "annotation";
   private static final String FIELD_CREATED = "created";
+  private static final String DIGITAL_SPECIMEN_WRAPPER = "digitalSpecimenWrapper";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
+  private final ElasticSearchProperties properties;
 
   private List<Query> generateQueries(Map<String, List<String>> params) {
     var queries = new ArrayList<Query>();
@@ -72,7 +74,7 @@ public class ElasticSearchRepository {
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+    var searchRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .from(offset)
         .size(pageSizePlusOne).build();
@@ -84,7 +86,7 @@ public class ElasticSearchRepository {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
-        .index(ANNOTATION_INDEX)
+        .index(properties.getAnnotationIndex())
         .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
         .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
@@ -92,7 +94,7 @@ public class ElasticSearchRepository {
   }
 
   private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
-    var annotation = json.get(ANNOTATION_INDEX);
+    var annotation = json.get("annotation");
     var createdOn = parseDate(annotation.get(FIELD_CREATED));
     var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
     return new AnnotationResponse(
@@ -110,20 +112,22 @@ public class ElasticSearchRepository {
         null);
   }
 
-  private DigitalSpecimenWrapper mapToDigitalSpecimen(ObjectNode json) {
-
+  private DigitalSpecimenWrapper mapToDigitalSpecimen(ObjectNode json)
+      throws DiSSCoElasticMappingException {
     try {
-      var digitalSpecimen = mapper.treeToValue(json.get("digitalSpecimen").get("ods:attributes"),
+      var digitalSpecimenWrapper = mapper.treeToValue(
+          json.get(DIGITAL_SPECIMEN_WRAPPER).get("ods:attributes"),
           DigitalSpecimen.class);
       return new DigitalSpecimenWrapper(
-          digitalSpecimen.withOdsId(DOI_STRING + json.get("id").asText())
-              .withOdsType(json.get("digitalSpecimen").get("ods:type").asText())
+          digitalSpecimenWrapper.withOdsId(DOI_STRING + json.get("id").asText())
+              .withOdsType(json.get(DIGITAL_SPECIMEN_WRAPPER).get("ods:type").asText())
               .withOdsMidsLevel(json.get("midsLevel").asInt())
               .withOdsCreated(json.get(FIELD_CREATED).asText())
               .withOdsVersion(json.get("version").asInt()),
-          json.get("digitalSpecimen").get("ods:originalAttributes"));
+          json.get(DIGITAL_SPECIMEN_WRAPPER).get("ods:originalAttributes"));
     } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      log.error("Unable to parse digital specimen to json: {}", json);
+      throw new DiSSCoElasticMappingException(e);
     }
   }
 
@@ -153,7 +157,7 @@ public class ElasticSearchRepository {
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 
     var searchRequest = SearchRequest.of(sr ->
-        sr.index(ANNOTATION_INDEX)
+        sr.index(properties.getAnnotationIndex())
             .query(q -> q
                 .match(t -> t
                     .field(fieldName)
@@ -178,7 +182,7 @@ public class ElasticSearchRepository {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var queries = generateQueries(params);
-    var searchRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+    var searchRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
@@ -192,7 +196,7 @@ public class ElasticSearchRepository {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
-        .index(DIGITAL_SPECIMEN_INDEX)
+        .index(properties.getDigitalSpecimenIndex())
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
         .size(pageSizePlusOne)
@@ -218,7 +222,7 @@ public class ElasticSearchRepository {
       aggregationQueries.put(aggregationTerm.getName(), AggregationBuilders.terms()
           .field(aggregationTerm.getFullName()).build()._toAggregation());
     }
-    var aggregationRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+    var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
         .aggregations(aggregationQueries).build();
@@ -247,7 +251,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, Map<String, Map<String, Long>>> getAggregation(MappingTerms mappingTerm)
       throws IOException {
-    var aggregationRequest = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+    var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .aggregations(mappingTerm.getName(),
             AggregationBuilders.terms().field(mappingTerm.getFullName()).build()._toAggregation())
@@ -261,7 +265,7 @@ public class ElasticSearchRepository {
 
   public Map<String, Map<String, Long>> searchTermValue(String name, String field, String value)
       throws IOException {
-    var searchQuery = new SearchRequest.Builder().index(DIGITAL_SPECIMEN_INDEX)
+    var searchQuery = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(q -> q.prefix(m -> m.field(field).value(value)))
         .aggregations(name, agg -> agg.terms(t -> t.field(field)))
         .size(0)
