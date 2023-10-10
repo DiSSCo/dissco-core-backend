@@ -5,12 +5,11 @@ package eu.dissco.backend.database.jooq;
 
 
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
+import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-import eu.dissco.backend.database.jooq.tables.OrganisationDo;
-import eu.dissco.backend.database.jooq.tables.OrganisationDocument;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +38,11 @@ public class Public extends SchemaImpl {
     public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
 
     /**
+     * The table <code>public.mas_job_record</code>.
+     */
+    public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
+
+    /**
      * The table <code>public.new_annotation</code>.
      */
     public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
@@ -59,16 +63,6 @@ public class Public extends SchemaImpl {
     public final NewUser NEW_USER = NewUser.NEW_USER;
 
     /**
-     * The table <code>public.organisation_do</code>.
-     */
-    public final OrganisationDo ORGANISATION_DO = OrganisationDo.ORGANISATION_DO;
-
-    /**
-     * The table <code>public.organisation_document</code>.
-     */
-    public final OrganisationDocument ORGANISATION_DOCUMENT = OrganisationDocument.ORGANISATION_DOCUMENT;
-
-    /**
      * No further instances allowed
      */
     private Public() {
@@ -85,12 +79,11 @@ public class Public extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
+            MasJobRecord.MAS_JOB_RECORD,
             NewAnnotation.NEW_ANNOTATION,
             NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
             NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
-            NewUser.NEW_USER,
-            OrganisationDo.ORGANISATION_DO,
-            OrganisationDocument.ORGANISATION_DOCUMENT
+            NewUser.NEW_USER
         );
     }
 }

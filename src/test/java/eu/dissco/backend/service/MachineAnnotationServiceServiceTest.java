@@ -8,6 +8,8 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlatten
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -16,8 +18,10 @@ import static org.mockito.BDDMockito.willThrow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,12 +35,14 @@ class MachineAnnotationServiceServiceTest {
   private MachineAnnotationServiceRepository repository;
   @Mock
   private KafkaPublisherService kafkaPublisherService;
+  @Mock
+  private MasJobRecordService masJobRecordService;
 
   private MachineAnnotationServiceService service;
 
   @BeforeEach
   void setup() {
-    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService, MAPPER);
+    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService, masJobRecordService, MAPPER);
   }
 
   @Test
@@ -71,14 +77,16 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimen = givenDigitalSpecimen(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(givenMasJobRecordIdMap(masRecord.id()));
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen);
+        digitalSpecimen, digitalSpecimen.id());
 
     // Then
     assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
-    then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", digitalSpecimen);
+    then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 
   @Test
@@ -87,14 +95,17 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimen = givenDigitalSpecimen(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(givenMasJobRecordIdMap(masRecord.id()));
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
-        .sendObjectToQueue("fancy-topic-name", digitalSpecimen);
+        .sendObjectToQueue("fancy-topic-name", sendObject);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen);
+        digitalSpecimen, digitalSpecimen.id());
 
     // Then
+    then(masJobRecordService).should().markMasJobRecordAsFailed(List.of(JOB_ID));
     assertThat(result.getData()).isEmpty();
   }
 

@@ -255,7 +255,7 @@ class DigitalMediaObjectServiceTest {
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(givenFlattenedDigitalMedia(), List.of(ID), DIGITAL_MEDIA_PATH,
-        digitalMedia)).willReturn(response);
+        digitalMedia, digitalMedia.id())).willReturn(response);
 
     // When
     var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH);
