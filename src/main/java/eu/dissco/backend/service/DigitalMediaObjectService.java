@@ -42,10 +42,9 @@ public class DigitalMediaObjectService {
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
       String path) {
     var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
-    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
-    mediaPlusOne.forEach(media -> dataNodePlusOne.add(
+    var dataNodePlusOne = mediaPlusOne.stream().map(media ->
         new JsonApiData(media.digitalEntity().getOdsId(), media.digitalEntity().getOdsType(),
-            mapper.valueToTree(media))));
+            mapper.valueToTree(media))).toList();
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 

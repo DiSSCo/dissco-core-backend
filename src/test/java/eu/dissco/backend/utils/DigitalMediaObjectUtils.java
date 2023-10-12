@@ -1,7 +1,7 @@
 package eu.dissco.backend.utils;
 
 import static eu.dissco.backend.TestUtils.CREATED;
-import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
@@ -30,7 +30,7 @@ public class DigitalMediaObjectUtils {
   // Media Object
   public static DigitalMediaObjectWrapper givenDigitalMediaObject(String id) {
     return new DigitalMediaObjectWrapper(
-        givenDigitalMediaObjectData(id, 1, CREATED, DIGITAL_MEDIA_FDO_TYPE, HANDLE + ID_ALT,
+        givenDigitalMediaObjectData(id, 1, CREATED, DIGITAL_MEDIA_FDO_TYPE, DOI + ID_ALT,
             "https://dissco.com", "image/jpeg"),
         givenDigitalMediaObjectOriginalData());
   }

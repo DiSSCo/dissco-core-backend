@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Getter;
 
+@Getter
 public enum MappingTerms {
   TYPE("type", "digitalSpecimenWrapper.ods:type.keyword"),
   COUNTRY("country",
@@ -47,7 +49,7 @@ public enum MappingTerms {
       "digitalSpecimenWrapper.ods:attributes.ods:topicDiscipline.keyword"),
   QUERY("q", "q");
 
-  public static final Set<MappingTerms> aggregationList = getAggregationList();
+  private static final Set<MappingTerms> aggregationList = assembleAggregationList();
   private static final Map<String, String> paramMapping = getParamMapping();
   private final String name;
   private final String fullName;
@@ -61,7 +63,11 @@ public enum MappingTerms {
     return Optional.ofNullable(paramMapping.get(name));
   }
 
-  private static Set<MappingTerms> getAggregationList() {
+  public static Set<MappingTerms> getAggregationList() {
+    return aggregationList;
+  }
+
+  private static Set<MappingTerms> assembleAggregationList() {
     var aggregationTerms = EnumSet.noneOf(MappingTerms.class);
     aggregationTerms.add(TYPE);
     aggregationTerms.add(COUNTRY);
@@ -110,14 +116,6 @@ public enum MappingTerms {
     paramMap.put(TOPIC_DISCIPLINE.name, TOPIC_DISCIPLINE.fullName);
     paramMap.put(QUERY.name, QUERY.fullName);
     return paramMap;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getFullName() {
-    return fullName;
   }
 
 }

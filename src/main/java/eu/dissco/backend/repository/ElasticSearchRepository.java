@@ -1,6 +1,6 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.domain.MappingTerms.aggregationList;
+import static eu.dissco.backend.domain.MappingTerms.getAggregationList;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
@@ -112,8 +112,7 @@ public class ElasticSearchRepository {
         null);
   }
 
-  private DigitalSpecimenWrapper mapToDigitalSpecimen(ObjectNode json)
-      throws DiSSCoElasticMappingException {
+  private DigitalSpecimenWrapper mapToDigitalSpecimenWrapper(ObjectNode json) {
     try {
       var digitalSpecimenWrapper = mapper.treeToValue(
           json.get(DIGITAL_SPECIMEN_WRAPPER).get("ods:attributes"),
@@ -207,18 +206,22 @@ public class ElasticSearchRepository {
   private Pair<Long, List<DigitalSpecimenWrapper>> getDigitalSpecimenSearchResults(
       SearchRequest searchRequest) throws IOException {
     var searchResult = client.search(searchRequest, ObjectNode.class);
-    var totalHits = searchResult.hits().total().value();
     var specimens = searchResult.hits().hits().stream()
         .map(Hit::source)
-        .map(this::mapToDigitalSpecimen).toList();
-    return Pair.of(totalHits, specimens);
+        .map(this::mapToDigitalSpecimenWrapper).toList();
+    if (searchResult.hits().total() == null) {
+      return Pair.of(0L, specimens);
+    } else {
+      var totalHits = searchResult.hits().total().value();
+      return Pair.of(totalHits, specimens);
+    }
   }
 
   public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params)
       throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
     var queries = generateQueries(params);
-    for (var aggregationTerm : aggregationList) {
+    for (var aggregationTerm : getAggregationList()) {
       aggregationQueries.put(aggregationTerm.getName(), AggregationBuilders.terms()
           .field(aggregationTerm.getFullName()).build()._toAggregation());
     }

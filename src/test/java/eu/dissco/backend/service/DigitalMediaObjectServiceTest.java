@@ -33,7 +33,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
-import eu.dissco.backend.schema.DigitalEntity;
 import eu.dissco.backend.schema.EntityRelationships;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -247,11 +246,11 @@ class DigitalMediaObjectServiceTest {
   void testGetMas() throws JsonProcessingException {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
-    var specimenId = HANDLE + ID_ALT;
+    var specimenId = DOI + ID_ALT;
     var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
-    given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
+    given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
         response);
 
@@ -285,11 +284,11 @@ class DigitalMediaObjectServiceTest {
   void testScheduleMas() throws JsonProcessingException {
     // Given
     var digitalMediaWrapper = givenDigitalMediaObject(HANDLE + ID);
-    var specimenId = HANDLE + ID_ALT;
+    var specimenId = DOI + ID_ALT;
     var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
-    given(specimenRepository.getLatestSpecimenById(specimenId)).willReturn(digitalSpecimen);
+    given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(DIGITAL_MEDIA_PATH),
         eq(digitalMediaWrapper))).willReturn(response);
 
@@ -319,7 +318,7 @@ class DigitalMediaObjectServiceTest {
                     "entityRelationships": [
                       {
                         "entityRelationshipType": "hasDigitalSpecimen",
-                        "objectEntityIri": "https://hdl.handle.net/20.5000.1025/AAA-111-ZZZ"
+                        "objectEntityIri": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
                       }
                     ]
                   },

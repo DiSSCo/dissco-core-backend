@@ -29,7 +29,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -49,7 +48,6 @@ public class AnnotationService {
 
   // Used by Controller
 
-  @NotNull
   private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
       String userId) {
     return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
@@ -156,7 +154,6 @@ public class AnnotationService {
   }
 
   // Used by other services
-
   public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
     var fullId = "https://hdl.handle.net/" + id;
     return repository.getForTarget(fullId);

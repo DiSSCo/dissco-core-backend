@@ -25,10 +25,10 @@ public class SpecimenRepository {
     return context.select(DIGITAL_SPECIMEN.asterisk())
         .from(DIGITAL_SPECIMEN)
         .where(DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(this::mapToDigitalSpecimen);
+        .fetchOne(this::mapToDigitalSpecimenWrapper);
   }
 
-  private DigitalSpecimenWrapper mapToDigitalSpecimen(Record dbRecord) {
+  private DigitalSpecimenWrapper mapToDigitalSpecimenWrapper(Record dbRecord) {
     try {
       var ds = mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
           .withOdsId("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))

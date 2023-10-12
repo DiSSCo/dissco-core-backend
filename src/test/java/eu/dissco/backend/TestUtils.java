@@ -121,7 +121,7 @@ public class TestUtils {
       String sourceSystemId)
       throws JsonProcessingException {
     return new DigitalSpecimenWrapper(
-        givenSpecimenData(id, physicalId, version, sourceSystemId),
+        givenDigitalSpecimen(id, physicalId, version, sourceSystemId),
         givenSpecimenOriginalData());
   }
 
@@ -157,7 +157,7 @@ public class TestUtils {
             """, JsonNode.class);
   }
 
-  private static DigitalSpecimen givenSpecimenData(String id, String physicalId, Integer version,
+  private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
       String sourceSystemId) {
     return new DigitalSpecimen()
         .withOdsId(id)
