@@ -17,6 +17,7 @@ import static org.mockito.BDDMockito.given;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,13 +37,15 @@ class AnnotationControllerTest {
   private AnnotationService service;
   @Mock
   private Authentication authentication;
+  @Mock
+  private ApplicationProperties applicationProperties;
   private AnnotationController controller;
 
   private MockHttpServletRequest mockRequest;
 
   @BeforeEach
   void setup() {
-    controller = new AnnotationController(service, MAPPER);
+    controller = new AnnotationController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(ANNOTATION_URI);
   }
@@ -51,6 +54,7 @@ class AnnotationControllerTest {
   void testGetAnnotation() {
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var receivedResponse = controller.getAnnotation(PREFIX, SUFFIX, mockRequest);
@@ -71,6 +75,7 @@ class AnnotationControllerTest {
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getLatestAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(
         expectedJson);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize,
@@ -88,6 +93,7 @@ class AnnotationControllerTest {
         givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
     given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(
         expectedResponse.getBody());
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var receivedResponse = controller.getAnnotationByVersion(PREFIX, SUFFIX, version, mockRequest);
@@ -106,6 +112,7 @@ class AnnotationControllerTest {
         USER_ID_TOKEN, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var receivedResponse = controller.getAnnotations(pageNumber, pageSize, mockRequest);
@@ -123,6 +130,7 @@ class AnnotationControllerTest {
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))
         .willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
@@ -141,6 +149,7 @@ class AnnotationControllerTest {
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(
         expected);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX,

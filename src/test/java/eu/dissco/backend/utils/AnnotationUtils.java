@@ -27,11 +27,11 @@ import java.util.List;
 
 public class AnnotationUtils {
 
-  private AnnotationUtils() {
-  }
-
   public static final String ANNOTATION_URI = "/api/v1/annotations/";
   public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
+
+  private AnnotationUtils() {
+  }
 
   // AnnotationRequest
   public static AnnotationRequest givenAnnotationRequest() {

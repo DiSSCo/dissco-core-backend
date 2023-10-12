@@ -29,8 +29,9 @@ public class MachineAnnotationServiceUtils {
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
-  public static JsonApiListResponseWrapper givenMasResponse(MachineAnnotationServiceRecord masRecord,
-                                                            String path) {
+  public static JsonApiListResponseWrapper givenMasResponse(
+      MachineAnnotationServiceRecord masRecord,
+      String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, MAPPER));

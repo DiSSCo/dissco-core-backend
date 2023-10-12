@@ -2,7 +2,6 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
 import static org.mockito.BDDMockito.then;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,7 +29,7 @@ class KafkaPublisherServiceTest {
   @Test
   void testSendObjectToQueue() throws JsonProcessingException {
     // Given
-    var digitalSpecimen = givenDigitalSpecimen(ID);
+    var digitalSpecimen = TestUtils.givenDigitalSpecimenWrapper(ID);
     var topicName = "fancyTopic";
 
     // When

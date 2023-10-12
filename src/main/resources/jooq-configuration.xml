@@ -1,7 +1,7 @@
 <configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.16.6.xsd">
   <jdbc>
     <driver>org.postgresql.Driver</driver>
-    <url><url>
+    <url></url>
     <user></user>
     <password></password>
   </jdbc>
@@ -13,8 +13,8 @@
     <database>
       <name>org.jooq.meta.postgres.PostgresDatabase</name>
       <inputSchema>public</inputSchema>
-      <includes>new_digital_specimen |
-        new_digital_media_object |
+      <includes>digital_specimen |
+        digital_media_object |
         new_annotation |
         new_user |
         machine_annotation_services |

@@ -1,13 +1,15 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.UserService;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +30,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RestController
 @RequestMapping("/api/v1/users")
-@RequiredArgsConstructor
-public class UserController {
-
-  private static final String SELF_LINK = "https://sandbox.dissco.tech/api/v1/users/";
+public class UserController extends BaseController {
 
   private final UserService service;
+
+  public UserController(ApplicationProperties applicationProperties,
+      ObjectMapper mapper, UserService service) {
+    super(mapper, applicationProperties);
+    this.service = service;
+  }
 
   private static void checkAuthorisation(String tokenId, String id) throws ForbiddenException {
     if (!tokenId.equals(id)) {
@@ -44,39 +49,40 @@ public class UserController {
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping
   public ResponseEntity<JsonApiWrapper> createNewUser(Authentication authentication,
-      @RequestBody JsonApiWrapper request)
+      @RequestBody JsonApiWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId,
-        request.getData().getId());
-    checkAuthorisation(tokenId, request.getData().getId());
-    var response = service.createNewUser(request);
+        requestBody.getData().getId());
+    checkAuthorisation(tokenId, requestBody.getData().getId());
+    var response = service.createNewUser(requestBody);
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(
-            new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + request.getData().getId())));
+            new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
   }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> getUser(Authentication authentication,
-      @PathVariable("id") String id) throws NotFoundException {
+      @PathVariable("id") String id, HttpServletRequest request) throws NotFoundException {
     log.info("User: {} has requested user information of: {}", getNameFromToken(authentication),
         id);
     var response = service.findUser(id);
-    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + id)));
+    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
   }
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> updateUser(Authentication authentication,
-      @PathVariable("id") String id, @RequestBody JsonApiWrapper request)
+      @PathVariable("id") String id, @RequestBody JsonApiWrapper requestBody,
+      HttpServletRequest request)
       throws NotFoundException, ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId, id);
     checkAuthorisation(tokenId, id);
-    var response = service.updateUser(id, request);
-    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(SELF_LINK + id)));
+    var response = service.updateUser(id, requestBody);
+    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
   }
 
   @PreAuthorize("isAuthenticated()")

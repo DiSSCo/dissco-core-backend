@@ -17,15 +17,15 @@
   <properties>
     <java.version>17</java.version>
     <elasticsearch.version>8.7.0</elasticsearch.version>
-    <jakarta.json.version>2.1.0</jakarta.json.version>
-    <spring-cloud-starter-openfeign.version>4.0.2</spring-cloud-starter-openfeign.version>
-    <feign-okhttp.version>12.3</feign-okhttp.version>
-    <springdoc.version>2.1.0</springdoc.version>
+    <jakarta.json.version>2.1.2</jakarta.json.version>
+    <spring-cloud-starter-openfeign.version>4.0.4</spring-cloud-starter-openfeign.version>
+    <feign-okhttp.version>12.5</feign-okhttp.version>
+    <springdoc.version>2.2.0</springdoc.version>
     <kafka.version>3.5.1</kafka.version>
-    <mongodb-driver.version>3.12.13</mongodb-driver.version>
+    <snappy-java.version>1.1.10.5</snappy-java.version>
+    <mongodb-driver.version>3.12.14</mongodb-driver.version>
     <testcontainers.version>1.19.0</testcontainers.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
-    <snappy-java.version>1.1.10.5</snappy-java.version>
     <sonar.organization>dissco</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.coverage.jacoco.xmlReportPaths>../app-it/target/site/jacoco-aggregate/jacoco.xml
@@ -276,6 +276,28 @@
             <version>${glassfish-jaxb.version}</version>
           </dependency>
         </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.jsonschema2pojo</groupId>
+        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <configuration>
+          <sourceDirectory>${basedir}/src/main/resources/json-schema/</sourceDirectory>
+          <targetPackage>eu.dissco.backend.schema</targetPackage>
+          <generateBuilders>true</generateBuilders>
+          <includeConstructors>true</includeConstructors>
+          <includeDynamicBuilders>true</includeDynamicBuilders>
+          <includeAdditionalProperties>false</includeAdditionalProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>
+                generate
+              </goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

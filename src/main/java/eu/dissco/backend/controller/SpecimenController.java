@@ -1,9 +1,5 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
-import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
@@ -13,12 +9,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,29 +32,24 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RestController
 @RequestMapping("/api/v1/specimens")
-@RequiredArgsConstructor
-public class SpecimenController {
+public class SpecimenController extends BaseController {
 
   private final SpecimenService service;
-  private final ObjectMapper mapper;
 
-  private static String getPath(HttpServletRequest request) {
-    var path = SANDBOX_URI + request.getRequestURI();
-    var queryString = request.getQueryString();
-    if (queryString != null) {
-      return path + "?" + request.getQueryString();
-    }
-    return path;
+  public SpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
+      SpecimenService service) {
+    super(mapper, applicationProperties);
+    this.service = service;
   }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimen(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) throws IOException {
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
+      throws IOException {
     log.info("Received get request for specimen");
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimen(pageNumber, pageSize, path);
+    var specimen = service.getSpecimen(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -70,8 +59,7 @@ public class SpecimenController {
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
       throws IOException {
     log.info("Received get request for latest digital specimen");
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimens = service.getLatestSpecimen(pageNumber, pageSize, path);
+    var specimens = service.getLatestSpecimen(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(specimens);
   }
 
@@ -81,8 +69,7 @@ public class SpecimenController {
       @PathVariable("suffix") String suffix, HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimenById(id, path);
+    var specimen = service.getSpecimenById(id, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -103,8 +90,7 @@ public class SpecimenController {
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimenByIdFull(id, path);
+    var specimen = service.getSpecimenByIdFull(id, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -116,8 +102,7 @@ public class SpecimenController {
       HttpServletRequest request) throws NotFoundException, JsonProcessingException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {} and version: {}", id, version);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimenByVersionFull(id, version, path);
+    var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -129,8 +114,7 @@ public class SpecimenController {
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.getSpecimenByVersion(id, version, path);
+    var specimen = service.getSpecimenByVersion(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -140,8 +124,7 @@ public class SpecimenController {
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var versions = service.getSpecimenVersions(id, path);
+    var versions = service.getSpecimenVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
 
@@ -152,8 +135,7 @@ public class SpecimenController {
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotations of specimen with id: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getAnnotations(id, path);
+    var annotations = service.getAnnotations(id, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -164,8 +146,7 @@ public class SpecimenController {
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for digitalmedia of specimen with id: {}", id);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var digitalMedia = service.getDigitalMedia(id, path);
+    var digitalMedia = service.getDigitalMedia(id, getPath(request));
     return ResponseEntity.ok(digitalMedia);
   }
 
@@ -175,8 +156,7 @@ public class SpecimenController {
       @RequestParam MultiValueMap<String, String> params,
       HttpServletRequest request) throws IOException, UnknownParameterException {
     log.info("Received request params: {}", params);
-    var path = SANDBOX_URI + request.getRequestURI();
-    var specimen = service.search(params, path);
+    var specimen = service.search(params, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -186,8 +166,7 @@ public class SpecimenController {
       @RequestParam MultiValueMap<String, String> params, HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request for aggregations");
-    String path = getPath(request);
-    var aggregations = service.aggregations(params, path);
+    var aggregations = service.aggregations(params, getPath(request));
     return ResponseEntity.ok(aggregations);
   }
 
@@ -195,8 +174,7 @@ public class SpecimenController {
   @GetMapping(value = "discipline", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> discipline(HttpServletRequest request) throws IOException {
     log.info("Request for aggregations");
-    var path = SANDBOX_URI + request.getRequestURI();
-    var aggregations = service.discipline(path);
+    var aggregations = service.discipline(getPath(request));
     return ResponseEntity.ok(aggregations);
   }
 
@@ -206,8 +184,7 @@ public class SpecimenController {
       @RequestParam String term, @RequestParam String value, HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request text search for term value of term: {} with value: {}", term, value);
-    String path = getPath(request);
-    var result = service.searchTermValue(term, value, path);
+    var result = service.searchTermValue(term, value, getPath(request));
     return ResponseEntity.ok(result);
   }
 
@@ -216,9 +193,8 @@ public class SpecimenController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for mass for digital specimen: {}", id);
-    var mass = service.getMass(id, path);
+    var mass = service.getMass(id, getPath(request));
     return ResponseEntity.ok(mass);
   }
 
@@ -228,22 +204,11 @@ public class SpecimenController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     var masIds = getMassFromRequest(requestBody);
-      log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}", masIds, id);
-    var massResponse = service.scheduleMass(id, masIds, path);
+    log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
+        masIds, id);
+    var massResponse = service.scheduleMass(id, masIds, getPath(request));
     return ResponseEntity.accepted().body(massResponse);
-  }
-
-  private List<String> getMassFromRequest(JsonApiRequestWrapper requestBody)
-      throws JsonProcessingException, ConflictException {
-      if (!requestBody.data().type().equals("MasRequest")) {
-          throw new ConflictException();
-      }
-      if (requestBody.data().attributes().get("mass") == null) {
-          throw new IllegalArgumentException();
-      }
-      return Arrays.asList(mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
 }
 

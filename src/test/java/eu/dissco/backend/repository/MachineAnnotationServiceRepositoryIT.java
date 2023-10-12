@@ -1,6 +1,8 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.*;
+import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
 import static org.assertj.core.api.Assertions.assertThat;
 

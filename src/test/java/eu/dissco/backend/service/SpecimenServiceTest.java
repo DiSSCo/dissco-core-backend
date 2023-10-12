@@ -1,21 +1,20 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.DIGITAL_SPECIMEN_TYPE;
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimen;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.domain.MappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
@@ -23,6 +22,7 @@ import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiD
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -32,7 +32,6 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -51,8 +50,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,8 +91,10 @@ class SpecimenServiceTest {
     var totalResults = 20L;
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode, new JsonApiMeta(totalResults));
-    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(Pair.of(totalResults, digitalSpecimens));
+    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode,
+        new JsonApiMeta(totalResults));
+    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(
+        Pair.of(totalResults, digitalSpecimens));
 
     // When
     var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -105,16 +104,18 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenLastPage() throws Exception{
+  void testGetSpecimenLastPage() throws Exception {
     // Given
     int pageNum = 1;
     int pageSize = 10;
-    var digitalSpecimens = List.of(givenDigitalSpecimen(ID));
+    var digitalSpecimens = List.of(givenDigitalSpecimenWrapper(ID));
     var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
     var totalResults = 10L;
-    var expected = new JsonApiListResponseWrapper(dataNode, linksNode, new JsonApiMeta(totalResults));
-    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(Pair.of(totalResults, digitalSpecimens));
+    var expected = new JsonApiListResponseWrapper(dataNode, linksNode,
+        new JsonApiMeta(totalResults));
+    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(
+        Pair.of(totalResults, digitalSpecimens));
 
     // When
     var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -129,12 +130,13 @@ class SpecimenServiceTest {
     int pageSize = 10;
     int pageNum = 1;
     var totalResults = 20L;
-    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimen(ID));
-    var elasticSearchResults = Pair.of( totalResults, specimens);
+    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimenWrapper(ID));
+    var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
     given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
-        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH), new JsonApiMeta(totalResults));
+        new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH),
+        new JsonApiMeta(totalResults));
 
     // When
     var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -149,12 +151,13 @@ class SpecimenServiceTest {
     int pageSize = 10;
     int pageNum = 2;
     long totalResults = 20L;
-    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimen(ID));
-    var elasticSearchResults = Pair.of( totalResults, specimens);
+    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimenWrapper(ID));
+    var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
     given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode,
-        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH), new JsonApiMeta(totalResults));
+        new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH),
+        new JsonApiMeta(totalResults));
 
     // When
     var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
@@ -166,8 +169,8 @@ class SpecimenServiceTest {
   @Test
   void testGetSpecimenById() throws JsonProcessingException {
     // Given
-    var dataNode = givenDigitalSpecimenJsonApiData(givenDigitalSpecimen(ID));
-    given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimen(ID));
+    var dataNode = givenDigitalSpecimenJsonApiData(givenDigitalSpecimenWrapper(ID));
+    given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
     var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -180,15 +183,18 @@ class SpecimenServiceTest {
   @Test
   void testGetSpecimenByIdFull() throws JsonProcessingException {
     // Given
-    var specimen = givenDigitalSpecimen(ID);
+    var specimenWrapper = givenDigitalSpecimenWrapper(ID);
     var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
-    given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
+    given(repository.getLatestSpecimenById(ID)).willReturn(specimenWrapper);
     given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var attributeNode = MAPPER.valueToTree(
-        new DigitalSpecimenFull(specimen, digitalMedia, annotations));
-    var expected = new JsonApiWrapper(new JsonApiData(ID, specimen.type(), attributeNode),
+        new DigitalSpecimenFull(specimenWrapper.digitalSpecimen(), specimenWrapper.originalData(),
+            digitalMedia,
+            annotations));
+    var expected = new JsonApiWrapper(
+        new JsonApiData(ID, specimenWrapper.digitalSpecimen().getOdsType(), attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -203,17 +209,20 @@ class SpecimenServiceTest {
     // Given
     int version = 4;
     var specimen = givenMongoDBResponse();
-    var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
+    var digitalMedia = List.of(
+        new DigitalMediaObjectFull(givenDigitalMediaObject(DOI + ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
+    var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
+        SOURCE_SYSTEM_ID_1);
     var attributeNode = MAPPER.valueToTree(
-        new DigitalSpecimenFull(
-            givenDigitalSpecimen(HANDLE + ID, "123", version, HANDLE + SOURCE_SYSTEM_ID_1),
-            digitalMedia, annotations));
-    var expected = new JsonApiWrapper(new JsonApiData(ID, "BotanySpecimen", attributeNode),
+        new DigitalSpecimenFull(digitalSpecimenWrapper.digitalSpecimen(),
+            digitalSpecimenWrapper.originalData(), digitalMedia, annotations));
+    var expected = new JsonApiWrapper(
+        new JsonApiData(DOI + ID, DIGITAL_SPECIMEN_TYPE, attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -227,12 +236,14 @@ class SpecimenServiceTest {
   void testSpecimenByVersion() throws Exception {
     // Given
     int version = 4;
+    var givenSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
+        SOURCE_SYSTEM_ID_1);
     var specimen = givenMongoDBResponse();
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
-        new JsonApiData(HANDLE + ID, "BotanySpecimen",
-            givenDigitalSpecimen(HANDLE + ID, "123", version, HANDLE + SOURCE_SYSTEM_ID_1),
+        new JsonApiData(DOI + ID, DIGITAL_SPECIMEN_TYPE,
+            givenSpecimenWrapper,
             MAPPER),
         new JsonApiLinks(SPECIMEN_PATH)
     );
@@ -298,7 +309,7 @@ class SpecimenServiceTest {
   @Test
   void testSpecimenByIdJsonLD() throws IOException {
     // Given
-    var specimens = givenDigitalSpecimen(ID);
+    var specimens = givenDigitalSpecimenWrapper(ID);
     given(repository.getLatestSpecimenById(ID)).willReturn(specimens);
     given(digitalMediaObjectService.getDigitalMediaIdsForSpecimen(ID)).willReturn(
         List.of(PREFIX + "XXX-XXX-YYY"));
@@ -307,7 +318,7 @@ class SpecimenServiceTest {
     var result = service.getSpecimenByIdJsonLD(ID);
 
     // Then
-    assertThat(MAPPER.valueToTree(result).toPrettyString()).isEqualTo(givenJsonLDString());
+    assertThat(MAPPER.valueToTree(result).toString()).hasToString(givenJsonLDString());
   }
 
   @Test
@@ -393,8 +404,10 @@ class SpecimenServiceTest {
     params.put("country", List.of("France", "Albania"));
     params.put("typeStatus", List.of("holotype"));
     var map = new MultiValueMapAdapter<>(params);
-    var mappedParam = Map.of("digitalSpecimen.ods:attributes.dwc:country.keyword",
-        List.of("France", "Albania"), "digitalSpecimen.ods:attributes.dwc:typeStatus.keyword",
+    var mappedParam = Map.of(
+        "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:country.keyword",
+        List.of("France", "Albania"),
+        "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:typeStatus.keyword",
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
@@ -492,10 +505,10 @@ class SpecimenServiceTest {
   @Test
   void testGetMas() throws JsonProcessingException {
     // Given
-    var digitalSpecimen = givenDigitalSpecimen(ID);
+    var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
-    given(masService.getMassForObject(givenFlattenedDigitalSpecimen(), SPECIMEN_PATH)).willReturn(
+    given(masService.getMassForObject(any(JsonNode.class), eq(SPECIMEN_PATH))).willReturn(
         response);
 
     // When
@@ -508,12 +521,12 @@ class SpecimenServiceTest {
   @Test
   void testScheduleMas() throws JsonProcessingException {
     // Given
-    var digitalSpecimen = givenDigitalSpecimen(ID);
+    var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
-    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
-    given(masService.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.id())).willReturn(
-        response);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimenWrapper);
+    given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
+        eq(digitalSpecimenWrapper),
+        eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()))).willReturn(response);
 
     // When
     var result = service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH);
@@ -524,103 +537,78 @@ class SpecimenServiceTest {
 
   private String givenJsonLDString() {
     return """
-        {
-          "@id" : "hdl:20.5000.1025/ABC-123-XYZ",
-          "@type" : "BotanySpecimen",
-          "@context" : {
-            "ods:organisationId" : {
-              "@type" : "@id"
-            },
-            "ods:sourceSystemId" : {
-              "@type" : "@id"
-            },
-            "ods:hasSpecimenMedia" : {
-              "@container" : "@list",
-              "@type" : "@id"
-            },
-            "hdl" : "https://hdl.handle.net/",
-            "ods" : "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
-            "dwca" : "http://rs.tdwg.org/dwc/text/",
-            "dcterms" : "http://purl.org/dc/terms/",
-            "dwc" : "http://rs.tdwg.org/dwc/terms/"
-          },
-          "ods:primarySpecimenData" : {
-            "ods:midsLevel" : 1,
-            "ods:version" : 1,
-            "ods:physicalSpecimenId" : "global_id_123123",
-            "ods:physicalSpecimenIdType" : "cetaf",
-            "ods:specimenName" : "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-            "ods:organisationId" : "https://ror.org/0349vqz63",
-            "ods:datasetId" : "Royal Botanic Garden Edinburgh Herbarium",
-            "ods:physicalSpecimenCollection" : "http://biocol.org/urn:lsid:biocol.org:col:15670",
-            "dwca:id" : "http://data.rbge.org.uk/herb/E00586417",
-            "ods:modified" : "03/12/2012",
-            "ods:objectType" : "",
-            "dcterms:license" : "http://creativecommons.org/licenses/by/4.0/legalcode",
-            "ods:sourceSystemId" : "20.5000.1025/3XA-8PT-SAY",
-            "dwc:typeStatus" : "holotype",
-            "dwc:country" : "Scotland",
-            "ods:hasMedia" : "true"
-          },
-          "ods:sourceSystemId" : "hdl:20.5000.1025/3XA-8PT-SAY",
-          "ods:hasSpecimenMedia" : [ "hdl:20.5000.1025XXX-XXX-YYY" ]
-        }""";
+        {"@id":"hdl:20.5000.1025/ABC-123-XYZ","@type":"https://doi.org/21.T11148/894b1e6cad57e921764e","@context":{"dwc:institutionId":{"@type":"@id"},"ods:sourceSystemId":{"@type":"@id"},"ods:hasSpecimenMedia":{"@container":"@list","@type":"@id"},"hdl":"https://hdl.handle.net/","dwc":"https://rs.tdwg.org/dwc/terms/","dcterms":"https://purl.org/dc/terms/","ods":"https://github.com/DiSSCo/openDS/ods-ontology/terms/"},"ods:primarySpecimenData":{"ods:id":"20.5000.1025/ABC-123-XYZ","ods:version":1,"ods:created":"2022-11-01T09:59:24Z","ods:type":"https://doi.org/21.T11148/894b1e6cad57e921764e","ods:midsLevel":0,"ods:physicalSpecimenId":"global_id_123123","ods:physicalSpecimenIdType":"Resolvable","ods:topicDiscipline":"Botany","ods:markedAsType":true,"ods:hasMedia":true,"ods:specimenName":"Leucanthemum ircutianum (Turcz.) Turcz.ex DC.","ods:sourceSystem":"https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY","dcterms:license":"http://creativecommons.org/licenses/by/4.0/legalcode","dcterms:modified":"03/12/2012","dwc:preparations":"","dwc:institutionId":"https://ror.org/0349vqz63","dwc:institutionName":"Royal Botanic Garden Edinburgh Herbarium","dwc:datasetName":"Royal Botanic Garden Edinburgh Herbarium","materialEntity":[],"dwc:identification":[],"assertions":[],"occurrences":[{"assertions":[],"location":{"dwc:country":"Scotland"}}],"entityRelationships":[],"citations":[],"identifiers":[],"chronometricAge":[]},"ods:hasSpecimenMedia":["hdl:20.5000.1025XXX-XXX-YYY"]}""";
   }
 
 
   private JsonNode givenMongoDBResponse() throws JsonProcessingException {
     return MAPPER.readValue("""
-           {
-          "id": "20.5000.1025/ABC-123-XYZ",
-          "midsLevel": 1,
-          "version": 4,
-          "created": 1667296764,
-          "digitalSpecimen": {
-            "ods:physicalSpecimenId": "123",
-            "ods:type": "BotanySpecimen",
-            "ods:attributes": {
-              "dwca:id": "http://data.rbge.org.uk/herb/E00586417",
-              "ods:modified": "03/12/2012",
-              "ods:datasetId": "Royal Botanic Garden Edinburgh Herbarium",
-              "ods:objectType": "",
-              "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-              "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
-              "ods:organisationId": "https://ror.org/0349vqz63",
-              "ods:sourceSystemId": "20.5000.1025/3XA-8PT-SAY",
-              "ods:physicalSpecimenIdType": "cetaf",
-              "ods:physicalSpecimenCollection": "http://biocol.org/urn:lsid:biocol.org:col:15670",
-              "dwc:typeStatus": "holotype",
-              "dwc:country": "Scotland",
-              "ods:hasMedia": "true"
-            },
-            "ods:originalAttributes": {
-              "dwc:class": "Malacostraca",
-              "dwc:genus": "Mesuca",
-              "dwc:order": "Decapoda",
-              "dwc:family": "Ocypodidae",
-              "dwc:phylum": "Arthropoda",
-              "dwc:country": "Nicobar Islands",
-              "dwc:locality": "Harbour",
-              "dwc:continent": "Eastern Indian Ocean",
-              "dwc:eventDate": "01/01/1846",
-              "dwc:recordedBy": "Rosen",
-              "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-              "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
-              "dcterms:modified": "03/12/2012",
-              "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
-              "dwc:preparations": "various - 1",
-              "dwc:basisOfRecord": "PreservedSpecimen",
-              "dwc:catalogNumber": "NHMD79044",
-              "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
-              "dwc:collectionCode": "IV",
-              "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
-              "dwc:institutionCode": "NHMD",
-              "dwc:specificEpithet": "dussumieri",
-              "dwc:acceptedNameUsage": "Mesuca dussumieri",
-              "dwc:otherCatalogNumbers": "CRU-001196"
-            }
-          }
-        }
+        {
+               "id": "20.5000.1025/ABC-123-XYZ",
+               "midsLevel": 0,
+               "version": 4,
+               "created": "2022-11-01T09:59:24Z",
+               "digitalSpecimenWrapper": {
+                   "ods:physicalSpecimenId": "123",
+                   "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+                   "ods:attributes": {
+                       "ods:physicalSpecimenId": "123",
+                       "ods:physicalSpecimenIdType": "Resolvable",
+                       "ods:topicDiscipline": "Botany",
+                       "ods:markedAsType": true,
+                       "ods:hasMedia": true,
+                       "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
+                       "ods:sourceSystem": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+                       "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                       "dcterms:modified": "03/12/2012",
+                       "dwc:preparations": "",
+                       "dwc:institutionId": "https://ror.org/0349vqz63",
+                       "dwc:institutionName": "Royal Botanic Garden Edinburgh Herbarium",
+                       "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
+                       "materialEntity": [],
+                       "dwc:identification": [],
+                       "assertions": [],
+                       "occurrences": [
+                           {
+                               "assertions": [],
+                               "location": {
+                                   "dwc:country": "Scotland"
+                               }
+                           }
+                       ],
+                       "entityRelationships": [],
+                       "citations": [],
+                       "identifiers": [],
+                       "chronometricAge": []
+                   },
+                   "ods:originalAttributes": {
+                       "dwc:class": "Malacostraca",
+                       "dwc:genus": "Mesuca",
+                       "dwc:order": "Decapoda",
+                       "dwc:family": "Ocypodidae",
+                       "dwc:phylum": "Arthropoda",
+                       "dwc:country": "Nicobar Islands",
+                       "dwc:locality": "Harbour",
+                       "dwc:continent": "Eastern Indian Ocean",
+                       "dwc:eventDate": "01/01/1846",
+                       "dwc:recordedBy": "Rosen",
+                       "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                       "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
+                       "dcterms:modified": "03/12/2012",
+                       "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
+                       "dwc:preparations": "various - 1",
+                       "dwc:basisOfRecord": "PreservedSpecimen",
+                       "dwc:catalogNumber": "NHMD79044",
+                       "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
+                       "dwc:collectionCode": "IV",
+                       "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
+                       "dwc:institutionCode": "NHMD",
+                       "dwc:specificEpithet": "dussumieri",
+                       "dwc:acceptedNameUsage": "Mesuca dussumieri",
+                       "dwc:otherCatalogNumbers": "CRU-001196"
+                   }
+               }
+           }
                   """, JsonNode.class);
   }
 

@@ -29,7 +29,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -48,6 +47,12 @@ public class AnnotationService {
   private final DateTimeFormatter formatter;
 
   // Used by Controller
+
+  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
+      String userId) {
+    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
+        annotation.target(), annotation.body());
+  }
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
@@ -108,16 +113,8 @@ public class AnnotationService {
     );
   }
 
-  @NotNull
-  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
-      String userId) {
-    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
-        annotation.target(), annotation.body());
-  }
-
   public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
-      String path)
-      throws NoAnnotationFoundException, JsonProcessingException {
+      String path) throws NoAnnotationFoundException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
       return persistAnnotation(annotation, userId, path);
@@ -157,7 +154,6 @@ public class AnnotationService {
   }
 
   // Used by other services
-
   public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
     var fullId = "https://hdl.handle.net/" + id;
     return repository.getForTarget(fullId);

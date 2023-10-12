@@ -1,9 +1,5 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
-import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationRequest;
@@ -12,10 +8,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.AnnotationService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,19 +35,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RestController
 @RequestMapping("/api/v1/annotations")
-@RequiredArgsConstructor
-public class AnnotationController {
+public class AnnotationController extends BaseController {
 
   private final AnnotationService service;
-  private final ObjectMapper mapper;
+
+  public AnnotationController(
+      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service) {
+    super(mapper, applicationProperties);
+    this.service = service;
+  }
 
   @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) {
-    String path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotation: {}", id);
-    var annotation = service.getAnnotation(id, path);
+    var annotation = service.getAnnotation(id, getPath(request));
     return ResponseEntity.ok(annotation);
   }
 
@@ -62,8 +61,7 @@ public class AnnotationController {
       throws IOException {
     log.info("Received get request for latest paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
-    String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getLatestAnnotations(pageNumber, pageSize, path);
+    var annotations = service.getLatestAnnotations(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -74,9 +72,8 @@ public class AnnotationController {
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
-    String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for annotation: {} with version: {}", id, version);
-    var annotation = service.getAnnotationByVersion(id, version, path);
+    var annotation = service.getAnnotationByVersion(id, version, getPath(request));
     return ResponseEntity.ok(annotation);
   }
 
@@ -87,8 +84,7 @@ public class AnnotationController {
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for json paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
-    String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getAnnotations(pageNumber, pageSize, path);
+    var annotations = service.getAnnotations(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -100,8 +96,7 @@ public class AnnotationController {
     var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
-    String path = SANDBOX_URI + request.getRequestURI();
-    var annotationResponse = service.persistAnnotation(annotation, userId, path);
+    var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {
@@ -115,13 +110,11 @@ public class AnnotationController {
       @RequestBody JsonApiRequestWrapper requestBody, @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request)
       throws NoAnnotationFoundException, JsonProcessingException {
-    var path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + suffix;
     var userId = getNameFromToken(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
-
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(id, annotation, userId, path);
+    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {
@@ -135,11 +128,10 @@ public class AnnotationController {
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
-      Authentication authentication)throws IOException {
+      Authentication authentication) throws IOException {
     var userId = getNameFromToken(authentication);
     log.info("Received get request to show all annotations for user: {}", userId);
-    String path = SANDBOX_URI + request.getRequestURI();
-    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -148,9 +140,8 @@ public class AnnotationController {
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for versions of annotation with id: {}", id);
-    var versions = service.getAnnotationVersions(id, path);
+    var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
 

@@ -17,8 +17,19 @@ public class ElasticSearchProperties {
   @Positive
   private int port;
 
+  @NotBlank
   private String username;
 
+  @NotBlank
   private String password;
+
+  @NotBlank
+  private String digitalSpecimenIndex = "digital-specimen";
+
+  @NotBlank
+  private String digitalMediaObjectIndex = "digital-media-object";
+
+  @NotBlank
+  private String annotationIndex = "annotation";
 
 }

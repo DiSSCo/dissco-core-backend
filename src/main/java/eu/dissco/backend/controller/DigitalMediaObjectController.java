@@ -1,8 +1,5 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_NUM;
-import static eu.dissco.backend.controller.ControllerUtils.DEFAULT_PAGE_SIZE;
-import static eu.dissco.backend.controller.ControllerUtils.SANDBOX_URI;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,11 +8,9 @@ import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,11 +29,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RestController
 @RequestMapping("api/v1/digitalmedia")
-@RequiredArgsConstructor
-public class DigitalMediaObjectController {
+public class DigitalMediaObjectController extends BaseController {
 
   private final DigitalMediaObjectService service;
-  private final ObjectMapper mapper;
+
+  public DigitalMediaObjectController(ApplicationProperties applicationProperties,
+      ObjectMapper mapper, DigitalMediaObjectService service) {
+    super(mapper, applicationProperties);
+    this.service = service;
+  }
 
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -46,8 +45,7 @@ public class DigitalMediaObjectController {
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
     log.info("Received get request for digital media objects in json format");
-    String path = SANDBOX_URI + request.getRequestURI();
-    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize, path);
+    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(digitalMedia);
   }
 
@@ -57,9 +55,8 @@ public class DigitalMediaObjectController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    String path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for multiMedia with id: {}", id);
-    var multiMedia = service.getDigitalMediaById(id, path);
+    var multiMedia = service.getDigitalMediaById(id, getPath(request));
     return ResponseEntity.ok(multiMedia);
   }
 
@@ -68,10 +65,9 @@ public class DigitalMediaObjectController {
   public ResponseEntity<JsonApiListResponseWrapper> getMediaAnnotationsById(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
-    String path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotations on digitalMedia with id: {}", id);
-    var annotations = service.getAnnotationsOnDigitalMedia(id, path);
+    var annotations = service.getAnnotationsOnDigitalMedia(id, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -81,10 +77,9 @@ public class DigitalMediaObjectController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request)
       throws NotFoundException {
-    String path = SANDBOX_URI + request.getRequestURI();
     var id = prefix + '/' + suffix;
     log.info("Received get request for versions of digital media with id: {}", id);
-    var versions = service.getDigitalMediaVersions(id, path);
+    var versions = service.getDigitalMediaVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
 
@@ -94,9 +89,8 @@ public class DigitalMediaObjectController {
       @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for digital media: {} with version: {}", id, version);
-    var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, path);
+    var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));
     return ResponseEntity.ok(digitalMedia);
   }
 
@@ -105,9 +99,8 @@ public class DigitalMediaObjectController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     log.info("Received get request for mass for digital media: {}", id);
-    var mass = service.getMass(id, path);
+    var mass = service.getMass(id, getPath(request));
     return ResponseEntity.ok(mass);
   }
 
@@ -117,22 +110,11 @@ public class DigitalMediaObjectController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException {
     var id = prefix + '/' + suffix;
-    var path = SANDBOX_URI + request.getRequestURI();
     var masIds = getMassFromRequest(requestBody);
-    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds, id);
-    var massResponse = service.scheduleMass(id, masIds, path);
+    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,
+        id);
+    var massResponse = service.scheduleMass(id, masIds, getPath(request));
     return ResponseEntity.accepted().body(massResponse);
-  }
-
-  private List<String> getMassFromRequest(JsonApiRequestWrapper requestBody)
-      throws JsonProcessingException, ConflictException {
-    if (!requestBody.data().type().equals("MasRequest")) {
-      throw new ConflictException();
-    }
-    if (requestBody.data().attributes().get("mass") == null) {
-      throw new IllegalArgumentException();
-    }
-    return Arrays.asList(mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
 
 }

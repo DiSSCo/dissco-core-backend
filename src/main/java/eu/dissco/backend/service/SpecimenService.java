@@ -2,17 +2,16 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.MappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.domain.MappingTerms.getMappedTerm;
-import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
-import static eu.dissco.backend.repository.RepositoryUtils.addUrlToAttributes;
+import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DigitalSpecimen;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -24,12 +23,14 @@ import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,21 +42,20 @@ import org.springframework.util.MultiValueMap;
 @RequiredArgsConstructor
 public class SpecimenService {
 
-  private static final String ORGANISATION_ID = "ods:organisationId";
-  private static final String MIDS_LEVEL = "midsLevel";
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
   private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
   private static final String AGGREGATIONS_TYPE = "aggregations";
   private final Map<String, String> prefixMap = Map.of(
-      "dct", "http://purl.org/dc/terms/",
-      "dwc", "http://rs.tdwg.org/dwc/terms/",
-      "dwca", "http://rs.tdwg.org/dwc/text/",
+      "dct", "https://purl.org/dc/terms/",
+      "dwc", "https://rs.tdwg.org/dwc/terms/",
+      "dwca", "https://rs.tdwg.org/dwc/text/",
       "abcd", "https://abcd.tdwg.org/terms/",
       "abcd-efg", "https://terms.tdwg.org/wiki/ABCD_EFG/",
-      "ods", "http://github.com/DiSSCo/openDS/ods-ontology/terms/",
+      "ods", "https://github.com/DiSSCo/openDS/ods-ontology/terms/",
       "hdl", "https://hdl.handle.net/",
-      "dcterms", "http://purl.org/dc/terms/");
+      "dcterms", "https://purl.org/dc/terms/",
+      "ac", "https://rs.tdwg.org/ac/terms/");
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
@@ -78,30 +78,34 @@ public class SpecimenService {
 
   public JsonApiWrapper getSpecimenById(String id, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    var dataNode = new JsonApiData(digitalSpecimen.id(), digitalSpecimen.type(), digitalSpecimen,
+    var dataNode = new JsonApiData(digitalSpecimen.digitalSpecimen().getOdsId(),
+        digitalSpecimen.digitalSpecimen().getOdsType(), digitalSpecimen,
         mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiWrapper getSpecimenByIdFull(String id, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
-    var annotation = annotationService.getAnnotationForTargetObject(id);
-    var attributeNode = mapper.valueToTree(
-        new DigitalSpecimenFull(digitalSpecimen, digitalMedia, annotation));
-    return new JsonApiWrapper(new JsonApiData(id, digitalSpecimen.type(), attributeNode),
-        new JsonApiLinks(path));
+    return mapFullSpecimen(id, path, digitalSpecimen);
   }
 
   public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
+    return mapFullSpecimen(id, path, specimen);
+  }
+
+  private JsonApiWrapper mapFullSpecimen(String id, String path,
+      DigitalSpecimenWrapper specimen) {
     var digitalMedia = digitalMediaObjectService.getDigitalMediaObjectFull(id);
     var annotation = annotationService.getAnnotationForTargetObject(id);
     var attributeNode = mapper.valueToTree(
-        new DigitalSpecimenFull(specimen, digitalMedia, annotation));
-    return new JsonApiWrapper(new JsonApiData(id, specimen.type(), attributeNode),
+        new DigitalSpecimenFull(specimen.digitalSpecimen(), specimen.originalData(),
+            digitalMedia, annotation));
+    return new JsonApiWrapper(
+        new JsonApiData(specimen.digitalSpecimen().getOdsId(),
+            specimen.digitalSpecimen().getOdsType(), attributeNode),
         new JsonApiLinks(path));
   }
 
@@ -109,7 +113,8 @@ public class SpecimenService {
       throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
-    var dataNode = new JsonApiData(specimen.id(), specimen.type(), specimen, mapper);
+    var dataNode = new JsonApiData(specimen.digitalSpecimen().getOdsId(),
+        specimen.digitalSpecimen().getOdsType(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -130,53 +135,53 @@ public class SpecimenService {
   }
 
   public DigitalSpecimenJsonLD getSpecimenByIdJsonLD(String id) {
-    var digitalSpecimen = repository.getLatestSpecimenById(id);
+    var digitalSpecimenWrapper = repository.getLatestSpecimenById(id);
     var digitalMediaObjects = digitalMediaObjectService.getDigitalMediaIdsForSpecimen(
-        digitalSpecimen.id()).stream().map(value -> "hdl:" + value).toList();
-    var primarySpecimenData = generatePrimaryData(digitalSpecimen);
+            digitalSpecimenWrapper.digitalSpecimen().getOdsId()).stream().map(value -> "hdl:" + value)
+        .toList();
+    var primarySpecimenData = generatePrimaryData(digitalSpecimenWrapper);
     return new DigitalSpecimenJsonLD(
-        "hdl:" + digitalSpecimen.id(),
-        digitalSpecimen.type(),
+        "hdl:" + digitalSpecimenWrapper.digitalSpecimen().getOdsId(),
+        digitalSpecimenWrapper.digitalSpecimen().getOdsType(),
         generateContext(primarySpecimenData),
         primarySpecimenData,
-        "hdl:" + digitalSpecimen.sourceSystemId(),
         digitalMediaObjects
     );
   }
 
-  private JsonNode generatePrimaryData(DigitalSpecimen digitalSpecimen) {
-    var primarySpecimenData = mapper.createObjectNode();
-    primarySpecimenData.put("ods:midsLevel", digitalSpecimen.midsLevel());
-    primarySpecimenData.put("ods:version", digitalSpecimen.version());
-    primarySpecimenData.put("ods:physicalSpecimenId", digitalSpecimen.physicalSpecimenId());
-    primarySpecimenData.put("ods:physicalSpecimenIdType", digitalSpecimen.physicalSpecimenIdType());
-    primarySpecimenData.put("ods:specimenName", digitalSpecimen.specimenName());
-    primarySpecimenData.put(ORGANISATION_ID, digitalSpecimen.organisationId());
-    primarySpecimenData.put("ods:datasetId", digitalSpecimen.datasetId());
-    primarySpecimenData.put("ods:physicalSpecimenCollection",
-        digitalSpecimen.physicalSpecimenCollection());
-    primarySpecimenData.setAll((ObjectNode) digitalSpecimen.data().deepCopy());
-    return primarySpecimenData;
+  private JsonNode generatePrimaryData(DigitalSpecimenWrapper digitalSpecimenWrapper) {
+    return mapper.convertValue(digitalSpecimenWrapper.digitalSpecimen(), ObjectNode.class);
   }
 
   private JsonNode generateContext(JsonNode data) {
     var prefixes = determinePrefixes(data);
     var node = mapper.createObjectNode();
-    node.set(ORGANISATION_ID, generateIdNode());
+    node.set("dwc:institutionId", generateIdNode());
     node.set("ods:sourceSystemId", generateIdNode());
     node.set("ods:hasSpecimenMedia", generateMediaNode());
     prefixes.forEach(prefix -> node.put(prefix, prefixMap.get(prefix)));
     return node;
   }
 
-  private List<String> determinePrefixes(JsonNode data) {
-    var prefixes = new ArrayList<String>();
+  private Set<String> determinePrefixes(JsonNode data) {
+    var prefixes = new HashSet<String>();
     prefixes.add("hdl");
-    data.fields().forEachRemaining(field -> {
-      var prefix = field.getKey().substring(0, field.getKey().indexOf(':'));
-      prefixes.add(prefix);
-    });
+    data.fields().forEachRemaining(field -> extractPrefix(field, prefixes));
     return prefixes;
+  }
+
+  private void extractPrefix(Entry<String, JsonNode> field, Set<String> prefixes) {
+    if (field.getValue().isValueNode()) {
+      if (field.getKey().contains(":")) {
+        var prefix = field.getKey().substring(0, field.getKey().indexOf(':'));
+        prefixes.add(prefix);
+      }
+    } else if (field.getValue().isArray()) {
+      field.getValue().elements().forEachRemaining(
+          entry -> entry.fields().forEachRemaining(subField -> extractPrefix(subField, prefixes)));
+    } else if (field.getValue().isObject()) {
+      field.getValue().fields().forEachRemaining(subField -> extractPrefix(subField, prefixes));
+    }
   }
 
   private JsonNode generateMediaNode() {
@@ -192,35 +197,28 @@ public class SpecimenService {
     return node;
   }
 
-  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
-    var digitalSpecimen = result.get("digitalSpecimen");
-    var attributes = digitalSpecimen.get("ods:attributes");
-    addUrlToAttributes(attributes);
-    return new DigitalSpecimen(
-        HANDLE_STRING + result.get("id").asText(),
-        result.get(MIDS_LEVEL).asInt(),
-        result.get("version").asInt(),
-        Instant.ofEpochSecond(result.get("created").asInt()),
-        digitalSpecimen.get("ods:type").asText(),
-        digitalSpecimen.get("ods:physicalSpecimenId").asText(),
-        attributes.get("ods:physicalSpecimenIdType").asText(),
-        attributes.get("ods:specimenName").asText(),
-        attributes.get(ORGANISATION_ID).asText(),
-        attributes.get("ods:datasetId").asText(),
-        attributes.get("ods:physicalSpecimenCollection").asText(),
-        attributes.get("ods:sourceSystemId").asText(),
-        attributes,
-        digitalSpecimen.get("ods:originalAttributes"),
-        digitalSpecimen.get("ods:attributes").get("dwca:id").asText()
+  private DigitalSpecimenWrapper mapResultToSpecimen(JsonNode result)
+      throws JsonProcessingException {
+    var digitalSpecimenNode = result.get("digitalSpecimenWrapper");
+    var ds = mapper.treeToValue(digitalSpecimenNode.get("ods:attributes"), DigitalSpecimen.class)
+        .withOdsId(DOI_STRING + result.get("id").asText())
+        .withOdsType(digitalSpecimenNode.get("ods:type").asText())
+        .withOdsMidsLevel(result.get("midsLevel").asInt())
+        .withOdsVersion(result.get("version").asInt())
+        .withOdsCreated(result.get("created").asText());
+    return new DigitalSpecimenWrapper(
+        ds,
+        digitalSpecimenNode.get("ods:originalAttributes")
     );
   }
 
   private JsonApiListResponseWrapper wrapListResponse(
-      Pair<Long, List<DigitalSpecimen>> elasticSearchResults,
+      Pair<Long, List<DigitalSpecimenWrapper>> elasticSearchResults,
       int pageSize, int pageNumber, String path) {
     var digitalSpecimenList = elasticSearchResults.getRight();
     var dataNodePlusOne = digitalSpecimenList.stream()
-        .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
+        .map(specimen -> new JsonApiData(specimen.digitalSpecimen().getOdsId(),
+            specimen.digitalSpecimen().getOdsType(), specimen, mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
@@ -230,10 +228,11 @@ public class SpecimenService {
   }
 
   private JsonApiListResponseWrapper wrapListResponseSearchResults(
-      Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
+      Pair<Long, List<DigitalSpecimenWrapper>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
-        .map(specimen -> new JsonApiData(specimen.id(), specimen.type(), specimen, mapper))
+        .map(specimen -> new JsonApiData(specimen.digitalSpecimen().getOdsId(),
+            specimen.digitalSpecimen().getOdsType(), specimen, mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(params, pageNumber, pageSize, hasNext, path);
@@ -325,11 +324,8 @@ public class SpecimenService {
     return masService.getMassForObject(flattenAttributes, path);
   }
 
-  private JsonNode flattenAttributes(DigitalSpecimen digitalSpecimen) {
-    var objectNode = mapper.createObjectNode();
-    objectNode.put("type", digitalSpecimen.type());
-    objectNode.setAll((ObjectNode) digitalSpecimen.data());
-    return objectNode;
+  private JsonNode flattenAttributes(DigitalSpecimenWrapper digitalSpecimen) {
+    return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
   public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String path) {

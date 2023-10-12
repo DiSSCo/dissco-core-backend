@@ -4,11 +4,11 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
+import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
-import eu.dissco.backend.database.jooq.tables.NewDigitalMediaObject;
-import eu.dissco.backend.database.jooq.tables.NewDigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 
 import java.util.Arrays;
@@ -33,6 +33,16 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.digital_media_object</code>.
+     */
+    public final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
+
+    /**
+     * The table <code>public.digital_specimen</code>.
+     */
+    public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
+
+    /**
      * The table <code>public.machine_annotation_services</code>.
      */
     public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
@@ -46,16 +56,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.new_annotation</code>.
      */
     public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
-
-    /**
-     * The table <code>public.new_digital_media_object</code>.
-     */
-    public final NewDigitalMediaObject NEW_DIGITAL_MEDIA_OBJECT = NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT;
-
-    /**
-     * The table <code>public.new_digital_specimen</code>.
-     */
-    public final NewDigitalSpecimen NEW_DIGITAL_SPECIMEN = NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN;
 
     /**
      * The table <code>public.new_user</code>.
@@ -78,11 +78,11 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
+            DigitalSpecimen.DIGITAL_SPECIMEN,
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             MasJobRecord.MAS_JOB_RECORD,
             NewAnnotation.NEW_ANNOTATION,
-            NewDigitalMediaObject.NEW_DIGITAL_MEDIA_OBJECT,
-            NewDigitalSpecimen.NEW_DIGITAL_SPECIMEN,
             NewUser.NEW_USER
         );
     }

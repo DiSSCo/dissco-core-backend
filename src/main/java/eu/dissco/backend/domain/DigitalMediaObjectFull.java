@@ -3,7 +3,7 @@ package eu.dissco.backend.domain;
 import java.util.List;
 
 public record DigitalMediaObjectFull(
-    DigitalMediaObject digitalMediaObject,
+    DigitalMediaObjectWrapper digitalMediaObject,
     List<AnnotationResponse> annotations
 ) {
 

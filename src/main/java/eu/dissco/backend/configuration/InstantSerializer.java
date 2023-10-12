@@ -1,6 +1,6 @@
 package eu.dissco.backend.configuration;
 
-import static eu.dissco.backend.controller.ControllerUtils.DATE_STRING;
+import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
