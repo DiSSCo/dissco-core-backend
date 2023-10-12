@@ -7,6 +7,7 @@ package eu.dissco.backend.database.jooq;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
+import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 
@@ -31,6 +32,11 @@ public class Tables {
      * The table <code>public.machine_annotation_services</code>.
      */
     public static final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
+
+    /**
+     * The table <code>public.mas_job_record</code>.
+     */
+    public static final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
     /**
      * The table <code>public.new_annotation</code>.

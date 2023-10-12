@@ -6,7 +6,6 @@ public record AnnotationRequest(
     String type,
     String motivation,
     JsonNode target,
-    JsonNode body
-) {
+    JsonNode body) {
 
 }

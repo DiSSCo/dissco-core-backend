@@ -17,7 +17,8 @@
         digital_media_object |
         new_annotation |
         new_user |
-        machine_annotation_services
+        machine_annotation_services |
+        mas_job_record
       </includes>
       <forcedTypes>
         <forcedType>

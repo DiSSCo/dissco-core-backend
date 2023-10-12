@@ -155,7 +155,7 @@ public class DigitalMediaObjectService {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id);
   }
 
 }

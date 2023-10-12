@@ -521,12 +521,12 @@ class SpecimenServiceTest {
   @Test
   void testScheduleMas() throws JsonProcessingException {
     // Given
-    var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
+    var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
-    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimenWrapper);
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
-        eq(digitalSpecimen))).willReturn(
-        response);
+        eq(digitalSpecimenWrapper),
+        eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()))).willReturn(response);
 
     // When
     var result = service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH);
