@@ -49,6 +49,18 @@ class UserRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testFindUserOptional() {
+    // Given
+    repository.createNewUser(USER_ID_TOKEN, givenUser());
+
+    // When
+    var result = repository.findOptional(USER_ID_TOKEN);
+
+    // Then
+    assertThat(result).isPresent().contains(givenUser());
+  }
+
+  @Test
   void testDeleteUser() {
     // Given
     repository.createNewUser(USER_ID_TOKEN, givenUser());
