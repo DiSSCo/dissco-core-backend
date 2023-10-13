@@ -93,7 +93,7 @@ public class AnnotationController extends BaseController {
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException, NotFoundException {
+      throws JsonProcessingException, ForbiddenException {
     var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
