@@ -77,15 +77,24 @@ class UserServiceTest {
   }
 
   @Test
-  void testFindUser() {
+  void testFindUser() throws Exception{
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(givenUser());
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
 
     // When
     var result = service.findUser(USER_ID_TOKEN);
 
     // Then
     assertThat(result).isEqualTo(givenJsonApiData());
+  }
+
+  @Test
+  void testFindUserNotFound() {
+    // Given
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.empty());
+
+    // Then
+    assertThrowsExactly(NotFoundException.class, () -> service.findUser(USER_ID_TOKEN));
   }
 
   @Test

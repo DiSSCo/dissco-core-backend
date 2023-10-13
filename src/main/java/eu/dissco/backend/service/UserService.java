@@ -8,6 +8,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.InvalidIdException;
 import eu.dissco.backend.exceptions.InvalidTypeException;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UserExistsException;
 import eu.dissco.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,12 @@ public class UserService {
     }
   }
 
-  public JsonApiData findUser(String id) {
-    return new JsonApiData(id, TYPE, mapper.valueToTree(getUser(id)));
+  public JsonApiData findUser(String id) throws NotFoundException {
+    var userOptional = repository.findOptional(id);
+    if (userOptional.isPresent()){
+      return new JsonApiData(id, TYPE, mapper.valueToTree(userOptional.get()));
+    }
+    throw new NotFoundException("User with id " + id + " does not exist");
   }
 
   public User getUser(String id) {
