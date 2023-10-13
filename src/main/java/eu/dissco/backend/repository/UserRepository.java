@@ -53,7 +53,11 @@ public class UserRepository {
     );
   }
 
-  public Optional<User> find(String id) {
+  public User find(String id) {
+    return context.selectFrom(NEW_USER).where(NEW_USER.ID.eq(id)).fetchOne(this::mapToUser);
+  }
+
+  public Optional<User> findOptional(String id){
     return context.selectFrom(NEW_USER).where(NEW_USER.ID.eq(id)).fetchOptional(this::mapToUser);
   }
 
