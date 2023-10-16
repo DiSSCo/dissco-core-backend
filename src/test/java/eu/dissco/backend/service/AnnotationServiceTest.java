@@ -4,10 +4,12 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
@@ -29,11 +31,13 @@ import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -69,13 +73,15 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
+  @Mock
+  private UserService userService;
   private AnnotationService service;
 
 
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, MAPPER, formatter);
+        mongoRepository, userService, MAPPER, formatter);
   }
 
   @Test
@@ -237,7 +243,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotation() {
+  void testPersistAnnotation() throws Exception {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
     AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID_ALT);
@@ -259,8 +265,9 @@ class AnnotationServiceTest {
           .thenReturn(instant);
       mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
 
-      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))
+      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
           .willReturn(clientResponse);
+      given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       //When
       var responseReceived = service.persistAnnotation(annotationRequest, USER_ID_TOKEN,
@@ -272,11 +279,12 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationIsNull() {
+  void testPersistAnnotationIsNull() throws Exception {
     // Given
     AnnotationRequest annotationRequest = givenAnnotationRequest();
-    given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))
+    given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
         .willReturn(null);
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     try (var mockedStatic = mockStatic(Instant.class)) {
@@ -291,6 +299,16 @@ class AnnotationServiceTest {
       // Then
       assertThat(result).isNull();
     }
+  }
+
+  @Test
+  void testUserHasNoOrcid() {
+    // Given
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(new User(null, null, null, null, null));
+
+    // Then
+    assertThrowsExactly(ForbiddenException.class,
+        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
   }
 
   @Test
@@ -313,8 +331,9 @@ class AnnotationServiceTest {
       mockedStatic.when(Instant::now).thenReturn(instant);
       mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
 
-      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, USER_ID_TOKEN)))
+      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
           .willReturn(clientResponse);
+      given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
       var result = service.updateAnnotation(ID, annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);

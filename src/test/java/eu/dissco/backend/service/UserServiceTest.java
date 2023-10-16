@@ -39,7 +39,7 @@ class UserServiceTest {
   @Test
   void testCreateNewUser() throws Exception {
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.empty());
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.empty());
     given(repository.createNewUser(USER_ID_TOKEN, givenUser())).willReturn(givenUser());
 
     // When
@@ -52,7 +52,7 @@ class UserServiceTest {
   @Test
   void testCreateAlreadyExists() {
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
 
     // When
     var exception = assertThrowsExactly(UserExistsException.class,
@@ -77,9 +77,9 @@ class UserServiceTest {
   }
 
   @Test
-  void testFindUser() throws NotFoundException {
+  void testFindUser() throws Exception{
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
 
     // When
     var result = service.findUser(USER_ID_TOKEN);
@@ -89,22 +89,17 @@ class UserServiceTest {
   }
 
   @Test
-  void testUserNotFound() {
+  void testFindUserNotFound() {
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.empty());
-
-    // When
-    var exception = assertThrowsExactly(NotFoundException.class,
-        () -> service.findUser(USER_ID_TOKEN));
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.empty());
 
     // Then
-    assertThat(exception).isInstanceOf(NotFoundException.class);
+    assertThrowsExactly(NotFoundException.class, () -> service.findUser(USER_ID_TOKEN));
   }
 
   @Test
   void testUpdateUser() throws Exception {
     // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
     given(repository.updateUser(USER_ID_TOKEN, MAPPER.valueToTree(givenUser()))).willReturn(
         givenUser());
 
@@ -129,43 +124,13 @@ class UserServiceTest {
   }
 
   @Test
-  void testUpdateUserNoUser() {
-    // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.empty());
-
-    // When
-    var exception = assertThrowsExactly(NotFoundException.class,
-        () -> service.updateUser(USER_ID_TOKEN, givenUserRequest()));
-
-    // Then
-    assertThat(exception).isInstanceOf(NotFoundException.class);
-    then(repository).shouldHaveNoMoreInteractions();
-  }
-
-  @Test
-  void testDeleteUser() throws NotFoundException {
-    // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
+  void testDeleteUser() {
 
     // When
     service.deleteUser(USER_ID_TOKEN);
 
     // Then
     then(repository).should().deleteUser(USER_ID_TOKEN);
-  }
-
-  @Test
-  void testDeleteUserNoUser() {
-    // Given
-    given(repository.find(USER_ID_TOKEN)).willReturn(Optional.empty());
-
-    // When
-    var exception = assertThrowsExactly(NotFoundException.class,
-        () -> service.deleteUser(USER_ID_TOKEN));
-
-    // Then
-    assertThat(exception).isInstanceOf(NotFoundException.class);
-    then(repository).shouldHaveNoMoreInteractions();
   }
 
 }

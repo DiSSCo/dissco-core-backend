@@ -42,6 +42,7 @@ public class TestUtils {
   public static final ObjectMapper MAPPER;
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
+  public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
 
   public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 
@@ -83,7 +84,7 @@ public class TestUtils {
   }
 
   public static User givenUser() {
-    return new User("Test", "User", "test@gmail.com", "https://orcid.org/0000-0002-XXXX-XXXX",
+    return new User("Test", "User", "test@gmail.com", ORCID,
         "https://ror.org/XXXXXXXXX");
   }
 

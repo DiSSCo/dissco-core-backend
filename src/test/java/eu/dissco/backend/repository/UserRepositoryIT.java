@@ -45,6 +45,18 @@ class UserRepositoryIT extends BaseRepositoryIT {
     var result = repository.find(USER_ID_TOKEN);
 
     // Then
+    assertThat(result).isEqualTo(givenUser());
+  }
+
+  @Test
+  void testFindUserOptional() {
+    // Given
+    repository.createNewUser(USER_ID_TOKEN, givenUser());
+
+    // When
+    var result = repository.findOptional(USER_ID_TOKEN);
+
+    // Then
     assertThat(result).isPresent().contains(givenUser());
   }
 
@@ -58,7 +70,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
 
     // Then
     var result = repository.find(USER_ID_TOKEN);
-    assertThat(result).isEmpty();
+    assertThat(result).isNull();
   }
 
   @Test

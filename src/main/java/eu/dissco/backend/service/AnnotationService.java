@@ -10,12 +10,14 @@ import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -43,6 +45,7 @@ public class AnnotationService {
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
+  private final UserService userService;
   private final ObjectMapper mapper;
   private final DateTimeFormatter formatter;
 
@@ -84,8 +87,9 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(AnnotationRequest annotationRequest, String userId,
-      String path) {
-    var event = mapAnnotationRequestToEvent(annotationRequest, userId);
+      String path) throws ForbiddenException {
+    var user = getUserInformation(userId);
+    var event = mapAnnotationRequestToEvent(annotationRequest, user.orcid());
     var response = annotationClient.postAnnotation(event);
     if (response != null) {
       AnnotationResponse annotationResponse = parseToAnnotationResponse(response);
@@ -94,6 +98,14 @@ public class AnnotationService {
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
+  }
+
+  private User getUserInformation(String userId) throws ForbiddenException {
+    var user = userService.getUser(userId);
+    if (user.orcid() == null){
+      throw new ForbiddenException("No ORCID is provided");
+    }
+    return user;
   }
 
   private AnnotationResponse parseToAnnotationResponse(JsonNode response) {
@@ -114,7 +126,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
-      String path) throws NoAnnotationFoundException {
+      String path) throws NoAnnotationFoundException, ForbiddenException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
       return persistAnnotation(annotation, userId, path);

@@ -30,7 +30,7 @@ public class UserService {
     checkType(request);
     var requestUser = mapper.treeToValue(request.getData().getAttributes(), User.class);
     var id = request.getData().getId();
-    var optionalUser = repository.find(id);
+    var optionalUser = repository.findOptional(id);
     if (optionalUser.isEmpty()) {
       var userResponse = repository.createNewUser(id, requestUser);
       return new JsonApiData(id, TYPE, mapper.valueToTree(userResponse));
@@ -48,38 +48,30 @@ public class UserService {
   }
 
   public JsonApiData findUser(String id) throws NotFoundException {
-    var optionalUser = repository.find(id);
-    if (optionalUser.isPresent()) {
-      return new JsonApiData(id, TYPE, mapper.valueToTree(optionalUser.get()));
-    } else {
-      throw new NotFoundException();
+    var userOptional = repository.findOptional(id);
+    if (userOptional.isPresent()){
+      return new JsonApiData(id, TYPE, mapper.valueToTree(userOptional.get()));
     }
+    throw new NotFoundException("User with id " + id + " does not exist");
+  }
+
+  public User getUser(String id) {
+    return repository.find(id);
   }
 
   public JsonApiData updateUser(String id, JsonApiWrapper request)
-      throws ConflictException, NotFoundException {
+      throws ConflictException {
     checkType(request);
     if (id.equals(request.getData().getId())) {
-      var optionalUser = repository.find(id);
-      if (optionalUser.isPresent()) {
         var user = repository.updateUser(id, request.getData().getAttributes());
         return new JsonApiData(id, TYPE, mapper.valueToTree(user));
-      } else {
-        log.warn("No user with id: {} is present in the database", id);
-        throw new NotFoundException();
-      }
     } else {
       log.warn("ID: {} is equal to id in request: {}", id, request.getData().getType());
       throw new InvalidIdException();
     }
   }
 
-  public void deleteUser(String id) throws NotFoundException {
-    var optionalUser = repository.find(id);
-    if (optionalUser.isPresent()) {
-      repository.deleteUser(id);
-    } else {
-      throw new NotFoundException();
-    }
+  public void deleteUser(String id) {
+    repository.deleteUser(id);
   }
 }

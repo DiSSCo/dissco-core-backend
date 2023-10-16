@@ -77,7 +77,7 @@ public class UserController extends BaseController {
   public ResponseEntity<JsonApiWrapper> updateUser(Authentication authentication,
       @PathVariable("id") String id, @RequestBody JsonApiWrapper requestBody,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, ForbiddenException {
+      throws ConflictException, ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to update user information of: {}", tokenId, id);
     checkAuthorisation(tokenId, id);
@@ -89,7 +89,7 @@ public class UserController extends BaseController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> deleteUser(Authentication authentication,
-      @PathVariable("id") String id) throws ForbiddenException, NotFoundException {
+      @PathVariable("id") String id) throws ForbiddenException {
     var tokenId = getNameFromToken(authentication);
     log.info("User: {} has requested to delete user information of: {}",
         getNameFromToken(authentication), id);
