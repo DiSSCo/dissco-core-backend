@@ -22,9 +22,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerms;
+import eu.dissco.backend.domain.annotation.AggregateRating;
+import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.Body;
+import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.Generator;
+import eu.dissco.backend.domain.annotation.Motivation;
+import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -81,7 +87,7 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public List<AnnotationResponse> getLatestAnnotations(int pageNumber, int pageSize)
+  public List<Annotation> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
@@ -93,23 +99,35 @@ public class ElasticSearchRepository {
         .map(this::mapToAnnotationResponse).toList();
   }
 
-  private AnnotationResponse mapToAnnotationResponse(ObjectNode json) {
+  private Annotation mapToAnnotationResponse(ObjectNode json) {
     var annotation = json.get("annotation");
     var createdOn = parseDate(annotation.get(FIELD_CREATED));
     var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
-    return new AnnotationResponse(
-        HANDLE_STRING + json.get("id").asText(),
-        json.get("version").asInt(),
-        getText(annotation, "type"),
-        getText(annotation, "motivation"),
-        annotation.get("target"),
-        annotation.get("body"),
-        annotation.get("preferenceScore").asInt(),
-        getText(annotation, "creator"),
-        createdOn,
-        annotation.get("generator"),
-        generatedOn,
-        null);
+    AggregateRating aggregateRating = null;
+    try {
+      if (annotation.get("ods:aggregateRating") != null) {
+        aggregateRating = mapper.treeToValue(annotation.get("ods:aggregateRating"),
+            AggregateRating.class);
+      }
+      return new Annotation()
+          .withOdsId(HANDLE_STRING + annotation.get("ods:id").asText())
+          .withRdfType(annotation.get("rdf:type").asText())
+          .withOdsVersion(annotation.get("ods:version").asInt())
+          .withOaMotivation(mapper.treeToValue(json.get("oa:motivation"), Motivation.class))
+          .withOaMotivatedBy(getText(annotation, "oa:motivatedBy"))
+          .withOaTarget(mapper.treeToValue(json.get("oa:target"), Target.class))
+          .withOaBody(mapper.treeToValue(json.get("oa:body"), Body.class))
+          .withOaCreator(mapper.treeToValue(json.get("oa:creator"), Creator.class))
+          .withDcTermsCreated(createdOn)
+          .withOdsDeletedOn(null)
+          .withAsGenerator(mapper.treeToValue(json.get("as:generator"), Generator.class))
+          .withOaGenerated(generatedOn)
+          .withOdsAggregateRating(aggregateRating);
+    } catch (JsonProcessingException e){
+      throw new DiSSCoElasticMappingException(e);
+    }
+
+
   }
 
   private DigitalSpecimenWrapper mapToDigitalSpecimenWrapper(ObjectNode json) {
@@ -140,8 +158,8 @@ public class ElasticSearchRepository {
     return null;
   }
 
-  private String getText(JsonNode digitalSpecimen, String element) {
-    var jsonNode = digitalSpecimen.get(element);
+  private String getText(JsonNode annotation, String element) {
+    var jsonNode = annotation.get(element);
     if (jsonNode != null) {
       return jsonNode.asText();
     } else {
@@ -149,7 +167,7 @@ public class ElasticSearchRepository {
     }
   }
 
-  public Pair<Long, List<AnnotationResponse>> getAnnotationsForCreator(String userId,
+  public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
     var fieldName = "annotation.creator";
     var offset = getOffset(pageNumber, pageSize);
@@ -167,9 +185,9 @@ public class ElasticSearchRepository {
     var searchResult = client.search(searchRequest, ObjectNode.class);
     if (searchResult.hits().total() != null) {
       var totalHits = searchResult.hits().total().value();
-      var annotationResponses = searchResult.hits().hits().stream().map(Hit::source)
+      var annotations = searchResult.hits().hits().stream().map(Hit::source)
           .map(this::mapToAnnotationResponse).toList();
-      return Pair.of(totalHits, annotationResponses);
+      return Pair.of(totalHits, annotations);
     }
     return Pair.of(0L, new ArrayList<>());
   }

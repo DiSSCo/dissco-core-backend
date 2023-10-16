@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -33,7 +34,6 @@ public class AnnotationUtils {
   private AnnotationUtils() {
   }
 
-  // AnnotationRequest
   public static AnnotationRequest givenAnnotationRequest() {
     return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(TARGET_ID),
         givenAnnotationBody());

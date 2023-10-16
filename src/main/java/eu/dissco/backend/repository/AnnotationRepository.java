@@ -1,12 +1,21 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.NEW_ANNOTATION;
+import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
+import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.annotation.AggregateRating;
+import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.Body;
+import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.Generator;
+import eu.dissco.backend.domain.annotation.Motivation;
+import eu.dissco.backend.domain.annotation.Target;
+import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,50 +31,57 @@ public class AnnotationRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public AnnotationResponse getAnnotation(String id) {
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id))
+  public Annotation getAnnotation(String id) {
+    return context.select(ANNOTATION.asterisk())
+        .from(ANNOTATION)
+        .where(ANNOTATION.ID.eq(id))
         .fetchOne(this::mapToAnnotation);
   }
 
-  public List<AnnotationResponse> getAnnotations(int pageNumber, int pageSize) {
+  public List<Annotation> getAnnotations(int pageNumber, int pageSize) {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .orderBy(NEW_ANNOTATION.CREATED.desc())
+    return context.select(ANNOTATION.asterisk())
+        .from(ANNOTATION)
+        .orderBy(ANNOTATION.CREATED.desc())
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
   public int getAnnotationForUser(String id, String userId) {
-    return context.select(NEW_ANNOTATION.ID)
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.ID.eq(id))
-        .and(NEW_ANNOTATION.CREATOR.eq(userId))
-        .and(NEW_ANNOTATION.DELETED.isNull())
+    return context.select(ANNOTATION.ID)
+        .from(ANNOTATION)
+        .where(ANNOTATION.ID.eq(id))
+        .and(ANNOTATION.CREATOR_ID.eq(userId))
+        .and(ANNOTATION.DELETED_ON.isNull())
         .fetch().size();
   }
 
-  public List<AnnotationResponse> getForTarget(String id) {
-    return context.select(NEW_ANNOTATION.asterisk())
-        .from(NEW_ANNOTATION)
-        .where(NEW_ANNOTATION.TARGET_ID.eq(id))
-        .and(NEW_ANNOTATION.DELETED.isNull())
+  public List<Annotation> getForTarget(String id) {
+    return context.select(ANNOTATION.asterisk())
+        .from(ANNOTATION)
+        .where(ANNOTATION.TARGET_ID.eq(id))
+        .and(ANNOTATION.DELETED_ON.isNull())
         .fetch(this::mapToAnnotation);
   }
 
-  private AnnotationResponse mapToAnnotation(Record dbRecord) {
+  private Annotation mapToAnnotation(Record dbRecord) {
     try {
-      return new AnnotationResponse(dbRecord.get(NEW_ANNOTATION.ID),
-          dbRecord.get(NEW_ANNOTATION.VERSION), dbRecord.get(NEW_ANNOTATION.TYPE),
-          dbRecord.get(NEW_ANNOTATION.MOTIVATION),
-          mapper.readTree(dbRecord.get(NEW_ANNOTATION.TARGET_BODY).data()),
-          mapper.readTree(dbRecord.get(NEW_ANNOTATION.BODY).data()),
-          dbRecord.get(NEW_ANNOTATION.PREFERENCE_SCORE), dbRecord.get(NEW_ANNOTATION.CREATOR),
-          dbRecord.get(NEW_ANNOTATION.CREATED),
-          mapper.readTree(dbRecord.get(NEW_ANNOTATION.GENERATOR_BODY).data()),
-          dbRecord.get(NEW_ANNOTATION.GENERATED), dbRecord.get(NEW_ANNOTATION.DELETED));
+      return new Annotation()
+          .withOdsId(dbRecord.get(ANNOTATION.ID))
+          .withRdfType(dbRecord.get(ANNOTATION.TYPE))
+          .withOdsVersion(dbRecord.get(ANNOTATION.VERSION))
+          .withOaMotivation(
+              mapper.readValue(dbRecord.get(ANNOTATION.MOTIVATION).data(), Motivation.class))
+          .withOaMotivatedBy(dbRecord.get(ANNOTATION.MOTIVATED_BY))
+          .withOaTarget(mapper.readValue(dbRecord.get(ANNOTATION.TARGET).data(), Target.class))
+          .withOaBody(mapper.readValue(dbRecord.get(ANNOTATION.BODY).data(), Body.class))
+          .withOaCreator(mapper.readValue(dbRecord.get(ANNOTATION.CREATOR).data(), Creator.class))
+          .withDcTermsCreated(dbRecord.get(ANNOTATION.CREATED))
+          .withOdsDeletedOn(dbRecord.get(ANNOTATION.DELETED_ON))
+          .withAsGenerator(
+              mapper.readValue(dbRecord.get(ANNOTATION.GENERATOR).data(), Generator.class))
+          .withOdsAggregateRating(mapper.readValue(dbRecord.get(ANNOTATION.AGGREGATE_RATING).data(),
+              AggregateRating.class));
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
       return null;

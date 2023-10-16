@@ -4,11 +4,11 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 
 import java.util.Arrays;
@@ -33,6 +33,11 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.annotation</code>.
+     */
+    public final Annotation ANNOTATION = Annotation.ANNOTATION;
+
+    /**
      * The table <code>public.digital_media_object</code>.
      */
     public final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
@@ -51,11 +56,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.mas_job_record</code>.
      */
     public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
-
-    /**
-     * The table <code>public.new_annotation</code>.
-     */
-    public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
     /**
      * The table <code>public.new_user</code>.
@@ -78,11 +78,11 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            Annotation.ANNOTATION,
             DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
             DigitalSpecimen.DIGITAL_SPECIMEN,
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             MasJobRecord.MAS_JOB_RECORD,
-            NewAnnotation.NEW_ANNOTATION,
             NewUser.NEW_USER
         );
     }

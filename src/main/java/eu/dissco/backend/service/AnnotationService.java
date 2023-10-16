@@ -11,6 +11,7 @@ import eu.dissco.backend.domain.AnnotationEvent;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -59,7 +60,7 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
-    var dataNode = new JsonApiData(id, annotation.type(), annotation, mapper);
+    var dataNode = new JsonApiData(id, annotation.getRdfType(), mapper.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -102,7 +103,7 @@ public class AnnotationService {
 
   private User getUserInformation(String userId) throws ForbiddenException {
     var user = userService.getUser(userId);
-    if (user.orcid() == null){
+    if (user.orcid() == null) {
       throw new ForbiddenException("No ORCID is provided");
     }
     return user;
@@ -166,7 +167,7 @@ public class AnnotationService {
   }
 
   // Used by other services
-  public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
+  public List<Annotation> getAnnotationForTargetObject(String id) {
     var fullId = "https://hdl.handle.net/" + id;
     return repository.getForTarget(fullId);
   }
@@ -182,30 +183,33 @@ public class AnnotationService {
     mapper.treeToValue(annotationNode, AnnotationResponse.class);
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne,
+  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne,
       int pageNumber, int pageSize, String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), annotation.getRdfType(),
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
   private JsonApiListResponseWrapper wrapListResponseElasticSearchResults(
-      Pair<Long, List<AnnotationResponse>> elasticSearchResults, int pageNumber, int pageSize,
+      Pair<Long, List<Annotation>> elasticSearchResults, int pageNumber, int pageSize,
       String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     var annotationsPlusOne = elasticSearchResults.getRight();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), annotation.getRdfType(),
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path,
         new JsonApiMeta(elasticSearchResults.getLeft()));
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations,
+  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotations,
       String path) {
     List<JsonApiData> dataNode = new ArrayList<>();
     annotations.forEach(annotation -> dataNode.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), annotation.getRdfType(),
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 }

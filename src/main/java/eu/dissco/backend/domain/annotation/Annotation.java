@@ -1,6 +1,7 @@
 package eu.dissco.backend.domain.annotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,9 @@ public class Annotation {
   @JsonProperty("ods:id")
   private String odsId;
   @JsonProperty("rdf:type")
-  private static final String RDF_TYPE = "Annotation";
+  private String rdfType = "Annotation";
+  @JsonProperty("ods:version")
+  private int odsVersion;
   @JsonProperty("oa:motivation")
   private Motivation oaMotivation;
   @JsonProperty("oa:motivatedBy")
@@ -26,16 +29,28 @@ public class Annotation {
   @JsonProperty("oa:creator")
   private Creator oaCreator;
   @JsonProperty("dcterms:created")
-  private Date dcTermsCreated;
+  private Instant dcTermsCreated;
   @JsonProperty("ods:deletedOn")
-  private Date odsDeletedOn;
+  private Instant odsDeletedOn;
   @JsonProperty("as:generator")
   private Generator asGenerator;
+  @JsonProperty("oa:generated")
+  private Instant generated;
   @JsonProperty("ods:aggregateRating")
   private AggregateRating odsAggregateRating;
 
   public Annotation withOdsId(String odsId) {
     this.odsId = odsId;
+    return this;
+  }
+
+  public Annotation withRdfType(String rdfType){
+    this.rdfType = rdfType;
+    return this;
+  }
+
+  public Annotation withOdsVersion(int odsVersion){
+    this.odsVersion = odsVersion;
     return this;
   }
 
@@ -64,18 +79,23 @@ public class Annotation {
     return this;
   }
 
-  public Annotation withDcTermsCreated(Date dcTermsCreated) {
+  public Annotation withDcTermsCreated(Instant dcTermsCreated) {
     this.dcTermsCreated = dcTermsCreated;
     return this;
   }
 
-  public Annotation withOdsDeletedOn(Date odsDeletedOn) {
+  public Annotation withOdsDeletedOn(Instant odsDeletedOn) {
     this.odsDeletedOn = odsDeletedOn;
     return this;
   }
 
   public Annotation withAsGenerator(Generator asGenerator) {
     this.asGenerator = asGenerator;
+    return this;
+  }
+
+  public Annotation withOaGenerated(Instant oaGenerated) {
+    this.generated = oaGenerated;
     return this;
   }
 
