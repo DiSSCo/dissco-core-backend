@@ -15,6 +15,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.AnnotationRequest;
 import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.Body;
+import eu.dissco.backend.domain.annotation.FieldValueSelector;
+import eu.dissco.backend.domain.annotation.Motivation;
+import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -32,6 +36,33 @@ public class AnnotationUtils {
   public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
 
   private AnnotationUtils() {
+  }
+
+  public static Annotation givenAnnotation() {
+    return new Annotation()
+        .withOaBody(givenOaBody())
+        .withOaMotivation(Motivation.COMMENTING)
+        .withOaTarget(givenOaTarget());
+  }
+
+  public static Body givenOaBody(){
+    return new Body()
+        .withOdsType("ods:specimenName")
+        .withOaValue(List.of("a comment"))
+        .withDcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+        .withOdsScore(0.99);
+  }
+
+  public static Target givenOaTarget(){
+    return new Target()
+        .withOdsId(ID)
+        .withSelector(givenSelector())
+        .withOdsType("digital_specimen");
+  }
+
+  public static FieldValueSelector givenSelector(){
+    return new FieldValueSelector()
+        .withOdsField("ods:specimenName");
   }
 
   public static AnnotationRequest givenAnnotationRequest() {
