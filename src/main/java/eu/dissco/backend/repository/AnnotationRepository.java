@@ -1,13 +1,11 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
-import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.annotation.AggregateRating;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Body;
@@ -15,7 +13,6 @@ import eu.dissco.backend.domain.annotation.Creator;
 import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.annotation.Motivation;
 import eu.dissco.backend.domain.annotation.Target;
-import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,8 +67,7 @@ public class AnnotationRepository {
           .withOdsId(dbRecord.get(ANNOTATION.ID))
           .withRdfType(dbRecord.get(ANNOTATION.TYPE))
           .withOdsVersion(dbRecord.get(ANNOTATION.VERSION))
-          .withOaMotivation(
-              mapper.readValue(dbRecord.get(ANNOTATION.MOTIVATION).data(), Motivation.class))
+          .withOaMotivation(Motivation.fromString(dbRecord.get(ANNOTATION.MOTIVATION)))
           .withOaMotivatedBy(dbRecord.get(ANNOTATION.MOTIVATED_BY))
           .withOaTarget(mapper.readValue(dbRecord.get(ANNOTATION.TARGET).data(), Target.class))
           .withOaBody(mapper.readValue(dbRecord.get(ANNOTATION.BODY).data(), Body.class))

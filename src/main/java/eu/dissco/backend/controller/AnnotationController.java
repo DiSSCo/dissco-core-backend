@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationRequest;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -162,13 +162,13 @@ public class AnnotationController extends BaseController {
     }
   }
 
-  private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
+  private Annotation getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException {
     if (!requestBody.data().type().equals("annotation")) {
       throw new IllegalArgumentException(
           "Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
     }
-    return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);
+    return mapper.treeToValue(requestBody.data().attributes(), Annotation.class);
   }
 
   @ExceptionHandler(NoAnnotationFoundException.class)

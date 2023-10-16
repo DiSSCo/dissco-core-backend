@@ -18,7 +18,7 @@ create table annotation
             primary key,
     version          integer                  not null,
     type             text                     not null,
-    motivation       jsonb                    not null,
+    motivation       text                    not null,
     motivated_by     text                     not null,
     target_id        text                     not null,
     target           jsonb                    not null,

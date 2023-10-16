@@ -22,8 +22,8 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -329,16 +329,16 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
-    List<AnnotationResponse> expected = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
     for (int i = 0; i < pageSize + 1; i++) {
       String id = PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
+      var annotation = givenAnnotationResponse(id);
+      expected.add(givenAnnotationResponse(HANDLE + id));
       givenAnnotations.add(annotation);
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -356,15 +356,15 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 1;
     int pageSize = 10;
     var totalHits = 15L;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
-    List<AnnotationResponse> expected = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
     for (long i = 0; i < totalHits; i++) {
       String id = PREFIX + "/" + i;
       if (i <= pageSize) {
-        expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
+        expected.add(givenAnnotationResponse(HANDLE + id));
       }
-      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
-      givenAnnotations.add(givenAnnotationResponse("A different User", id + "1"));
+      givenAnnotations.add(givenAnnotationResponse(id));
+      givenAnnotations.add(givenAnnotationResponse(id + "1", "A different User"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
@@ -382,10 +382,10 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 1;
     int pageSize = 10;
     var totalHits = 0L;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
     for (long i = 0; i < 5; i++) {
       String id = PREFIX + "/" + i;
-      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
+      givenAnnotations.add(givenAnnotationResponse(id));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
@@ -398,7 +398,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getRight()).isEmpty();
   }
 
-  private List<JsonNode> parseAnnotationToElasticFormat(List<AnnotationResponse> annotations) {
+  private List<JsonNode> parseAnnotationToElasticFormat(List<Annotation> annotations) {
     return annotations.stream().map(this::annotationToElasticFormat).toList();
   }
 
@@ -443,22 +443,22 @@ class ElasticSearchRepositoryIT {
     return response;
   }
 
-  private JsonNode annotationToElasticFormat(AnnotationResponse annotation) {
+  private JsonNode annotationToElasticFormat(Annotation annotation) {
     var objectNode = MAPPER.createObjectNode();
-    objectNode.put("id", annotation.id());
-    objectNode.put("created", annotation.created().toString());
-    objectNode.put("version", annotation.version());
-    var specimenNode = MAPPER.createObjectNode();
-    specimenNode.put("motivation", annotation.motivation());
-    specimenNode.put("type", annotation.type());
-    specimenNode.put("preferenceScore", annotation.preferenceScore());
-    specimenNode.put("creator", annotation.creator());
-    specimenNode.put("created", annotation.created().toString());
-    specimenNode.put("generated", annotation.generated().toString());
-    specimenNode.set("target", annotation.target());
-    specimenNode.set("body", annotation.body());
-    specimenNode.set("generator", annotation.generator());
-    objectNode.set("annotation", specimenNode);
+    objectNode.put("id", annotation.getOdsId());
+    objectNode.put("created", annotation.getDcTermsCreated().toString());
+    objectNode.put("version", annotation.getOdsVersion());
+    var annotationNode = MAPPER.createObjectNode();
+    annotationNode.put("motivation", annotation.getOaMotivation().toString());
+    annotationNode.put("type", annotation.getRdfType());
+    annotationNode.put("AggregateRatingScore", String.valueOf(annotation.getOdsAggregateRating()));
+    annotationNode.set("creator", MAPPER.valueToTree(annotation.getOaCreator()));
+    annotationNode.put("created", annotation.getDcTermsCreated().toString());
+    annotationNode.put("generated", annotation.getOaGenerated().toString());
+    annotationNode.set("target", MAPPER.valueToTree(annotation.getOaTarget()));
+    annotationNode.set("body", MAPPER.valueToTree(annotation.getOaBody()));
+    annotationNode.set("generator", MAPPER.valueToTree(annotation.getAsGenerator()));
+    objectNode.set("annotation", annotationNode);
     return objectNode;
   }
 

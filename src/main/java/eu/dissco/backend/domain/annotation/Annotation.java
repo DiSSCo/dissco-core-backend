@@ -2,7 +2,6 @@ package eu.dissco.backend.domain.annotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +34,7 @@ public class Annotation {
   @JsonProperty("as:generator")
   private Generator asGenerator;
   @JsonProperty("oa:generated")
-  private Instant generated;
+  private Instant oaGenerated;
   @JsonProperty("ods:aggregateRating")
   private AggregateRating odsAggregateRating;
 
@@ -95,7 +94,7 @@ public class Annotation {
   }
 
   public Annotation withOaGenerated(Instant oaGenerated) {
-    this.generated = oaGenerated;
+    this.oaGenerated = oaGenerated;
     return this;
   }
 

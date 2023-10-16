@@ -4,7 +4,6 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
@@ -12,12 +11,14 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationKafkaRequest;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
+import static eu.dissco.backend.utils.AnnotationUtils.givenKafkaClientAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,11 +27,7 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
-import eu.dissco.backend.domain.AnnotationEvent;
-import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -43,6 +40,7 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.utils.AnnotationUtils;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
@@ -58,6 +56,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,7 +94,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
-    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
+    var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
 
     given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
@@ -105,7 +104,7 @@ class AnnotationServiceTest {
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
@@ -119,7 +118,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
-    var expectedResponse = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
+    var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
 
     given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
@@ -129,13 +128,13 @@ class AnnotationServiceTest {
     var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
   void testGetAnnotationForTargetObject() {
     // Given
-    var expected = List.of(givenAnnotationResponse());
+    var expected = List.of(givenAnnotationRequest());
     given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(expected);
 
     // When
@@ -161,7 +160,7 @@ class AnnotationServiceTest {
   void testGetAnnotation() {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse());
+    given(repository.getAnnotation(ID)).willReturn(AnnotationUtils.givenAnnotationRequest(ID));
 
     // When
     var result = service.getAnnotation(ID, ANNOTATION_PATH);
@@ -177,7 +176,7 @@ class AnnotationServiceTest {
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize + 1));
@@ -186,7 +185,7 @@ class AnnotationServiceTest {
     var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
@@ -196,7 +195,7 @@ class AnnotationServiceTest {
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
     String path = SANDBOX_URI + "api/v1/annotations/all/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
     given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
         givenAnnotationResponseList(annotationId, pageSize));
@@ -205,7 +204,7 @@ class AnnotationServiceTest {
     var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
@@ -213,16 +212,16 @@ class AnnotationServiceTest {
     int pageSize = 15;
     int pageNumber = 1;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize + 1, givenAnnotationResponse());
+    var elasticResponse = Collections.nCopies(pageSize + 1, AnnotationUtils.givenAnnotationRequest(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
@@ -230,43 +229,32 @@ class AnnotationServiceTest {
     int pageSize = 15;
     int pageNumber = 1;
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
-    var expectedResponse = givenAnnotationJsonResponse(path, pageNumber, pageSize,
+    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, false);
-    var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse());
+    var elasticResponse = Collections.nCopies(pageSize, AnnotationUtils.givenAnnotationRequest(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
     var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
+    assertThat(receivedResponse).isEqualTo(expected);
   }
 
   @Test
   void testPersistAnnotation() throws Exception {
     // Given
-    AnnotationRequest annotationRequest = givenAnnotationRequest();
-    AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID_ALT);
-    JsonNode annotationNode = MAPPER.valueToTree(annotationResponse);
-    ObjectNode clientResponse = MAPPER.createObjectNode();
-    clientResponse.put("id", annotationResponse.id());
-    clientResponse.put("version", annotationResponse.version());
-    clientResponse.put("annotation", annotationNode);
-
-    var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(),
-        MAPPER.valueToTree(annotationNode));
-    var expectedResponse = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
-
-    Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
-    Instant instant = Instant.now(clock);
+    var annotationRequest = givenAnnotationRequest();
+    var annotationToKafkaRequest = givenAnnotationKafkaRequest(false);
+    var annotationResponse = givenAnnotationResponse(ID_ALT);
+    
+    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    
     try (var mockedStatic = mockStatic(Instant.class)) {
-      mockedStatic.when(Instant::now).thenReturn(instant);
-      mockedStatic.when(() -> Instant.ofEpochSecond(CREATED.getLong(ChronoField.INSTANT_SECONDS)))
-          .thenReturn(instant);
-      mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
+      mockTime(mockedStatic);
 
-      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
-          .willReturn(clientResponse);
+      given(annotationClient.postAnnotation(annotationToKafkaRequest))
+          .willReturn(givenKafkaClientAnnotationResponse(annotationResponse));
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       //When
@@ -274,15 +262,16 @@ class AnnotationServiceTest {
           ANNOTATION_PATH);
 
       // Then
-      assertThat(responseReceived).isEqualTo(expectedResponse);
+      assertThat(responseReceived).isEqualTo(expected);
     }
   }
 
   @Test
   void testPersistAnnotationIsNull() throws Exception {
     // Given
-    AnnotationRequest annotationRequest = givenAnnotationRequest();
-    given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
+    var annotationRequest = givenAnnotationRequest();
+    var annotationResponse = givenAnnotationResponse(ID);
+    given(annotationClient.postAnnotation(annotationResponse))
         .willReturn(null);
     given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
@@ -317,22 +306,19 @@ class AnnotationServiceTest {
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
-    AnnotationRequest annotationRequest = givenAnnotationRequest();
-    AnnotationResponse annotationResponse = givenAnnotationResponse(USER_ID_TOKEN, ID);
-    JsonNode annotationNode = MAPPER.valueToTree(annotationResponse);
-    ObjectNode clientResponse = MAPPER.createObjectNode();
-    clientResponse.put("id", annotationResponse.id());
-    clientResponse.put("version", annotationResponse.version());
-    clientResponse.set("annotation", annotationNode);
+    var annotationRequest = givenAnnotationRequest();
+    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true);
+    var annotationResponse = givenAnnotationResponse(ID);
 
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     try (var mockedStatic = mockStatic(Instant.class)) {
+      // todo mocktime
       mockedStatic.when(Instant::now).thenReturn(instant);
       mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
 
-      given(annotationClient.postAnnotation(givenAnnotationEvent(annotationRequest, ORCID)))
-          .willReturn(clientResponse);
+      given(annotationClient.postAnnotation(annotationToKafkaRequest))
+          .willReturn(MAPPER.valueToTree(givenKafkaClientAnnotationResponse(annotationResponse)));
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
@@ -361,7 +347,7 @@ class AnnotationServiceTest {
     int version = 1;
     var annotationNode = MAPPER.createObjectNode();
     annotationNode.set("annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, ID)));
+        MAPPER.valueToTree(givenAnnotationResponse(ID)));
     given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(
         annotationNode);
     var expected = new JsonApiWrapper(
@@ -455,16 +441,15 @@ class AnnotationServiceTest {
     assertThrowsExactly(NoAnnotationFoundException.class,
         () -> service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
   }
+  
 
-  private AnnotationEvent givenAnnotationEvent(AnnotationRequest annotation, String userId) {
-    return new AnnotationEvent(
-        annotation.type(),
-        annotation.motivation(),
-        userId,
-        CREATED,
-        annotation.target(),
-        annotation.body()
-    );
+  private void mockTime(MockedStatic<Instant> mockedStatic){
+    Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
+    Instant instant = Instant.now(clock);
+    mockedStatic.when(Instant::now).thenReturn(instant);
+    mockedStatic.when(() -> Instant.ofEpochSecond(CREATED.getLong(ChronoField.INSTANT_SECONDS)))
+        .thenReturn(instant);
+    mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
   }
 
 }
