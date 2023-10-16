@@ -87,7 +87,7 @@ public class AnnotationUtils {
   public static Body givenOaBody() {
     return new Body()
         .withOdsType("ods:specimenName")
-        .withOaValue(List.of("a comment"))
+        .withOaValue(new ArrayList<>(List.of("a comment")))
         .withDcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
         .withOdsScore(0.99);
   }

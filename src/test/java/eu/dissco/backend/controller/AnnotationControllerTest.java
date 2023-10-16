@@ -14,6 +14,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequ
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -125,6 +126,11 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
+    var annotationCopy = MAPPER.treeToValue(MAPPER.valueToTree(annotation), Annotation.class);
+
+    assertThat(MAPPER.valueToTree(annotationCopy)).isEqualTo(MAPPER.valueToTree(annotation));
+    assertThat(annotationCopy).isEqualTo(annotation);
+
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))

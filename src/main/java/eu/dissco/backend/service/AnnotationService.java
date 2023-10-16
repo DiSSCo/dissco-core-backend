@@ -172,7 +172,7 @@ public class AnnotationService {
 
   // Response Constructors
   private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
-    mapper.treeToValue(annotationNode, Annotation.class);
+    mapper.treeToValue(annotationNode.get(ANNOTATION), Annotation.class);
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne,

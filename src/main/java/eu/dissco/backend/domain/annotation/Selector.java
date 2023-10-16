@@ -3,13 +3,14 @@ package eu.dissco.backend.domain.annotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
-@JsonSubTypes({
-    @JsonSubTypes.Type(ClassValueSelector.class),
-    @JsonSubTypes.Type(FieldValueSelector.class),
-    @JsonSubTypes.Type(FragmentSelector.class)})
+@Getter
+@EqualsAndHashCode
 public abstract class Selector {
 
   @JsonProperty("ods:type")

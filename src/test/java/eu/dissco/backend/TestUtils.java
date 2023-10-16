@@ -8,8 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import eu.dissco.backend.configuration.InstantDeserializer;
 import eu.dissco.backend.configuration.InstantSerializer;
+import eu.dissco.backend.configuration.SelectorDeserializer;
+import eu.dissco.backend.configuration.SelectorSerializer;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.annotation.Selector;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -51,7 +54,10 @@ public class TestUtils {
     SimpleModule dateModule = new SimpleModule();
     dateModule.addSerializer(Instant.class, new InstantSerializer());
     dateModule.addDeserializer(Instant.class, new InstantDeserializer());
+    var selectorModule = new SimpleModule();
+    selectorModule.addDeserializer(Selector.class, new SelectorDeserializer());
     mapper.registerModule(dateModule);
+    mapper.registerModule(selectorModule);
     mapper.setSerializationInclusion(Include.NON_NULL);
     MAPPER = mapper.copy();
   }

@@ -1,9 +1,11 @@
 package eu.dissco.backend.domain.annotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class ClassValueSelector extends Selector {
 
   @JsonProperty("ods:class")
