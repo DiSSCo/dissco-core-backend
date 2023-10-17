@@ -10,10 +10,8 @@ import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;

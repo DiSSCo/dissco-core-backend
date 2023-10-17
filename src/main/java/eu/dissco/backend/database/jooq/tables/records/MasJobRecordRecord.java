@@ -5,10 +5,8 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-
 import java.time.Instant;
 import java.util.UUID;
-
 import org.jooq.Field;
 import org.jooq.JSONB;
 import org.jooq.Record1;
