@@ -102,6 +102,40 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
   }
 
+  @Test
+  void testNullResponse() throws Exception {
+    // Given
+    var annotation = givenAnnotationResponse(ID);
+    var badTarget = MAPPER.readTree("""
+        {
+          "field":"value"
+        }
+        """);
+    context.insertInto(ANNOTATION).set(ANNOTATION.ID, annotation.getOdsId())
+        .set(ANNOTATION.VERSION, annotation.getOdsVersion())
+        .set(ANNOTATION.TYPE, annotation.getRdfType())
+        .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
+        .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
+        .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
+        .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(badTarget)))
+        .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
+        .set(ANNOTATION.AGGREGATE_RATING,
+            JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
+        .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
+        .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
+        .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
+        .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
+        .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
+        .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+        .execute();
+
+    // When
+    var result = repository.getAnnotation(ID);
+
+    // Then
+    assertThat(result).isNull();
+  }
+
   private void postAnnotations(List<Annotation> annotations) throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {

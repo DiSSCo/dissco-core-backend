@@ -12,6 +12,8 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.domain.annotation.Annotation;
@@ -126,10 +128,6 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
-    var annotationCopy = MAPPER.treeToValue(MAPPER.valueToTree(annotation), Annotation.class);
-
-    assertThat(MAPPER.valueToTree(annotationCopy)).isEqualTo(MAPPER.valueToTree(annotation));
-    assertThat(annotationCopy).isEqualTo(annotation);
 
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
@@ -143,6 +141,21 @@ class AnnotationControllerTest {
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testCreateAnnotationNullResponse() throws Exception {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    var annotation = givenAnnotationRequest();
+    var request = givenJsonApiAnnotationRequest(annotation);
+    given(service.persistAnnotation(any(), any(), any(), eq(false))).willReturn(null);
+
+    // When
+    var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
