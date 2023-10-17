@@ -133,7 +133,7 @@ class AnnotationControllerTest {
 
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH, false))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

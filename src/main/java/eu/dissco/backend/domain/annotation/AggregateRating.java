@@ -5,11 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class AggregateRating {
 
   @JsonProperty("ods:type")
@@ -29,7 +31,7 @@ public class AggregateRating {
     return this;
   }
 
-  public AggregateRating ratingValue(double ratingValue) {
+  public AggregateRating withRatingValue(double ratingValue) {
     this.ratingValue = ratingValue;
     return this;
   }

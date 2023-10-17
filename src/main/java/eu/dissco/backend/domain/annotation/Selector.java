@@ -11,6 +11,11 @@ import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode
+@JsonTypeInfo(use = Id.DEDUCTION)
+@JsonSubTypes({
+    @Type(FieldValueSelector.class),
+    @Type(ClassValueSelector.class),
+    @Type(FragmentSelector.class)})
 public abstract class Selector {
 
   @JsonProperty("ods:type")

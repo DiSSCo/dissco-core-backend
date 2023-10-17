@@ -105,22 +105,22 @@ public class ElasticSearchRepository {
     var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
     AggregateRating aggregateRating = null;
     try {
-      if (annotation.get("ods:aggregateRating") != null) {
-        aggregateRating = mapper.treeToValue(annotation.get("ods:aggregateRating"),
+      if (annotation.get("aggregateRating") != null) {
+        aggregateRating = mapper.treeToValue(annotation.get("aggregateRating"),
             AggregateRating.class);
       }
       return new Annotation()
-          .withOdsId(HANDLE_STRING + annotation.get("ods:id").asText())
-          .withRdfType(annotation.get("rdf:type").asText())
-          .withOdsVersion(annotation.get("ods:version").asInt())
-          .withOaMotivation(mapper.treeToValue(json.get("oa:motivation"), Motivation.class))
-          .withOaMotivatedBy(getText(annotation, "oa:motivatedBy"))
-          .withOaTarget(mapper.treeToValue(json.get("oa:target"), Target.class))
-          .withOaBody(mapper.treeToValue(json.get("oa:body"), Body.class))
-          .withOaCreator(mapper.treeToValue(json.get("oa:creator"), Creator.class))
+          .withOdsId(HANDLE_STRING + json.get("id").asText())
+          .withRdfType(annotation.get("type").asText())
+          .withOdsVersion(json.get("version").asInt())
+          .withOaMotivation(mapper.treeToValue(annotation.get("motivation"), Motivation.class))
+          .withOaMotivatedBy(getText(annotation, "motivatedBy"))
+          .withOaTarget(mapper.treeToValue(annotation.get("target"), Target.class))
+          .withOaBody(mapper.treeToValue(annotation.get("body"), Body.class))
+          .withOaCreator(mapper.treeToValue(annotation.get("creator"), Creator.class))
           .withDcTermsCreated(createdOn)
           .withOdsDeletedOn(null)
-          .withAsGenerator(mapper.treeToValue(json.get("as:generator"), Generator.class))
+          .withAsGenerator(mapper.treeToValue(annotation.get("generator"), Generator.class))
           .withOaGenerated(generatedOn)
           .withOdsAggregateRating(aggregateRating);
     } catch (JsonProcessingException e){
@@ -169,7 +169,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
-    var fieldName = "annotation.creator";
+    var fieldName = "annotation.creatorId";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 

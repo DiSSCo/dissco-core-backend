@@ -66,7 +66,7 @@ public class AnnotationService {
     var annotationNode = (ObjectNode) eventNode.get(ANNOTATION);
     annotationNode.set(VERSION, eventNode.get(VERSION));
     validateAnnotationNode(annotationNode);
-    var type = annotationNode.get("type").asText();
+    var type = annotationNode.get("rdf:type").asText();
     var dataNode = new JsonApiData(id, type, annotationNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -78,14 +78,14 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId,
-      String path) throws ForbiddenException, JsonProcessingException {
+      String path, boolean isUpdate) throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var annotation = processAnnotation(annotationRequest, user);
+    var annotation = processAnnotation(annotationRequest, user, isUpdate);
     var response = annotationClient.postAnnotation(annotation);
     if (response != null) {
-      var annotationResponse = parseToAnnotation(response);
+      var annotationResponse = parseToAnnotation(response.get(ANNOTATION));
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
-          response);
+          response.get(ANNOTATION));
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
@@ -99,10 +99,13 @@ public class AnnotationService {
     return user;
   }
 
-  private Annotation processAnnotation(Annotation annotationRequest, User user){
-    return annotationRequest
-        .withOaCreator(processCreator(user))
-        .withDcTermsCreated(Instant.now());
+  private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate){
+    annotationRequest
+        .withOaCreator(processCreator(user));
+    if (isUpdate){
+      return annotationRequest;
+    }
+    return annotationRequest.withDcTermsCreated(Instant.now());
   }
 
   private Creator processCreator(User user){
@@ -120,9 +123,7 @@ public class AnnotationService {
       String path) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
-      var user = getUserInformation(userId);
-      annotation.withOaCreator(processCreator(user));
-      return persistAnnotation(annotation, userId, path);
+      return persistAnnotation(annotation, userId, path, true);
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException(

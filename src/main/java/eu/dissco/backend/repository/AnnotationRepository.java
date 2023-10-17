@@ -76,6 +76,7 @@ public class AnnotationRepository {
           .withOdsDeletedOn(dbRecord.get(ANNOTATION.DELETED_ON))
           .withAsGenerator(
               mapper.readValue(dbRecord.get(ANNOTATION.GENERATOR).data(), Generator.class))
+          .withOaGenerated(dbRecord.get(ANNOTATION.GENERATED))
           .withOdsAggregateRating(mapper.readValue(dbRecord.get(ANNOTATION.AGGREGATE_RATING).data(),
               AggregateRating.class));
     } catch (JsonProcessingException e) {

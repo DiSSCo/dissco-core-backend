@@ -2,8 +2,8 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -160,7 +161,7 @@ class AnnotationServiceTest {
   void testGetAnnotation() {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(repository.getAnnotation(ID)).willReturn(AnnotationUtils.givenAnnotationRequest(ID));
+    given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse(ID));
 
     // When
     var result = service.getAnnotation(ID, ANNOTATION_PATH);
@@ -214,7 +215,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize + 1, AnnotationUtils.givenAnnotationRequest(ID));
+    var elasticResponse = Collections.nCopies(pageSize + 1, AnnotationUtils.givenAnnotationResponse(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
@@ -231,7 +232,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, false);
-    var elasticResponse = Collections.nCopies(pageSize, AnnotationUtils.givenAnnotationRequest(ID));
+    var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
@@ -246,20 +247,20 @@ class AnnotationServiceTest {
     // Given
     var annotationRequest = givenAnnotationRequest();
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(false);
-    var annotationResponse = givenAnnotationResponse(ID_ALT);
+    var annotationResponse = givenAnnotationResponse(ID, ORCID);
+    var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
     
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
     
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);
 
-      given(annotationClient.postAnnotation(annotationToKafkaRequest))
-          .willReturn(givenKafkaClientAnnotationResponse(annotationResponse));
+      given(annotationClient.postAnnotation(annotationToKafkaRequest)).willReturn(kafkaResponse);
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       //When
       var responseReceived = service.persistAnnotation(annotationRequest, USER_ID_TOKEN,
-          ANNOTATION_PATH);
+          ANNOTATION_PATH, false);
 
       // Then
       assertThat(responseReceived).isEqualTo(expected);
@@ -270,20 +271,17 @@ class AnnotationServiceTest {
   void testPersistAnnotationIsNull() throws Exception {
     // Given
     var annotationRequest = givenAnnotationRequest();
-    var annotationResponse = givenAnnotationResponse(ID);
-    given(annotationClient.postAnnotation(annotationResponse))
+    var annotationToKafka = givenAnnotationKafkaRequest(false);
+    given(annotationClient.postAnnotation(annotationToKafka))
         .willReturn(null);
     given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
-    Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
-    Instant instant = Instant.now(clock);
+
     try (var mockedStatic = mockStatic(Instant.class)) {
-      mockedStatic.when(Instant::now).thenReturn(instant);
-      mockedStatic.when(() -> Instant.ofEpochSecond(CREATED.getLong(ChronoField.INSTANT_SECONDS)))
-          .thenReturn(instant);
-      mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
+      mockTime(mockedStatic);
 
       // When
-      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);
+      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH,
+          false);
 
       // Then
       assertThat(result).isNull();
@@ -297,7 +295,8 @@ class AnnotationServiceTest {
 
     // Then
     assertThrowsExactly(ForbiddenException.class,
-        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
+        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH,
+            false));
   }
 
   @Test
@@ -307,18 +306,15 @@ class AnnotationServiceTest {
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
     var annotationRequest = givenAnnotationRequest();
-    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true);
+    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null);
     var annotationResponse = givenAnnotationResponse(ID);
+    var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
 
-    Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
-    Instant instant = Instant.now(clock);
     try (var mockedStatic = mockStatic(Instant.class)) {
-      // todo mocktime
-      mockedStatic.when(Instant::now).thenReturn(instant);
-      mockedStatic.when(() -> Instant.from(any())).thenReturn(instant);
+     mockTime(mockedStatic);
 
       given(annotationClient.postAnnotation(annotationToKafkaRequest))
-          .willReturn(MAPPER.valueToTree(givenKafkaClientAnnotationResponse(annotationResponse)));
+          .willReturn(MAPPER.valueToTree(kafkaResponse));
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
@@ -326,7 +322,6 @@ class AnnotationServiceTest {
 
       // Then
       assertThat(result).isEqualTo(expected);
-
     }
   }
 

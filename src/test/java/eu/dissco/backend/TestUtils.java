@@ -57,7 +57,6 @@ public class TestUtils {
     var selectorModule = new SimpleModule();
     selectorModule.addDeserializer(Selector.class, new SelectorDeserializer());
     mapper.registerModule(dateModule);
-    mapper.registerModule(selectorModule);
     mapper.setSerializationInclusion(Include.NON_NULL);
     MAPPER = mapper.copy();
   }

@@ -10,6 +10,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotation() {
+  void testGetAnnotation() throws JsonProcessingException {
     // Given
     var expectedAnnotation = givenAnnotationResponse();
     postAnnotations(List.of(expectedAnnotation));
@@ -48,7 +49,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotations() {
+  void testGetAnnotations() throws JsonProcessingException {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -70,7 +71,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationForUser() {
+  void testGetAnnotationForUser() throws JsonProcessingException {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
         givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
@@ -85,13 +86,13 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetForTarget() {
+  void testGetForTarget() throws JsonProcessingException {
     // Given
     MAPPER.setSerializationInclusion(Include.ALWAYS);
-    var expectedResponse = givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
+    var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, TARGET_ID);
     List<Annotation> annotations = List.of(expectedResponse,
-        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
+        givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
+        givenAnnotationResponse( PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
     postAnnotations(annotations);
 
     // When
@@ -101,7 +102,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
   }
 
-  private void postAnnotations(List<Annotation> annotations) {
+  private void postAnnotations(List<Annotation> annotations) throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {
       var query = context.insertInto(ANNOTATION).set(ANNOTATION.ID, annotation.getOdsId())
@@ -110,29 +111,30 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
           .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
           .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
           .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
-          .set(ANNOTATION.TARGET, JSONB.jsonb(annotation.getOaTarget().toString()))
-          .set(ANNOTATION.BODY, JSONB.jsonb(annotation.getOaBody().toString()))
+          .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaTarget())))
+          .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
           .set(ANNOTATION.AGGREGATE_RATING,
-              JSONB.jsonb(annotation.getOdsAggregateRating().toString()))
-          .set(ANNOTATION.CREATOR, JSONB.jsonb(annotation.getOaCreator().toString()))
+              JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
+          .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
           .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
           .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.GENERATOR, JSONB.jsonb(annotation.getAsGenerator().toString()))
+          .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
           .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated()).onConflict(ANNOTATION.ID)
-          .doUpdate().set(ANNOTATION.VERSION, annotation.getOdsVersion())
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+          .onConflict(ANNOTATION.ID).doUpdate()
+          .set(ANNOTATION.VERSION, annotation.getOdsVersion())
           .set(ANNOTATION.TYPE, annotation.getRdfType())
           .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
           .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
           .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
-          .set(ANNOTATION.TARGET, JSONB.jsonb(annotation.getOaTarget().toString()))
-          .set(ANNOTATION.BODY, JSONB.jsonb(annotation.getOaBody().toString()))
+          .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaTarget())))
+          .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
           .set(ANNOTATION.AGGREGATE_RATING,
-              JSONB.jsonb(annotation.getOdsAggregateRating().toString()))
-          .set(ANNOTATION.CREATOR, JSONB.jsonb(annotation.getOaCreator().toString()))
+              JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
+          .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
           .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
           .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.GENERATOR, JSONB.jsonb(annotation.getAsGenerator().toString()))
+          .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
           .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
           .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated());
       queryList.add(query);

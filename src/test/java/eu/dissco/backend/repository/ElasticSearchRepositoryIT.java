@@ -338,7 +338,33 @@ class ElasticSearchRepositoryIT {
       givenAnnotations.add(annotation);
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
+      givenAnnotations.add(annotation);
+    }
+    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
+
+    // When
+    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
+  }
+
+  @Test
+  void testGetLatestAnnotationsNullAggregate() throws IOException {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
+    for (int i = 0; i < pageSize + 1; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(id);
+      expected.add(givenAnnotationResponse(HANDLE + id).withOdsAggregateRating(null));
+      givenAnnotations.add(annotation.withOdsAggregateRating(null));
+    }
+    for (int i = 11; i < pageSize * 2; i++) {
+      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -361,9 +387,9 @@ class ElasticSearchRepositoryIT {
     for (long i = 0; i < totalHits; i++) {
       String id = PREFIX + "/" + i;
       if (i <= pageSize) {
-        expected.add(givenAnnotationResponse(HANDLE + id));
+        expected.add(givenAnnotationResponse(HANDLE + id, USER_ID_TOKEN));
       }
-      givenAnnotations.add(givenAnnotationResponse(id));
+      givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
       givenAnnotations.add(givenAnnotationResponse(id + "1", "A different User"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -381,7 +407,6 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
-    var totalHits = 0L;
     List<Annotation> givenAnnotations = new ArrayList<>();
     for (long i = 0; i < 5; i++) {
       String id = PREFIX + "/" + i;
@@ -451,8 +476,9 @@ class ElasticSearchRepositoryIT {
     var annotationNode = MAPPER.createObjectNode();
     annotationNode.put("motivation", annotation.getOaMotivation().toString());
     annotationNode.put("type", annotation.getRdfType());
-    annotationNode.put("AggregateRatingScore", String.valueOf(annotation.getOdsAggregateRating()));
+    annotationNode.set("aggregateRating", MAPPER.valueToTree(annotation.getOdsAggregateRating()));
     annotationNode.set("creator", MAPPER.valueToTree(annotation.getOaCreator()));
+    annotationNode.put("creatorId", annotation.getOaCreator().getOdsId());
     annotationNode.put("created", annotation.getDcTermsCreated().toString());
     annotationNode.put("generated", annotation.getOaGenerated().toString());
     annotationNode.set("target", MAPPER.valueToTree(annotation.getOaTarget()));

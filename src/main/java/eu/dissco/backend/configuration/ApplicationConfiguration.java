@@ -25,7 +25,6 @@ public class ApplicationConfiguration {
     dateModule.addDeserializer(Instant.class, new InstantDeserializer());
     selectorModule.addDeserializer(Selector.class, new SelectorDeserializer());
     mapper.registerModule(dateModule);
-    mapper.registerModule(selectorModule);
     mapper.setSerializationInclusion(Include.NON_NULL);
     return mapper;
   }
