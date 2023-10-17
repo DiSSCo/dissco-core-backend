@@ -474,16 +474,17 @@ class ElasticSearchRepositoryIT {
     objectNode.put("created", annotation.getDcTermsCreated().toString());
     objectNode.put("version", annotation.getOdsVersion());
     var annotationNode = MAPPER.createObjectNode();
-    annotationNode.put("motivation", annotation.getOaMotivation().toString());
-    annotationNode.put("type", annotation.getRdfType());
-    annotationNode.set("aggregateRating", MAPPER.valueToTree(annotation.getOdsAggregateRating()));
-    annotationNode.set("creator", MAPPER.valueToTree(annotation.getOaCreator()));
-    annotationNode.put("creatorId", annotation.getOaCreator().getOdsId());
-    annotationNode.put("created", annotation.getDcTermsCreated().toString());
-    annotationNode.put("generated", annotation.getOaGenerated().toString());
-    annotationNode.set("target", MAPPER.valueToTree(annotation.getOaTarget()));
-    annotationNode.set("body", MAPPER.valueToTree(annotation.getOaBody()));
-    annotationNode.set("generator", MAPPER.valueToTree(annotation.getAsGenerator()));
+    annotationNode.put("ods:id", annotation.getOdsId());
+    annotationNode.put("oa:motivation", annotation.getOaMotivation().toString());
+    annotationNode.put("rdf:type", annotation.getRdfType());
+    annotationNode.put("ods:version", annotation.getOdsVersion());
+    annotationNode.set("schema.org:aggregateRating", MAPPER.valueToTree(annotation.getOdsAggregateRating()));
+    annotationNode.set("oa:creator", MAPPER.valueToTree(annotation.getOaCreator()));
+    annotationNode.put("dcterms:created", annotation.getDcTermsCreated().toString());
+    annotationNode.put("oa:generated", annotation.getOaGenerated().toString());
+    annotationNode.set("oa:target", MAPPER.valueToTree(annotation.getOaTarget()));
+    annotationNode.set("oa:body", MAPPER.valueToTree(annotation.getOaBody()));
+    annotationNode.set("as:generator", MAPPER.valueToTree(annotation.getAsGenerator()));
     objectNode.set("annotation", annotationNode);
     return objectNode;
   }

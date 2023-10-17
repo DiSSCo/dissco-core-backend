@@ -101,33 +101,30 @@ public class ElasticSearchRepository {
 
   private Annotation mapToAnnotationResponse(ObjectNode json) {
     var annotation = json.get("annotation");
-    var createdOn = parseDate(annotation.get(FIELD_CREATED));
-    var generatedOn = parseDate(annotation.get(FIELD_GENERATED));
+    var createdOn = parseDate(annotation.get("dcterms:" + FIELD_CREATED));
+    var generatedOn = parseDate(annotation.get("oa:" + FIELD_GENERATED));
     AggregateRating aggregateRating = null;
     try {
-      if (annotation.get("aggregateRating") != null) {
-        aggregateRating = mapper.treeToValue(annotation.get("aggregateRating"),
+      if (annotation.get("schema.org:aggregateRating") != null) {
+        aggregateRating = mapper.treeToValue(annotation.get("schema.org:aggregateRating"),
             AggregateRating.class);
       }
       return new Annotation()
           .withOdsId(HANDLE_STRING + json.get("id").asText())
-          .withRdfType(annotation.get("type").asText())
+          .withRdfType(annotation.get("rdf:type").asText())
           .withOdsVersion(json.get("version").asInt())
-          .withOaMotivation(mapper.treeToValue(annotation.get("motivation"), Motivation.class))
-          .withOaMotivatedBy(getText(annotation, "motivatedBy"))
-          .withOaTarget(mapper.treeToValue(annotation.get("target"), Target.class))
-          .withOaBody(mapper.treeToValue(annotation.get("body"), Body.class))
-          .withOaCreator(mapper.treeToValue(annotation.get("creator"), Creator.class))
+          .withOaMotivation(Motivation.fromString(annotation.get("oa:motivation").asText()))
+          .withOaMotivatedBy(getText(annotation, "oa:motivatedBy"))
+          .withOaTarget(mapper.treeToValue(annotation.get("oa:target"), Target.class))
+          .withOaBody(mapper.treeToValue(annotation.get("oa:body"), Body.class))
+          .withOaCreator(mapper.treeToValue(annotation.get("oa:creator"), Creator.class))
           .withDcTermsCreated(createdOn)
-          .withOdsDeletedOn(null)
-          .withAsGenerator(mapper.treeToValue(annotation.get("generator"), Generator.class))
+          .withAsGenerator(mapper.treeToValue(annotation.get("as:generator"), Generator.class))
           .withOaGenerated(generatedOn)
           .withOdsAggregateRating(aggregateRating);
-    } catch (JsonProcessingException e){
+    } catch (JsonProcessingException e) {
       throw new DiSSCoElasticMappingException(e);
     }
-
-
   }
 
   private DigitalSpecimenWrapper mapToDigitalSpecimenWrapper(ObjectNode json) {
@@ -169,7 +166,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
-    var fieldName = "annotation.creatorId";
+    var fieldName = "annotation.oa:creator.ods:id";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 
