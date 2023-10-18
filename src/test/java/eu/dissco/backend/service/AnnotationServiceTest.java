@@ -215,7 +215,8 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize + 1, AnnotationUtils.givenAnnotationResponse(ID));
+    var elasticResponse = Collections.nCopies(pageSize + 1,
+        AnnotationUtils.givenAnnotationResponse(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
@@ -249,9 +250,9 @@ class AnnotationServiceTest {
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(false);
     var annotationResponse = givenAnnotationResponse(ID, ORCID);
     var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
-    
+
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    
+
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);
 
@@ -305,13 +306,14 @@ class AnnotationServiceTest {
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
-    var annotationRequest = givenAnnotationRequest();
-    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null);
+    var annotationRequest = givenAnnotationRequest().withOdsId(ID);
+    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null)
+        .withOdsId(ID);
     var annotationResponse = givenAnnotationResponse(ID);
     var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
 
     try (var mockedStatic = mockStatic(Instant.class)) {
-     mockTime(mockedStatic);
+      mockTime(mockedStatic);
 
       given(annotationClient.postAnnotation(annotationToKafkaRequest))
           .willReturn(MAPPER.valueToTree(kafkaResponse));
@@ -436,9 +438,9 @@ class AnnotationServiceTest {
     assertThrowsExactly(NoAnnotationFoundException.class,
         () -> service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
   }
-  
 
-  private void mockTime(MockedStatic<Instant> mockedStatic){
+
+  private void mockTime(MockedStatic<Instant> mockedStatic) {
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     mockedStatic.when(Instant::now).thenReturn(instant);
