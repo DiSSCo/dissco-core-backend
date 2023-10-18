@@ -53,6 +53,7 @@ import org.springframework.stereotype.Repository;
 public class ElasticSearchRepository {
 
   private static final String FIELD_CREATED = "created";
+  private static final String FIELD_CREATED_ANNOTATION = "dcterms:created";
   private static final String DIGITAL_SPECIMEN_WRAPPER = "digitalSpecimenWrapper";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
@@ -93,15 +94,14 @@ public class ElasticSearchRepository {
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
         .index(properties.getAnnotationIndex())
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc))).from(offset)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED_ANNOTATION).order(SortOrder.Desc))).from(offset)
         .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
   }
 
-  private Annotation mapToAnnotationResponse(ObjectNode json) {
-    var annotation = json.get("annotation");
-    var createdOn = parseDate(annotation.get("dcterms:" + FIELD_CREATED));
+  private Annotation mapToAnnotationResponse(ObjectNode annotation) {
+    var createdOn = parseDate(annotation.get(FIELD_CREATED_ANNOTATION));
     var generatedOn = parseDate(annotation.get("oa:" + FIELD_GENERATED));
     AggregateRating aggregateRating = null;
     try {
@@ -110,9 +110,9 @@ public class ElasticSearchRepository {
             AggregateRating.class);
       }
       return new Annotation()
-          .withOdsId(HANDLE_STRING + json.get("id").asText())
+          .withOdsId(HANDLE_STRING + annotation.get("ods:id").asText())
           .withRdfType(annotation.get("rdf:type").asText())
-          .withOdsVersion(json.get("version").asInt())
+          .withOdsVersion(annotation.get("ods:version").asInt())
           .withOaMotivation(Motivation.fromString(annotation.get("oa:motivation").asText()))
           .withOaMotivatedBy(getText(annotation, "oa:motivatedBy"))
           .withOaTarget(mapper.treeToValue(annotation.get("oa:target"), Target.class))
@@ -166,7 +166,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
-    var fieldName = "annotation.oa:creator.ods:id";
+    var fieldName = "oa:creator.ods:id";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 

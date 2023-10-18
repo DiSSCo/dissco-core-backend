@@ -469,12 +469,9 @@ class ElasticSearchRepositoryIT {
   }
 
   private JsonNode annotationToElasticFormat(Annotation annotation) {
-    var objectNode = MAPPER.createObjectNode();
-    objectNode.put("id", annotation.getOdsId());
-    objectNode.put("created", annotation.getDcTermsCreated().toString());
-    objectNode.put("version", annotation.getOdsVersion());
     var annotationNode = MAPPER.createObjectNode();
     annotationNode.put("ods:id", annotation.getOdsId());
+    annotationNode.put("ods:version", annotation.getOdsVersion());
     annotationNode.put("oa:motivation", annotation.getOaMotivation().toString());
     annotationNode.put("rdf:type", annotation.getRdfType());
     annotationNode.put("ods:version", annotation.getOdsVersion());
@@ -485,8 +482,7 @@ class ElasticSearchRepositoryIT {
     annotationNode.set("oa:target", MAPPER.valueToTree(annotation.getOaTarget()));
     annotationNode.set("oa:body", MAPPER.valueToTree(annotation.getOaBody()));
     annotationNode.set("as:generator", MAPPER.valueToTree(annotation.getAsGenerator()));
-    objectNode.set("annotation", annotationNode);
-    return objectNode;
+    return annotationNode;
   }
 
   private BulkResponse postAnnotations(List<JsonNode> annotations) throws IOException {
@@ -494,7 +490,7 @@ class ElasticSearchRepositoryIT {
     for (var annotation : annotations) {
       bulkRequest.operations(
           op -> op.index(
-              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("id").asText())
+              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("ods:id").asText())
                   .document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());
