@@ -315,7 +315,7 @@ class AnnotationServiceTest {
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);
 
-      given(annotationClient.postAnnotation(annotationToKafkaRequest))
+      given(annotationClient.updateAnnotation(annotationToKafkaRequest))
           .willReturn(MAPPER.valueToTree(kafkaResponse));
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 

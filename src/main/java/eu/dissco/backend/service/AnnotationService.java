@@ -82,6 +82,10 @@ public class AnnotationService {
     var user = getUserInformation(userId);
     var annotation = processAnnotation(annotationRequest, user, isUpdate);
     var response = annotationClient.postAnnotation(annotation);
+    return formatResponse(response, path);
+  }
+
+  public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response.get(ANNOTATION));
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
@@ -126,7 +130,10 @@ public class AnnotationService {
       if (annotation.getOdsId() == null) {
         annotation.withOdsId(id);
       }
-      return persistAnnotation(annotation, userId, path, true);
+      var user = getUserInformation(userId);
+      processAnnotation(annotation, user, true);
+      var response = annotationClient.updateAnnotation(annotation);
+      return formatResponse(response, path);
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException(
