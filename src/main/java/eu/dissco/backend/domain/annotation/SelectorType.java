@@ -9,7 +9,7 @@ public enum SelectorType {
 
   private final String state;
 
-  private SelectorType(String s){
+  SelectorType(String s){
     this.state = s;
   }
 

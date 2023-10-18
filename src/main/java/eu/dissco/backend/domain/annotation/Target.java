@@ -36,6 +36,4 @@ public class Target {
     this.oaSelector = oaSelector;
     return this;
   }
-
-
 }

@@ -39,7 +39,7 @@ public class Annotation {
   private Generator asGenerator;
   @JsonProperty("oa:generated")
   private Instant oaGenerated;
-  @JsonProperty("ods:aggregateRating")
+  @JsonProperty("schema.org:aggregateRating")
   private AggregateRating odsAggregateRating;
 
   public Annotation withOdsId(String odsId) {
