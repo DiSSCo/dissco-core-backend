@@ -123,6 +123,9 @@ public class AnnotationService {
       String path) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
+      if (annotation.getOdsId()== null){
+        annotation.withOdsId(id);
+      }
       return persistAnnotation(annotation, userId, path, true);
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
