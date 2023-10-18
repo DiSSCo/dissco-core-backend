@@ -99,16 +99,16 @@ public class AnnotationService {
     return user;
   }
 
-  private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate){
+  private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate) {
     annotationRequest
         .withOaCreator(processCreator(user));
-    if (isUpdate){
+    if (isUpdate) {
       return annotationRequest;
     }
     return annotationRequest.withDcTermsCreated(Instant.now());
   }
 
-  private Creator processCreator(User user){
+  private Creator processCreator(User user) {
     return new Creator()
         .withOdsId(user.orcid())
         .withFoafName(user.firstName() + " " + user.lastName())
@@ -123,7 +123,7 @@ public class AnnotationService {
       String path) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
-      if (annotation.getOdsId()== null){
+      if (annotation.getOdsId() == null) {
         annotation.withOdsId(id);
       }
       return persistAnnotation(annotation, userId, path, true);
