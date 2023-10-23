@@ -87,9 +87,9 @@ public class AnnotationService {
 
   public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
     if (response != null) {
-      var annotationResponse = parseToAnnotation(response.get(ANNOTATION));
+      var annotationResponse = parseToAnnotation(response);
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
-          response.get(ANNOTATION));
+          response);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;

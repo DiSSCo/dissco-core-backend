@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
@@ -89,14 +90,14 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   void testGetForTarget() throws JsonProcessingException {
     // Given
     MAPPER.setSerializationInclusion(Include.ALWAYS);
-    var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, TARGET_ID);
+    var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, ID_ALT);
     List<Annotation> annotations = List.of(expectedResponse,
         givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
         givenAnnotationResponse( PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getForTarget(TARGET_ID);
+    var receivedResponse = repository.getForTarget(ID_ALT);
 
     // Then
     assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));

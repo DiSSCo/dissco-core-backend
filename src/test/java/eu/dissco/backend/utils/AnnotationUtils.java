@@ -47,10 +47,10 @@ public class AnnotationUtils {
   }
 
   public static Annotation givenAnnotationResponse(String annotationId) {
-    return givenAnnotationResponse(annotationId, USER_ID_TOKEN, ID_ALT);
+    return givenAnnotationResponse(annotationId, USER_ID_TOKEN, TARGET_ID);
   }
   public static Annotation givenAnnotationResponse(String annotationId, String userId) {
-    return givenAnnotationResponse(annotationId, userId, ID_ALT);
+    return givenAnnotationResponse(annotationId, userId, TARGET_ID);
   }
 
   public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
@@ -78,7 +78,6 @@ public class AnnotationUtils {
         .withDcTermsCreated(CREATED);
   }
 
-
   public static Annotation givenAnnotationRequest(String targetId) {
     return new Annotation()
         .withOaBody(givenOaBody())
@@ -87,7 +86,7 @@ public class AnnotationUtils {
   }
 
   public static Annotation givenAnnotationRequest() {
-    return givenAnnotationRequest(ID_ALT);
+    return givenAnnotationRequest(TARGET_ID);
   }
 
   public static Body givenOaBody() {
@@ -140,14 +139,6 @@ public class AnnotationUtils {
     );
   }
 
-  public static JsonNode givenKafkaClientAnnotationResponse(Annotation annotationResponse){
-    ObjectNode clientResponse = MAPPER.createObjectNode();
-    clientResponse.put("id", annotationResponse.getOdsId());
-    clientResponse.put("version", annotationResponse.getOdsVersion());
-    clientResponse.set("annotation", MAPPER.valueToTree(annotationResponse));
-    return clientResponse;
-  }
-
   // JsonApiWrapper
 
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
@@ -171,7 +162,7 @@ public class AnnotationUtils {
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
     return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, ID_ALT))));
+        MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
   }
 
   public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path,

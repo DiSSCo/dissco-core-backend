@@ -18,12 +18,12 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
-import static eu.dissco.backend.utils.AnnotationUtils.givenKafkaClientAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenCreator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -248,8 +248,7 @@ class AnnotationServiceTest {
     // Given
     var annotationRequest = givenAnnotationRequest();
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(false);
-    var annotationResponse = givenAnnotationResponse(ID, ORCID);
-    var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
+    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().withOaCreator(givenCreator(ORCID)));
 
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
 
@@ -303,20 +302,19 @@ class AnnotationServiceTest {
   @Test
   void testUpdateAnnotation() throws Exception {
     // Given
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
     given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
 
     var annotationRequest = givenAnnotationRequest().withOdsId(ID);
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null)
         .withOdsId(ID);
-    var annotationResponse = givenAnnotationResponse(ID);
-    var kafkaResponse = givenKafkaClientAnnotationResponse(annotationResponse);
+    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().withOaCreator(givenCreator(ORCID)));
 
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);
 
       given(annotationClient.updateAnnotation(annotationToKafkaRequest))
-          .willReturn(MAPPER.valueToTree(kafkaResponse));
+          .willReturn(kafkaResponse);
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
