@@ -100,28 +100,10 @@ public class ElasticSearchRepository {
         .map(this::mapToAnnotationResponse).toList();
   }
 
-  private Annotation mapToAnnotationResponse(ObjectNode annotation) {
-    var createdOn = parseDate(annotation.get(FIELD_CREATED_ANNOTATION));
-    var generatedOn = parseDate(annotation.get("oa:" + FIELD_GENERATED));
-    AggregateRating aggregateRating = null;
+  private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
     try {
-      if (annotation.get("schema.org:aggregateRating") != null) {
-        aggregateRating = mapper.treeToValue(annotation.get("schema.org:aggregateRating"),
-            AggregateRating.class);
-      }
-      return new Annotation()
-          .withOdsId(HANDLE_STRING + annotation.get("ods:id").asText())
-          .withRdfType(annotation.get("rdf:type").asText())
-          .withOdsVersion(annotation.get("ods:version").asInt())
-          .withOaMotivation(Motivation.fromString(annotation.get("oa:motivation").asText()))
-          .withOaMotivatedBy(getText(annotation, "oa:motivatedBy"))
-          .withOaTarget(mapper.treeToValue(annotation.get("oa:target"), Target.class))
-          .withOaBody(mapper.treeToValue(annotation.get("oa:body"), Body.class))
-          .withOaCreator(mapper.treeToValue(annotation.get("oa:creator"), Creator.class))
-          .withDcTermsCreated(createdOn)
-          .withAsGenerator(mapper.treeToValue(annotation.get("as:generator"), Generator.class))
-          .withOaGenerated(generatedOn)
-          .withOdsAggregateRating(aggregateRating);
+      var annotation = mapper.treeToValue(annotationNode, Annotation.class);
+      return annotation.withOdsId(HANDLE_STRING + annotation.getOdsId());
     } catch (JsonProcessingException e) {
       throw new DiSSCoElasticMappingException(e);
     }
@@ -142,25 +124,6 @@ public class ElasticSearchRepository {
     } catch (JsonProcessingException e) {
       log.error("Unable to parse digital specimen to json: {}", json);
       throw new DiSSCoElasticMappingException(e);
-    }
-  }
-
-  private Instant parseDate(JsonNode instantNode) {
-    if (instantNode.isTextual()) {
-      return Instant.parse(instantNode.asText());
-    } else if (instantNode.isDouble()) {
-      return Instant.ofEpochSecond((long) instantNode.asDouble());
-    }
-    log.error("Cannot parse timestamp of: {}", instantNode);
-    return null;
-  }
-
-  private String getText(JsonNode annotation, String element) {
-    var jsonNode = annotation.get(element);
-    if (jsonNode != null) {
-      return jsonNode.asText();
-    } else {
-      return null;
     }
   }
 

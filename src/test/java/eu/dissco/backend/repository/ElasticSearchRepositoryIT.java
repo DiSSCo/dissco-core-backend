@@ -469,20 +469,7 @@ class ElasticSearchRepositoryIT {
   }
 
   private JsonNode annotationToElasticFormat(Annotation annotation) {
-    var annotationNode = MAPPER.createObjectNode();
-    annotationNode.put("ods:id", annotation.getOdsId());
-    annotationNode.put("ods:version", annotation.getOdsVersion());
-    annotationNode.put("oa:motivation", annotation.getOaMotivation().toString());
-    annotationNode.put("rdf:type", annotation.getRdfType());
-    annotationNode.put("ods:version", annotation.getOdsVersion());
-    annotationNode.set("schema.org:aggregateRating", MAPPER.valueToTree(annotation.getOdsAggregateRating()));
-    annotationNode.set("oa:creator", MAPPER.valueToTree(annotation.getOaCreator()));
-    annotationNode.put("dcterms:created", annotation.getDcTermsCreated().toString());
-    annotationNode.put("oa:generated", annotation.getOaGenerated().toString());
-    annotationNode.set("oa:target", MAPPER.valueToTree(annotation.getOaTarget()));
-    annotationNode.set("oa:body", MAPPER.valueToTree(annotation.getOaBody()));
-    annotationNode.set("as:generator", MAPPER.valueToTree(annotation.getAsGenerator()));
-    return annotationNode;
+    return MAPPER.valueToTree(annotation);
   }
 
   private BulkResponse postAnnotations(List<JsonNode> annotations) throws IOException {

@@ -78,9 +78,9 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId,
-      String path, boolean isUpdate) throws ForbiddenException, JsonProcessingException {
+      String path) throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var annotation = processAnnotation(annotationRequest, user, isUpdate);
+    var annotation = processAnnotation(annotationRequest, user, false);
     var response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }

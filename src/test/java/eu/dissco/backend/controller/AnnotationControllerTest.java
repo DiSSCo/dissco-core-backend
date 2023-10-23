@@ -131,7 +131,7 @@ class AnnotationControllerTest {
 
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH, false))
+    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -149,7 +149,7 @@ class AnnotationControllerTest {
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
-    given(service.persistAnnotation(any(), any(), any(), eq(false))).willReturn(null);
+    given(service.persistAnnotation(any(), any(), any())).willReturn(null);
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);

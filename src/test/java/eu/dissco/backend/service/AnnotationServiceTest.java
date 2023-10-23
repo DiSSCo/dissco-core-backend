@@ -216,8 +216,7 @@ class AnnotationServiceTest {
     String path = SANDBOX_URI + "api/v1/annotations/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize + 1,
-        AnnotationUtils.givenAnnotationResponse(ID));
+    var elasticResponse = Collections.nCopies(pageSize + 1, givenAnnotationResponse(ID));
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
@@ -261,7 +260,7 @@ class AnnotationServiceTest {
 
       //When
       var responseReceived = service.persistAnnotation(annotationRequest, USER_ID_TOKEN,
-          ANNOTATION_PATH, false);
+          ANNOTATION_PATH);
 
       // Then
       assertThat(responseReceived).isEqualTo(expected);
@@ -281,8 +280,7 @@ class AnnotationServiceTest {
       mockTime(mockedStatic);
 
       // When
-      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH,
-          false);
+      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);
 
       // Then
       assertThat(result).isNull();
@@ -296,8 +294,7 @@ class AnnotationServiceTest {
 
     // Then
     assertThrowsExactly(ForbiddenException.class,
-        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH,
-            false));
+        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
   }
 
   @Test

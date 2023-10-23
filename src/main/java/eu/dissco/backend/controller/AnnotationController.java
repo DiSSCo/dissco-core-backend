@@ -97,7 +97,7 @@ public class AnnotationController extends BaseController {
     var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
-    var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request), false);
+    var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {
