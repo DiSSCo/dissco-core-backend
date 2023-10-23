@@ -16,8 +16,9 @@ public interface AnnotationClient {
   @PostMapping(value = "")
   JsonNode postAnnotation(@RequestBody Annotation annotation);
 
-  @PatchMapping(value = "")
-  JsonNode updateAnnotation(@RequestBody Annotation annotation);
+  @PatchMapping(value = "{prefix}/{suffix}")
+  JsonNode updateAnnotation(@PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix, @RequestBody Annotation annotation);
 
   @DeleteMapping(value = "/{prefix}/{suffix}")
   void deleteAnnotation(@PathVariable("prefix") String prefix,

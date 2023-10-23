@@ -165,7 +165,7 @@ class AnnotationControllerTest {
     var annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH)).willReturn(
+    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX, SUFFIX)).willReturn(
         expected);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

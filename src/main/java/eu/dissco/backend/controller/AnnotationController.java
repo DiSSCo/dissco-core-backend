@@ -115,7 +115,7 @@ public class AnnotationController extends BaseController {
     var userId = getNameFromToken(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request));
+    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request), prefix, suffix);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {

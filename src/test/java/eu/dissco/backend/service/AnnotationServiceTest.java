@@ -22,6 +22,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenCreator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import static org.mockito.Mockito.mockStatic;
@@ -313,12 +314,12 @@ class AnnotationServiceTest {
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);
 
-      given(annotationClient.updateAnnotation(annotationToKafkaRequest))
+      given(annotationClient.updateAnnotation(any(), any(), eq(annotationToKafkaRequest)))
           .willReturn(kafkaResponse);
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
-      var result = service.updateAnnotation(ID, annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);
+      var result = service.updateAnnotation(ID, annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX, SUFFIX);
 
       // Then
       assertThat(result).isEqualTo(expected);
@@ -333,7 +334,7 @@ class AnnotationServiceTest {
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
         () -> service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN,
-            ANNOTATION_PATH));
+            ANNOTATION_PATH, PREFIX, SUFFIX));
   }
 
   @Test
