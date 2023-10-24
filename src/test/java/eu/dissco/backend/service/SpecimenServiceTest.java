@@ -41,7 +41,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
-import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.ElasticSearchSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
@@ -64,7 +64,7 @@ class SpecimenServiceTest {
   @Mock
   private SpecimenRepository repository;
   @Mock
-  private ElasticSearchRepository elasticRepository;
+  private ElasticSearchSpecimenRepository elasticRepository;
   @Mock
   private DigitalMediaObjectService digitalMediaObjectService;
   @Mock

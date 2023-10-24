@@ -2,7 +2,6 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.domain.MappingTerms.getAggregationList;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
-import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
@@ -19,23 +18,14 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerms;
-import eu.dissco.backend.domain.annotation.AggregateRating;
-import eu.dissco.backend.domain.annotation.Annotation;
-import eu.dissco.backend.domain.annotation.Body;
-import eu.dissco.backend.domain.annotation.Creator;
-import eu.dissco.backend.domain.annotation.Generator;
-import eu.dissco.backend.domain.annotation.Motivation;
-import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -50,10 +40,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class ElasticSearchRepository {
+public class ElasticSearchSpecimenRepository {
 
   private static final String FIELD_CREATED = "created";
-  private static final String FIELD_CREATED_ANNOTATION = "dcterms:created";
   private static final String DIGITAL_SPECIMEN_WRAPPER = "digitalSpecimenWrapper";
   private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
@@ -88,26 +77,6 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public List<Annotation> getLatestAnnotations(int pageNumber, int pageSize)
-      throws IOException {
-    var offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    var searchRequest = new SearchRequest.Builder()
-        .index(properties.getAnnotationIndex())
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED_ANNOTATION).order(SortOrder.Desc))).from(offset)
-        .size(pageSizePlusOne).build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToAnnotationResponse).toList();
-  }
-
-  private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
-    try {
-      var annotation = mapper.treeToValue(annotationNode, Annotation.class);
-      return annotation.withOdsId(HANDLE_STRING + annotation.getOdsId());
-    } catch (JsonProcessingException e) {
-      throw new DiSSCoElasticMappingException(e);
-    }
-  }
 
   private DigitalSpecimenWrapper mapToDigitalSpecimenWrapper(ObjectNode json) {
     try {
@@ -125,31 +94,6 @@ public class ElasticSearchRepository {
       log.error("Unable to parse digital specimen to json: {}", json);
       throw new DiSSCoElasticMappingException(e);
     }
-  }
-
-  public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
-      int pageNumber, int pageSize) throws IOException {
-    var fieldName = "oa:creator.ods:id";
-    var offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-
-    var searchRequest = SearchRequest.of(sr ->
-        sr.index(properties.getAnnotationIndex())
-            .query(q -> q
-                .match(t -> t
-                    .field(fieldName)
-                    .query(userId)))
-            .trackTotalHits(t -> t.enabled(Boolean.TRUE))
-            .from(offset)
-            .size(pageSizePlusOne));
-    var searchResult = client.search(searchRequest, ObjectNode.class);
-    if (searchResult.hits().total() != null) {
-      var totalHits = searchResult.hits().total().value();
-      var annotations = searchResult.hits().hits().stream().map(Hit::source)
-          .map(this::mapToAnnotationResponse).toList();
-      return Pair.of(totalHits, annotations);
-    }
-    return Pair.of(0L, new ArrayList<>());
   }
 
   public Pair<Long, List<DigitalSpecimenWrapper>> search(Map<String, List<String>> params,

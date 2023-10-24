@@ -20,7 +20,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
-import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.ElasticSearchSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -58,7 +58,7 @@ public class SpecimenService {
       "ac", "https://rs.tdwg.org/ac/terms/");
   private final ObjectMapper mapper;
   private final SpecimenRepository repository;
-  private final ElasticSearchRepository elasticRepository;
+  private final ElasticSearchSpecimenRepository elasticRepository;
   private final DigitalMediaObjectService digitalMediaObjectService;
   private final MachineAnnotationServiceService masService;
   private final AnnotationService annotationService;

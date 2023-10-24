@@ -39,10 +39,11 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
-import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.ElasticSearchAnnotationRepository;
+import eu.dissco.backend.repository.ElasticSearchSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.utils.AnnotationUtils;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
@@ -71,18 +72,20 @@ class AnnotationServiceTest {
   @Mock
   private AnnotationClient annotationClient;
   @Mock
-  private ElasticSearchRepository elasticRepository;
+  private ElasticSearchAnnotationRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
   @Mock
   private UserService userService;
+  @Mock
+  private ApplicationProperties applicationProperties;
   private AnnotationService service;
 
 
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER, formatter);
+        mongoRepository, userService, MAPPER, applicationProperties);
   }
 
   @Test

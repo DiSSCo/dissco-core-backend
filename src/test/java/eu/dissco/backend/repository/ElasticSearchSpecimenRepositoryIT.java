@@ -50,7 +50,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
-class ElasticSearchRepositoryIT {
+class ElasticSearchSpecimenRepositoryIT {
 
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
       "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.7.1");
@@ -64,7 +64,7 @@ class ElasticSearchRepositoryIT {
   private static ElasticsearchClient client;
   private static RestClient restClient;
   private final ElasticSearchProperties properties = new ElasticSearchProperties();
-  private ElasticSearchRepository repository;
+  private ElasticSearchSpecimenRepository repository;
 
   @BeforeAll
   static void initContainer() {
@@ -107,7 +107,7 @@ class ElasticSearchRepositoryIT {
 
   @BeforeEach
   void initRepository() {
-    repository = new ElasticSearchRepository(client, MAPPER, properties);
+    repository = new ElasticSearchSpecimenRepository(client, MAPPER, properties);
   }
 
   @AfterEach

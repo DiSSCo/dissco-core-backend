@@ -9,6 +9,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidAuthenticationException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.AnnotationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -93,7 +95,7 @@ public class AnnotationController extends BaseController {
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException {
+      throws JsonProcessingException, ForbiddenException, PidAuthenticationException, PidCreationException {
     var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);

@@ -10,6 +10,7 @@ import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -19,12 +20,15 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidAuthenticationException;
+import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
-import eu.dissco.backend.repository.ElasticSearchRepository;
+import eu.dissco.backend.repository.ElasticSearchAnnotationRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.web.HandleComponent;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +46,13 @@ public class AnnotationService {
 
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
-  private final ElasticSearchRepository elasticRepository;
+  private final ElasticSearchAnnotationRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final UserService userService;
   private final ObjectMapper mapper;
-  private final DateTimeFormatter formatter;
+  private final ApplicationProperties applicationProperties;
+  private final HandleComponent handleComponent;
+  private final FdoRecordService fdoRecordService;
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
@@ -78,14 +84,19 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId,
-      String path) throws ForbiddenException, JsonProcessingException {
+      String path)
+      throws ForbiddenException, JsonProcessingException, PidAuthenticationException, PidCreationException {
     var user = getUserInformation(userId);
-    var annotation = processAnnotation(annotationRequest, user, false);
+    var annotation = enrichNewAnnotation(annotationRequest, user);
+    var handleRequest = fdoRecordService.buildPostHandleRequest(annotation);
+    var a = handleComponent.postHandle(handleRequest);
+
     var response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
+  public JsonApiWrapper formatResponse(JsonNode response, String path)
+      throws JsonProcessingException {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response);
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
@@ -103,13 +114,31 @@ public class AnnotationService {
     return user;
   }
 
-  private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate) {
-    annotationRequest
-        .withOaCreator(processCreator(user));
-    if (isUpdate) {
-      return annotationRequest;
-    }
-    return annotationRequest.withDcTermsCreated(Instant.now());
+  private Annotation enrichNewAnnotation(Annotation annotationRequest, User user) {
+    var timestamp = Instant.now();
+    return annotationRequest
+        .withOaCreator(processCreator(user))
+        .withAsGenerator(createGenerator())
+        .withDcTermsCreated(timestamp)
+        .withOaGenerated(timestamp)
+        .withOdsVersion(1);
+  }
+
+  private void enrichUpdateAnnotation(Annotation annotation, Annotation currentAnnotation) {
+    annotation
+        .withOaCreator(currentAnnotation.getOaCreator())
+        .withAsGenerator(currentAnnotation.getAsGenerator())
+        .withOdsVersion(currentAnnotation.getOdsVersion() + 1)
+        .withOdsId(currentAnnotation.getOdsId())
+        .withDcTermsCreated(currentAnnotation.getDcTermsCreated())
+        .withOaGenerated(currentAnnotation.getOaGenerated());
+  }
+
+  private Generator createGenerator() {
+    return new Generator()
+        .withOdsId(applicationProperties.getGeneratorHandle())
+        .withFoafName("Annotation Processing Service")
+        .withOdsType("tool/Software");
   }
 
   private Creator processCreator(User user) {
@@ -124,14 +153,15 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
-      String path, String prefix, String suffix) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
+      String path, String prefix, String suffix)
+      throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
       if (annotation.getOdsId() == null) {
         annotation.withOdsId(id);
       }
       var user = getUserInformation(userId);
-      processAnnotation(annotation, user, true);
+      enrichNewAnnotation(annotation, user, );
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {

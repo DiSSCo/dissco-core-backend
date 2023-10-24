@@ -13,4 +13,8 @@ public class ApplicationProperties {
   @NotBlank
   private String baseUrl;
 
+  // Would this generator handle be different from the processing service handle?
+  @NotBlank
+  private String generatorHandle;
+
 }

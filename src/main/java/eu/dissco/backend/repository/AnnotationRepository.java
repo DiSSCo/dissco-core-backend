@@ -13,10 +13,13 @@ import eu.dissco.backend.domain.annotation.Creator;
 import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.annotation.Motivation;
 import eu.dissco.backend.domain.annotation.Target;
+import eu.dissco.backend.exceptions.DatabaseException;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.jooq.JSONB;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
@@ -59,6 +62,69 @@ public class AnnotationRepository {
         .where(ANNOTATION.TARGET_ID.eq(id))
         .and(ANNOTATION.DELETED_ON.isNull())
         .fetch(this::mapToAnnotation);
+  }
+
+  public void createAnnotationRecord(Annotation annotation) {
+    try {
+      context.insertInto(ANNOTATION).set(ANNOTATION.ID, annotation.getOdsId())
+          .set(ANNOTATION.VERSION, annotation.getOdsVersion())
+          .set(ANNOTATION.TYPE, annotation.getRdfType())
+          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
+          .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
+          .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
+          .set(ANNOTATION.TARGET, JSONB.jsonb(mapper.writeValueAsString(annotation.getOaTarget())))
+          .set(ANNOTATION.BODY, JSONB.jsonb(mapper.writeValueAsString(annotation.getOaBody())))
+          .set(ANNOTATION.AGGREGATE_RATING,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getOdsAggregateRating())))
+          .set(ANNOTATION.CREATOR,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getOaCreator())))
+          .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
+          .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
+          .set(ANNOTATION.GENERATOR,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getAsGenerator())))
+          .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+          .onConflict(ANNOTATION.ID).doUpdate()
+          .set(ANNOTATION.VERSION, annotation.getOdsVersion())
+          .set(ANNOTATION.TYPE, annotation.getRdfType())
+          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
+          .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
+          .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
+          .set(ANNOTATION.TARGET, JSONB.jsonb(mapper.writeValueAsString(annotation.getOaTarget())))
+          .set(ANNOTATION.BODY, JSONB.jsonb(mapper.writeValueAsString(annotation.getOaBody())))
+          .set(ANNOTATION.AGGREGATE_RATING,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getOdsAggregateRating())))
+          .set(ANNOTATION.CREATOR,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getOaCreator())))
+          .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
+          .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
+          .set(ANNOTATION.GENERATOR,
+              JSONB.jsonb(mapper.writeValueAsString(annotation.getAsGenerator())))
+          .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+          .execute();
+    } catch (JsonProcessingException e) {
+      log.error("Failed to post data to database, unable to parse JSON to JSONB", e);
+      throw new DatabaseException(e.getMessage());
+    }
+  }
+
+  public int updateLastChecked(Annotation currentAnnotation) {
+    return context.update(ANNOTATION)
+        .set(ANNOTATION.LAST_CHECKED, Instant.now())
+        .where(ANNOTATION.ID.eq(currentAnnotation.getOdsId()))
+        .execute();
+  }
+
+  public void archiveAnnotation(String id) {
+    context.update(ANNOTATION)
+        .set(ANNOTATION.DELETED_ON, Instant.now())
+        .where(ANNOTATION.ID.eq(id))
+        .execute();
+  }
+
+  public void rollbackAnnotation(String id) {
+    context.delete(ANNOTATION).where(ANNOTATION.ID.eq(id)).execute();
   }
 
   private Annotation mapToAnnotation(Record dbRecord) {
