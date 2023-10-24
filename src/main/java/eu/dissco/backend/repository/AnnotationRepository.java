@@ -47,13 +47,13 @@ public class AnnotationRepository {
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public int getAnnotationForUser(String id, String userId) {
+  public Annotation getAnnotationForUser(String id, String userId) {
     return context.select(ANNOTATION.ID)
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
         .and(ANNOTATION.CREATOR_ID.eq(userId))
         .and(ANNOTATION.DELETED_ON.isNull())
-        .fetch().size();
+        .fetchOne(this::mapToAnnotation);
   }
 
   public List<Annotation> getForTarget(String id) {

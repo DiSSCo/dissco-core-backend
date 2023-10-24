@@ -23,6 +23,7 @@
     <springdoc.version>2.2.0</springdoc.version>
     <kafka.version>3.5.1</kafka.version>
     <snappy-java.version>1.1.10.5</snappy-java.version>
+    <json-patch.version>1.13</json-patch.version>
     <mongodb-driver.version>3.12.14</mongodb-driver.version>
     <testcontainers.version>1.19.0</testcontainers.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
@@ -102,6 +103,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jooq</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.java-json-tools</groupId>
+      <artifactId>json-patch</artifactId>
+      <version>${json-patch.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>

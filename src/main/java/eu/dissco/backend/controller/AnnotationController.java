@@ -6,6 +6,7 @@ import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.FailedProcessingException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -95,7 +96,7 @@ public class AnnotationController extends BaseController {
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException, PidAuthenticationException, PidCreationException {
+      throws JsonProcessingException, ForbiddenException, PidCreationException, FailedProcessingException {
     var annotation = getAnnotationFromRequest(requestBody);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
@@ -112,12 +113,12 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> updateAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request)
-      throws NoAnnotationFoundException, JsonProcessingException, ForbiddenException {
+      throws NoAnnotationFoundException, JsonProcessingException, FailedProcessingException, PidCreationException {
     var id = prefix + '/' + suffix;
     var userId = getNameFromToken(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
     log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request), prefix, suffix);
+    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {

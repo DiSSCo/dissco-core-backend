@@ -2,6 +2,9 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,10 +20,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.FailedProcessingException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidAuthenticationException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -53,6 +56,7 @@ public class AnnotationService {
   private final ApplicationProperties applicationProperties;
   private final HandleComponent handleComponent;
   private final FdoRecordService fdoRecordService;
+  private final KafkaPublisherService kafkaService;
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
@@ -83,27 +87,149 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId,
-      String path)
-      throws ForbiddenException, JsonProcessingException, PidAuthenticationException, PidCreationException {
+  public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId, String path)
+      throws ForbiddenException, PidCreationException, FailedProcessingException {
     var user = getUserInformation(userId);
     var annotation = enrichNewAnnotation(annotationRequest, user);
     var handleRequest = fdoRecordService.buildPostHandleRequest(annotation);
-    var a = handleComponent.postHandle(handleRequest);
-
-    var response = annotationClient.postAnnotation(annotation);
-    return formatResponse(response, path);
+    var id = handleComponent.postHandle(handleRequest);
+    annotation.withOdsId(id);
+    log.info("New id has been generated for Annotation: {}", annotation.getOdsId());
+    repository.createAnnotationRecord(annotation);
+    log.info("Annotation: {} has been successfully committed to database", id);
+    indexNewAnnotation(annotation, id);
+    log.info("Annotation: {} has been successfully indexed in elastic", id);
+    return formatResponse(annotation, path);
   }
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path)
-      throws JsonProcessingException {
-    if (response != null) {
-      var annotationResponse = parseToAnnotation(response);
-      var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
-          response);
-      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
+      String path)
+      throws NoAnnotationFoundException, PidCreationException, FailedProcessingException {
+    var currentAnnotation = repository.getAnnotationForUser(id, userId);
+    if (currentAnnotation == null) {
+      log.error("No active annotation with id: {} found for user: {}", id, userId);
+      throw new NoAnnotationFoundException(
+          "Unable to locate annotation " + id + " for user " + userId);
     }
-    return null;
+    enrichUpdateAnnotation(annotation, currentAnnotation);
+    filterUpdatesAndUpdateHandleRecord(currentAnnotation, annotation);
+    repository.createAnnotationRecord(annotation);
+    log.info("Annotation: {} has been successfully committed to database", id);
+    indexUpdatedAnnotation(annotation, currentAnnotation);
+    log.info("Annotation: {} has been successfully indexed in elastic", id);
+    return formatResponse(annotation, path);
+  }
+
+
+  private void indexNewAnnotation(Annotation annotation, String id)
+      throws FailedProcessingException {
+    IndexResponse indexDocument = null;
+    try {
+      indexDocument = elasticRepository.indexAnnotation(annotation);
+    } catch (IOException | ElasticsearchException e) {
+      log.error("Rolling back, failed to insert records in elastic", e);
+      rollbackNewAnnotation(annotation, false);
+    }
+    if (indexDocument.result().equals(Result.Created)) {
+      log.info("Annotation: {} has been successfully indexed", id);
+      try {
+        kafkaService.publishCreateEvent(annotation);
+      } catch (JsonProcessingException e) {
+        rollbackNewAnnotation(annotation, true);
+      }
+    } else {
+      log.error("Elasticsearch did not create annotation: {}", id);
+      throw new FailedProcessingException();
+    }
+  }
+
+  private void indexUpdatedAnnotation(Annotation annotation, Annotation currentAnnotation)
+      throws FailedProcessingException {
+    IndexResponse indexDocument = null;
+    try {
+      indexDocument = elasticRepository.indexAnnotation(annotation);
+    } catch (IOException | ElasticsearchException e) {
+      log.error("Rolling back, failed to insert records in elastic", e);
+      rollbackUpdatedAnnotation(currentAnnotation, annotation, false);
+    }
+    if (indexDocument.result().equals(Result.Updated)) {
+      log.info("Annotation: {} has been successfully indexed", currentAnnotation.getOdsId());
+      try {
+        kafkaService.publishUpdateEvent(currentAnnotation, annotation);
+      } catch (JsonProcessingException e) {
+        rollbackUpdatedAnnotation(currentAnnotation, annotation, true);
+      }
+    }
+  }
+
+  private void rollbackUpdatedAnnotation(Annotation currentAnnotation, Annotation annotation,
+      boolean elasticRollback) throws FailedProcessingException {
+    if (elasticRollback) {
+      try {
+        elasticRepository.indexAnnotation(currentAnnotation);
+      } catch (IOException | ElasticsearchException e) {
+        log.error("Fatal exception, unable to rollback update for: {}", annotation, e);
+      }
+    }
+    repository.createAnnotationRecord(currentAnnotation);
+    filterUpdatesAndRollbackHandleUpdateRecord(currentAnnotation, annotation);
+    throw new FailedProcessingException();
+  }
+
+
+  private void filterUpdatesAndRollbackHandleUpdateRecord(Annotation currentAnnotation,
+      Annotation annotation) {
+    if (!fdoRecordService.handleNeedsUpdate(currentAnnotation, annotation)) {
+      return;
+    }
+    var requestBody = fdoRecordService.buildPatchRollbackHandleRequest(annotation,
+        currentAnnotation.getOdsId());
+    try {
+      handleComponent.rollbackHandleUpdate(requestBody);
+    } catch (PidCreationException e) {
+      log.error("Unable to rollback handle update for annotation {}", currentAnnotation.getOdsId(),
+          e);
+    }
+  }
+
+  private void rollbackNewAnnotation(Annotation annotation, boolean elasticRollback)
+      throws FailedProcessingException {
+    log.warn("Rolling back for annotation: {}", annotation);
+    if (elasticRollback) {
+      try {
+        elasticRepository.archiveAnnotation(annotation.getOdsId());
+      } catch (IOException | ElasticsearchException e) {
+        log.info("Fatal exception, unable to rollback: {}", annotation.getOdsId(), e);
+      }
+    }
+    repository.rollbackAnnotation(annotation.getOdsId());
+    rollbackHandleCreation(annotation);
+    throw new FailedProcessingException();
+  }
+
+  private void rollbackHandleCreation(Annotation annotation) {
+    var requestBody = fdoRecordService.buildRollbackCreationRequest(annotation);
+    try {
+      handleComponent.rollbackHandleCreation(requestBody);
+    } catch (PidCreationException e) {
+      log.error("Unable to rollback creation for annotation {}", annotation.getOdsId(), e);
+    }
+  }
+
+  private void filterUpdatesAndUpdateHandleRecord(Annotation currentAnnotation,
+      Annotation annotation) throws PidCreationException {
+    if (!fdoRecordService.handleNeedsUpdate(currentAnnotation, annotation)) {
+      return;
+    }
+    var requestBody = fdoRecordService.buildPatchRollbackHandleRequest(annotation,
+        currentAnnotation.getOdsId());
+    handleComponent.updateHandle(requestBody);
+  }
+
+  public JsonApiWrapper formatResponse(Annotation annotation, String path) {
+    var dataNode = new JsonApiData(annotation.getOdsId(), ANNOTATION,
+        mapper.valueToTree(annotation));
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   private User getUserInformation(String userId) throws ForbiddenException {
@@ -148,29 +274,6 @@ public class AnnotationService {
         .withOdsType("ORCID");
   }
 
-  private Annotation parseToAnnotation(JsonNode response) throws JsonProcessingException {
-    return mapper.treeToValue(response, Annotation.class);
-  }
-
-  public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
-      String path, String prefix, String suffix)
-      throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
-    var result = repository.getAnnotationForUser(id, userId);
-    if (result > 0) {
-      if (annotation.getOdsId() == null) {
-        annotation.withOdsId(id);
-      }
-      var user = getUserInformation(userId);
-      enrichNewAnnotation(annotation, user, );
-      var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
-      return formatResponse(response, path);
-    } else {
-      log.info("No active annotation with id: {} found for user: {}", id, userId);
-      throw new NoAnnotationFoundException(
-          "No active annotation with id: " + id + " was found for user");
-    }
-  }
-
   public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
       int pageSize, String path) throws IOException {
     var elasticSearchResults = elasticRepository.getAnnotationsForCreator(userId, pageNumber,
@@ -189,7 +292,7 @@ public class AnnotationService {
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
     var result = repository.getAnnotationForUser(id, userId);
-    if (result > 0) {
+    if (result != null) {
       annotationClient.deleteAnnotation(prefix, suffix);
       return true;
     } else {

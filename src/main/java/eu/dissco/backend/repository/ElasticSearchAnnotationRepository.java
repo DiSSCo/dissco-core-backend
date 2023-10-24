@@ -6,6 +6,8 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch.core.DeleteResponse;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,6 +33,7 @@ public class ElasticSearchAnnotationRepository {
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
+
 
   public List<Annotation> getLatestAnnotations(int pageNumber, int pageSize)
       throws IOException {
@@ -67,6 +70,18 @@ public class ElasticSearchAnnotationRepository {
       return Pair.of(totalHits, annotations);
     }
     return Pair.of(0L, new ArrayList<>());
+  }
+
+  public IndexResponse indexAnnotation(Annotation annotation) throws IOException {
+    return client.index(
+        idx -> idx.index(properties.getAnnotationIndex()).id(annotation.getOdsId())
+            .document(annotation));
+  }
+
+  public DeleteResponse archiveAnnotation(String id) throws IOException {
+    return client.delete(
+        req -> req.index(properties.getAnnotationIndex()).id(id)
+    );
   }
 
   private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {

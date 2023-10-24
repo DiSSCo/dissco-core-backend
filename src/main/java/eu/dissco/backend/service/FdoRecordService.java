@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class FdoRecordService {
 
   private final ObjectMapper mapper;
-
   private static final String ATTRIBUTES = "attributes";
   private static final String DATA = "data";
   private static final String ID = "id";

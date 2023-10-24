@@ -1,7 +1,6 @@
 package eu.dissco.backend.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.exceptions.PidAuthenticationException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.TokenProperties;
 import java.nio.charset.StandardCharsets;

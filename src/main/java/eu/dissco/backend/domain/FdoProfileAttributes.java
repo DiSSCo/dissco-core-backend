@@ -1,28 +1,31 @@
 package eu.dissco.backend.domain;
 
 public enum FdoProfileAttributes {
-  // Handle: 1-19
-  FDO_PROFILE("fdoProfile"),
-  DIGITAL_OBJECT_TYPE("digitalObjectType"),
-  ISSUED_FOR_AGENT("issuedForAgent"),
-  REFERENT_NAME("referentName"),
-  SPECIMEN_HOST("specimenHost"),
-  SPECIMEN_HOST_NAME("specimenHostName"),
-  PRIMARY_SPECIMEN_OBJECT_ID("primarySpecimenObjectId"),
-  PRIMARY_SPECIMEN_OBJECT_ID_TYPE("primarySpecimenObjectIdType"),
-  NORMALISED_PRIMARY_SPECIMEN_OBJECT_ID("normalisedPrimarySpecimenObjectId"),
-  TOPIC_DISCIPLINE("topicDiscipline"),
-  LIVING_OR_PRESERVED("livingOrPreserved"),
-  MARKED_AS_TYPE("markedAsType"),
-  SOURCE_SYSTEM_ID("sourceSystemId");
+  TYPE("type", "annotation"),
+  FDO_PROFILE("fdoProfile", "https://hdl.handle.net/21.T11148/64396cf36b976ad08267"),
+  DIGITAL_OBJECT_TYPE("digitalObjectType", "https://hdl.handle.net/21.T11148/64396cf36b976ad08267"),
+  // Issued for agent should be DiSSCo PID; currently it's set as Naturalis's ROR
+  ISSUED_FOR_AGENT("issuedForAgent", "https://ror.org/0566bfb96"),
+  SUBJECT_ID("subjectDigitalObjectId", null),
+  ANNOTATION_TOPIC("annotationTopic", null),
+  REPLACE_OR_APPEND("replaceOrAppend", null),
+  ACCESS_RESTRICTED("accessRestricted", null),
+  LINKED_OBJECT_URL("linkedObjectUrl", null);
+
 
   private final String attribute;
+  private final String defaultValue;
 
-  FdoProfileAttributes(String attribute) {
+  private FdoProfileAttributes(String attribute, String defaultValue) {
     this.attribute = attribute;
+    this.defaultValue = defaultValue;
   }
 
   public String getAttribute() {
-    return this.attribute;
+    return attribute;
+  }
+
+  public String getDefaultValue() {
+    return defaultValue;
   }
 }

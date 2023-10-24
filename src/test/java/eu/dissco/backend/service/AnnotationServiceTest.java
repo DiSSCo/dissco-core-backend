@@ -42,8 +42,8 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchAnnotationRepository;
-import eu.dissco.backend.repository.ElasticSearchSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.web.HandleComponent;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
@@ -79,13 +79,17 @@ class AnnotationServiceTest {
   private UserService userService;
   @Mock
   private ApplicationProperties applicationProperties;
+  @Mock
+  private HandleComponent handleComponent;
+  @Mock
+  private FdoRecordService fdoRecordService;
   private AnnotationService service;
 
 
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER, applicationProperties);
+        mongoRepository, userService, MAPPER, applicationProperties, handleComponent, fdoRecordService);
   }
 
   @Test
@@ -319,7 +323,7 @@ class AnnotationServiceTest {
       given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
       // When
-      var result = service.updateAnnotation(ID, annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX, SUFFIX);
+      var result = service.updateAnnotation(ID, annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);
 
       // Then
       assertThat(result).isEqualTo(expected);
@@ -334,7 +338,7 @@ class AnnotationServiceTest {
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
         () -> service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN,
-            ANNOTATION_PATH, PREFIX, SUFFIX));
+            ANNOTATION_PATH));
   }
 
   @Test
