@@ -34,54 +34,57 @@ public class HandleComponent {
   private final WebClient handleClient;
   private final TokenAuthenticator tokenAuthenticator;
 
-  private static final String UNEXPECTED_MSG = "Unexpected response from handle API";
-  private static final String UNEXPECTED_LOG = "Unexpected response from Handle API. Missing id and/or primarySpecimenObjectId. Response: {}";
+  private static final String UNEXPECTED_MSG = "Unexpected response from handle API.";
 
-  public Map<String, String> postHandle(List<JsonNode> request)
-      throws PidAuthenticationException, PidCreationException {
-    log.info("Posting Digital Specimens to Handle API");
+  public String postHandle(List<JsonNode> request)
+      throws PidCreationException {
     var requestBody = BodyInserters.fromValue(request);
-    var response = sendRequest(HttpMethod.PATCH, requestBody, "upsert");
-    var responseJsonNode = getFutureResponse(response);
-    return getHandleName(responseJsonNode);
+    var response = sendRequest(HttpMethod.POST, requestBody, "batch");
+    var responseJson = validateResponse(response);
+    return getHandleName(responseJson);
+  }
+
+  public void updateHandle(List<JsonNode> request)
+      throws PidCreationException {
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.PATCH, requestBody, "");
+    validateResponse(response);
   }
 
   public void rollbackHandleCreation(JsonNode request)
-      throws PidCreationException, PidAuthenticationException {
-    log.info("Rolling back handle creation");
+      throws PidCreationException {
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback");
-    getFutureResponse(response);
+    validateResponse(response);
   }
 
   public void rollbackHandleUpdate(List<JsonNode> request)
-      throws PidCreationException, PidAuthenticationException {
-    log.info("Rolling back handle update");
+      throws PidCreationException {
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback/update");
-    getFutureResponse(response);
+    validateResponse(response);
   }
 
-  public void rollbackFromPhysId(List<String> physIds) {
-    log.info("Rolling back handles from phys ids");
-    try {
-      var requestBody = BodyInserters.fromValue(physIds);
-      sendRequest(HttpMethod.DELETE, requestBody, "rollback/physId");
-    } catch (PidAuthenticationException e) {
-      log.error("Unable to rollback handles based on physical identifier: {}", physIds);
-    }
+  public void archiveHandle(JsonNode request, String handle) throws PidCreationException {
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.PUT, requestBody, handle);
+    validateResponse(response);
   }
 
   private <T> Mono<JsonNode> sendRequest(HttpMethod httpMethod,
       BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint)
-      throws PidAuthenticationException {
+      throws PidCreationException {
     var token = "Bearer " + tokenAuthenticator.getToken();
-    return handleClient.method(httpMethod)
+    return handleClient
+        .method(httpMethod)
         .uri(uriBuilder -> uriBuilder.path(endpoint).build())
-        .body(requestBody).header("Authorization", token)
-        .acceptCharset(StandardCharsets.UTF_8).retrieve()
-        .onStatus(HttpStatus.UNAUTHORIZED::equals, r -> Mono.error(
-            new PidAuthenticationException("Unable to authenticate with Handle Service.")))
+        .body(requestBody)
+        .header("Authorization", token)
+        .acceptCharset(StandardCharsets.UTF_8)
+        .retrieve()
+        .onStatus(HttpStatus.UNAUTHORIZED::equals,
+            r -> Mono.error(
+                new PidCreationException("Unable to authenticate with Handle Service.")))
         .onStatus(HttpStatusCode::is4xxClientError, r -> Mono.error(new PidCreationException(
             "Unable to create PID. Response from Handle API: " + r.statusCode())))
         .bodyToMono(JsonNode.class).retryWhen(
@@ -90,8 +93,7 @@ public class HandleComponent {
                     "External Service failed to process after max retries")));
   }
 
-  private JsonNode getFutureResponse(Mono<JsonNode> response)
-      throws PidCreationException, PidAuthenticationException {
+  private JsonNode validateResponse(Mono<JsonNode> response) throws PidCreationException {
     try {
       return response.toFuture().get();
     } catch (InterruptedException e) {
@@ -100,38 +102,16 @@ public class HandleComponent {
       throw new PidCreationException(
           "Interrupted execution: A connection error has occurred in creating a handle.");
     } catch (ExecutionException e) {
-      if (e.getCause().getClass().equals(PidAuthenticationException.class)) {
-        log.error(
-            "Token obtained from Keycloak not accepted by Handle Server. Check Keycloak configuration.");
-        throw new PidAuthenticationException(e.getCause().getMessage());
-      }
-      log.error("An unexpected exception has occurred while reading handle API response", e);
+      log.error("PID creation failed.", e.getCause());
       throw new PidCreationException(e.getCause().getMessage());
     }
   }
 
-  private HashMap<String, String> getHandleName(JsonNode handleResponse)
-      throws PidCreationException {
+  private String getHandleName(JsonNode jsonResponse) throws PidCreationException {
     try {
-      var dataNode = handleResponse.get("data");
-      HashMap<String, String> handleNames = new HashMap<>();
-      if (!dataNode.isArray()) {
-        log.error(UNEXPECTED_LOG, handleResponse.toPrettyString());
-        throw new PidCreationException(UNEXPECTED_MSG);
-      }
-      for (var node : dataNode) {
-        var handle = node.get("id");
-        var primarySpecimenObjectId = node.get("attributes")
-            .get(PRIMARY_SPECIMEN_OBJECT_ID.getAttribute());
-        if (handle == null || primarySpecimenObjectId == null) {
-          log.error(UNEXPECTED_LOG, handleResponse.toPrettyString());
-          throw new PidCreationException(UNEXPECTED_MSG);
-        }
-        handleNames.put(primarySpecimenObjectId.asText(), handle.asText());
-      }
-      return handleNames;
+      return jsonResponse.get("data").get(0).get("id").asText();
     } catch (NullPointerException e) {
-      log.error(UNEXPECTED_LOG, handleResponse.toPrettyString());
+      log.error(UNEXPECTED_MSG + " Response: {}", jsonResponse.toPrettyString());
       throw new PidCreationException(UNEXPECTED_MSG);
     }
   }

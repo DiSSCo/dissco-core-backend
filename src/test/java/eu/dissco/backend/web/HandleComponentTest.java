@@ -1,26 +1,23 @@
 package eu.dissco.backend.web;
 
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.domain.FdoProfileAttributes.PRIMARY_SPECIMEN_OBJECT_ID;
-import static eu.dissco.backend.utils.HandleUtils.givenHandleRequest;
-import static eu.dissco.backend.utils.HandleUtils.givenHandleRequestFullTypeStatus;
-import static eu.dissco.backend.utils.HandleUtils.givenHandleRequestMin;
+import static eu.dissco.backend.utils.HandleUtils.givenPostRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.exceptions.PidAuthenticationException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.exceptions.PidCreationException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -30,21 +27,16 @@ import okhttp3.mockwebserver.MockWebServer;
 
 @ExtendWith(MockitoExtension.class)
 class HandleComponentTest {
-
-  private static MockWebServer mockHandleServer;
   @Mock
   private TokenAuthenticator tokenAuthenticator;
   private HandleComponent handleComponent;
+
+  private static MockWebServer mockHandleServer;
 
   @BeforeAll
   static void init() throws IOException {
     mockHandleServer = new MockWebServer();
     mockHandleServer.start();
-  }
-
-  @AfterAll
-  static void destroy() throws IOException {
-    mockHandleServer.shutdown();
   }
 
   @BeforeEach
@@ -55,13 +47,17 @@ class HandleComponentTest {
 
   }
 
+  @AfterAll
+  static void destroy() throws IOException {
+    mockHandleServer.shutdown();
+  }
+
   @Test
   void testPostHandle() throws Exception {
     // Given
-    var requestBody = List.of(givenHandleRequestFullTypeStatus());
-    var responseBody = givenHandleRequest();
-    var expected = givenHandleNameResponse(responseBody);
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    var requestBody = givenPostRequest();
+    var responseBody = givenHandleResponse();
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
 
@@ -69,26 +65,25 @@ class HandleComponentTest {
     var response = handleComponent.postHandle(requestBody);
 
     // Then
-    assertThat(response).isEqualTo(expected);
+    assertThat(response).isEqualTo(ID);
   }
 
   @Test
   void testUnauthorized() throws Exception {
     // Given
-    var requestBody = List.of(givenHandleRequestFullTypeStatus());
+    var requestBody = givenPostRequest();
 
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.UNAUTHORIZED.value())
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidAuthenticationException.class, () -> handleComponent.postHandle(requestBody));
+    assertThrows(PidCreationException.class, () -> handleComponent.postHandle(requestBody));
   }
 
   @Test
   void testBadRequest() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
+    var requestBody = givenPostRequest();
 
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
         .addHeader("Content-Type", "application/json"));
@@ -100,14 +95,13 @@ class HandleComponentTest {
   @Test
   void testRetriesSuccess() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
-    var responseBody = givenHandleRequest();
-    var expected = givenHandleNameResponse(responseBody);
+    var requestBody = givenPostRequest();
+    var responseBody = givenHandleResponse();
+    var expected = ID;
     int requestCount = mockHandleServer.getRequestCount();
 
     mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
 
@@ -117,21 +111,6 @@ class HandleComponentTest {
     // Then
     assertThat(response).isEqualTo(expected);
     assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(2);
-  }
-
-  @Test
-  void testRollbackFromPhysId() {
-    // Then
-    assertDoesNotThrow(() -> handleComponent.rollbackFromPhysId(List.of("")));
-  }
-
-  @Test
-  void testRollbackFromPhysIdAuthFailed() throws Exception {
-    // Given
-    given(tokenAuthenticator.getToken()).willThrow(PidAuthenticationException.class);
-
-    // Then
-    assertDoesNotThrow(() -> handleComponent.rollbackFromPhysId(List.of("")));
   }
 
   @Test
@@ -155,19 +134,41 @@ class HandleComponentTest {
   @Test
   void testRollbackHandleUpdate() throws Exception {
     // Given
-    var requestBody = givenHandleRequestMin();
+    var requestBody = givenPostRequest();
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertDoesNotThrow(() -> handleComponent.rollbackHandleUpdate(List.of(requestBody)));
+    assertDoesNotThrow(() -> handleComponent.rollbackHandleUpdate(requestBody));
+  }
+
+  @Test
+  void testUpdateHandle() throws Exception {
+    // Given
+    var requestBody = givenPostRequest();
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+        .addHeader("Content-Type", "application/json"));
+
+    // Then
+    assertDoesNotThrow(() -> handleComponent.updateHandle(requestBody));
+  }
+
+  @Test
+  void testArchiveHandle() throws Exception {
+    // Given
+    var requestBody = MAPPER.createObjectNode();
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+        .addHeader("Content-Type", "application/json"));
+
+    // Then
+    assertDoesNotThrow(() -> handleComponent.archiveHandle(requestBody, ID));
   }
 
   @Test
   void testInterruptedException() throws Exception {
     // Given
-    var requestBody = givenHandleRequestMin();
-    var responseBody = givenHandleRequest();
+    var requestBody = givenPostRequest();
+    var responseBody = givenHandleResponse();
 
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
@@ -177,7 +178,7 @@ class HandleComponentTest {
 
     // When
     var response = assertThrows(PidCreationException.class,
-        () -> handleComponent.postHandle(List.of(requestBody)));
+        () -> handleComponent.postHandle(requestBody));
 
     // Then
     assertThat(response).hasMessage(
@@ -187,8 +188,7 @@ class HandleComponentTest {
   @Test
   void testRetriesFail() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
+    var requestBody = givenPostRequest();
     int requestCount = mockHandleServer.getRequestCount();
 
     mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
@@ -204,11 +204,10 @@ class HandleComponentTest {
   @Test
   void testDataNodeNotArray() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
+    var requestBody = givenPostRequest();
     var responseBody = MAPPER.createObjectNode();
     responseBody.put("data", "val");
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
     // Then
@@ -218,68 +217,27 @@ class HandleComponentTest {
   @Test
   void testDataMissingId() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
-    var responseBody = MAPPER.readTree("""
-        {
-          "data": [
-            {
-              "type": "digitalSpecimen",
-              "attributes": {
-                "fdoProfile": "https://hdl.handle.net/21.T11148/d8de0819e144e4096645",
-                "digitalObjectType": "https://hdl.handle.net/21.T11148/894b1e6cad57e921764e",
-                "issuedForAgent": "https://ror.org/0566bfb96",
-                "primarySpecimenObjectId": "https://geocollections.info/specimen/23602",
-                "specimenHost": "https://ror.org/0443cwa12",
-                "specimenHostName": "National Museum of Natural History",
-                "primarySpecimenObjectIdType": "cetaf",
-                "referentName": "Biota",
-                "topicDiscipline": "Earth Systems",
-                "livingOrPreserved": "living",
-                "markedAsType": true
-              }
-            }
-          ]
-        }
-        """);
+    var requestBody = givenPostRequest();
+    var responseBody = givenHandleResponse();
+    ((ObjectNode) responseBody.get("data").get(0)).remove("id");
 
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
     // Then
     assertThrows(PidCreationException.class, () -> handleComponent.postHandle(requestBody));
   }
 
-  @Test
-  void testDataMissingPhysicalId() throws Exception {
+  @ParameterizedTest
+  @ValueSource(strings = {"subjectLocalId", "mediaUrl"})
+  void testMissingDigitalMediaKey(String attribute) throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
-    var responseBody = MAPPER.readTree("""
-        {
-          "data": [
-            {
-              "id": "20.5000.1025/V1Z-176-LL4",
-              "type": "digitalSpecimen",
-              "attributes": {
-                "fdoProfile": "https://hdl.handle.net/21.T11148/d8de0819e144e4096645",
-                "digitalObjectType": "https://hdl.handle.net/21.T11148/894b1e6cad57e921764e",
-                "issuedForAgent": "https://ror.org/0566bfb96",
-                "specimenHost": "https://ror.org/0443cwa12",
-                "specimenHostName": "National Museum of Natural History",
-                "referentName": "Biota",
-                "topicDiscipline": "Earth Systems",
-                "livingOrPreserved": "living",
-                "markedAsType": true
-              }
-            }
-          ]
-        }
-        """);
-
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    var requestBody = givenPostRequest();
+    var responseBody = removeGivenAttribute(attribute);
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
+
     // Then
     assertThrows(PidCreationException.class, () -> handleComponent.postHandle(requestBody));
   }
@@ -287,25 +245,40 @@ class HandleComponentTest {
   @Test
   void testEmptyResponse() throws Exception {
     // Given
-    var requestBody = List.of(
-        givenHandleRequestFullTypeStatus());
+    var requestBody = givenPostRequest();
     var responseBody = MAPPER.createObjectNode();
 
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.CREATED.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
     // Then
     assertThrows(PidCreationException.class, () -> handleComponent.postHandle(requestBody));
   }
 
-  private HashMap<String, String> givenHandleNameResponse(JsonNode responseBody) {
-    HashMap<String, String> handleNames = new HashMap<>();
-    for (var node : responseBody.get("data")) {
-      handleNames.put(
-          node.get("attributes").get(PRIMARY_SPECIMEN_OBJECT_ID.getAttribute()).asText(),
-          node.get("id").asText());
-    }
-    return handleNames;
+  private JsonNode removeGivenAttribute(String targetAttribute) throws Exception {
+    var response = (ObjectNode) givenHandleResponse();
+    return ((ObjectNode) response.get("data").get(0).get("attributes")).remove(targetAttribute);
   }
+
+  private JsonNode givenHandleResponse() throws Exception {
+    return MAPPER.readTree("""
+        {
+          "data": [{
+            "type": "mediaObject",
+            "id":"20.5000.1025/ABC-123-XYZ",
+            "attributes": {
+               "fdoProfile": "https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
+               "digitalObjectType": "https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
+               "subjectDigitalObjectId": "https://hdl.handle.net/20.5000.1025/DW0-BNT-FM0",
+               "annotationTopic":"20.5000.1025/460-A7R-QMJ",
+               "replaceOrAppend": "append",
+               "accessRestricted":false,
+               "linkedObjectUrl":"https://hdl.handle.net/anno-process-service-pid"
+             }
+           }]
+        }
+        """);
+  }
+
 
 }

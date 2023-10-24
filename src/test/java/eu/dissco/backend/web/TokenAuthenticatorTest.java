@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.exceptions.PidAuthenticationException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.TokenProperties;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -26,16 +27,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @ExtendWith(MockitoExtension.class)
 class TokenAuthenticatorTest {
+
   private static MockWebServer mockTokenServer;
+
+  @Mock
+  private TokenProperties properties;
   private final MultiValueMap<String, String> testFromFormData = new LinkedMultiValueMap<>() {{
     add("grant_type", "grantType");
     add("client_id", "clientId");
     add("client_secret", "secret");
   }};
-  @Mock
-  private TokenProperties properties;
-  @Mock
-  private CompletableFuture<JsonNode> jsonFuture;
+
   private TokenAuthenticator authenticator;
 
   @BeforeAll
@@ -44,32 +46,16 @@ class TokenAuthenticatorTest {
     mockTokenServer.start();
   }
 
-  @AfterAll
-  static void destroy() throws IOException {
-    mockTokenServer.shutdown();
-  }
-
-  private static JsonNode givenTokenResponse() throws Exception {
-    return MAPPER.readTree("""
-        {
-          "access_token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
-          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
-          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
-          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "expires_in": 3600,
-          "refresh_expires_in": 0,
-          "token_type": "Bearer",
-          "not-before-policy": 0,
-          "scope": ""
-        }
-        """);
-  }
-
   @BeforeEach
   void setup() {
     WebClient webClient = WebClient.create(
         String.format("http://%s:%s", mockTokenServer.getHostName(), mockTokenServer.getPort()));
     authenticator = new TokenAuthenticator(properties, webClient);
+  }
+
+  @AfterAll
+  static void destroy() throws IOException {
+    mockTokenServer.shutdown();
   }
 
   @Test
@@ -100,7 +86,7 @@ class TokenAuthenticatorTest {
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidAuthenticationException.class, () -> authenticator.getToken());
+    assertThrows(PidCreationException.class, () -> authenticator.getToken());
   }
 
   @Test
@@ -137,7 +123,7 @@ class TokenAuthenticatorTest {
     mockTokenServer.enqueue(new MockResponse().setResponseCode(501));
 
     // Then
-    assertThrows(PidAuthenticationException.class, () -> authenticator.getToken());
+    assertThrows(PidCreationException.class, () -> authenticator.getToken());
     assertThat(mockTokenServer.getRequestCount() - requestCount).isEqualTo(4);
   }
 
@@ -149,7 +135,7 @@ class TokenAuthenticatorTest {
         .addHeader("Content-Type", "application/json"));
 
     // When
-    assertThrows(PidAuthenticationException.class, () -> authenticator.getToken());
+    assertThrows(PidCreationException.class, () -> authenticator.getToken());
   }
 
   @Test
@@ -161,7 +147,23 @@ class TokenAuthenticatorTest {
         .setBody("{}"));
 
     // When
-    assertThrows(PidAuthenticationException.class, () -> authenticator.getToken());
+    assertThrows(PidCreationException.class, () -> authenticator.getToken());
+  }
+
+  private static JsonNode givenTokenResponse() throws Exception {
+    return MAPPER.readTree("""
+        {
+          "access_token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expires_in": 3600,
+          "refresh_expires_in": 0,
+          "token_type": "Bearer",
+          "not-before-policy": 0,
+          "scope": ""
+        }
+        """);
   }
 
 }
