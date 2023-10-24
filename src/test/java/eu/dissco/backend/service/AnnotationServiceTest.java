@@ -103,10 +103,10 @@ class AnnotationServiceTest {
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
 
     // When
-    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
@@ -127,10 +127,10 @@ class AnnotationServiceTest {
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
 
     // When
-    var receivedResponse = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
@@ -184,10 +184,10 @@ class AnnotationServiceTest {
         givenAnnotationResponseList(annotationId, pageSize + 1));
 
     // When
-    var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
+    var received = service.getAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
@@ -203,10 +203,10 @@ class AnnotationServiceTest {
         givenAnnotationResponseList(annotationId, pageSize));
 
     // When
-    var receivedResponse = service.getAnnotations(pageNumber, pageSize, path);
+    var received = service.getAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
@@ -220,10 +220,10 @@ class AnnotationServiceTest {
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
-    var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
+    var received = service.getLatestAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
@@ -237,10 +237,10 @@ class AnnotationServiceTest {
     given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
 
     // When
-    var receivedResponse = service.getLatestAnnotations(pageNumber, pageSize, path);
+    var received = service.getLatestAnnotations(pageNumber, pageSize, path);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(expected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test
