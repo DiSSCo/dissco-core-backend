@@ -1,10 +1,15 @@
 package eu.dissco.backend.web;
 
+import static eu.dissco.backend.domain.FdoProfileAttributes.PRIMARY_SPECIMEN_OBJECT_ID;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.exceptions.PidAuthenticationException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
