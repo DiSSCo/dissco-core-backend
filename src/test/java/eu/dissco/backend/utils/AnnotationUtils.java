@@ -2,18 +2,23 @@ package eu.dissco.backend.utils;
 
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
+import eu.dissco.backend.domain.annotation.AggregateRating;
+import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.Body;
+import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.FieldValueSelector;
+import eu.dissco.backend.domain.annotation.Generator;
+import eu.dissco.backend.domain.annotation.Motivation;
+import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -33,13 +38,99 @@ public class AnnotationUtils {
   private AnnotationUtils() {
   }
 
-  // AnnotationRequest
-  public static AnnotationRequest givenAnnotationRequest() {
-    return new AnnotationRequest("Annotation", "motivation", givenAnnotationTarget(TARGET_ID),
-        givenAnnotationBody());
+  public static List<Annotation> givenAnnotationResponseList(String annotationId, int n) {
+    return Collections.nCopies(n, givenAnnotationResponse(annotationId));
   }
 
-  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(AnnotationRequest request) {
+  public static Annotation givenAnnotationResponse(){
+    return givenAnnotationResponse(ID, USER_ID_TOKEN, TARGET_ID);
+  }
+
+  public static Annotation givenAnnotationResponse(String annotationId) {
+    return givenAnnotationResponse(annotationId, USER_ID_TOKEN, TARGET_ID);
+  }
+  public static Annotation givenAnnotationResponse(String annotationId, String userId) {
+    return givenAnnotationResponse(annotationId, userId, TARGET_ID);
+  }
+
+  public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
+    return new Annotation()
+        .withOdsId(annotationId)
+        .withRdfType("Annotation")
+        .withOdsVersion(1)
+        .withOaBody(givenOaBody())
+        .withOaMotivation(Motivation.COMMENTING)
+        .withOaTarget(givenOaTarget(targetId))
+        .withOaCreator(givenCreator(userId))
+        .withDcTermsCreated(CREATED)
+        .withOaGenerated(CREATED)
+        .withAsGenerator(givenGenerator())
+        .withOdsAggregateRating(givenAggregationRating());
+  }
+
+  public static Annotation givenAnnotationKafkaRequest(boolean isUpdate){
+    var request = givenAnnotationRequest()
+        .withOaCreator(givenCreator(ORCID));
+    if (!isUpdate){
+      return request;
+    }
+    return request
+        .withDcTermsCreated(CREATED);
+  }
+
+  public static Annotation givenAnnotationRequest(String targetId) {
+    return new Annotation()
+        .withOaBody(givenOaBody())
+        .withOaMotivation(Motivation.COMMENTING)
+        .withOaTarget(givenOaTarget(targetId));
+  }
+
+  public static Annotation givenAnnotationRequest() {
+    return givenAnnotationRequest(TARGET_ID);
+  }
+
+  public static Body givenOaBody() {
+    return new Body()
+        .withOdsType("ods:specimenName")
+        .withOaValue(new ArrayList<>(List.of("a comment")))
+        .withDcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+        .withOdsScore(0.99);
+  }
+
+  public static Target givenOaTarget(String targetId) {
+    return new Target()
+        .withOdsId(targetId)
+        .withSelector(givenSelector())
+        .withOdsType("digital_specimen");
+  }
+
+  public static FieldValueSelector givenSelector() {
+    return new FieldValueSelector()
+        .withOdsField("ods:specimenName");
+  }
+
+  public static Creator givenCreator(String userId) {
+    return new Creator()
+        .withFoafName("Test User")
+        .withOdsId(userId)
+        .withOdsType("ORCID");
+  }
+
+  public static Generator givenGenerator(){
+    return new Generator()
+        .withFoafName("DiSSCo backend")
+        .withOdsId("https://sandbox.dissco.tech")
+        .withOdsType("Technical Backend");
+  }
+
+  public static AggregateRating givenAggregationRating(){
+    return new AggregateRating()
+        .withRatingValue(0.1)
+        .withOdsType("Score")
+        .withRatingCount(0.2);
+  }
+
+  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Annotation request) {
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
             "annotation",
@@ -48,65 +139,15 @@ public class AnnotationUtils {
     );
   }
 
-  // AnnotationResponseResponse
-  public static List<AnnotationResponse> givenAnnotationResponseList(String annotationId, int n) {
-    return Collections.nCopies(n, givenAnnotationResponse(USER_ID_TOKEN, (annotationId)));
-  }
-
-  public static AnnotationResponse givenAnnotationResponse() {
-    return givenAnnotationResponse(USER_ID_TOKEN, ID, TARGET_ID);
-  }
-
-  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId) {
-    return givenAnnotationResponse(userId, annotationId, TARGET_ID);
-  }
-
-  public static AnnotationResponse givenAnnotationResponse(String userId, String annotationId,
-      String targetId) {
-    return new AnnotationResponse(annotationId, 1, "Annotation", "motivation",
-        givenAnnotationTarget(targetId), givenAnnotationBody(), 100, userId, CREATED,
-        givenAnnotationGenerator(), CREATED, null);
-  }
-
-  // JsonApiData
-
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
-      String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(userId, annotationId))));
-  }
-
-  public static JsonApiData givenAnnotationJsonApiDataDeletedOn(String userId,
-      String annotationId) {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    ObjectNode dataNode = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-    dataNode.put("deleted", dataNode.get("deleted_on").asText());
-    dataNode.remove("deleted_on");
-    return new JsonApiData(annotationId, "Annotation", dataNode);
-  }
-
-  /*
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(String userId,
-      List<String> annotationIds) {
-    List<JsonApiData> dataNodes = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-    for (String annotationId : annotationIds) {
-      ObjectNode annotation = mapper.valueToTree(givenAnnotationResponse(userId, annotationId));
-      annotation.put("deleted", annotation.get("deleted_on").asText());
-      annotation.remove("deleted_on");
-      dataNodes.add(new JsonApiData(annotationId, "Annotation", annotation));
-    }
-    return dataNodes;
-  }*/
-
   // JsonApiWrapper
 
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
-    var annotation = givenAnnotationResponse();
-    var dataNode = new JsonApiData(annotation.id(), "Annotation", MAPPER.valueToTree(annotation));
+    return givenAnnotationResponseSingleDataNode(path, USER_ID_TOKEN);
+  }
+
+  public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
+    var annotation = givenAnnotationResponse(ID, userId);
+    var dataNode = new JsonApiData(ID, "annotation", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -118,42 +159,20 @@ public class AnnotationUtils {
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
 
+  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
+      String annotationId) {
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotation",
+        MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
+  }
+
   public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path,
       List<String> annotationIds) {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
     List<JsonApiData> dataNodes = new ArrayList<>();
 
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(USER_ID_TOKEN, id)))));
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotation",
+        MAPPER.valueToTree(givenAnnotationResponse(id)))));
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
-
-  // Construction Helpers
-
-  public static JsonNode givenAnnotationTarget(String targetId) {
-    ObjectNode target = MAPPER.createObjectNode();
-    target.put("id", targetId);
-    target.put("type", "digitalSpecimen");
-    return target;
-  }
-
-  public static JsonNode givenAnnotationBody() {
-    ObjectNode body = MAPPER.createObjectNode();
-    ArrayNode bodyValues = MAPPER.createArrayNode();
-    ObjectNode value = MAPPER.createObjectNode();
-    value.put("class", "leaf");
-    value.put("score", 0.99);
-    body.put("source", "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large");
-    bodyValues.add(value);
-    body.set("values", bodyValues);
-    return body;
-  }
-
-  public static JsonNode givenAnnotationGenerator() {
-    ObjectNode generator = MAPPER.createObjectNode();
-    generator.put("id", "generatorId");
-    generator.put("name", "annotation processing service");
-    return generator;
   }
 
 }

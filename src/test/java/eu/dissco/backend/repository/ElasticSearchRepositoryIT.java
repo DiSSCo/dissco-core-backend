@@ -22,8 +22,8 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -329,16 +329,42 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
-    List<AnnotationResponse> expected = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
     for (int i = 0; i < pageSize + 1; i++) {
       String id = PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, id);
-      expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
+      var annotation = givenAnnotationResponse(id);
+      expected.add(givenAnnotationResponse(HANDLE + id));
       givenAnnotations.add(annotation);
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(USER_ID_TOKEN, PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
+      givenAnnotations.add(annotation);
+    }
+    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
+
+    // When
+    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
+
+    // Then
+    assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
+  }
+
+  @Test
+  void testGetLatestAnnotationsNullAggregate() throws IOException {
+    // Given
+    int pageNumber = 1;
+    int pageSize = 10;
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
+    for (int i = 0; i < pageSize + 1; i++) {
+      String id = PREFIX + "/" + i;
+      var annotation = givenAnnotationResponse(id);
+      expected.add(givenAnnotationResponse(HANDLE + id).withOdsAggregateRating(null));
+      givenAnnotations.add(annotation.withOdsAggregateRating(null));
+    }
+    for (int i = 11; i < pageSize * 2; i++) {
+      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -356,15 +382,15 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 1;
     int pageSize = 10;
     var totalHits = 15L;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
-    List<AnnotationResponse> expected = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
+    List<Annotation> expected = new ArrayList<>();
     for (long i = 0; i < totalHits; i++) {
       String id = PREFIX + "/" + i;
       if (i <= pageSize) {
-        expected.add(givenAnnotationResponse(USER_ID_TOKEN, HANDLE + id));
+        expected.add(givenAnnotationResponse(HANDLE + id, USER_ID_TOKEN));
       }
-      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
-      givenAnnotations.add(givenAnnotationResponse("A different User", id + "1"));
+      givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
+      givenAnnotations.add(givenAnnotationResponse(id + "1", "A different User"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
@@ -381,11 +407,10 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
-    var totalHits = 0L;
-    List<AnnotationResponse> givenAnnotations = new ArrayList<>();
+    List<Annotation> givenAnnotations = new ArrayList<>();
     for (long i = 0; i < 5; i++) {
       String id = PREFIX + "/" + i;
-      givenAnnotations.add(givenAnnotationResponse(USER_ID_TOKEN, id));
+      givenAnnotations.add(givenAnnotationResponse(id));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
@@ -398,7 +423,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getRight()).isEmpty();
   }
 
-  private List<JsonNode> parseAnnotationToElasticFormat(List<AnnotationResponse> annotations) {
+  private List<JsonNode> parseAnnotationToElasticFormat(List<Annotation> annotations) {
     return annotations.stream().map(this::annotationToElasticFormat).toList();
   }
 
@@ -443,23 +468,8 @@ class ElasticSearchRepositoryIT {
     return response;
   }
 
-  private JsonNode annotationToElasticFormat(AnnotationResponse annotation) {
-    var objectNode = MAPPER.createObjectNode();
-    objectNode.put("id", annotation.id());
-    objectNode.put("created", annotation.created().toString());
-    objectNode.put("version", annotation.version());
-    var specimenNode = MAPPER.createObjectNode();
-    specimenNode.put("motivation", annotation.motivation());
-    specimenNode.put("type", annotation.type());
-    specimenNode.put("preferenceScore", annotation.preferenceScore());
-    specimenNode.put("creator", annotation.creator());
-    specimenNode.put("created", annotation.created().toString());
-    specimenNode.put("generated", annotation.generated().toString());
-    specimenNode.set("target", annotation.target());
-    specimenNode.set("body", annotation.body());
-    specimenNode.set("generator", annotation.generator());
-    objectNode.set("annotation", specimenNode);
-    return objectNode;
+  private JsonNode annotationToElasticFormat(Annotation annotation) {
+    return MAPPER.valueToTree(annotation);
   }
 
   private BulkResponse postAnnotations(List<JsonNode> annotations) throws IOException {
@@ -467,7 +477,7 @@ class ElasticSearchRepositoryIT {
     for (var annotation : annotations) {
       bulkRequest.operations(
           op -> op.index(
-              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("id").asText())
+              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("ods:id").asText())
                   .document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());

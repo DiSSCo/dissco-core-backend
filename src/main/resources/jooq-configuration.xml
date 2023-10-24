@@ -15,7 +15,7 @@
       <inputSchema>public</inputSchema>
       <includes>digital_specimen |
         digital_media_object |
-        new_annotation |
+        annotation |
         new_user |
         machine_annotation_services |
         mas_job_record

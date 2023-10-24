@@ -7,10 +7,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
-import eu.dissco.backend.domain.AnnotationEvent;
-import eu.dissco.backend.domain.AnnotationRequest;
-import eu.dissco.backend.domain.AnnotationResponse;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.Creator;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -49,17 +48,9 @@ public class AnnotationService {
   private final ObjectMapper mapper;
   private final DateTimeFormatter formatter;
 
-  // Used by Controller
-
-  private static AnnotationEvent mapAnnotationRequestToEvent(AnnotationRequest annotation,
-      String userId) {
-    return new AnnotationEvent(annotation.type(), annotation.motivation(), userId, Instant.now(),
-        annotation.target(), annotation.body());
-  }
-
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
-    var dataNode = new JsonApiData(id, annotation.type(), annotation, mapper);
+    var dataNode = new JsonApiData(id, ANNOTATION, mapper.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -75,7 +66,7 @@ public class AnnotationService {
     var annotationNode = (ObjectNode) eventNode.get(ANNOTATION);
     annotationNode.set(VERSION, eventNode.get(VERSION));
     validateAnnotationNode(annotationNode);
-    var type = annotationNode.get("type").asText();
+    var type = annotationNode.get("rdf:type").asText();
     var dataNode = new JsonApiData(id, type, annotationNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -86,15 +77,19 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationRequest annotationRequest, String userId,
-      String path) throws ForbiddenException {
+  public JsonApiWrapper persistAnnotation(Annotation annotationRequest, String userId,
+      String path) throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var event = mapAnnotationRequestToEvent(annotationRequest, user.orcid());
-    var response = annotationClient.postAnnotation(event);
+    var annotation = processAnnotation(annotationRequest, user, false);
+    var response = annotationClient.postAnnotation(annotation);
+    return formatResponse(response, path);
+  }
+
+  public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
     if (response != null) {
-      AnnotationResponse annotationResponse = parseToAnnotationResponse(response);
-      var dataNode = new JsonApiData(annotationResponse.id(), annotationResponse.type(),
-          annotationResponse, mapper);
+      var annotationResponse = parseToAnnotation(response);
+      var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
+          response);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
@@ -102,34 +97,43 @@ public class AnnotationService {
 
   private User getUserInformation(String userId) throws ForbiddenException {
     var user = userService.getUser(userId);
-    if (user.orcid() == null){
+    if (user.orcid() == null) {
       throw new ForbiddenException("No ORCID is provided");
     }
     return user;
   }
 
-  private AnnotationResponse parseToAnnotationResponse(JsonNode response) {
-    return new AnnotationResponse(
-        response.get("id").asText(),
-        response.get(VERSION).asInt(),
-        response.get(ANNOTATION).get("type").asText(),
-        response.get(ANNOTATION).get("motivation").asText(),
-        response.get(ANNOTATION).get("target"),
-        response.get(ANNOTATION).get("body"),
-        response.get(ANNOTATION).get("preferenceScore").asInt(),
-        response.get(ANNOTATION).get("creator").asText(),
-        Instant.from(formatter.parse(response.get(ANNOTATION).get("created").asText())),
-        response.get(ANNOTATION).get("generator"),
-        Instant.from(formatter.parse(response.get(ANNOTATION).get("generated").asText())),
-        null
-    );
+  private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate) {
+    annotationRequest
+        .withOaCreator(processCreator(user));
+    if (isUpdate) {
+      return annotationRequest;
+    }
+    return annotationRequest.withDcTermsCreated(Instant.now());
   }
 
-  public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotation, String userId,
-      String path) throws NoAnnotationFoundException, ForbiddenException {
+  private Creator processCreator(User user) {
+    return new Creator()
+        .withOdsId(user.orcid())
+        .withFoafName(user.firstName() + " " + user.lastName())
+        .withOdsType("ORCID");
+  }
+
+  private Annotation parseToAnnotation(JsonNode response) throws JsonProcessingException {
+    return mapper.treeToValue(response, Annotation.class);
+  }
+
+  public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
+      String path, String prefix, String suffix) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, userId);
     if (result > 0) {
-      return persistAnnotation(annotation, userId, path);
+      if (annotation.getOdsId() == null) {
+        annotation.withOdsId(id);
+      }
+      var user = getUserInformation(userId);
+      processAnnotation(annotation, user, true);
+      var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
+      return formatResponse(response, path);
     } else {
       log.info("No active annotation with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException(
@@ -166,7 +170,7 @@ public class AnnotationService {
   }
 
   // Used by other services
-  public List<AnnotationResponse> getAnnotationForTargetObject(String id) {
+  public List<Annotation> getAnnotationForTargetObject(String id) {
     var fullId = "https://hdl.handle.net/" + id;
     return repository.getForTarget(fullId);
   }
@@ -179,33 +183,36 @@ public class AnnotationService {
 
   // Response Constructors
   private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
-    mapper.treeToValue(annotationNode, AnnotationResponse.class);
+    mapper.treeToValue(annotationNode.get(ANNOTATION), Annotation.class);
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotationsPlusOne,
+  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne,
       int pageNumber, int pageSize, String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), ANNOTATION,
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
   private JsonApiListResponseWrapper wrapListResponseElasticSearchResults(
-      Pair<Long, List<AnnotationResponse>> elasticSearchResults, int pageNumber, int pageSize,
+      Pair<Long, List<Annotation>> elasticSearchResults, int pageNumber, int pageSize,
       String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     var annotationsPlusOne = elasticSearchResults.getRight();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), ANNOTATION,
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path,
         new JsonApiMeta(elasticSearchResults.getLeft()));
   }
 
-  private JsonApiListResponseWrapper wrapListResponse(List<AnnotationResponse> annotations,
+  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotations,
       String path) {
     List<JsonApiData> dataNode = new ArrayList<>();
     annotations.forEach(annotation -> dataNode.add(
-        new JsonApiData(annotation.id(), annotation.type(), annotation, mapper)));
+        new JsonApiData(annotation.getOdsId(), ANNOTATION,
+            mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 }

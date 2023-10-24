@@ -4,16 +4,14 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewUser;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -31,6 +29,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.annotation</code>.
+     */
+    public final Annotation ANNOTATION = Annotation.ANNOTATION;
 
     /**
      * The table <code>public.digital_media_object</code>.
@@ -53,11 +56,6 @@ public class Public extends SchemaImpl {
     public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
     /**
-     * The table <code>public.new_annotation</code>.
-     */
-    public final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
-
-    /**
      * The table <code>public.new_user</code>.
      */
     public final NewUser NEW_USER = NewUser.NEW_USER;
@@ -78,11 +76,11 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            Annotation.ANNOTATION,
             DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
             DigitalSpecimen.DIGITAL_SPECIMEN,
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             MasJobRecord.MAS_JOB_RECORD,
-            NewAnnotation.NEW_ANNOTATION,
             NewUser.NEW_USER
         );
     }

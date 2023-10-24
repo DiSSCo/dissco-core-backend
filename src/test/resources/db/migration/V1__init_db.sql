@@ -11,41 +11,42 @@ CREATE TABLE public.new_user
     CONSTRAINT new_user_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE public.new_annotation
+create table annotation
 (
-    id               text        NOT NULL,
-    "version"        int4        NOT NULL,
-    "type"           text        NOT NULL,
-    motivation       text        NOT NULL,
-    target_id        text        NOT NULL,
-    target_field     text NULL,
-    target_body      jsonb       NOT NULL,
-    body             jsonb       NOT NULL,
-    preference_score int4        NOT NULL,
-    creator          text        NOT NULL,
-    created          timestamptz NOT NULL,
-    generator_id     text        NOT NULL,
-    generator_body   jsonb       NOT NULL,
-    "generated"      timestamptz NOT NULL,
-    last_checked     timestamptz NOT NULL,
-    deleted          timestamptz NULL,
-    CONSTRAINT new_annotation_pk PRIMARY KEY (id)
+    id               text                     not null
+        constraint annotation_pk
+            primary key,
+    version          integer                  not null,
+    type             text                     not null,
+    motivation       text                     not null,
+    motivated_by     text                             ,
+    target_id        text                     not null,
+    target           jsonb                    not null,
+    body             jsonb                    not null,
+    creator_id       text                     not null,
+    creator          jsonb                    not null,
+    created          timestamp with time zone not null,
+    generator        jsonb                    not null,
+    generated        timestamp with time zone not null,
+    last_checked     timestamp with time zone not null,
+    aggregate_rating jsonb,
+    deleted_on       timestamp with time zone
 );
 
 create table digital_media_object
 (
-    id text not null
+    id                  text                     not null
         constraint digital_media_object_pk
             primary key,
-    version integer not null,
-    type text,
-    digital_specimen_id text not null,
-    media_url text not null,
-    created timestamp with time zone not null,
-    last_checked timestamp with time zone not null,
-    deleted timestamp with time zone,
-    data jsonb not null,
-    original_data jsonb not null
+    version             integer                  not null,
+    type                text,
+    digital_specimen_id text                     not null,
+    media_url           text                     not null,
+    created             timestamp with time zone not null,
+    last_checked        timestamp with time zone not null,
+    deleted             timestamp with time zone,
+    data                jsonb                    not null,
+    original_data       jsonb                    not null
 );
 
 create index digital_media_object_id_idx
@@ -60,22 +61,22 @@ create index digital_media_object_digital_specimen_id_url
 
 create table digital_specimen
 (
-    id text not null
+    id                     text                     not null
         constraint digital_specimen_pk
             primary key,
-    version integer not null,
-    type text not null,
-    midslevel smallint not null,
-    physical_specimen_id text not null,
-    physical_specimen_type text not null,
-    specimen_name text,
-    organization_id text not null,
-    source_system_id text not null,
-    created timestamp with time zone not null,
-    last_checked timestamp with time zone not null,
-    deleted timestamp with time zone,
-    data jsonb,
-    original_data jsonb
+    version                integer                  not null,
+    type                   text                     not null,
+    midslevel              smallint                 not null,
+    physical_specimen_id   text                     not null,
+    physical_specimen_type text                     not null,
+    specimen_name          text,
+    organization_id        text                     not null,
+    source_system_id       text                     not null,
+    created                timestamp with time zone not null,
+    last_checked           timestamp with time zone not null,
+    deleted                timestamp with time zone,
+    data                   jsonb,
+    original_data          jsonb
 );
 create index digital_specimen_created_idx
     on digital_specimen (created);

@@ -4,11 +4,11 @@
 package eu.dissco.backend.database.jooq;
 
 
+import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.NewAnnotation;
 import eu.dissco.backend.database.jooq.tables.NewUser;
 
 
@@ -17,6 +17,11 @@ import eu.dissco.backend.database.jooq.tables.NewUser;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>public.annotation</code>.
+     */
+    public static final Annotation ANNOTATION = Annotation.ANNOTATION;
 
     /**
      * The table <code>public.digital_media_object</code>.
@@ -37,11 +42,6 @@ public class Tables {
      * The table <code>public.mas_job_record</code>.
      */
     public static final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
-
-    /**
-     * The table <code>public.new_annotation</code>.
-     */
-    public static final NewAnnotation NEW_ANNOTATION = NewAnnotation.NEW_ANNOTATION;
 
     /**
      * The table <code>public.new_user</code>.

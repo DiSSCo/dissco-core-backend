@@ -1,5 +1,8 @@
 package eu.dissco.backend.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum AnnotationState {
   SCHEDULED("scheduled"),
   FAILED("failed");
@@ -8,10 +11,6 @@ public enum AnnotationState {
 
   AnnotationState(String s){
     this.state = s;
-  }
-
-  public String getState(){
-    return state;
   }
 
 }
