@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
@@ -137,7 +138,7 @@ class AnnotationServiceTest {
   void testGetAnnotationForTargetObject() {
     // Given
     var expected = List.of(givenAnnotationRequest());
-    given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(expected);
+    given(repository.getForTarget(DOI + ID)).willReturn(expected);
 
     // When
     var result = service.getAnnotationForTargetObject(ID);
@@ -150,7 +151,7 @@ class AnnotationServiceTest {
   void testGetAnnotationForTarget() {
     var repositoryResponse = givenAnnotationResponseList(ID, 1);
     var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
-    given(repository.getForTarget("https://hdl.handle.net/" + ID)).willReturn(repositoryResponse);
+    given(repository.getForTarget(DOI + ID)).willReturn(repositoryResponse);
 
     // When
     var result = service.getAnnotationForTarget(ID, ANNOTATION_PATH);

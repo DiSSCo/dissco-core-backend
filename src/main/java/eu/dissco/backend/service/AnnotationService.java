@@ -171,12 +171,12 @@ public class AnnotationService {
 
   // Used by other services
   public List<Annotation> getAnnotationForTargetObject(String id) {
-    var fullId = "https://hdl.handle.net/" + id;
+    var fullId = "https://doi.org/" + id;
     return repository.getForTarget(fullId);
   }
 
   public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
-    var fullId = "https://hdl.handle.net/" + id;
+    var fullId = "https://doi.org/" + id;
     var annotations = repository.getForTarget(fullId);
     return wrapListResponse(annotations, path);
   }
