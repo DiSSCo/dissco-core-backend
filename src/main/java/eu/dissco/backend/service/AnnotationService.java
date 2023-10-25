@@ -30,6 +30,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.kafka.common.protocol.types.Field.Str;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -171,14 +172,18 @@ public class AnnotationService {
 
   // Used by other services
   public List<Annotation> getAnnotationForTargetObject(String id) {
-    var fullId = "https://doi.org/" + id;
+    var fullId = getFullId(id);
     return repository.getForTarget(fullId);
   }
 
   public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
-    var fullId = "https://doi.org/" + id;
+    var fullId = getFullId(id);
     var annotations = repository.getForTarget(fullId);
     return wrapListResponse(annotations, path);
+  }
+
+  private String getFullId(String id){
+    return (id.contains("https://doi.org/")) ? id : "https://doi.org/" + id;
   }
 
   // Response Constructors
