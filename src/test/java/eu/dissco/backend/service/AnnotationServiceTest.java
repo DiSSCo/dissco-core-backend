@@ -418,7 +418,8 @@ class AnnotationServiceTest {
   @Test
   void testDeleteAnnotation() throws Exception {
     // Given
-    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
+    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
 
     // When
     var result = service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN);
@@ -430,7 +431,8 @@ class AnnotationServiceTest {
   @Test
   void testDeleteAnnotationDoesNotExist() throws Exception {
     // Given
-    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
+    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,

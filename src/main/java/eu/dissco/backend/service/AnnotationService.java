@@ -159,7 +159,8 @@ public class AnnotationService {
   public boolean deleteAnnotation(String prefix, String suffix, String userId)
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
-    var result = repository.getAnnotationForUser(id, userId);
+    var orcid = userService.getUser(userId).orcid();
+    var result = repository.getAnnotationForUser(id, orcid);
     if (result > 0) {
       annotationClient.deleteAnnotation(prefix, suffix);
       return true;
