@@ -302,8 +302,8 @@ class AnnotationServiceTest {
   void testUpdateAnnotation() throws Exception {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(1);
-
+    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     var annotationRequest = givenAnnotationRequest().withOdsId(ID);
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null)
         .withOdsId(ID);
@@ -327,7 +327,8 @@ class AnnotationServiceTest {
   @Test
   void testUpdateAnnotationDoesNotExist() {
     // Given
-    given(repository.getAnnotationForUser(ID, USER_ID_TOKEN)).willReturn(0);
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
+    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,

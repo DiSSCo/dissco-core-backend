@@ -126,17 +126,17 @@ public class AnnotationService {
 
   public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
       String path, String prefix, String suffix) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
-    var result = repository.getAnnotationForUser(id, userId);
+    var user = getUserInformation(userId);
+    var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
       if (annotation.getOdsId() == null) {
         annotation.withOdsId(id);
       }
-      var user = getUserInformation(userId);
       processAnnotation(annotation, user, true);
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
-      log.info("No active annotation with id: {} found for user: {}", id, userId);
+      log.info("No active annotation with id: {} found for user {} with orcid {}", id, userId, user.orcid());
       throw new NoAnnotationFoundException(
           "No active annotation with id: " + id + " was found for user");
     }
