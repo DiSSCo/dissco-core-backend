@@ -3,7 +3,7 @@ package eu.dissco.backend.domain.annotation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum TargetType {
-  @JsonProperty("AigitalSpecimen") DIGITAL_SPECIMEN("DigitalSpecimen"),
+  @JsonProperty("DigitalSpecimen") DIGITAL_SPECIMEN("DigitalSpecimen"),
   @JsonProperty("Annotation") ANNOTATION("Annotation"),
   @JsonProperty("MediaObject") MEDIA_OBJECT("MediaObject");
 
