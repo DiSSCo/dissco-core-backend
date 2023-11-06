@@ -19,6 +19,7 @@ import eu.dissco.backend.domain.annotation.FieldValueSelector;
 import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.annotation.Motivation;
 import eu.dissco.backend.domain.annotation.Target;
+import eu.dissco.backend.domain.annotation.TargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -101,7 +102,7 @@ public class AnnotationUtils {
     return new Target()
         .withOdsId(targetId)
         .withSelector(givenSelector())
-        .withOdsType("digital_specimen");
+        .withOdsType(TargetType.DIGITAL_SPECIMEN);
   }
 
   public static FieldValueSelector givenSelector() {
