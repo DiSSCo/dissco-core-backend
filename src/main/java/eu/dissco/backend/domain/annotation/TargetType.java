@@ -9,7 +9,7 @@ public enum TargetType {
 
   private final String state;
 
-  private TargetType(String s) {
+  TargetType(String s) {
     this.state = s;
   }
 
