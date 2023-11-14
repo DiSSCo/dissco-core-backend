@@ -24,13 +24,11 @@ import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.common.protocol.types.Field.Str;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -47,7 +45,6 @@ public class AnnotationService {
   private final MongoRepository mongoRepository;
   private final UserService userService;
   private final ObjectMapper mapper;
-  private final DateTimeFormatter formatter;
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);

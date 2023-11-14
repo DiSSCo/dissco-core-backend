@@ -83,7 +83,7 @@ class AnnotationServiceTest {
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER, formatter);
+        mongoRepository, userService, MAPPER);
   }
 
   @Test
