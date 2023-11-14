@@ -12,11 +12,12 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -53,14 +54,9 @@ public class MasJobRecordService {
     }
     boolean hasNext = masJobRecordsPlusOne.size() > pageSize;
     var masJobRecords = hasNext ? masJobRecordsPlusOne.subList(0, pageSize) : masJobRecordsPlusOne;
-    List<JsonApiData> dataList = new ArrayList<>();
-    for (var mjr : masJobRecords) {
-      dataList.add(new JsonApiData(
-          mjr.jobId().toString(),
-          "masJobRecord",
-          mapper.valueToTree(mjr)
-      ));
-    }
+    List<JsonApiData> dataList = masJobRecords.stream().map(
+            mjr -> new JsonApiData(mjr.jobId().toString(), "masJobRecord", mapper.valueToTree(mjr)))
+        .toList();
     JsonApiLinksFull linksNode;
     if (masJobRecords.isEmpty()) {
       linksNode = new JsonApiLinksFull(path);
