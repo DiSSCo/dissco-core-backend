@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.jsonapi.ExceptionResponseWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.springframework.http.HttpStatus;
@@ -86,5 +87,16 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(InvalidAnnotationRequestException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleException(
+      InvalidAnnotationRequestException e) {
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.BAD_REQUEST,
+        "Invalid Annotation Request",
+        e.getMessage()
+    );
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+  }
 
 }

@@ -99,7 +99,7 @@ public class AnnotationController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
-    validatorComponent.validateAnnotationRequest(annotation);
+    validatorComponent.validateAnnotationRequest(annotation, false);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
