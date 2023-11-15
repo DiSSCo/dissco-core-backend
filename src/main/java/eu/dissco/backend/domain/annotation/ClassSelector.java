@@ -10,20 +10,20 @@ import lombok.ToString;
 @ToString
 public class ClassSelector extends Selector {
 
-  @JsonProperty("ods:class")
-  private String odsClass;
+  @JsonProperty("oa:class")
+  private String oaClass;
 
   public ClassSelector() {
     super(SelectorType.CLASS_SELECTOR);
   }
 
-  public ClassSelector(String odsClass) {
+  public ClassSelector(String oaClass) {
     super(SelectorType.CLASS_SELECTOR);
-    this.odsClass = odsClass;
+    this.oaClass = oaClass;
   }
 
-  public ClassSelector withOdsClass(String odsClass) {
-    this.odsClass = odsClass;
+  public ClassSelector withOaClass(String oaClass) {
+    this.oaClass = oaClass;
     return this;
   }
 
