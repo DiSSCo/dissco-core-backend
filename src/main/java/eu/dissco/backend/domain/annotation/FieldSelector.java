@@ -9,21 +9,21 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class FieldValueSelector extends Selector {
+public class FieldSelector extends Selector {
 
   @JsonProperty("ods:field")
   private String odsField;
 
-  public FieldValueSelector() {
-    super(SelectorType.FIELD_VALUE_SELECTOR);
+  public FieldSelector() {
+    super(SelectorType.FIELD_SELECTOR);
   }
 
-  FieldValueSelector(String odsField) {
-    super(SelectorType.FIELD_VALUE_SELECTOR);
+  FieldSelector(String odsField) {
+    super(SelectorType.FIELD_SELECTOR);
     this.odsField = odsField;
   }
 
-  public FieldValueSelector withOdsField(String odsField) {
+  public FieldSelector withOdsField(String odsField) {
     this.odsField = odsField;
     return this;
   }

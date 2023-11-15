@@ -13,8 +13,8 @@ import lombok.Getter;
 @EqualsAndHashCode
 @JsonTypeInfo(use = Id.DEDUCTION)
 @JsonSubTypes({
-    @Type(FieldValueSelector.class),
-    @Type(ClassValueSelector.class),
+    @Type(FieldSelector.class),
+    @Type(ClassSelector.class),
     @Type(FragmentSelector.class)})
 public abstract class Selector {
 
