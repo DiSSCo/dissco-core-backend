@@ -3,8 +3,8 @@ package eu.dissco.backend.domain.annotation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum SelectorType {
-  @JsonProperty("FieldValueSelector") FIELD_VALUE_SELECTOR("FieldValueSelector"),
-  @JsonProperty("ClassValueSelector") CLASS_VALUE_SELECTOR("ClassValueSelector"),
+  @JsonProperty("FieldSelector") FIELD_SELECTOR("FieldSelector"),
+  @JsonProperty("ClassSelector") CLASS_SELECTOR("ClassSelector"),
   @JsonProperty("FragmentSelector") FRAGMENT_SELECTOR("FragmentSelector");
 
   private final String state;

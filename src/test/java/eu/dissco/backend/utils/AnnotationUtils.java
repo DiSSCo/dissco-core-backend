@@ -2,20 +2,17 @@ package eu.dissco.backend.utils;
 
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.annotation.AggregateRating;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Body;
 import eu.dissco.backend.domain.annotation.Creator;
-import eu.dissco.backend.domain.annotation.FieldValueSelector;
+import eu.dissco.backend.domain.annotation.FieldSelector;
 import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.annotation.Motivation;
 import eu.dissco.backend.domain.annotation.Target;
@@ -104,8 +101,8 @@ public class AnnotationUtils {
         .withOdsType("digital_specimen");
   }
 
-  public static FieldValueSelector givenSelector() {
-    return new FieldValueSelector()
+  public static FieldSelector givenSelector() {
+    return new FieldSelector()
         .withOdsField("ods:specimenName");
   }
 
