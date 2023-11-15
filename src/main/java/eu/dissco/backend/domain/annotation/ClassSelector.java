@@ -22,8 +22,8 @@ public class ClassSelector extends Selector {
     this.oaClass = oaClass;
   }
 
-  public ClassSelector withOaClass(String odsClass) {
-    this.oaClass = odsClass;
+  public ClassSelector withOaClass(String oaClass) {
+    this.oaClass = oaClass;
     return this;
   }
 
