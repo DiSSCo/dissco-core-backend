@@ -8,21 +8,21 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class ClassValueSelector extends Selector {
+public class ClassSelector extends Selector {
 
   @JsonProperty("ods:class")
   private String odsClass;
 
-  public ClassValueSelector() {
-    super(SelectorType.CLASS_VALUE_SELECTOR);
+  public ClassSelector() {
+    super(SelectorType.CLASS_SELECTOR);
   }
 
-  public ClassValueSelector(String odsClass) {
-    super(SelectorType.CLASS_VALUE_SELECTOR);
+  public ClassSelector(String odsClass) {
+    super(SelectorType.CLASS_SELECTOR);
     this.odsClass = odsClass;
   }
 
-  public ClassValueSelector withOdsClass(String odsClass) {
+  public ClassSelector withOdsClass(String odsClass) {
     this.odsClass = odsClass;
     return this;
   }
