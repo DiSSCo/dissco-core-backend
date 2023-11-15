@@ -2,11 +2,13 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.component.JsonSchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -39,11 +41,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AnnotationController extends BaseController {
 
   private final AnnotationService service;
+  private final JsonSchemaValidatorComponent validatorComponent;
 
   public AnnotationController(
-      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service) {
+      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service, JsonSchemaValidatorComponent validatorComponent) {
     super(mapper, applicationProperties);
     this.service = service;
+    this.validatorComponent = validatorComponent;
   }
 
   @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -93,8 +97,9 @@ public class AnnotationController extends BaseController {
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(Authentication authentication,
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException {
+      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
+    validatorComponent.validateAnnotationRequest(annotation);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
