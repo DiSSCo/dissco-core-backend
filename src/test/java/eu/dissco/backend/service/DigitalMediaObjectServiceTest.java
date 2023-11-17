@@ -60,6 +60,8 @@ class DigitalMediaObjectServiceTest {
   private MongoRepository mongoRepository;
   @Mock
   private SpecimenRepository specimenRepository;
+  @Mock
+  MasJobRecordService masJobRecordService;
 
   private DigitalMediaObjectService service;
 
@@ -72,7 +74,7 @@ class DigitalMediaObjectServiceTest {
   @BeforeEach
   void setup() {
     service = new DigitalMediaObjectService(repository, annotationService, specimenRepository,
-        masService, mongoRepository, MAPPER);
+        masService, mongoRepository, MAPPER, masJobRecordService);
   }
 
   @ParameterizedTest

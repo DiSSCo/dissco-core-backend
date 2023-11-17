@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -119,6 +120,15 @@ class DigitalMediaObjectControllerTest {
     // Then
     assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(responseReceived.getBody()).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetMasJobRecordForMedia() throws Exception {
+    // When
+    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, AnnotationState.SCHEDULED, 1, 1, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test

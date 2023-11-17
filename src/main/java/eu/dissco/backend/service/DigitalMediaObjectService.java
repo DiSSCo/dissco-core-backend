@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
@@ -37,6 +38,7 @@ public class DigitalMediaObjectService {
   private final MachineAnnotationServiceService masService;
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
+  private final MasJobRecordService masJobRecordService;
 
   // Controller Functions
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
@@ -75,6 +77,11 @@ public class DigitalMediaObjectService {
     var dataNode = new JsonApiData(digitalMedia.digitalEntity().getOdsId(),
         digitalMedia.digitalEntity().getOdsType(), digitalMedia, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
+  public JsonApiListResponseWrapper getMasJobRecordsForMedia(String targetId, String path,
+      AnnotationState state, int pageNum, int pageSize) throws NotFoundException {
+    return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
   private DigitalMediaObjectWrapper mapResultToDigitalMedia(JsonNode dataNode) {

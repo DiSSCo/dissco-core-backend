@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -102,6 +103,20 @@ public class DigitalMediaObjectController extends BaseController {
     log.info("Received get request for mass for digital media: {}", id);
     var mass = service.getMass(id, getPath(request));
     return ResponseEntity.ok(mass);
+  }
+
+  @GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordForMedia(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix,
+      @RequestParam(required = false)AnnotationState state,
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      HttpServletRequest request
+  ) throws NotFoundException {
+    var path = getPath(request);
+    var id = prefix + '/' + suffix;
+    return ResponseEntity.ok(service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
   }
 
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
