@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,17 @@ class RestResponseEntityExceptionHandlerTest {
 
     // When
     var result = exceptionHandler.handleException(new UnknownParameterException(""));
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void testInvalidAnnotationRequestException() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new InvalidAnnotationRequestException(""));
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);

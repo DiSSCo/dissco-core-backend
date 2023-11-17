@@ -22,6 +22,7 @@
     <feign-okhttp.version>12.5</feign-okhttp.version>
     <springdoc.version>2.2.0</springdoc.version>
     <kafka.version>3.5.1</kafka.version>
+    <json-schema-validator.version>1.0.87</json-schema-validator.version>
     <snappy-java.version>1.1.10.5</snappy-java.version>
     <mongodb-driver.version>3.12.14</mongodb-driver.version>
     <testcontainers.version>1.19.0</testcontainers.version>
@@ -132,6 +133,17 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-okhttp</artifactId>
       <version>${feign-okhttp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${json-schema-validator.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.mongodb</groupId>
