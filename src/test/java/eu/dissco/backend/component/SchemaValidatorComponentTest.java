@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion.VersionFlag;
 import eu.dissco.backend.domain.annotation.Annotation;
-import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,9 +27,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class JsonSchemaValidatorComponentTest {
+class SchemaValidatorComponentTest {
 
-  private JsonSchemaValidatorComponent validatorComponent;
+  private SchemaValidatorComponent schemaValidator;
 
   @BeforeEach
   void setup() throws IOException {
@@ -38,7 +37,7 @@ class JsonSchemaValidatorComponentTest {
     try (InputStream inputStream = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream("json-schema/annotation_request.json")) {
       var schema = factory.getSchema(inputStream);
-      validatorComponent = new JsonSchemaValidatorComponent(schema, MAPPER);
+      schemaValidator = new SchemaValidatorComponent(schema, MAPPER);
     }
   }
 
@@ -47,7 +46,7 @@ class JsonSchemaValidatorComponentTest {
   void testInvalidAnnotations(Annotation annotationRequest, String targetIssue) {
     // When
     var e = assertThrows(InvalidAnnotationRequestException.class,
-        () -> validatorComponent.validateAnnotationRequest(annotationRequest,
+        () -> schemaValidator.validateAnnotationRequest(annotationRequest,
             true));
 
     // Then
@@ -61,7 +60,7 @@ class JsonSchemaValidatorComponentTest {
 
     // When
     var e = assertThrows(InvalidAnnotationRequestException.class,
-        () -> validatorComponent.validateAnnotationRequest(annotationRequest,
+        () -> schemaValidator.validateAnnotationRequest(annotationRequest,
             false));
 
     // Then
@@ -73,7 +72,7 @@ class JsonSchemaValidatorComponentTest {
   void testValidAnnotation(Annotation annotationRequest, Boolean isNew) {
     // Then
     assertDoesNotThrow(() ->
-        validatorComponent.validateAnnotationRequest(annotationRequest, isNew));
+        schemaValidator.validateAnnotationRequest(annotationRequest, isNew));
   }
 
   private static Stream<Arguments> validAnnotations(){

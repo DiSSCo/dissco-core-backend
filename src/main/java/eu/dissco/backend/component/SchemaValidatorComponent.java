@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JsonSchemaValidatorComponent {
+public class SchemaValidatorComponent {
 
   private final JsonSchema annotationSchema;
   private final ObjectMapper mapper;

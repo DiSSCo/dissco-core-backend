@@ -16,8 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.component.JsonSchemaValidatorComponent;
-import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -43,7 +42,7 @@ class AnnotationControllerTest {
   @Mock
   private ApplicationProperties applicationProperties;
   @Mock
-  private JsonSchemaValidatorComponent validatorComponent;
+  private SchemaValidatorComponent validatorComponent;
   private AnnotationController controller;
 
   private MockHttpServletRequest mockRequest;

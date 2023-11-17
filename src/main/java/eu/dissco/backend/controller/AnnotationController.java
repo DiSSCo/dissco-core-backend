@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.component.JsonSchemaValidatorComponent;
+import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
@@ -41,13 +41,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AnnotationController extends BaseController {
 
   private final AnnotationService service;
-  private final JsonSchemaValidatorComponent validatorComponent;
+  private final SchemaValidatorComponent schemaValidator;
 
   public AnnotationController(
-      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service, JsonSchemaValidatorComponent validatorComponent) {
+      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service, SchemaValidatorComponent schemaValidator) {
     super(mapper, applicationProperties);
     this.service = service;
-    this.validatorComponent = validatorComponent;
+    this.schemaValidator = schemaValidator;
   }
 
   @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -99,7 +99,7 @@ public class AnnotationController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
-    validatorComponent.validateAnnotationRequest(annotation, false);
+    schemaValidator.validateAnnotationRequest(annotation, false);
     var userId = getNameFromToken(authentication);
     log.info("Received new annotation from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
