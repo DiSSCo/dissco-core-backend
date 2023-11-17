@@ -137,11 +137,7 @@
         "ods:type",
         "oa:value"
       ]
-    },
-    "required": [
-      "ods:id",
-      "ods:type"
-    ]
+    }
   },
   "required": [
     "rdf:type",
