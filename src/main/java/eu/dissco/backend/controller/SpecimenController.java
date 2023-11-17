@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
@@ -148,6 +149,21 @@ public class SpecimenController extends BaseController {
     log.info("Received get request for digitalmedia of specimen with id: {}", id);
     var digitalMedia = service.getDigitalMedia(id, getPath(request));
     return ResponseEntity.ok(digitalMedia);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForSpecimen(
+      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      @RequestParam(required = false) AnnotationState state,
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      HttpServletRequest request) throws NotFoundException {
+    var id = prefix + '/' + suffix;
+    log.info("Received ger request for MAS Job records for specimen {}", id);
+    String path = getPath(request);
+    return ResponseEntity.ok(
+        service.getMasJobRecordsForSpecimen(id, state, path, pageNumber, pageSize));
   }
 
   @ResponseStatus(HttpStatus.OK)

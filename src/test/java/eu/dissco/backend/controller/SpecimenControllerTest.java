@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -123,6 +124,17 @@ class SpecimenControllerTest {
     var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
 
     // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+
+  void testGetMjrsForSpecimen() throws Exception {
+
+    // When
+    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, AnnotationState.SCHEDULED, 1, 1, mockRequest);
+
+    // THen
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 

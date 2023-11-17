@@ -73,13 +73,15 @@ class SpecimenServiceTest {
   private MachineAnnotationServiceService masService;
   @Mock
   private MongoRepository mongoRepository;
+  @Mock
+  private MasJobRecordService masJobRecordService;
 
   private SpecimenService service;
 
   @BeforeEach
   void setup() {
     service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaObjectService,
-        masService, annotationService, mongoRepository);
+        masService, annotationService, mongoRepository, masJobRecordService);
   }
 
   @Test

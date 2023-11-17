@@ -10,6 +10,7 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullSch
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -60,6 +61,40 @@ class MasJobRecordServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordByTargetIdAllStates() throws Exception {
+    // Given
+    var pageSize = 2;
+    var pageNum = 1;
+    var linksNode = new JsonApiLinksFull(pageSize, pageNum, true, MJR_URI);
+    var mjr = givenMasJobRecordFullScheduled();
+    var dataList = Collections.nCopies(pageSize,
+        new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
+    var expected = new JsonApiListResponseWrapper(dataList, linksNode);
+    given(
+        masJobRecordRepository.getMasJobRecordsByTargetId(ID, pageNum, pageSize + 1)).willReturn(
+        Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
+
+    // When
+    var result = masJobRecordService.getMasJobRecordByTargetId(ID, null, MJR_URI, pageNum,
+        pageSize);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordNotFound() {
+    // Given
+    given(masJobRecordRepository.getMasJobRecordsByTargetIdAndState(ID,
+        AnnotationState.SCHEDULED.getState(), 1, 2)).willReturn(Collections.emptyList());
+
+    // Then
+    assertThrows(NotFoundException.class,
+        () -> masJobRecordService.getMasJobRecordByTargetId(ID, AnnotationState.SCHEDULED, MJR_URI,
+            1, 1));
   }
 
   @Test
@@ -123,7 +158,7 @@ class MasJobRecordServiceTest {
     var pageNum = 1;
     var expected = new JsonApiListResponseWrapper(Collections.emptyList(),
         new JsonApiLinksFull(MJR_URI));
-    given(masJobRecordRepository.getMasJobRecordsByCreatorAndStatus(ORCID,
+    given(masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
         AnnotationState.FAILED.getState(), pageNum, pageSize + 1)).willReturn(
         Collections.emptyList());
 
