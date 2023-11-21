@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
@@ -63,6 +64,7 @@ public class SpecimenService {
   private final MachineAnnotationServiceService masService;
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
+  private final MasJobRecordService masJobRecordService;
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
@@ -94,6 +96,11 @@ public class SpecimenService {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
     return mapFullSpecimen(id, path, specimen);
+  }
+
+  public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
+      AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
+    return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
   private JsonApiWrapper mapFullSpecimen(String id, String path,

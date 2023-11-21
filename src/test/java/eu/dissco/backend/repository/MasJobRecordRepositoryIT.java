@@ -1,23 +1,21 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.CREATED;
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID_ALT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
-import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import java.time.Instant;
 import java.util.List;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
@@ -83,9 +81,39 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
     // When
-    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByCreatorAndStatus(ORCID,
+    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
         AnnotationState.FAILED.toString(), 1, 10);
-    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndStatus(ORCID,
+    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
+        AnnotationState.SCHEDULED.toString(), 1, 10);
+
+    // Then
+    assertThat(resultStatusFailed).isEmpty();
+    assertThat(resultStatusScheduled).isEqualTo(List.of(expected));
+  }
+
+  @Test
+  void testGetMasJobRecordsByTargetId() throws JsonProcessingException {
+    // Given
+    var expected = new MasJobRecordFull(AnnotationState.SCHEDULED, ORCID, ID_ALT, JOB_ID, CREATED, null, MAPPER.createObjectNode());
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordsByTargetId(ID_ALT, 1, 10);
+
+    // Then
+    assertThat(result).isEqualTo(List.of(expected));
+  }
+
+  @Test
+  void testGetMasJobRecordsByTargetAndStatus() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullScheduled();
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+
+    // When
+    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByTargetIdAndState(ID,
+        AnnotationState.FAILED.getState(), 1, 10);
+    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
         AnnotationState.SCHEDULED.toString(), 1, 10);
 
     // Then

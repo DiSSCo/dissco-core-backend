@@ -41,6 +41,24 @@ public class MasJobRecordService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
+  public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
+      AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
+    var pageSizePlusOne = pageSize + 1;
+    List<MasJobRecordFull> masJobRecordListPlusOne;
+
+    if (state == null) {
+      masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, pageNum,
+          pageSizePlusOne);
+    } else {
+      masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetIdAndState(targetId,
+          state.getState(), pageNum, pageSizePlusOne);
+    }
+    if (masJobRecordListPlusOne.isEmpty()) {
+      throw new NotFoundException("No MAS Jobs for " + targetId + " found");
+    }
+    return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
+  }
+
   public JsonApiListResponseWrapper getMasJobRecordsByCreator(String creatorId, String path,
       int pageNum, int pageSize, AnnotationState state) {
     int pageSizeToCheckNext = pageSize + 1;
@@ -49,16 +67,21 @@ public class MasJobRecordService {
       masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreator(creatorId, pageNum,
           pageSizeToCheckNext);
     } else {
-      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorAndStatus(creatorId,
+      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorAndState(creatorId,
           state.getState(), pageNum, pageSizeToCheckNext);
     }
-    boolean hasNext = masJobRecordsPlusOne.size() > pageSize;
-    var masJobRecords = hasNext ? masJobRecordsPlusOne.subList(0, pageSize) : masJobRecordsPlusOne;
-    List<JsonApiData> dataList = masJobRecords.stream().map(
+    return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
+  }
+
+  private JsonApiListResponseWrapper packageList(List<MasJobRecordFull> masJobRecordListPlusOne,
+      String path, int pageNum, int pageSize) {
+    boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
+    var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
+    List<JsonApiData> dataList = sublist.stream().map(
             mjr -> new JsonApiData(mjr.jobId().toString(), "masJobRecord", mapper.valueToTree(mjr)))
         .toList();
     JsonApiLinksFull linksNode;
-    if (masJobRecords.isEmpty()) {
+    if (masJobRecordListPlusOne.isEmpty()) {
       linksNode = new JsonApiLinksFull(path);
     } else {
       linksNode = new JsonApiLinksFull(pageSize, pageNum, hasNext, path);

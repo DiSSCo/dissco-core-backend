@@ -35,6 +35,27 @@ public class MasJobRecordRepository {
         .fetchOptional(this::recordToMasJobRecord);
   }
 
+  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, int pageNum, int pageSize) {
+    var offset = getOffset(pageNum, pageSize);
+    return context.select(MAS_JOB_RECORD.asterisk())
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.TARGET_ID.eq(targetId))
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::recordToMasJobRecord);
+  }
+
+  public List<MasJobRecordFull> getMasJobRecordsByTargetIdAndState(String targetId, String state, int pageNum, int pageSize) {
+    var offset = getOffset(pageNum, pageSize);
+    return context.select(MAS_JOB_RECORD.asterisk())
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.TARGET_ID.eq(targetId))
+        .and(MAS_JOB_RECORD.STATE.eq(state))
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::recordToMasJobRecord);
+  }
+
   public List<MasJobRecordFull> getMasJobRecordsByCreator(String creatorId, int pageNum, int pageSize){
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
@@ -45,7 +66,7 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByCreatorAndStatus(String creatorId, String state, int pageNum, int pageSize){
+  public List<MasJobRecordFull> getMasJobRecordsByCreatorAndState(String creatorId, String state, int pageNum, int pageSize){
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
