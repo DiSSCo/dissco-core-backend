@@ -2,8 +2,10 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
@@ -25,6 +27,7 @@ public class UserService {
 
   private final ObjectMapper mapper;
   private final UserRepository repository;
+  private final MasJobRecordService masJobRecordService;
 
   public JsonApiData createNewUser(JsonApiWrapper request)
       throws JsonProcessingException, ConflictException {
@@ -50,7 +53,7 @@ public class UserService {
 
   public JsonApiData findUser(String id) throws NotFoundException {
     var userOptional = repository.findOptional(id);
-    if (userOptional.isPresent()){
+    if (userOptional.isPresent()) {
       return new JsonApiData(id, TYPE, mapper.valueToTree(userOptional.get()));
     }
     throw new NotFoundException("User with id " + id + " does not exist");
@@ -58,7 +61,7 @@ public class UserService {
 
   public String getOrcid(String id) throws ForbiddenException {
     var user = repository.findOptional(id);
-    if (user.isPresent() && user.get().orcid() != null){
+    if (user.isPresent() && user.get().orcid() != null) {
       return user.get().orcid();
     }
     throw new ForbiddenException("User must register ORCID before performing this action");
@@ -72,12 +75,17 @@ public class UserService {
       throws ConflictException {
     checkType(request);
     if (id.equals(request.getData().getId())) {
-        var user = repository.updateUser(id, request.getData().getAttributes());
-        return new JsonApiData(id, TYPE, mapper.valueToTree(user));
+      var user = repository.updateUser(id, request.getData().getAttributes());
+      return new JsonApiData(id, TYPE, mapper.valueToTree(user));
     } else {
       log.warn("ID: {} is equal to id in request: {}", id, request.getData().getType());
       throw new InvalidIdException();
     }
+  }
+
+  public JsonApiListResponseWrapper getMasJobRecordsForUser(String userId, String path, int pageNum,
+      int pageSize, AnnotationState state) {
+    return masJobRecordService.getMasJobRecordsByUserId(userId, path, pageNum, pageSize, state);
   }
 
   public void deleteUser(String id) {

@@ -73,6 +73,20 @@ public class MasJobRecordService {
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 
+  public JsonApiListResponseWrapper getMasJobRecordsByUserId(String userId, String path,
+      int pageNum, int pageSize, AnnotationState state) {
+    int pageSizeToCheckNext = pageSize + 1;
+    List<MasJobRecordFull> masJobRecordsPlusOne;
+    if (state == null) {
+      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(userId, pageNum,
+          pageSizeToCheckNext);
+    } else {
+      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserIdAndState(userId,
+          state.getState(), pageNum, pageSizeToCheckNext);
+    }
+    return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
+  }
+
   private JsonApiListResponseWrapper packageList(List<MasJobRecordFull> masJobRecordListPlusOne,
       String path, int pageNum, int pageSize) {
     boolean hasNext = masJobRecordListPlusOne.size() > pageSize;

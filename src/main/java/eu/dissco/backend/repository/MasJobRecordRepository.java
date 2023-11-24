@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
+import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +36,8 @@ public class MasJobRecordRepository {
         .fetchOptional(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, int pageNum, int pageSize) {
+  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, int pageNum,
+      int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
@@ -45,7 +47,8 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByTargetIdAndState(String targetId, String state, int pageNum, int pageSize) {
+  public List<MasJobRecordFull> getMasJobRecordsByTargetIdAndState(String targetId, String state,
+      int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
@@ -56,7 +59,8 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByCreator(String creatorId, int pageNum, int pageSize){
+  public List<MasJobRecordFull> getMasJobRecordsByCreator(String creatorId, int pageNum,
+      int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
@@ -66,7 +70,20 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByCreatorAndState(String creatorId, String state, int pageNum, int pageSize){
+  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, int pageNum, int pageSize) {
+    var offset = getOffset(pageNum, pageSize);
+    return context.select(MAS_JOB_RECORD.asterisk())
+        .from(MAS_JOB_RECORD)
+        .join(NEW_USER)
+        .on(NEW_USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
+        .where(NEW_USER.ID.eq(userId))
+        .limit(pageSize)
+        .offset(offset)
+        .fetch(this::recordToMasJobRecord);
+  }
+
+  public List<MasJobRecordFull> getMasJobRecordsByCreatorAndState(String creatorId, String state,
+      int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
@@ -77,6 +94,19 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
+  public List<MasJobRecordFull> getMasJobRecordsByUserIdAndState(String userId, String state,
+      int pageNum, int pageSize) {
+    var offset = getOffset(pageNum, pageSize);
+    return context.select(MAS_JOB_RECORD.asterisk())
+        .from(MAS_JOB_RECORD)
+        .join(NEW_USER)
+        .on(NEW_USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
+        .where(NEW_USER.ID.eq(userId))
+        .and(MAS_JOB_RECORD.STATE.eq(state))
+        .limit(pageSize)
+        .offset(offset)
+        .fetch(this::recordToMasJobRecord);
+  }
 
   public Map<String, UUID> createNewMasJobRecord(List<MasJobRecord> masJobRecord) {
     var records = masJobRecord.stream().map(this::mjrToRecord).toList();

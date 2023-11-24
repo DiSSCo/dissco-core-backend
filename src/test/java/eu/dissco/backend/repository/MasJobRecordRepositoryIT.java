@@ -6,7 +6,9 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
+import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID_ALT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
@@ -19,6 +21,8 @@ import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import java.util.List;
+import org.checkerframework.checker.units.qual.A;
+import org.checkerframework.checker.units.qual.N;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +40,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @AfterEach
   void destroy() {
     context.truncate(MAS_JOB_RECORD).execute();
+    context.truncate(NEW_USER).execute();
   }
 
   @Test
@@ -67,10 +72,10 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   void testGetMasJobRecordsByCreator() throws JsonProcessingException {
     // Given
     var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted(ID)));
 
     // When
-    var result = masJobRecordRepository.getMasJobRecordsByCreator(ORCID, 1, 10);
+    var result = masJobRecordRepository.getMasJobRecordsByCreator(ID_ALT, 1, 10);
 
     // Then
     assertThat(result).isEqualTo(List.of(expected));
@@ -83,10 +88,10 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
     // When
-    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
-        AnnotationState.FAILED.toString(), 1, 10);
-    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
-        AnnotationState.SCHEDULED.toString(), 1, 10);
+    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ID_ALT,
+        AnnotationState.FAILED.getState(), 1, 10);
+    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ID_ALT,
+        AnnotationState.SCHEDULED.getState(), 1, 10);
 
     // Then
     assertThat(resultStatusFailed).isEmpty();
@@ -97,7 +102,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   void testGetMasJobRecordsByTargetId() throws JsonProcessingException {
     // Given
     var expected = new MasJobRecordFull(AnnotationState.SCHEDULED, ORCID, ID_ALT, ORCID, JOB_ID, CREATED, null, MAPPER.createObjectNode());
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted(ID)));
 
     // When
     var result = masJobRecordRepository.getMasJobRecordsByTargetId(ID_ALT, 1, 10);
@@ -113,14 +118,42 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
     // When
-    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByTargetIdAndState(ID,
+    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByTargetIdAndState(ID_ALT,
         AnnotationState.FAILED.getState(), 1, 10);
-    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
-        AnnotationState.SCHEDULED.toString(), 1, 10);
+    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByCreatorAndState(ID_ALT,
+        AnnotationState.SCHEDULED.getState(), 1, 10);
 
     // Then
     assertThat(resultStatusFailed).isEmpty();
     assertThat(resultStatusScheduled).isEqualTo(List.of(expected));
+  }
+
+  @Test
+  void testGetMasJobRecordByUserId() throws JsonProcessingException {
+    // Given
+    var expected = List.of(givenMasJobRecordFullScheduled());
+    postMasJobRecordFull(expected);
+    postUser();
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, 1, 1);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordByUserIdAndState() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullScheduled();
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+    postUser();
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordsByUserIdAndState(USER_ID_TOKEN, AnnotationState.SCHEDULED.getState(), 1, 1);
+
+    // Then
+    assertThat(result).isEqualTo(List.of(expected));
   }
 
   @Test
@@ -165,7 +198,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
     for (var mjr : mjrList) {
       context.insertInto(MAS_JOB_RECORD)
-          .set(MAS_JOB_RECORD.STATE, mjr.state().toString())
+          .set(MAS_JOB_RECORD.STATE, mjr.state().getState())
           .set(MAS_JOB_RECORD.CREATOR_ID, mjr.creatorId())
           .set(MAS_JOB_RECORD.TARGET_ID, mjr.targetId())
           .set(MAS_JOB_RECORD.JOB_ID, mjr.jobId())
@@ -178,5 +211,17 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     }
   }
 
+  private void postUser() {
+    var user = givenUser();
+    context.insertInto(NEW_USER)
+        .set(NEW_USER.ID, USER_ID_TOKEN)
+        .set(NEW_USER.ORCID, user.orcid())
+        .set(NEW_USER.FIRST_NAME, user.firstName())
+        .set(NEW_USER.LAST_NAME, user.lastName())
+        .set(NEW_USER.ORGANIZATION, user.organisation())
+        .set(NEW_USER.CREATED, CREATED)
+        .set(NEW_USER.UPDATED, CREATED)
+        .execute();
+  }
 
 }

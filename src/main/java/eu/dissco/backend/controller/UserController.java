@@ -2,7 +2,9 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -70,6 +73,21 @@ public class UserController extends BaseController {
     var response = service.findUser(id);
     return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
   }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/mjr")
+  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecords(
+      @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      @RequestParam(required = false) AnnotationState state,
+      Authentication authentication,
+     HttpServletRequest request) {
+    var userId = getNameFromToken(authentication);
+    log.info("User: {} has requested a list of their Mas Job records", userId);
+    var response = service.getMasJobRecordsForUser(userId, getPath(request), pageNumber, pageSize, state);
+    return ResponseEntity.ok(response);
+  }
+
 
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
