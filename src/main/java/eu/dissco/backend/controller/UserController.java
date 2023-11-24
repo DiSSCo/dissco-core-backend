@@ -71,6 +71,16 @@ public class UserController extends BaseController {
     return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
   }
 
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/{orcid}/orcid")
+  public ResponseEntity<JsonApiWrapper> getUserFromOrcid(Authentication authentication,
+      @PathVariable("orcid") String orcid, HttpServletRequest request) throws NotFoundException {
+    log.info("User: {} has requested user information of: {}", getNameFromToken(authentication),
+        orcid);
+    var response = service.findUserFromOrcid(orcid);
+    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
+  }
+
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{id}")

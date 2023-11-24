@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
@@ -55,6 +56,18 @@ class UserRepositoryIT extends BaseRepositoryIT {
 
     // When
     var result = repository.findOptional(USER_ID_TOKEN);
+
+    // Then
+    assertThat(result).isPresent().contains(givenUser());
+  }
+
+  @Test
+  void testFindUserFromOrcid() {
+    // Given
+    repository.createNewUser(USER_ID_TOKEN, givenUser());
+
+    // When
+    var result = repository.findOptionalFromOrcid(ORCID);
 
     // Then
     assertThat(result).isPresent().contains(givenUser());
