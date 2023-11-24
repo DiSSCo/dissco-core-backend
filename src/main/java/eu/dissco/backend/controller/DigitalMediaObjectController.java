@@ -8,6 +8,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -122,13 +124,14 @@ public class DigitalMediaObjectController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ConflictException {
+      @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
+      throws JsonProcessingException, ConflictException, ForbiddenException {
+    var userId = getNameFromToken(authentication);
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,
         id);
-    var massResponse = service.scheduleMass(id, masIds, getPath(request));
+    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId);
     return ResponseEntity.accepted().body(massResponse);
   }
 

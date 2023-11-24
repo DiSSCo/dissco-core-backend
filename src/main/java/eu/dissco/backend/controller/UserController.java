@@ -98,8 +98,4 @@ public class UserController extends BaseController {
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  private String getNameFromToken(Authentication authentication) {
-    return authentication.getName();
-  }
-
 }

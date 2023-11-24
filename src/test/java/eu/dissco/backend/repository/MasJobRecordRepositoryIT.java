@@ -5,12 +5,14 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID_ALT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationState;
@@ -94,7 +96,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetMasJobRecordsByTargetId() throws JsonProcessingException {
     // Given
-    var expected = new MasJobRecordFull(AnnotationState.SCHEDULED, ORCID, ID_ALT, JOB_ID, CREATED, null, MAPPER.createObjectNode());
+    var expected = new MasJobRecordFull(AnnotationState.SCHEDULED, ORCID, ID_ALT, ORCID, JOB_ID, CREATED, null, MAPPER.createObjectNode());
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
     // When
@@ -124,7 +126,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @Test
   void testCreateNewMasJobRecord() {
     // Given
-    var mjr = new MasJobRecord(AnnotationState.SCHEDULED, ID, ID_ALT);
+    var mjr = new MasJobRecord(AnnotationState.SCHEDULED, ID, ID_ALT, ORCID);
 
     // When
     var result = masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -142,6 +144,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
         .set(MAS_JOB_RECORD.CREATOR_ID, ID)
         .set(MAS_JOB_RECORD.TIME_STARTED, CREATED)
         .set(MAS_JOB_RECORD.TARGET_ID, ID_ALT)
+        .set(MAS_JOB_RECORD.USER_ID, ORCID)
         .execute();
 
     // When
@@ -170,6 +173,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD.ANNOTATIONS,
               JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())))
+          .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
           .execute();
     }
   }

@@ -175,11 +175,11 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
-    var masJobRecordList = List.of(new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID));
+    var masJobRecordList = List.of(new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
     given(masJobRecordRepository.createNewMasJobRecord(masJobRecordList)).willReturn(expected);
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID);
 
     // Then
     assertThat(result).isEqualTo(expected);

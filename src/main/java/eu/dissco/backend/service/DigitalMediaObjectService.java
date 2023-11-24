@@ -16,6 +16,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -39,6 +40,7 @@ public class DigitalMediaObjectService {
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
   private final MasJobRecordService masJobRecordService;
+  private final UserService userService;
 
   // Controller Functions
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
@@ -158,11 +160,12 @@ public class DigitalMediaObjectService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path) {
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId) throws ForbiddenException {
+    var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid);
   }
 
 }

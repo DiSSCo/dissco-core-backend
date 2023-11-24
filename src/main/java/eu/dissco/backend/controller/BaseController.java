@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -41,4 +42,9 @@ public abstract class BaseController {
     return Arrays.asList(
         mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
+
+  protected String getNameFromToken(Authentication authentication) {
+    return authentication.getName();
+  }
+
 }

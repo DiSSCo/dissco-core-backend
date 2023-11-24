@@ -1,16 +1,20 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenJsonApiData;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.TestUtils.givenUserRequest;
 import static eu.dissco.backend.TestUtils.givenUserRequestInvalidType;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import eu.dissco.backend.domain.User;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
 import eu.dissco.backend.exceptions.InvalidTypeException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -77,7 +81,7 @@ class UserServiceTest {
   }
 
   @Test
-  void testFindUser() throws Exception{
+  void testFindUser() throws Exception {
     // Given
     given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
 
@@ -86,6 +90,37 @@ class UserServiceTest {
 
     // Then
     assertThat(result).isEqualTo(givenJsonApiData());
+  }
+
+  @Test
+  void testGetOrcid() throws Exception {
+    // Given
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.of(givenUser()));
+
+    // When
+    var result = service.getOrcid(USER_ID_TOKEN);
+
+    // Then
+    assertThat(result).isEqualTo(ORCID);
+  }
+
+  @Test
+  void testGetOrcidNoOrcid() {
+    // Given
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(
+        Optional.of(new User("S", "T", "email", null, "org")));
+
+    // Then
+    assertThrows(ForbiddenException.class, () -> service.getOrcid(USER_ID_TOKEN));
+  }
+
+  @Test
+  void testGetOrcidNoUser() {
+    // Given
+    given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.empty());
+
+    // Then
+    assertThrows(ForbiddenException.class, () -> service.getOrcid(USER_ID_TOKEN));
   }
 
   @Test

@@ -5,7 +5,9 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -61,7 +63,9 @@ class DigitalMediaObjectServiceTest {
   @Mock
   private SpecimenRepository specimenRepository;
   @Mock
-  MasJobRecordService masJobRecordService;
+  private MasJobRecordService masJobRecordService;
+  @Mock
+  private UserService userService;
 
   private DigitalMediaObjectService service;
 
@@ -74,7 +78,7 @@ class DigitalMediaObjectServiceTest {
   @BeforeEach
   void setup() {
     service = new DigitalMediaObjectService(repository, annotationService, specimenRepository,
-        masService, mongoRepository, MAPPER, masJobRecordService);
+        masService, mongoRepository, MAPPER, masJobRecordService, userService);
   }
 
   @ParameterizedTest
@@ -283,7 +287,7 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException {
+  void testScheduleMas() throws Exception {
     // Given
     var digitalMediaWrapper = givenDigitalMediaObject(HANDLE + ID);
     var specimenId = DOI + ID_ALT;
@@ -292,10 +296,11 @@ class DigitalMediaObjectServiceTest {
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
     given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(DIGITAL_MEDIA_PATH),
-        eq(digitalMediaWrapper), eq(ID))).willReturn(response);
+        eq(digitalMediaWrapper), eq(ID), eq(ORCID))).willReturn(response);
+    given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH);
+    var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN);
 
     // Then
     assertThat(result).isEqualTo(response);

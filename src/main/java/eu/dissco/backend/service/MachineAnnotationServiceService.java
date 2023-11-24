@@ -69,12 +69,12 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId) {
+      String path, Object object, String targetId, String orcid) {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<UUID> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId);
+    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid);
     for (var masRecord : availableRecords) {
       try {
         var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));

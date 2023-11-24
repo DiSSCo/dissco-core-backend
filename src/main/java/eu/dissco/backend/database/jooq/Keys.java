@@ -16,6 +16,7 @@ import eu.dissco.backend.database.jooq.tables.records.DigitalSpecimenRecord;
 import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
 import eu.dissco.backend.database.jooq.tables.records.NewUserRecord;
+
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;

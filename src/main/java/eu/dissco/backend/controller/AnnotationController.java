@@ -181,7 +181,4 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
-  private String getNameFromToken(Authentication authentication) {
-    return authentication.getName();
-  }
 }

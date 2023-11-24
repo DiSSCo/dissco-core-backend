@@ -90,9 +90,9 @@ public class MasJobRecordService {
   }
 
   public Map<String, UUID> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId) {
+      String targetId, String orcid) {
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId))
+        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId, orcid))
         .toList();
     return masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
   }

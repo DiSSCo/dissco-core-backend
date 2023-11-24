@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -30,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaObjectControllerTest {
@@ -38,6 +40,8 @@ class DigitalMediaObjectControllerTest {
   private DigitalMediaObjectService service;
   @Mock
   private ApplicationProperties applicationProperties;
+  @Mock
+  private Authentication authentication;
   private DigitalMediaObjectController controller;
   private MockHttpServletRequest mockRequest;
 
@@ -147,15 +151,16 @@ class DigitalMediaObjectControllerTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException, ConflictException {
+  void testScheduleMas() throws Exception {
     // Given
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     var request = givenMasRequest();
-    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
+    givenAuthentication();
+    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, mockRequest);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -166,10 +171,15 @@ class DigitalMediaObjectControllerTest {
   void testScheduleMasInvalidType() {
     // Given
     var request = givenMasRequest("Invalid Type");
+    givenAuthentication();
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, mockRequest));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication, mockRequest));
+  }
+
+  private void givenAuthentication() {
+    given(authentication.getName()).willReturn(USER_ID_TOKEN);
   }
 
 }

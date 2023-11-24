@@ -6,6 +6,7 @@ import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
 import eu.dissco.backend.exceptions.InvalidTypeException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -53,6 +54,14 @@ public class UserService {
       return new JsonApiData(id, TYPE, mapper.valueToTree(userOptional.get()));
     }
     throw new NotFoundException("User with id " + id + " does not exist");
+  }
+
+  public String getOrcid(String id) throws ForbiddenException {
+    var user = repository.findOptional(id);
+    if (user.isPresent() && user.get().orcid() != null){
+      return user.get().orcid();
+    }
+    throw new ForbiddenException("User must register ORCID before performing this action");
   }
 
   public User getUser(String id) {

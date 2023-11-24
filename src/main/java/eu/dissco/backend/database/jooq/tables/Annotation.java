@@ -4,19 +4,26 @@
 package eu.dissco.backend.database.jooq.tables;
 
 
+import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
+
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function16;
+import org.jooq.Function17;
+import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row16;
+import org.jooq.Row17;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -129,6 +136,12 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      */
     public final TableField<AnnotationRecord, Instant> DELETED_ON = createField(DSL.name("deleted_on"), SQLDataType.INSTANT, this, "");
 
+    /**
+     * The column <code>public.annotation.annotation_hash</code>. hashes
+     * motivation, target, and creator fields
+     */
+    public final TableField<AnnotationRecord, UUID> ANNOTATION_HASH = createField(DSL.name("annotation_hash"), SQLDataType.UUID, this, "hashes motivation, target, and creator fields");
+
     private Annotation(Name alias, Table<AnnotationRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -165,6 +178,11 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     @Override
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
+    }
+
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.ANNOTATION_ID_CREATOR_ID_INDEX, Indexes.ANNOTATION_ID_TARGET_ID_INDEX);
     }
 
     @Override
@@ -212,18 +230,18 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row16 type methods
+    // Row17 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row16<String, Integer, String, String, String, String, JSONB, JSONB, String, JSONB, Instant, JSONB, Instant, Instant, JSONB, Instant> fieldsRow() {
-        return (Row16) super.fieldsRow();
+    public Row17<String, Integer, String, String, String, String, JSONB, JSONB, String, JSONB, Instant, JSONB, Instant, Instant, JSONB, Instant, UUID> fieldsRow() {
+        return (Row17) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function16<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function17<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -231,7 +249,7 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function16<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function17<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

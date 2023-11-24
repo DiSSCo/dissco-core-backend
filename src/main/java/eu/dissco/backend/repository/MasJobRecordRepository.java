@@ -18,7 +18,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record4;
+import org.jooq.Record5;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -80,9 +80,8 @@ public class MasJobRecordRepository {
 
   public Map<String, UUID> createNewMasJobRecord(List<MasJobRecord> masJobRecord) {
     var records = masJobRecord.stream().map(this::mjrToRecord).toList();
-
     return context.insertInto(MAS_JOB_RECORD, MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID,
-            MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED)
+            MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED, MAS_JOB_RECORD.USER_ID)
         .valuesOfRecords(records)
         .returning(MAS_JOB_RECORD.CREATOR_ID, MAS_JOB_RECORD.JOB_ID)
         .fetchMap(MAS_JOB_RECORD.CREATOR_ID, MAS_JOB_RECORD.JOB_ID);
@@ -96,13 +95,14 @@ public class MasJobRecordRepository {
         .execute();
   }
 
-  private Record4<String, String, String, Instant> mjrToRecord(MasJobRecord masJobRecord) {
+  private Record5<String, String, String, Instant, String> mjrToRecord(MasJobRecord masJobRecord) {
     var dbRecord = context.newRecord(MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID,
-        MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED);
+        MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED, MAS_JOB_RECORD.USER_ID);
     dbRecord.set(MAS_JOB_RECORD.STATE, masJobRecord.state().getState());
     dbRecord.set(MAS_JOB_RECORD.CREATOR_ID, masJobRecord.creatorId());
     dbRecord.set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId());
     dbRecord.set(MAS_JOB_RECORD.TIME_STARTED, Instant.now());
+    dbRecord.set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid());
     return dbRecord;
   }
 
@@ -112,6 +112,7 @@ public class MasJobRecordRepository {
           AnnotationState.fromString(dbRecord.get(MAS_JOB_RECORD.STATE)),
           dbRecord.get(MAS_JOB_RECORD.CREATOR_ID),
           dbRecord.get(MAS_JOB_RECORD.TARGET_ID),
+          dbRecord.get(MAS_JOB_RECORD.USER_ID),
           dbRecord.get(MAS_JOB_RECORD.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
