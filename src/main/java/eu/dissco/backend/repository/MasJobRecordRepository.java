@@ -3,7 +3,6 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
-import static org.jooq.impl.DSL.noCondition;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,7 +39,7 @@ public class MasJobRecordRepository {
   public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, AnnotationState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = noCondition().and(MAS_JOB_RECORD.TARGET_ID.eq(targetId));
+    var condition = MAS_JOB_RECORD.TARGET_ID.eq(targetId);
     if (state != null){
       condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
     }
@@ -56,7 +55,7 @@ public class MasJobRecordRepository {
   public List<MasJobRecordFull> getMasJobRecordsByCreatorId(String creatorId, AnnotationState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = noCondition().and(MAS_JOB_RECORD.CREATOR_ID.eq((creatorId)));
+    var condition = MAS_JOB_RECORD.CREATOR_ID.eq((creatorId));
     if (state != null) {
       condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
     }
@@ -71,7 +70,7 @@ public class MasJobRecordRepository {
   public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, AnnotationState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = noCondition().and(NEW_USER.ID.eq((userId)));
+    var condition = NEW_USER.ID.eq((userId));
     if (state != null) {
       condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
     }
