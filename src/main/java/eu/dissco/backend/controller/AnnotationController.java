@@ -100,7 +100,7 @@ public class AnnotationController extends BaseController {
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
     schemaValidator.validateAnnotationRequest(annotation, false);
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     log.info("Received new annotation from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
     if (annotationResponse != null) {
@@ -117,7 +117,7 @@ public class AnnotationController extends BaseController {
       @PathVariable("suffix") String suffix, HttpServletRequest request)
       throws NoAnnotationFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     var annotation = getAnnotationFromRequest(requestBody);
     log.info("Received update for annotation: {} from user: {}", id, userId);
     var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request), prefix, suffix);
@@ -135,7 +135,7 @@ public class AnnotationController extends BaseController {
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
       Authentication authentication) throws IOException {
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     log.info("Received get request to show all annotations for user: {}", userId);
     var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
@@ -157,9 +157,9 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<Void> deleteAnnotation(Authentication authentication,
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException {
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     log.info("Received delete for annotation: {} from user: {}", (prefix + suffix), userId);
-    var success = service.deleteAnnotation(prefix, suffix, getNameFromToken(authentication));
+    var success = service.deleteAnnotation(prefix, suffix, authentication.getName());
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } else {

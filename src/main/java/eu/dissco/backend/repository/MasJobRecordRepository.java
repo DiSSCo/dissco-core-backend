@@ -3,6 +3,7 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
+import static org.jooq.impl.DSL.noCondition;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,73 +37,49 @@ public class MasJobRecordRepository {
         .fetchOptional(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, int pageNum,
-      int pageSize) {
-    var offset = getOffset(pageNum, pageSize);
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.TARGET_ID.eq(targetId))
-        .offset(offset)
-        .limit(pageSize)
-        .fetch(this::recordToMasJobRecord);
-  }
-
-  public List<MasJobRecordFull> getMasJobRecordsByTargetIdAndState(String targetId, String state,
+  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, AnnotationState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
+    var condition = noCondition().and(MAS_JOB_RECORD.TARGET_ID.eq(targetId));
+    if (state != null){
+      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+    }
+
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.TARGET_ID.eq(targetId))
-        .and(MAS_JOB_RECORD.STATE.eq(state))
+        .where(condition)
         .offset(offset)
         .limit(pageSize)
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByCreator(String creatorId, int pageNum,
-      int pageSize) {
+  public List<MasJobRecordFull> getMasJobRecordsByCreatorId(String creatorId, AnnotationState state,
+      int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
+    var condition = noCondition().and(MAS_JOB_RECORD.CREATOR_ID.eq((creatorId)));
+    if (state != null) {
+      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+    }
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
+        .where(condition)
         .limit(pageSize)
         .offset(offset)
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, int pageNum, int pageSize) {
+  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, AnnotationState state,
+      int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
+    var condition = noCondition().and(NEW_USER.ID.eq((userId)));
+    if (state != null) {
+      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+    }
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
         .join(NEW_USER)
         .on(NEW_USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
-        .where(NEW_USER.ID.eq(userId))
-        .limit(pageSize)
-        .offset(offset)
-        .fetch(this::recordToMasJobRecord);
-  }
-
-  public List<MasJobRecordFull> getMasJobRecordsByCreatorAndState(String creatorId, String state,
-      int pageNum, int pageSize) {
-    var offset = getOffset(pageNum, pageSize);
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
-        .and(MAS_JOB_RECORD.STATE.eq(state))
-        .limit(pageSize)
-        .offset(offset)
-        .fetch(this::recordToMasJobRecord);
-  }
-
-  public List<MasJobRecordFull> getMasJobRecordsByUserIdAndState(String userId, String state,
-      int pageNum, int pageSize) {
-    var offset = getOffset(pageNum, pageSize);
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .join(NEW_USER)
-        .on(NEW_USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
-        .where(NEW_USER.ID.eq(userId))
-        .and(MAS_JOB_RECORD.STATE.eq(state))
+        .where(condition)
         .limit(pageSize)
         .offset(offset)
         .fetch(this::recordToMasJobRecord);

@@ -222,7 +222,7 @@ public class SpecimenController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException {
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",

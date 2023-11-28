@@ -126,7 +126,7 @@ public class DigitalMediaObjectController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException {
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,

@@ -54,7 +54,7 @@ public class UserController extends BaseController {
   public ResponseEntity<JsonApiWrapper> createNewUser(Authentication authentication,
       @RequestBody JsonApiWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException {
-    var tokenId = getNameFromToken(authentication);
+    var tokenId = authentication.getName();
     log.info("User: {} has requested to update user information of: {}", tokenId,
         requestBody.getData().getId());
     checkAuthorisation(tokenId, requestBody.getData().getId());
@@ -68,7 +68,7 @@ public class UserController extends BaseController {
   @GetMapping(value = "/{id}")
   public ResponseEntity<JsonApiWrapper> getUser(Authentication authentication,
       @PathVariable("id") String id, HttpServletRequest request) throws NotFoundException {
-    log.info("User: {} has requested user information of: {}", getNameFromToken(authentication),
+    log.info("User: {} has requested user information of: {}", authentication.getName(),
         id);
     var response = service.findUser(id);
     return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
@@ -82,7 +82,7 @@ public class UserController extends BaseController {
       @RequestParam(required = false) AnnotationState state,
       Authentication authentication,
      HttpServletRequest request) {
-    var userId = getNameFromToken(authentication);
+    var userId = authentication.getName();
     log.info("User: {} has requested a list of their Mas Job records", userId);
     var response = service.getMasJobRecordsForUser(userId, getPath(request), pageNumber, pageSize, state);
     return ResponseEntity.ok(response);
@@ -96,7 +96,7 @@ public class UserController extends BaseController {
       @PathVariable("id") String id, @RequestBody JsonApiWrapper requestBody,
       HttpServletRequest request)
       throws ConflictException, ForbiddenException {
-    var tokenId = getNameFromToken(authentication);
+    var tokenId = authentication.getName();
     log.info("User: {} has requested to update user information of: {}", tokenId, id);
     checkAuthorisation(tokenId, id);
     var response = service.updateUser(id, requestBody);
@@ -108,9 +108,9 @@ public class UserController extends BaseController {
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> deleteUser(Authentication authentication,
       @PathVariable("id") String id) throws ForbiddenException {
-    var tokenId = getNameFromToken(authentication);
+    var tokenId = authentication.getName();
     log.info("User: {} has requested to delete user information of: {}",
-        getNameFromToken(authentication), id);
+        authentication.getName(), id);
     checkAuthorisation(tokenId, id);
     service.deleteUser(id);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
