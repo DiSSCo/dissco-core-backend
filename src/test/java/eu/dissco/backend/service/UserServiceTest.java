@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenJsonApiData;
 import static eu.dissco.backend.TestUtils.givenUser;
@@ -89,12 +90,33 @@ class UserServiceTest {
   }
 
   @Test
+  void testFindUserFromOrcid() throws Exception{
+    // Given
+    given(repository.findOptionalFromOrcid(ORCID)).willReturn(Optional.of(givenUser()));
+
+    // When
+    var result = service.findUserFromOrcid(ORCID);
+
+    // Then
+    assertThat(result).isEqualTo(givenJsonApiData(ORCID));
+  }
+
+  @Test
   void testFindUserNotFound() {
     // Given
     given(repository.findOptional(USER_ID_TOKEN)).willReturn(Optional.empty());
 
     // Then
     assertThrowsExactly(NotFoundException.class, () -> service.findUser(USER_ID_TOKEN));
+  }
+
+  @Test
+  void testFindUserFromOrcidNotFound() {
+    // Given
+    given(repository.findOptionalFromOrcid(ORCID)).willReturn(Optional.empty());
+
+    // Then
+    assertThrowsExactly(NotFoundException.class, () -> service.findUserFromOrcid(ORCID));
   }
 
   @Test

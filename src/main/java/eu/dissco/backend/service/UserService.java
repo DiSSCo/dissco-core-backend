@@ -47,9 +47,17 @@ public class UserService {
     }
   }
 
+  public JsonApiData findUserFromOrcid(String orcid) throws NotFoundException {
+    var userOptional = repository.findOptionalFromOrcid(orcid);
+    if (userOptional.isPresent()) {
+      return new JsonApiData(orcid, TYPE, mapper.valueToTree(userOptional.get()));
+    }
+    throw new NotFoundException("User with ORCID " + orcid + " does not exist");
+  }
+
   public JsonApiData findUser(String id) throws NotFoundException {
     var userOptional = repository.findOptional(id);
-    if (userOptional.isPresent()){
+    if (userOptional.isPresent()) {
       return new JsonApiData(id, TYPE, mapper.valueToTree(userOptional.get()));
     }
     throw new NotFoundException("User with id " + id + " does not exist");
@@ -63,8 +71,8 @@ public class UserService {
       throws ConflictException {
     checkType(request);
     if (id.equals(request.getData().getId())) {
-        var user = repository.updateUser(id, request.getData().getAttributes());
-        return new JsonApiData(id, TYPE, mapper.valueToTree(user));
+      var user = repository.updateUser(id, request.getData().getAttributes());
+      return new JsonApiData(id, TYPE, mapper.valueToTree(user));
     } else {
       log.warn("ID: {} is equal to id in request: {}", id, request.getData().getType());
       throw new InvalidIdException();
