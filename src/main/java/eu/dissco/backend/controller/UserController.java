@@ -72,7 +72,7 @@ public class UserController extends BaseController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{orcid}/orcid")
+  @GetMapping(value = "/orcid/{orcid}")
   public ResponseEntity<JsonApiWrapper> getUserFromOrcid(Authentication authentication,
       @PathVariable("orcid") String orcid, HttpServletRequest request) throws NotFoundException {
     log.info("User: {} has requested user information of: {}", getNameFromToken(authentication),
