@@ -130,7 +130,7 @@ public class User extends TableImpl<UserRecord> {
 
     @Override
     public UniqueKey<UserRecord> getPrimaryKey() {
-        return Keys.NEW_USER_PKEY;
+        return Keys.USER_PKEY;
     }
 
     @Override
