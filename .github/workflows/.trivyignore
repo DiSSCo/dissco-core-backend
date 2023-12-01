@@ -1,8 +1,4 @@
-# Date: November 14, 2023
-# Issue: openssl: Incorrect cipher key and IV length processing https://avd.aquasec.com/nvd/cve-2023-5363
-# Solution: Docker image needs an update
-CVE-2023-5363
-
 # Date: Dec 1, 2023
 # Notes: Issue with logback. Spring boot needs to update its version
-CVE-2023-6378
+# Currently forcing logback version
+# CVE-2023-6378
