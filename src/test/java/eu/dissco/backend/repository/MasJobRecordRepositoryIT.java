@@ -8,7 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
-import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
+import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
@@ -36,7 +36,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @AfterEach
   void destroy() {
     context.truncate(MAS_JOB_RECORD).execute();
-    context.truncate(NEW_USER).execute();
+    context.truncate(USER).execute();
   }
 
   @Test
@@ -196,14 +196,14 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
   private void postUser() {
     var user = givenUser();
-    context.insertInto(NEW_USER)
-        .set(NEW_USER.ID, USER_ID_TOKEN)
-        .set(NEW_USER.ORCID, user.orcid())
-        .set(NEW_USER.FIRST_NAME, user.firstName())
-        .set(NEW_USER.LAST_NAME, user.lastName())
-        .set(NEW_USER.ORGANIZATION, user.organisation())
-        .set(NEW_USER.CREATED, CREATED)
-        .set(NEW_USER.UPDATED, CREATED)
+    context.insertInto(USER)
+        .set(USER.ID, USER_ID_TOKEN)
+        .set(USER.ORCID, user.orcid())
+        .set(USER.FIRST_NAME, user.firstName())
+        .set(USER.LAST_NAME, user.lastName())
+        .set(USER.ORGANIZATION, user.organisation())
+        .set(USER.CREATED, CREATED)
+        .set(USER.UPDATED, CREATED)
         .execute();
   }
 
