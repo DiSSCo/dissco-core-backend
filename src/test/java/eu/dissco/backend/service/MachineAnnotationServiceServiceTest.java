@@ -18,14 +18,18 @@ import static org.mockito.BDDMockito.willThrow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,9 +45,25 @@ class MachineAnnotationServiceServiceTest {
 
   private MachineAnnotationServiceService service;
 
+  private static Stream<Arguments> provideFilters() {
+    return Stream.of(
+        Arguments.of(List.of(
+            Pair.of("$.ods:type", List.of("Some Test value")))),
+        Arguments.of(List.of(
+            Pair.of("$.ods:format", List.of("application/json")),
+            Pair.of("$.digitalSpecimen.occurrences[*].location.dwc:country",
+                List.of("The Netherlands", "Belgium")))),
+        Arguments.of(List.of(
+            Pair.of("$.ods:format", List.of("application/json")),
+            Pair.of("$.digitalSpecimen.occurrences[*].dwc:city",
+                List.of("Rotterdam", "Amsterdam"))))
+    );
+  }
+
   @BeforeEach
   void setup() {
-    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService, masJobRecordService, MAPPER);
+    this.service = new MachineAnnotationServiceService(repository, kafkaPublisherService,
+        masJobRecordService, MAPPER);
   }
 
   @Test
@@ -59,10 +79,12 @@ class MachineAnnotationServiceServiceTest {
     assertThat(result).isEqualTo(givenMasResponse(masRecord, DIGITAL_MEDIA_PATH));
   }
 
-  @Test
-  void testGetMassForObjectNoFilterMatch() throws JsonProcessingException {
+  @ParameterizedTest
+  @MethodSource("provideFilters")
+  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters)
+      throws JsonProcessingException {
     // Given
-    var masRecord = givenMasRecord(givenFiltersDigitalMedia(true));
+    var masRecord = givenMasRecord(givenFiltersDigitalMedia(filters));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
 
     // When
@@ -78,7 +100,8 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(givenMasJobRecordIdMap(masRecord.id()));
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(
+        givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
 
     // When
@@ -96,7 +119,8 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(givenMasJobRecordIdMap(masRecord.id()));
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID)).willReturn(
+        givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
         .sendObjectToQueue("fancy-topic-name", sendObject);
@@ -110,24 +134,45 @@ class MachineAnnotationServiceServiceTest {
     assertThat(result.getData()).isEmpty();
   }
 
+  private JsonNode givenFiltersDigitalMedia(List<Pair<String, List<String>>> filters) {
+    var filterObject = MAPPER.createObjectNode();
+    for (var filter : filters) {
+      var arrayNode = MAPPER.createArrayNode();
+      for (var value : filter.getRight()) {
+        arrayNode.add(value);
+      }
+      filterObject.set(filter.getLeft(), arrayNode);
+    }
+    return filterObject;
+  }
+
   private JsonNode givenFiltersDigitalMedia(boolean unmatchedFilter) {
     var filters = MAPPER.createObjectNode();
-    filters.set("type", MAPPER.createArrayNode().add("2DImageObject"));
-    filters.set("dcterms:publisher",
+    filters.set("$.ods:type",
+        MAPPER.createArrayNode().add("https://doi.org/21.T11148/bbad8c4e101e8af01115"));
+    filters.set("$.ods:dcterms:publisher",
         MAPPER.createArrayNode().add("Royal Botanic Garden Edinburgh"));
-    filters.set("specimen.dwc:typeStatus", MAPPER.createArrayNode().add("*"));
+    filters.set("$.digitalSpecimen.occurrences[*].location.dwc:country",
+        MAPPER.createArrayNode().add("*"));
     if (unmatchedFilter) {
-      filters.set("specimen.dwc:island", MAPPER.createArrayNode().add("*"));
+      filters.set("$.digitalSpecimen.occurrences[*].location.dwc:island",
+          MAPPER.createArrayNode().add("*"));
     }
     return filters;
   }
 
   private JsonNode givenFiltersDigitalSpecimen() {
     var filters = MAPPER.createObjectNode();
-    filters.set("dcterms:license",
-        MAPPER.createArrayNode().add("http://creativecommons.org/licenses/by/4.0/legalcode"));
-    filters.set("dwc:typeStatus",
-        MAPPER.createArrayNode().add("holotype"));
+    filters.set("$.dcterms:license",
+        MAPPER.createArrayNode().add("http://creativecommons.org/licenses/by/4.0/legalcode")
+            .add("http://creativecommons.org/licenses/by-nc/4.0/"));
+    filters.set("$.ods:topicDiscipline",
+        MAPPER.createArrayNode().add("Palaeontology"));
+    filters.set("$.ods:midsLevel",
+        MAPPER.createArrayNode().add(0).add(1));
+    filters.set("$.occurrences.location.georeference.dwc:geodeticDatum",
+        MAPPER.createArrayNode().add("WGS84").add("Another System"));
     return filters;
   }
+
 }

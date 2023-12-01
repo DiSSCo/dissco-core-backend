@@ -1,8 +1,11 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -29,24 +32,29 @@ public class MachineAnnotationServiceService {
   private final MasJobRecordService mjrService;
   private final ObjectMapper mapper;
 
-  private static boolean checkIfMasComplies(JsonNode jsonNode,
+  private boolean checkIfMasComplies(JsonNode jsonNode,
       MachineAnnotationServiceRecord masRecord) {
     var filters = masRecord.mas().targetDigitalObjectFilters();
     var fields = filters.fields();
     var complies = true;
-    while (fields.hasNext()) {
+    while (fields.hasNext() && complies) {
       var field = fields.next();
       var fieldKey = field.getKey();
-      var valueList = new ArrayList<String>();
-      field.getValue().elements().forEachRemaining(value -> valueList.add(value.asText()));
-      var valueJson = jsonNode.findValue(fieldKey);
-      if (valueJson == null || !valueJson.isTextual() || valueJson.asText().strip().equals("")) {
-        complies = false;
-      } else {
-        var value = valueJson.asText();
-        if (!valueList.contains("*") && !valueList.contains(value)) {
+      var allowedValues = mapper.convertValue(field.getValue(), new TypeReference<List<Object>>() {
+      });
+      try {
+        var values = JsonPath.read(jsonNode.toString(), fieldKey);
+        if (values instanceof List<?>) {
+          var valueList = (List<Object>) values;
+          if (valueList.isEmpty() || (!allowedValues.contains("*") && !allowedValues.contains(
+              valueList))) {
+            complies = false;
+          }
+        } else if (values instanceof Object && !allowedValues.contains(values)) {
           complies = false;
         }
+      } catch (PathNotFoundException e) {
+        log.warn("Key: {} not found in json: {}", fieldKey, jsonNode);
       }
     }
     return complies;
