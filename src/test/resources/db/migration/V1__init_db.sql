@@ -1,4 +1,4 @@
-CREATE TABLE public.new_user
+CREATE TABLE public.user
 (
     id           text        NOT NULL,
     first_name   text NULL,
@@ -8,7 +8,7 @@ CREATE TABLE public.new_user
     organization text NULL,
     created      timestamptz NOT NULL,
     updated      timestamptz NOT NULL,
-    CONSTRAINT new_user_pkey PRIMARY KEY (id)
+    CONSTRAINT user_pkey PRIMARY KEY (id)
 );
 
 create table annotation

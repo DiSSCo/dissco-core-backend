@@ -9,7 +9,7 @@ import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.NewUser;
+import eu.dissco.backend.database.jooq.tables.User;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,9 +58,9 @@ public class Public extends SchemaImpl {
     public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
     /**
-     * The table <code>public.new_user</code>.
+     * The table <code>public.user</code>.
      */
-    public final NewUser NEW_USER = NewUser.NEW_USER;
+    public final User USER = User.USER;
 
     /**
      * No further instances allowed
@@ -83,7 +83,7 @@ public class Public extends SchemaImpl {
             DigitalSpecimen.DIGITAL_SPECIMEN,
             MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
             MasJobRecord.MAS_JOB_RECORD,
-            NewUser.NEW_USER
+            User.USER
         );
     }
 }

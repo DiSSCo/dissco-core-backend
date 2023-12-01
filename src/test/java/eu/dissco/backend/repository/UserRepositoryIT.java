@@ -4,7 +4,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
-import static eu.dissco.backend.database.jooq.Tables.NEW_USER;
+import static eu.dissco.backend.database.jooq.Tables.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,7 +23,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
 
   @AfterEach
   void destroy() {
-    context.truncate(NEW_USER).execute();
+    context.truncate(USER).execute();
   }
 
   @Test
