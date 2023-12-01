@@ -8,20 +8,22 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function7;
+import org.jooq.Function8;
 import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row7;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -88,6 +90,12 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * The column <code>public.mas_job_record.target_id</code>.
      */
     public final TableField<MasJobRecordRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.mas_job_record.user_id</code>. User scheduling
+     * MAS
+     */
+    public final TableField<MasJobRecordRecord, String> USER_ID = createField(DSL.name("user_id"), SQLDataType.CLOB, this, "User scheduling MAS");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
@@ -177,18 +185,18 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row7 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<UUID, String, String, Instant, Instant, JSONB, String> fieldsRow() {
-        return (Row7) super.fieldsRow();
+    public Row8<UUID, String, String, Instant, Instant, JSONB, String, String> fieldsRow() {
+        return (Row8) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function7<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -196,7 +204,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

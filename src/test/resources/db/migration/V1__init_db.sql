@@ -30,7 +30,8 @@ create table annotation
     generated        timestamp with time zone not null,
     last_checked     timestamp with time zone not null,
     aggregate_rating jsonb,
-    deleted_on       timestamp with time zone
+    deleted_on       timestamp with time zone,
+    annotation_hash  uuid
 );
 
 create table digital_media_object
@@ -122,7 +123,8 @@ create table mas_job_record
     time_started   timestamp with time zone        not null,
     time_completed timestamp with time zone,
     annotations    jsonb,
-    target_id      text                            not null
+    target_id      text                            not null,
+    user_id        text                            not null
 );
 
 create index mas_job_record_created_idx

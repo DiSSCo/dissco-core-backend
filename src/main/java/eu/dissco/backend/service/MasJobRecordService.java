@@ -44,15 +44,7 @@ public class MasJobRecordService {
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
       AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
-    List<MasJobRecordFull> masJobRecordListPlusOne;
-
-    if (state == null) {
-      masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, pageNum,
-          pageSizePlusOne);
-    } else {
-      masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetIdAndState(targetId,
-          state.getState(), pageNum, pageSizePlusOne);
-    }
+    var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state, pageNum, pageSizePlusOne);
     if (masJobRecordListPlusOne.isEmpty()) {
       throw new NotFoundException("No MAS Jobs for " + targetId + " found");
     }
@@ -63,13 +55,17 @@ public class MasJobRecordService {
       int pageNum, int pageSize, AnnotationState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
-    if (state == null) {
-      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreator(creatorId, pageNum,
-          pageSizeToCheckNext);
-    } else {
-      masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorAndState(creatorId,
-          state.getState(), pageNum, pageSizeToCheckNext);
-    }
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId,
+        state, pageNum, pageSizeToCheckNext);
+    return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
+  }
+
+  public JsonApiListResponseWrapper getMasJobRecordsByUserId(String orcid, String path,
+      int pageNum, int pageSize, AnnotationState state) {
+    int pageSizeToCheckNext = pageSize + 1;
+    List<MasJobRecordFull> masJobRecordsPlusOne;
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(orcid, state,
+        pageNum, pageSizeToCheckNext);
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 
@@ -90,9 +86,10 @@ public class MasJobRecordService {
   }
 
   public Map<String, UUID> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId) {
+      String targetId, String orcid) {
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId))
+        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId,
+            orcid))
         .toList();
     return masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
   }

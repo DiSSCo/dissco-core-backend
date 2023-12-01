@@ -41,4 +41,5 @@ public abstract class BaseController {
     return Arrays.asList(
         mapper.treeToValue(requestBody.data().attributes().get("mass"), String[].class));
   }
+
 }

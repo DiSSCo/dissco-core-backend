@@ -7,10 +7,14 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenJsonApiData;
 import static eu.dissco.backend.TestUtils.givenUserRequest;
 import static eu.dissco.backend.TestUtils.givenUserResponse;
+import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
+import static eu.dissco.backend.utils.MasJobRecordUtils.givenMjrListResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -87,6 +91,27 @@ class UserControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody()).isEqualTo(givenUserResponse());
+  }
+
+  @Test
+  void testGetMasJobRecords() {
+    // Given
+    int pageNum = 1;
+    int pageSize = 1;
+    givenAuthentication(USER_ID_TOKEN);
+    var expected = givenMjrListResponse(pageNum, pageSize, true);
+    var path = "https://sandbox.dissco.tech" + USER_URL;
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    mockRequest.setRequestURI(USER_URL);
+    given(
+        service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize,
+            AnnotationState.SCHEDULED)).willReturn(expected);
+
+    // When
+    var result = controller.getMasJobRecords(pageNum, pageSize, AnnotationState.SCHEDULED, authentication, mockRequest);
+
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isEqualTo(expected);
   }
 
   @Test

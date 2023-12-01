@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
@@ -26,6 +27,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
@@ -37,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMapAdapter;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +50,8 @@ class SpecimenControllerTest {
   private SpecimenService service;
   @Mock
   private ApplicationProperties applicationProperties;
+  @Mock
+  Authentication authentication;
   private SpecimenController controller;
 
   @BeforeEach
@@ -128,11 +133,11 @@ class SpecimenControllerTest {
   }
 
   @Test
-
   void testGetMjrsForSpecimen() throws Exception {
 
     // When
-    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, AnnotationState.SCHEDULED, 1, 1, mockRequest);
+    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, AnnotationState.SCHEDULED,
+        1, 1, mockRequest);
 
     // THen
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -234,15 +239,17 @@ class SpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException, ConflictException {
+  void testScheduleMas() throws JsonProcessingException, ConflictException, ForbiddenException {
     // Given
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
-    given(service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH)).willReturn(expectedResponse);
+    givenAuthentication();
+    given(service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest);
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -253,10 +260,12 @@ class SpecimenControllerTest {
   void testScheduleMasInvalidType() {
     // Given
     var request = givenMasRequest("Invalid Type");
+    givenAuthentication();
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
   }
 
   @Test
@@ -265,10 +274,16 @@ class SpecimenControllerTest {
     var mass = Map.of("somethingElse", List.of(ID));
     var apiRequest = new JsonApiRequest("MasRequest", MAPPER.valueToTree(mass));
     var request = new JsonApiRequestWrapper(apiRequest);
+    givenAuthentication();
 
     // When / Then
     assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, mockRequest));
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
+  }
+
+  private void givenAuthentication() {
+    given(authentication.getName()).willReturn(USER_ID_TOKEN);
   }
 
 }

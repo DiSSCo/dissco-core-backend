@@ -8,6 +8,7 @@ public record MasJobRecordFull(
     AnnotationState state,
     String creatorId,
     String targetId,
+    String orcid,
     UUID jobId,
     Instant timeStarted,
     Instant timeCompleted,

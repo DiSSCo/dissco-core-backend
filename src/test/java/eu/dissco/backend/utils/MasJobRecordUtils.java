@@ -8,6 +8,10 @@ import static eu.dissco.backend.TestUtils.ORCID;
 
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,8 +33,9 @@ public class MasJobRecordUtils {
   public static MasJobRecordFull givenMasJobRecordFullScheduled() {
     return new MasJobRecordFull(
         AnnotationState.SCHEDULED,
-        ORCID,
+        ID_ALT,
         ID,
+        ORCID,
         JOB_ID,
         CREATED,
         null,
@@ -39,15 +44,28 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecordFull givenMasJobRecordFullCompleted() {
+    return givenMasJobRecordFullCompleted(ID_ALT);
+  }
+
+  public static MasJobRecordFull givenMasJobRecordFullCompleted(String creator) {
     return new MasJobRecordFull(
         AnnotationState.COMPLETED,
-        ID_ALT,
+        creator,
         ID,
+        ORCID,
         JOB_ID_ALT,
         CREATED,
         CREATED,
         MAPPER.createObjectNode()
     );
+  }
+
+  public static JsonApiListResponseWrapper givenMjrListResponse(int pageSize, int pageNum, boolean hasNext){
+    var linksNode = new JsonApiLinksFull(pageSize, pageNum, hasNext, MJR_URI);
+    var mjr = givenMasJobRecordFullScheduled();
+    var dataList = Collections.nCopies(pageSize,
+        new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
+    return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
 

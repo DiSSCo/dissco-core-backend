@@ -19,6 +19,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -65,6 +66,7 @@ public class SpecimenService {
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
   private final MasJobRecordService masJobRecordService;
+  private final UserService userService;
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
@@ -335,9 +337,11 @@ public class SpecimenService {
     return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String path) {
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path)
+      throws ForbiddenException {
+    var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid);
   }
 }

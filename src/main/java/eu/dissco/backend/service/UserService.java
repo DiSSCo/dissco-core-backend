@@ -2,10 +2,13 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
+import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
 import eu.dissco.backend.exceptions.InvalidTypeException;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -24,6 +27,7 @@ public class UserService {
 
   private final ObjectMapper mapper;
   private final UserRepository repository;
+  private final MasJobRecordService masJobRecordService;
 
   public JsonApiData createNewUser(JsonApiWrapper request)
       throws JsonProcessingException, ConflictException {
@@ -63,6 +67,14 @@ public class UserService {
     throw new NotFoundException("User with id " + id + " does not exist");
   }
 
+  public String getOrcid(String id) throws ForbiddenException {
+    var user = repository.findOptional(id);
+    if (user.isPresent() && user.get().orcid() != null) {
+      return user.get().orcid();
+    }
+    throw new ForbiddenException("User must register ORCID before performing this action");
+  }
+
   public User getUser(String id) {
     return repository.find(id);
   }
@@ -77,6 +89,11 @@ public class UserService {
       log.warn("ID: {} is equal to id in request: {}", id, request.getData().getType());
       throw new InvalidIdException();
     }
+  }
+
+  public JsonApiListResponseWrapper getMasJobRecordsForUser(String userId, String path, int pageNum,
+      int pageSize, AnnotationState state) {
+    return masJobRecordService.getMasJobRecordsByUserId(userId, path, pageNum, pageSize, state);
   }
 
   public void deleteUser(String id) {

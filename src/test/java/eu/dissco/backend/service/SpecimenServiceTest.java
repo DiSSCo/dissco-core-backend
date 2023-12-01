@@ -4,6 +4,7 @@ import static eu.dissco.backend.TestUtils.DIGITAL_SPECIMEN_TYPE;
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -39,6 +40,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -75,13 +77,15 @@ class SpecimenServiceTest {
   private MongoRepository mongoRepository;
   @Mock
   private MasJobRecordService masJobRecordService;
+  @Mock
+  private UserService userService;
 
   private SpecimenService service;
 
   @BeforeEach
   void setup() {
     service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaObjectService,
-        masService, annotationService, mongoRepository, masJobRecordService);
+        masService, annotationService, mongoRepository, masJobRecordService, userService);
   }
 
   @Test
@@ -521,17 +525,18 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException {
+  void testScheduleMas() throws JsonProcessingException, ForbiddenException {
     // Given
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimenWrapper);
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
-        eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()))).willReturn(response);
+        eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID))).willReturn(response);
+    given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), SPECIMEN_PATH);
+    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(response);

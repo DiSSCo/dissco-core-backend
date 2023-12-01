@@ -1,16 +1,18 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
+import static eu.dissco.backend.utils.MasJobRecordUtils.givenMjrListResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -64,32 +66,10 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testGetMasJobRecordByTargetIdAllStates() throws Exception {
-    // Given
-    var pageSize = 2;
-    var pageNum = 1;
-    var linksNode = new JsonApiLinksFull(pageSize, pageNum, true, MJR_URI);
-    var mjr = givenMasJobRecordFullScheduled();
-    var dataList = Collections.nCopies(pageSize,
-        new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
-    var expected = new JsonApiListResponseWrapper(dataList, linksNode);
-    given(
-        masJobRecordRepository.getMasJobRecordsByTargetId(ID, pageNum, pageSize + 1)).willReturn(
-        Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
-
-    // When
-    var result = masJobRecordService.getMasJobRecordByTargetId(ID, null, MJR_URI, pageNum,
-        pageSize);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
   void testGetMasJobRecordNotFound() {
     // Given
-    given(masJobRecordRepository.getMasJobRecordsByTargetIdAndState(ID,
-        AnnotationState.SCHEDULED.getState(), 1, 2)).willReturn(Collections.emptyList());
+    given(masJobRecordRepository.getMasJobRecordsByTargetId(ID,
+        AnnotationState.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
 
     // Then
     assertThrows(NotFoundException.class,
@@ -112,17 +92,13 @@ class MasJobRecordServiceTest {
     // Given
     var pageSize = 2;
     var pageNum = 1;
-    var linksNode = new JsonApiLinksFull(pageSize, pageNum, true, MJR_URI);
-    var mjr = givenMasJobRecordFullScheduled();
-    var dataList = Collections.nCopies(pageSize,
-        new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
-    var expected = new JsonApiListResponseWrapper(dataList, linksNode);
+    var expected = givenMjrListResponse(pageSize, pageNum, true);
     given(
-        masJobRecordRepository.getMasJobRecordsByCreator(ORCID, pageNum, pageSize + 1)).willReturn(
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum, pageSize + 1)).willReturn(
         Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByCreator(ORCID, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByCreator(ID_ALT, MJR_URI, pageNum, pageSize,
         null);
 
     // Then
@@ -134,17 +110,15 @@ class MasJobRecordServiceTest {
     // Given
     var pageSize = 2;
     var pageNum = 1;
-    var linksNode = new JsonApiLinksFull(pageSize, pageNum, false, MJR_URI);
     var mjr = givenMasJobRecordFullScheduled();
-    var dataList = Collections.nCopies(pageSize,
-        new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
-    var expected = new JsonApiListResponseWrapper(dataList, linksNode);
+    var expected = givenMjrListResponse(pageSize, pageNum, false);
+
     given(
-        masJobRecordRepository.getMasJobRecordsByCreator(ORCID, pageNum, pageSize + 1)).willReturn(
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum, pageSize + 1)).willReturn(
         Collections.nCopies(pageSize, mjr));
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByCreator(ORCID, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByCreator(ID_ALT, MJR_URI, pageNum, pageSize,
         null);
 
     // Then
@@ -152,18 +126,38 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testGetMasJobRecordsByCreatorIdAndState() {
+  void testGetMasJobRecordsByUserIdHasNext() {
+    // Given
+    var pageSize = 2;
+    var pageNum = 1;
+    var expected = givenMjrListResponse(pageSize, pageNum, true);
+
+
+    given(
+        masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, null, pageNum, pageSize + 1)).willReturn(
+        Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
+
+    // When
+    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum, pageSize,
+        null);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordsByUserIdAndState() {
     // Given
     var pageSize = 2;
     var pageNum = 1;
     var expected = new JsonApiListResponseWrapper(Collections.emptyList(),
         new JsonApiLinksFull(MJR_URI));
-    given(masJobRecordRepository.getMasJobRecordsByCreatorAndState(ORCID,
-        AnnotationState.FAILED.getState(), pageNum, pageSize + 1)).willReturn(
+    given(masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
+        AnnotationState.FAILED, pageNum, pageSize + 1)).willReturn(
         Collections.emptyList());
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByCreator(ORCID, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum, pageSize,
         AnnotationState.FAILED);
 
     // Then
@@ -175,11 +169,11 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
-    var masJobRecordList = List.of(new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID));
+    var masJobRecordList = List.of(new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
     given(masJobRecordRepository.createNewMasJobRecord(masJobRecordList)).willReturn(expected);
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID);
 
     // Then
     assertThat(result).isEqualTo(expected);
