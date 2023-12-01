@@ -75,6 +75,16 @@ public class UserController extends BaseController {
   }
 
   @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/orcid/{orcid}")
+  public ResponseEntity<JsonApiWrapper> getUserFromOrcid(Authentication authentication,
+      @PathVariable("orcid") String orcid, HttpServletRequest request) throws NotFoundException {
+    log.info("User: {} has requested user information of: {}", authentication.getName(),
+        orcid);
+    var response = service.findUserFromOrcid(orcid);
+    return ResponseEntity.ok(new JsonApiWrapper(response, new JsonApiLinks(getPath(request))));
+  }
+
+  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/mjr")
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecords(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,

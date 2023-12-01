@@ -51,6 +51,14 @@ public class UserService {
     }
   }
 
+  public JsonApiData findUserFromOrcid(String orcid) throws NotFoundException {
+    var userOptional = repository.findOptionalFromOrcid(orcid);
+    if (userOptional.isPresent()) {
+      return new JsonApiData(orcid, TYPE, mapper.valueToTree(userOptional.get()));
+    }
+    throw new NotFoundException("User with ORCID " + orcid + " does not exist");
+  }
+
   public JsonApiData findUser(String id) throws NotFoundException {
     var userOptional = repository.findOptional(id);
     if (userOptional.isPresent()) {

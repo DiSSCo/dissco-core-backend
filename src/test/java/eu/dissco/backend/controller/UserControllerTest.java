@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.FORBIDDEN_MESSAGE;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenJsonApiData;
 import static eu.dissco.backend.TestUtils.givenUserRequest;
@@ -111,6 +112,22 @@ class UserControllerTest {
 
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody()).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetUserFromOrcid() throws NotFoundException {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    given(service.findUserFromOrcid(ORCID)).willReturn(givenJsonApiData());
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    mockRequest.setRequestURI(USER_URL + USER_ID_TOKEN);
+
+    // When
+    var result = controller.getUserFromOrcid(authentication, ORCID, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isEqualTo(givenUserResponse());
   }
 
   @Test

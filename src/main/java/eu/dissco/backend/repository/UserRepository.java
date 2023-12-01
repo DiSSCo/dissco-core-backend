@@ -61,6 +61,10 @@ public class UserRepository {
     return context.selectFrom(NEW_USER).where(NEW_USER.ID.eq(id)).fetchOptional(this::mapToUser);
   }
 
+  public Optional<User> findOptionalFromOrcid(String orcid){
+    return context.selectFrom(NEW_USER).where(NEW_USER.ORCID.eq(orcid)).fetchOptional(this::mapToUser);
+  }
+
   public User updateUser(String id, JsonNode attributes) {
     var updateQuery = context.update(NEW_USER)
         .set(NEW_USER.UPDATED, Instant.now());
