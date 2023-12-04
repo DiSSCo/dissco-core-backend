@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum AnnotationState {
   SCHEDULED("scheduled"),
   FAILED("failed"),
-  COMPLETED("completed");
+  COMPLETED("completed"),
+  RUNNING("running");
 
   private final String state;
 
@@ -24,6 +25,9 @@ public enum AnnotationState {
       }
       case "completed" -> {
         return COMPLETED;
+      }
+      case "running" -> {
+        return RUNNING;
       }
       default ->
           throw new IllegalStateException("Unable to construct AnnotationState from state " + s);

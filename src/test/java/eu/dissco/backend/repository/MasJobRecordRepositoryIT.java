@@ -13,11 +13,13 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import eu.dissco.backend.exceptions.NotFoundException;
 import java.util.List;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
@@ -133,7 +135,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     postUser();
 
     // When
-    var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, AnnotationState.SCHEDULED, 1, 1);
+    var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
+        AnnotationState.SCHEDULED, 1, 1);
 
     // Then
     assertThat(result).isEqualTo(List.of(expected));
@@ -152,16 +155,9 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testMarkMasJobRecordsAsFailed() {
+  void testMarkMasJobRecordsAsFailed() throws Exception {
     // Given
-    context.insertInto(MAS_JOB_RECORD)
-        .set(MAS_JOB_RECORD.JOB_ID, JOB_ID)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.SCHEDULED.getState())
-        .set(MAS_JOB_RECORD.CREATOR_ID, ID)
-        .set(MAS_JOB_RECORD.TIME_STARTED, CREATED)
-        .set(MAS_JOB_RECORD.TARGET_ID, ID_ALT)
-        .set(MAS_JOB_RECORD.USER_ID, ORCID)
-        .execute();
+    postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
 
     // When
     masJobRecordRepository.markMasJobRecordsAsFailed(List.of(JOB_ID));
@@ -169,13 +165,37 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
             MAS_JOB_RECORD.TIME_COMPLETED)
         .from(MAS_JOB_RECORD)
         .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
-        .fetchOne();
+        .fetchSingle();
     var timestamp = result.get(MAS_JOB_RECORD.TIME_COMPLETED);
     var state = result.get(MAS_JOB_RECORD.STATE);
 
     // Then
     assertThat(timestamp).isNotNull();
     assertThat(state).isEqualTo(AnnotationState.FAILED.getState());
+  }
+
+  @Test
+  void testMarkMasJobRecordAsRunning() throws Exception {
+    // Given
+    postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
+
+    // When
+    masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.STATE)
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
+        .fetchSingle();
+    var state = result.get(MAS_JOB_RECORD.STATE);
+
+    // Then
+    assertThat(state).isEqualTo(AnnotationState.RUNNING.getState());
+  }
+
+  @Test
+  void testMarkMasJobRecordAsRunningNotFound(){
+    // Then
+    assertThrows(NotFoundException.class,
+        () -> masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID));
   }
 
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {

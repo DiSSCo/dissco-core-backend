@@ -94,6 +94,10 @@ public class MasJobRecordService {
     return masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
   }
 
+  public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
+    masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId);
+  }
+
   public void markMasJobRecordAsFailed(List<UUID> failedJobIds) {
     masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
   }
