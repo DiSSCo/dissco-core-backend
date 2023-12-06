@@ -55,6 +55,7 @@ public class MachineAnnotationServiceService {
         }
       } catch (PathNotFoundException e) {
         log.warn("Key: {} not found in json: {}", fieldKey, jsonNode);
+        complies = false;
       }
     }
     return complies;
