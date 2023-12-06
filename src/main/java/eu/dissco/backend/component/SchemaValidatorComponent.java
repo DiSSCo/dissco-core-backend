@@ -24,6 +24,7 @@ public class SchemaValidatorComponent {
     if (errors.isEmpty()) {
       return;
     }
+    log.error("Invalid annotation request. Errors {}", errors);
     throw new InvalidAnnotationRequestException(errors.toString());
   }
 
