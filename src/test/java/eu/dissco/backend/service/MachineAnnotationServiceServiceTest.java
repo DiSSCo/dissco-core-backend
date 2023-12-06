@@ -57,7 +57,8 @@ class MachineAnnotationServiceServiceTest {
         Arguments.of(List.of(
             Pair.of("$.ods:format", List.of("application/json")),
             Pair.of("$.digitalSpecimen.occurrences[*].dwc:city",
-                List.of("Rotterdam", "Amsterdam"))))
+                List.of("Rotterdam", "Amsterdam")))),
+        Arguments.of(List.of(Pair.of("$.omg:someRandomNonExistingKey", List.of("whyKnows"))))
     );
   }
 
@@ -151,8 +152,8 @@ class MachineAnnotationServiceServiceTest {
     var filters = MAPPER.createObjectNode();
     filters.set("$.ods:type",
         MAPPER.createArrayNode().add("https://doi.org/21.T11148/bbad8c4e101e8af01115"));
-    filters.set("$.ods:dcterms:publisher",
-        MAPPER.createArrayNode().add("Royal Botanic Garden Edinburgh"));
+    filters.set("$.dwc:institutionName",
+        MAPPER.createArrayNode().add("Botanic Garden and Botanical Museum Berlin"));
     filters.set("$.digitalSpecimen.occurrences[*].location.dwc:country",
         MAPPER.createArrayNode().add("*"));
     if (unmatchedFilter) {
@@ -171,8 +172,6 @@ class MachineAnnotationServiceServiceTest {
         MAPPER.createArrayNode().add("Palaeontology"));
     filters.set("$.ods:midsLevel",
         MAPPER.createArrayNode().add(0).add(1));
-    filters.set("$.occurrences.location.georeference.dwc:geodeticDatum",
-        MAPPER.createArrayNode().add("WGS84").add("Another System"));
     return filters;
   }
 
