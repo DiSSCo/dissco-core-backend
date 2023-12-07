@@ -20,7 +20,7 @@ public enum MappingTerms {
   TYPE_STATUS("typeStatus",
       "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:typeStatus.keyword"),
   LICENSE("license", "digitalSpecimenWrapper.ods:attributes.dcterms:license.keyword"),
-  HAS_MEDIA("hasMedia", "digitalSpecimenWrapper.ods:attributes.ods:hasMedia.keyword"),
+  HAS_MEDIA("hasMedia", "digitalSpecimenWrapper.ods:attributes.ods:hasMedia"),
   ORGANISATION_ID("organisationId",
       "digitalSpecimenWrapper.ods:attributes.dwc:institutionId.keyword"),
   ORGANISATION_NAME("organisationName",
