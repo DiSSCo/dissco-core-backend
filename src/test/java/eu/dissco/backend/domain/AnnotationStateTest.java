@@ -30,7 +30,8 @@ class AnnotationStateTest {
     return Stream.of(
         Arguments.of(AnnotationState.FAILED, "failed"),
         Arguments.of(AnnotationState.COMPLETED, "completed"),
-        Arguments.of(AnnotationState.SCHEDULED, "scheduled")
+        Arguments.of(AnnotationState.SCHEDULED, "scheduled"),
+        Arguments.of(AnnotationState.RUNNING, "running")
     );
   }
 

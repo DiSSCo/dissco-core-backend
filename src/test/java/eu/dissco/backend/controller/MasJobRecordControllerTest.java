@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,5 +70,12 @@ class MasJobRecordControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
+  @Test
+  void testMarkMjrAsRunning() throws Exception {
+    // When
+    var result = controller.markMjrAsRunning(ID, JOB_ID);
 
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
 }

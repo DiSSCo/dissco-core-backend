@@ -101,6 +101,14 @@ public class MasJobRecordRepository {
         .execute();
   }
 
+  public int markMasJobRecordAsRunning(String creatorId, UUID masJobId) {
+    return context.update(MAS_JOB_RECORD)
+        .set(MAS_JOB_RECORD.STATE, AnnotationState.RUNNING.getState())
+        .where(MAS_JOB_RECORD.JOB_ID.eq(masJobId))
+        .and(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
+        .execute();
+  }
+
   private Record5<String, String, String, Instant, String> mjrToRecord(MasJobRecord masJobRecord) {
     var dbRecord = context.newRecord(MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID,
         MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED, MAS_JOB_RECORD.USER_ID);
