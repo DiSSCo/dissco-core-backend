@@ -94,7 +94,8 @@ class MasJobRecordServiceTest {
     var pageNum = 1;
     var expected = givenMjrListResponse(pageSize, pageNum, true);
     given(
-        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum, pageSize + 1)).willReturn(
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum,
+            pageSize + 1)).willReturn(
         Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
 
     // When
@@ -114,7 +115,8 @@ class MasJobRecordServiceTest {
     var expected = givenMjrListResponse(pageSize, pageNum, false);
 
     given(
-        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum, pageSize + 1)).willReturn(
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum,
+            pageSize + 1)).willReturn(
         Collections.nCopies(pageSize, mjr));
 
     // When
@@ -132,13 +134,14 @@ class MasJobRecordServiceTest {
     var pageNum = 1;
     var expected = givenMjrListResponse(pageSize, pageNum, true);
 
-
     given(
-        masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, null, pageNum, pageSize + 1)).willReturn(
+        masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, null, pageNum,
+            pageSize + 1)).willReturn(
         Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
+        pageSize,
         null);
 
     // Then
@@ -157,7 +160,8 @@ class MasJobRecordServiceTest {
         Collections.emptyList());
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
+        pageSize,
         AnnotationState.FAILED);
 
     // Then
@@ -169,7 +173,8 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
-    var masJobRecordList = List.of(new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
+    var masJobRecordList = List.of(
+        new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
     given(masJobRecordRepository.createNewMasJobRecord(masJobRecordList)).willReturn(expected);
 
     // When
@@ -187,4 +192,24 @@ class MasJobRecordServiceTest {
     // Then
     then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_ID));
   }
+
+  @Test
+  void testMarkMasJobRecordAsRunning() throws Exception {
+    // Given
+    given(masJobRecordRepository.markMasJobRecordAsRunning(ID, JOB_ID)).willReturn(1);
+
+    // When
+    masJobRecordService.markMasJobRecordAsRunning(ID, JOB_ID);
+
+    // Then
+    then(masJobRecordRepository).should().markMasJobRecordAsRunning(ID, JOB_ID);
+  }
+
+  @Test
+  void testMarkMasJobRecordAsRunningNotFound() throws Exception {
+    // Then
+    assertThrows(NotFoundException.class,
+        () -> masJobRecordService.markMasJobRecordAsRunning(ID, JOB_ID));
+  }
+
 }
