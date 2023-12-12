@@ -44,7 +44,8 @@ public class MasJobRecordService {
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
       AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
-    var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state, pageNum, pageSizePlusOne);
+    var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
+        pageNum, pageSizePlusOne);
     if (masJobRecordListPlusOne.isEmpty()) {
       throw new NotFoundException("No MAS Jobs for " + targetId + " found");
     }
@@ -95,7 +96,9 @@ public class MasJobRecordService {
   }
 
   public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
-    masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId);
+    if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId) == 0) {
+      throw new NotFoundException("Unable to locate MAS job with id " + masJobId);
+    }
   }
 
   public void markMasJobRecordAsFailed(List<UUID> failedJobIds) {

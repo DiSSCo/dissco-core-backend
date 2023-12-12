@@ -191,13 +191,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     assertThat(state).isEqualTo(AnnotationState.RUNNING.getState());
   }
 
-  @Test
-  void testMarkMasJobRecordAsRunningNotFound(){
-    // Then
-    assertThrows(NotFoundException.class,
-        () -> masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID));
-  }
-
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
     for (var mjr : mjrList) {
       context.insertInto(MAS_JOB_RECORD)

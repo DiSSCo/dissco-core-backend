@@ -11,7 +11,6 @@ import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
-import eu.dissco.backend.exceptions.NotFoundException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -102,15 +101,12 @@ public class MasJobRecordRepository {
         .execute();
   }
 
-  public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
-    var updated = context.update(MAS_JOB_RECORD)
+  public int markMasJobRecordAsRunning(String creatorId, UUID masJobId) {
+    return context.update(MAS_JOB_RECORD)
         .set(MAS_JOB_RECORD.STATE, AnnotationState.RUNNING.getState())
         .where(MAS_JOB_RECORD.JOB_ID.eq(masJobId))
         .and(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
         .execute();
-    if (updated == 0){
-      throw new NotFoundException("Unable to locate MAS job with id " + masJobId);
-    }
   }
 
   private Record5<String, String, String, Instant, String> mjrToRecord(MasJobRecord masJobRecord) {
