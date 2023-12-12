@@ -23,7 +23,6 @@
     "ods:created": {
       "type": "string",
       "description": "The timestamp that the object version was created in DiSSCo",
-      "format": "date-time",
       "examples": [
       ]
     },
