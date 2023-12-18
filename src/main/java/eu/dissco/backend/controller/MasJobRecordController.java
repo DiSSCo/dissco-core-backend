@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("api/v1/mjr")
+@RequestMapping("/api/v1/mjr")
 public class MasJobRecordController extends BaseController {
 
   private final MasJobRecordService service;
@@ -54,10 +53,12 @@ public class MasJobRecordController extends BaseController {
 
   }
 
-  @PatchMapping(value = "/{creatorId}/{masJobId}/running")
+  @GetMapping(value = "/{creatorIdPrefix}/{creatorIdSuffix}/{masJobId}/running")
   public ResponseEntity<Void> markMjrAsRunning(
-      @PathVariable("creatorId") String creatorId,
+      @PathVariable("creatorIdPrefix") String creatorIdPrefix,
+      @PathVariable("creatorIdSuffix") String creatorIdSuffix,
       @PathVariable("masJobId") UUID masJobId) throws NotFoundException {
+    var creatorId = creatorIdPrefix + "/" + creatorIdSuffix;
     service.markMasJobRecordAsRunning(creatorId, masJobId);
     return ResponseEntity.ok().build();
   }
