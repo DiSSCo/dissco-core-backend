@@ -191,6 +191,23 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     assertThat(state).isEqualTo(AnnotationState.RUNNING.getState());
   }
 
+  @Test
+  void testMarkMasJobRecordAsRunningCompleted() throws Exception {
+    // Given
+    postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
+
+    // When
+    masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.STATE)
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
+        .fetchOptional();
+
+
+    // Then
+    assertThat(result).isEmpty();
+  }
+
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
     for (var mjr : mjrList) {
       context.insertInto(MAS_JOB_RECORD)
