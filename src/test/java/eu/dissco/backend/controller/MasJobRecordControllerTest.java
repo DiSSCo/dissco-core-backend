@@ -4,7 +4,8 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_HANDLE;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_HANDLE;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -45,12 +46,12 @@ class MasJobRecordControllerTest {
   @Test
   void testGetMasJobRecord() throws Exception {
    // Given
-    given(masJobRecordService.getMasJobRecordById(JOB_ID, MJR_PATH)).willReturn(new JsonApiWrapper(null, null));
+    given(masJobRecordService.getMasJobRecordById(JOB_HANDLE, MJR_PATH)).willReturn(new JsonApiWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
 
     // When
-    var result = controller.getMasJobRecord(JOB_ID, mockRequest);
+    var result = controller.getMasJobRecord(JOB_HANDLE, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -74,7 +75,7 @@ class MasJobRecordControllerTest {
   @Test
   void testMarkMjrAsRunning() throws Exception {
     // When
-    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, JOB_ID);
+    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, JOB_HANDLE);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

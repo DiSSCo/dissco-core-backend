@@ -12,6 +12,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -78,10 +79,10 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid) {
+      String path, Object object, String targetId, String orcid) throws PidCreationException {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
-    List<UUID> failedRecords = new ArrayList<>();
+    List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
     var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid);
     for (var masRecord : availableRecords) {

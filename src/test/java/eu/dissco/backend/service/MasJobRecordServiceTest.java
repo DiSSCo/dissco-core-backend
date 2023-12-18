@@ -6,7 +6,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
-import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_HANDLE;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
@@ -25,6 +25,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
+import eu.dissco.backend.web.HandleComponent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,25 +42,27 @@ class MasJobRecordServiceTest {
   private MasJobRecordService masJobRecordService;
   @Mock
   private MasJobRecordRepository masJobRecordRepository;
+  @Mock
+  HandleComponent handleComponent;
 
   @BeforeEach
   void setup() {
-    masJobRecordService = new MasJobRecordService(masJobRecordRepository, MAPPER);
+    masJobRecordService = new MasJobRecordService(masJobRecordRepository, handleComponent, MAPPER);
   }
 
   @Test
   void testGetMasJobRecordById() throws Exception {
     // Given
     var expected = new JsonApiWrapper(
-        new JsonApiData(JOB_ID.toString(), "masJobRecord", givenMasJobRecordFullScheduled(),
+        new JsonApiData(JOB_HANDLE.toString(), "masJobRecord", givenMasJobRecordFullScheduled(),
             MAPPER),
         new JsonApiLinks(MJR_URI)
     );
-    given(masJobRecordRepository.getMasJobRecordById(JOB_ID)).willReturn(
+    given(masJobRecordRepository.getMasJobRecordById(JOB_HANDLE)).willReturn(
         Optional.of(givenMasJobRecordFullScheduled()));
 
     // When
-    var result = masJobRecordService.getMasJobRecordById(JOB_ID, MJR_URI);
+    var result = masJobRecordService.getMasJobRecordById(JOB_HANDLE, MJR_URI);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -80,11 +83,11 @@ class MasJobRecordServiceTest {
   @Test
   void testGetMasJobRecordByIdEmpty() {
     // Given
-    given(masJobRecordRepository.getMasJobRecordById(JOB_ID)).willReturn(Optional.empty());
+    given(masJobRecordRepository.getMasJobRecordById(JOB_HANDLE)).willReturn(Optional.empty());
 
     // Then
     assertThrows(
-        NotFoundException.class, () -> masJobRecordService.getMasJobRecordById(JOB_ID, MJR_URI));
+        NotFoundException.class, () -> masJobRecordService.getMasJobRecordById(JOB_HANDLE, MJR_URI));
   }
 
   @Test
@@ -174,8 +177,9 @@ class MasJobRecordServiceTest {
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
     var masJobRecordList = List.of(
-        new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
+        new MasJobRecord(JOB_HANDLE, AnnotationState.SCHEDULED, masRecord.id(), ID, ORCID));
     given(masJobRecordRepository.createNewMasJobRecord(masJobRecordList)).willReturn(expected);
+    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_HANDLE));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID);
@@ -187,29 +191,29 @@ class MasJobRecordServiceTest {
   @Test
   void testMarkMasJobRecordAsFailed() {
     // When
-    masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));
+    masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_HANDLE));
 
     // Then
-    then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_ID));
+    then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_HANDLE));
   }
 
   @Test
   void testMarkMasJobRecordAsRunning() throws Exception {
     // Given
-    given(masJobRecordRepository.markMasJobRecordAsRunning(ID, JOB_ID)).willReturn(1);
+    given(masJobRecordRepository.markMasJobRecordAsRunning(ID, JOB_HANDLE)).willReturn(1);
 
     // When
-    masJobRecordService.markMasJobRecordAsRunning(ID, JOB_ID);
+    masJobRecordService.markMasJobRecordAsRunning(ID, JOB_HANDLE);
 
     // Then
-    then(masJobRecordRepository).should().markMasJobRecordAsRunning(ID, JOB_ID);
+    then(masJobRecordRepository).should().markMasJobRecordAsRunning(ID, JOB_HANDLE);
   }
 
   @Test
   void testMarkMasJobRecordAsRunningNotFound() throws Exception {
     // Then
     assertThrows(NotFoundException.class,
-        () -> masJobRecordService.markMasJobRecordAsRunning(ID, JOB_ID));
+        () -> masJobRecordService.markMasJobRecordAsRunning(ID, JOB_HANDLE));
   }
 
 }

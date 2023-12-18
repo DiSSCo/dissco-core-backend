@@ -115,7 +115,7 @@ EXTENSION IF NOT EXISTS "uuid-ossp";
 
 create table mas_job_record
 (
-    job_id         uuid default uuid_generate_v4() not null
+    job_id         text default uuid_generate_v4() not null
         constraint mas_job_record_pk
             primary key,
     state          text                            not null,

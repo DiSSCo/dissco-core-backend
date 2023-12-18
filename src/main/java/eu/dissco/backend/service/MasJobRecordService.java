@@ -13,10 +13,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 
+import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,17 +26,18 @@ import org.springframework.stereotype.Service;
 public class MasJobRecordService {
 
   private final MasJobRecordRepository masJobRecordRepository;
+  private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
 
-  public JsonApiWrapper getMasJobRecordById(UUID masJobRecordId, String path)
+  public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {
-    var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordId);
+    var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordHandle);
     if (masJobRecordOptional.isEmpty()) {
       throw new NotFoundException(
-          "Unable to find MAS Job Record for job " + masJobRecordId.toString());
+          "Unable to find MAS Job Record for job " + masJobRecordHandle);
     }
     var masJobRecord = masJobRecordOptional.get();
-    var dataNode = new JsonApiData(masJobRecordId.toString(), "masJobRecord",
+    var dataNode = new JsonApiData(masJobRecordHandle, "masJobRecord",
         mapper.valueToTree(masJobRecord));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -75,7 +76,7 @@ public class MasJobRecordService {
     boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
     var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
     List<JsonApiData> dataList = sublist.stream().map(
-            mjr -> new JsonApiData(mjr.jobId().toString(), "masJobRecord", mapper.valueToTree(mjr)))
+            mjr -> new JsonApiData(mjr.jobHandle(), "masJobRecord", mapper.valueToTree(mjr)))
         .toList();
     JsonApiLinksFull linksNode;
     if (masJobRecordListPlusOne.isEmpty()) {
@@ -86,22 +87,23 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, UUID> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
+  public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
       String targetId, String orcid) {
+    var handles = handleComponent.postHandle(masRecords.size()).iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId,
+        .map(masRecord -> new MasJobRecord(handles.next(), AnnotationState.SCHEDULED, masRecord.id(), targetId,
             orcid))
         .toList();
-    return masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+    return masJobRecordRepository.createNewMasJobRecord(masJobRecordList); // Map<Mas Id, Job Id>
   }
 
-  public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
-    if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId) == 0) {
-      throw new NotFoundException("Unable to locate scheduled MAS job with id " + masJobId);
+  public void markMasJobRecordAsRunning(String creatorId, String masJobHandle) throws NotFoundException {
+    if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobHandle) == 0) {
+      throw new NotFoundException("Unable to locate scheduled MAS job with id " + masJobHandle);
     }
   }
 
-  public void markMasJobRecordAsFailed(List<UUID> failedJobIds) {
+  public void markMasJobRecordAsFailed(List<String> failedJobIds) {
     masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
   }
 

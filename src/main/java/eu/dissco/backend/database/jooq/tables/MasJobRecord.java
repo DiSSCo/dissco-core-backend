@@ -12,7 +12,6 @@ import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.jooq.Field;
@@ -59,7 +58,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     /**
      * The column <code>public.mas_job_record.job_id</code>.
      */
-    public final TableField<MasJobRecordRecord, UUID> JOB_ID = createField(DSL.name("job_id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("uuid_generate_v4()"), SQLDataType.UUID)), this, "");
+    public final TableField<MasJobRecordRecord, String> JOB_ID = createField(DSL.name("job_id"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field(DSL.raw("uuid_generate_v4()"), SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.mas_job_record.state</code>.
@@ -189,14 +188,14 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<UUID, String, String, Instant, Instant, JSONB, String, String> fieldsRow() {
+    public Row8<String, String, String, Instant, Instant, JSONB, String, String> fieldsRow() {
         return (Row8) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function8<? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -204,7 +203,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

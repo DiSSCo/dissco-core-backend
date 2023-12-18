@@ -10,6 +10,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -125,7 +126,7 @@ public class DigitalMediaObjectController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
-      throws JsonProcessingException, ConflictException, ForbiddenException {
+      throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);

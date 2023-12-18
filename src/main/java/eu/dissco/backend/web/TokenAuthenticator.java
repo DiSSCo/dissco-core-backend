@@ -1,0 +1,64 @@
+package eu.dissco.backend.web;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.properties.TokenProperties;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.reactive.function.BodyInserters;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class TokenAuthenticator {
+  private final TokenProperties properties;
+
+  @Qualifier("tokenClient")
+  private final WebClient tokenClient;
+
+  public String getToken() {
+    var response = tokenClient
+        .post()
+        .body(BodyInserters.fromFormData(properties.getFromFormData()))
+        .acceptCharset(StandardCharsets.UTF_8)
+        .retrieve()
+        .onStatus(HttpStatus.UNAUTHORIZED::equals,
+            r -> Mono.error(new PidCreationException("Service is unauthorized.")))
+        .bodyToMono(JsonNode.class)
+        .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))
+            .filter(WebClientUtils::is5xxServerError)
+            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
+                new PidCreationException(
+                    "Token Authentication failed to process after max retries")
+            ));
+    try {
+      var tokenNode = response.toFuture().get();
+      return getToken(tokenNode);
+    } catch (InterruptedException | ExecutionException e) {
+      Thread.currentThread().interrupt();
+      log.error("Token authentication: Unable to authenticate processing service with Keycloak. Verify client secret is up to-date");
+      throw new PidCreationException(
+          "Unable to authenticate processing service with Keycloak. More information: "
+              + e.getMessage());
+    }
+  }
+
+  private String getToken(JsonNode tokenNode) {
+    if (tokenNode != null && tokenNode.get("access_token") != null) {
+      return tokenNode.get("access_token").asText();
+    }
+    log.debug("Unexpected response from keycloak server. Unable to parse access_token");
+    throw new PidCreationException(
+        "Unable to authenticate processing service with Keycloak. An error has occurred parsing keycloak response");
+  }
+
+}

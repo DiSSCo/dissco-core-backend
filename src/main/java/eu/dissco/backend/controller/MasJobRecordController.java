@@ -8,7 +8,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.MasJobRecordService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +34,8 @@ public class MasJobRecordController extends BaseController {
 
   @GetMapping(value = "/{jobId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getMasJobRecord(
-      @PathVariable("jobId") UUID jobId, HttpServletRequest request) throws NotFoundException {
-    return ResponseEntity.ok().body(service.getMasJobRecordById(jobId, getPath(request)));
+      @PathVariable("jobId") String masJobHandle, HttpServletRequest request) throws NotFoundException {
+    return ResponseEntity.ok().body(service.getMasJobRecordById(masJobHandle, getPath(request)));
   }
 
   @GetMapping(value = "/creator/"
@@ -57,9 +56,9 @@ public class MasJobRecordController extends BaseController {
   public ResponseEntity<Void> markMjrAsRunning(
       @PathVariable("creatorIdPrefix") String creatorIdPrefix,
       @PathVariable("creatorIdSuffix") String creatorIdSuffix,
-      @PathVariable("masJobId") UUID masJobId) throws NotFoundException {
+      @PathVariable("masJobId") String masJobHandle) throws NotFoundException {
     var creatorId = creatorIdPrefix + "/" + creatorIdSuffix;
-    service.markMasJobRecordAsRunning(creatorId, masJobId);
+    service.markMasJobRecordAsRunning(creatorId, masJobHandle);
     return ResponseEntity.ok().build();
   }
 }

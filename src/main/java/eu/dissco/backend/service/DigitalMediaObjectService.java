@@ -18,6 +18,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.repository.DigitalMediaObjectRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.SpecimenRepository;
@@ -160,7 +161,8 @@ public class DigitalMediaObjectService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId) throws ForbiddenException {
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId)
+      throws ForbiddenException, PidCreationException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
