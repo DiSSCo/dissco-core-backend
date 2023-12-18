@@ -1,8 +1,9 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -73,7 +74,7 @@ class MasJobRecordControllerTest {
   @Test
   void testMarkMjrAsRunning() throws Exception {
     // When
-    var result = controller.markMjrAsRunning(ID, JOB_ID);
+    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, JOB_ID);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

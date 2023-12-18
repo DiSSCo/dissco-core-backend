@@ -97,7 +97,7 @@ public class MasJobRecordService {
 
   public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
     if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId) == 0) {
-      throw new NotFoundException("Unable to locate MAS job with id " + masJobId);
+      throw new NotFoundException("Unable to locate scheduled MAS job with id " + masJobId);
     }
   }
 

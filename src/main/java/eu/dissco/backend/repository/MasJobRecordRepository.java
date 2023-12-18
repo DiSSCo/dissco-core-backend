@@ -106,6 +106,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.STATE, AnnotationState.RUNNING.getState())
         .where(MAS_JOB_RECORD.JOB_ID.eq(masJobId))
         .and(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
+        .and(MAS_JOB_RECORD.STATE.eq(AnnotationState.SCHEDULED.getState()))
         .execute();
   }
 
