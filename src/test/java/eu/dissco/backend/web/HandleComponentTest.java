@@ -1,6 +1,7 @@
 package eu.dissco.backend.web;
 
 import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleRequest;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
@@ -57,7 +58,7 @@ class HandleComponentTest {
     // Given
     int n = 1;
     var responseBody = givenPostHandleResponse(n);
-    var expected = List.of(HANDLE);
+    var expected = List.of(ID);
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
@@ -105,7 +106,7 @@ class HandleComponentTest {
     var response = handleComponent.postHandle(1);
 
     // Then
-    assertThat(response).isEqualTo(List.of(HANDLE));
+    assertThat(response).isEqualTo(List.of(ID));
     assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(2);
   }
 
@@ -140,7 +141,7 @@ class HandleComponentTest {
 
     // Then
     assertThat(response).hasMessage(
-        "Interrupted execution: A connection error has occurred in creating a handle.");
+        "Interrupted execution: A connection error has occurred in creating a jobId.");
   }
 
   @Test

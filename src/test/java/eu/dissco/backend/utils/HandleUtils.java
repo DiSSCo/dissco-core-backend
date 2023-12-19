@@ -28,7 +28,7 @@ public class HandleUtils {
   public static JsonNode givenPostHandleResponse(int n) throws Exception {
     var baseNode = MAPPER.readTree("""
                 {
-                    "id": "20.5000.1025/3XA-8PT-SAY",
+                    "id": "20.5000.1025/ABC-123-XYZ",
                     "type": "handle",
                     "attributes": {
                         "10320/loc": "<locations/>",
