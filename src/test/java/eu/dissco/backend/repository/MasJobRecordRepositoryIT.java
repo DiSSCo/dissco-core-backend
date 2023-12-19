@@ -55,6 +55,19 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetMasJobRecordByIdCompleted() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullCompleted();
+    postMasJobRecordFull(List.of(expected));
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordById(expected.jobId());
+
+    // Then
+    assertThat(result).isPresent().contains(expected);
+  }
+
+  @Test
   void testGetMasJobRecordByIdNotPresent() throws JsonProcessingException {
     // Given
     postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));

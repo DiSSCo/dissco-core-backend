@@ -6,6 +6,8 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -39,7 +41,7 @@ public class MasJobRecordUtils {
         JOB_ID,
         CREATED,
         null,
-        MAPPER.createObjectNode()
+        NullNode.getInstance()
     );
   }
 
