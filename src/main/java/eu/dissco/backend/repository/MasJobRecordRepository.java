@@ -1,13 +1,13 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
+import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD_NEW;
 import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
@@ -29,54 +29,54 @@ public class MasJobRecordRepository {
   private final ObjectMapper mapper;
 
   public Optional<MasJobRecordFull> getMasJobRecordById(String masJobRecordHandle) {
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.JOB_ID.eq(masJobRecordHandle))
+    return context.select(MAS_JOB_RECORD_NEW.asterisk())
+        .from(MAS_JOB_RECORD_NEW)
+        .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(masJobRecordHandle))
         .fetchOptional(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, AnnotationState state,
+  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, MasJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = MAS_JOB_RECORD.TARGET_ID.eq(targetId);
+    var condition = MAS_JOB_RECORD_NEW.TARGET_ID.eq(targetId);
     if (state != null){
-      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+      condition = condition.and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(state));
     }
 
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
+    return context.select(MAS_JOB_RECORD_NEW.asterisk())
+        .from(MAS_JOB_RECORD_NEW)
         .where(condition)
         .offset(offset)
         .limit(pageSize)
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByCreatorId(String creatorId, AnnotationState state,
+  public List<MasJobRecordFull> getMasJobRecordsByMasId(String masId, MasJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = MAS_JOB_RECORD.CREATOR_ID.eq((creatorId));
+    var condition = MAS_JOB_RECORD_NEW.MAS_ID.eq((masId));
     if (state != null) {
-      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+      condition = condition.and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(state));
     }
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
+    return context.select(MAS_JOB_RECORD_NEW.asterisk())
+        .from(MAS_JOB_RECORD_NEW)
         .where(condition)
         .limit(pageSize)
         .offset(offset)
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, AnnotationState state,
+  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, MasJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     var condition = USER.ID.eq((userId));
     if (state != null) {
-      condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
+      condition = condition.and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(state));
     }
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
+    return context.select(MAS_JOB_RECORD_NEW.asterisk())
+        .from(MAS_JOB_RECORD_NEW)
         .join(USER)
-        .on(USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
+        .on(USER.ORCID.eq(MAS_JOB_RECORD_NEW.USER_ID))
         .where(condition)
         .limit(pageSize)
         .offset(offset)
@@ -85,53 +85,53 @@ public class MasJobRecordRepository {
 
   public Map<String, String> createNewMasJobRecord(List<MasJobRecord> masJobRecord) {
     var records = masJobRecord.stream().map(this::mjrToRecord).toList();
-    return context.insertInto(MAS_JOB_RECORD, MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID,
-            MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED, MAS_JOB_RECORD.USER_ID)
+    return context.insertInto(MAS_JOB_RECORD_NEW, MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE, MAS_JOB_RECORD_NEW.MAS_ID,
+            MAS_JOB_RECORD_NEW.TARGET_ID, MAS_JOB_RECORD_NEW.TIME_STARTED, MAS_JOB_RECORD_NEW.USER_ID)
         .valuesOfRecords(records)
-        .returning(MAS_JOB_RECORD.CREATOR_ID, MAS_JOB_RECORD.JOB_ID)
-        .fetchMap(MAS_JOB_RECORD.CREATOR_ID, MAS_JOB_RECORD.JOB_ID);
+        .returning(MAS_JOB_RECORD_NEW.MAS_ID, MAS_JOB_RECORD_NEW.JOB_ID)
+        .fetchMap(MAS_JOB_RECORD_NEW.MAS_ID, MAS_JOB_RECORD_NEW.JOB_ID);
   }
 
   public void markMasJobRecordsAsFailed(List<String> ids) {
-    context.update(MAS_JOB_RECORD)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.FAILED.getState())
-        .set(MAS_JOB_RECORD.TIME_COMPLETED, Instant.now())
-        .where(MAS_JOB_RECORD.JOB_ID.in(ids))
+    context.update(MAS_JOB_RECORD_NEW)
+        .set(MAS_JOB_RECORD_NEW.JOB_STATE, MasJobState.FAILED)
+        .set(MAS_JOB_RECORD_NEW.TIME_COMPLETED, Instant.now())
+        .where(MAS_JOB_RECORD_NEW.JOB_ID.in(ids))
         .execute();
   }
 
-  public int markMasJobRecordAsRunning(String creatorId, String masJobId) {
-    return context.update(MAS_JOB_RECORD)
-        .set(MAS_JOB_RECORD.STATE, AnnotationState.RUNNING.getState())
-        .where(MAS_JOB_RECORD.JOB_ID.eq(masJobId))
-        .and(MAS_JOB_RECORD.CREATOR_ID.eq(creatorId))
-        .and(MAS_JOB_RECORD.STATE.eq(AnnotationState.SCHEDULED.getState()))
+  public int markMasJobRecordAsRunning(String masId, String jobId) {
+    return context.update(MAS_JOB_RECORD_NEW)
+        .set(MAS_JOB_RECORD_NEW.JOB_STATE, MasJobState.RUNNING)
+        .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(jobId))
+        .and(MAS_JOB_RECORD_NEW.MAS_ID.eq(masId))
+        .and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(MasJobState.SCHEDULED))
         .execute();
   }
 
-  private Record6<String, String, String, String, Instant, String> mjrToRecord(MasJobRecord masJobRecord) {
-    var dbRecord = context.newRecord(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.STATE, MAS_JOB_RECORD.CREATOR_ID,
-        MAS_JOB_RECORD.TARGET_ID, MAS_JOB_RECORD.TIME_STARTED, MAS_JOB_RECORD.USER_ID);
-    dbRecord.set(MAS_JOB_RECORD.JOB_ID, masJobRecord.jobId());
-    dbRecord.set(MAS_JOB_RECORD.STATE, masJobRecord.state().getState());
-    dbRecord.set(MAS_JOB_RECORD.CREATOR_ID, masJobRecord.creatorId());
-    dbRecord.set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId());
-    dbRecord.set(MAS_JOB_RECORD.TIME_STARTED, Instant.now());
-    dbRecord.set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid());
+  private Record6<String, MasJobState, String, String, Instant, String> mjrToRecord(MasJobRecord masJobRecord) {
+    var dbRecord = context.newRecord(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE, MAS_JOB_RECORD_NEW.MAS_ID,
+        MAS_JOB_RECORD_NEW.TARGET_ID, MAS_JOB_RECORD_NEW.TIME_STARTED, MAS_JOB_RECORD_NEW.USER_ID);
+    dbRecord.set(MAS_JOB_RECORD_NEW.JOB_ID, masJobRecord.jobId());
+    dbRecord.set(MAS_JOB_RECORD_NEW.JOB_STATE, masJobRecord.state());
+    dbRecord.set(MAS_JOB_RECORD_NEW.MAS_ID, masJobRecord.masId());
+    dbRecord.set(MAS_JOB_RECORD_NEW.TARGET_ID, masJobRecord.targetId());
+    dbRecord.set(MAS_JOB_RECORD_NEW.TIME_STARTED, Instant.now());
+    dbRecord.set(MAS_JOB_RECORD_NEW.USER_ID, masJobRecord.orcid());
     return dbRecord;
   }
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
     try {
       return new MasJobRecordFull(
-          AnnotationState.fromString(dbRecord.get(MAS_JOB_RECORD.STATE)),
-          dbRecord.get(MAS_JOB_RECORD.CREATOR_ID),
-          dbRecord.get(MAS_JOB_RECORD.TARGET_ID),
-          dbRecord.get(MAS_JOB_RECORD.USER_ID),
-          dbRecord.get(MAS_JOB_RECORD.JOB_ID),
-          dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
-          dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
-          mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class)
+          dbRecord.get(MAS_JOB_RECORD_NEW.JOB_STATE),
+          dbRecord.get(MAS_JOB_RECORD_NEW.MAS_ID),
+          dbRecord.get(MAS_JOB_RECORD_NEW.TARGET_ID),
+          dbRecord.get(MAS_JOB_RECORD_NEW.USER_ID),
+          dbRecord.get(MAS_JOB_RECORD_NEW.JOB_ID),
+          dbRecord.get(MAS_JOB_RECORD_NEW.TIME_STARTED),
+          dbRecord.get(MAS_JOB_RECORD_NEW.TIME_COMPLETED),
+          mapper.readValue(dbRecord.get(MAS_JOB_RECORD_NEW.ANNOTATIONS).data(), JsonNode.class)
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

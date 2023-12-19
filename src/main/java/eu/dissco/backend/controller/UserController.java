@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -89,7 +89,7 @@ public class UserController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecords(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      @RequestParam(required = false) AnnotationState state,
+      @RequestParam(required = false) MasJobState state,
       Authentication authentication,
      HttpServletRequest request) {
     var userId = authentication.getName();

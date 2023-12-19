@@ -18,7 +18,7 @@
         annotation |
         user |
         machine_annotation_services |
-        mas_job_record
+        mas_job_record_new
       </includes>
       <forcedTypes>
         <forcedType>

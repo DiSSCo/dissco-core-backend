@@ -283,6 +283,17 @@
         <version>${jooq.version}</version>
         <configuration>
           <configurationFile>src/main/resources/jooq-configuration.xml</configurationFile>
+          <generator>
+            <database>
+              <forcedTypes>
+                <forcedType>
+                  <userType>eu.dissco.backend.domain.MasJobState</userType>
+                  <enumConverter>true</enumConverter>
+                  <includeExpression>.*\.JOB_STATE</includeExpression>
+                </forcedType>
+              </forcedTypes>
+            </database>
+          </generator>
         </configuration>
         <dependencies>
           <dependency>

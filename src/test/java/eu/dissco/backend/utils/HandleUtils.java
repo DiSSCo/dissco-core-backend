@@ -4,12 +4,11 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Collections;
-import java.util.List;
 
 public class HandleUtils {
 
-  public static List<JsonNode> givenPostHandleRequest(int n) throws Exception {
-    var baseNode = MAPPER.readTree("""
+  public static JsonNode givenPostHandleRequest() throws Exception {
+    return MAPPER.readTree("""
         {
           "data" : {
             "type" : "handle",
@@ -21,8 +20,6 @@ public class HandleUtils {
           }
         }
         """);
-
-    return Collections.nCopies(n, baseNode);
   }
 
   public static JsonNode givenPostHandleResponse(int n) throws Exception {
@@ -47,7 +44,7 @@ public class HandleUtils {
                         "pidStatus": "TEST"
                     },
                     "links": {
-                        "self": "https://hdl.handle.net/TEST/Q4B-Y1C-DSR"
+                        "self": "https://hdl.handle.net/TEST/ABC-123-XYZ"
                     }
                 }
         """);

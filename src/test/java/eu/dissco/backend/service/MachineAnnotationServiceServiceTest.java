@@ -9,7 +9,6 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlatten
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
-import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_HANDLE;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -105,7 +104,7 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimen, JOB_HANDLE);
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
@@ -124,7 +123,7 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_HANDLE);
+    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
         .sendObjectToQueue("fancy-topic-name", sendObject);
 
@@ -133,7 +132,7 @@ class MachineAnnotationServiceServiceTest {
         digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID);
 
     // Then
-    then(masJobRecordService).should().markMasJobRecordAsFailed(List.of(JOB_HANDLE));
+    then(masJobRecordService).should().markMasJobRecordAsFailed(List.of(JOB_ID));
     assertThat(result.getData()).isEmpty();
   }
 

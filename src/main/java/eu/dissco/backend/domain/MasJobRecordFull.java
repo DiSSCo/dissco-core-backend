@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
 
 public record MasJobRecordFull(
-    AnnotationState state,
-    String creatorId,
+    MasJobState state,
+    String masId,
     String targetId,
     String orcid,
     String jobHandle,

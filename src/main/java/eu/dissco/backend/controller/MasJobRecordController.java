@@ -1,7 +1,7 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -44,21 +44,21 @@ public class MasJobRecordController extends BaseController {
       @PathVariable("creatorId") String creatorId,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      @RequestParam(required = false) AnnotationState state,
+      @RequestParam(required = false) MasJobState state,
       HttpServletRequest request) {
     return ResponseEntity.ok().body(
-        service.getMasJobRecordsByCreator(creatorId, getPath(request), pageNumber, pageSize,
+        service.getMasJobRecordsByMasId(creatorId, getPath(request), pageNumber, pageSize,
             state));
 
   }
 
-  @GetMapping(value = "/{creatorIdPrefix}/{creatorIdSuffix}/{masJobId}/running")
+  @GetMapping(value = "/{masIdPrefix}/{masIdSuffix}/{jobId}/running")
   public ResponseEntity<Void> markMjrAsRunning(
-      @PathVariable("creatorIdPrefix") String creatorIdPrefix,
-      @PathVariable("creatorIdSuffix") String creatorIdSuffix,
-      @PathVariable("masJobId") String masJobHandle) throws NotFoundException {
-    var creatorId = creatorIdPrefix + "/" + creatorIdSuffix;
-    service.markMasJobRecordAsRunning(creatorId, masJobHandle);
+      @PathVariable("masIdPrefix") String masIdPrefix,
+      @PathVariable("masIdSuffix") String masIdSuffix,
+      @PathVariable("jobId") String jobId) throws NotFoundException {
+    var masId = masIdPrefix + "/" + masIdSuffix;
+    service.markMasJobRecordAsRunning(masId, jobId);
     return ResponseEntity.ok().build();
   }
 }

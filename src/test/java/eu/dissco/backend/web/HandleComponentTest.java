@@ -1,16 +1,13 @@
 package eu.dissco.backend.web;
 
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.utils.HandleUtils.givenPostHandleRequest;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.dissco.backend.component.FdoComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
-import eu.dissco.backend.properties.FdoProperties;
 import java.io.IOException;
 import java.util.List;
 import okhttp3.mockwebserver.MockResponse;

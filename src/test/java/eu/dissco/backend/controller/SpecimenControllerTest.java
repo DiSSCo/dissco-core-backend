@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -136,7 +136,7 @@ class SpecimenControllerTest {
   void testGetMjrsForSpecimen() throws Exception {
 
     // When
-    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, AnnotationState.SCHEDULED,
+    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, MasJobState.SCHEDULED,
         1, 1, mockRequest);
 
     // THen

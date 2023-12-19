@@ -110,25 +110,19 @@ CREATE TABLE machine_annotation_services
     deleted_on                    timestamp with time zone
 );
 
-CREATE
-EXTENSION IF NOT EXISTS "uuid-ossp";
 
-create table mas_job_record
+create type mas_job_state as enum ('scheduled', 'failed', 'completed', 'running');
+
+create table mas_job_record_new
 (
-    job_id         text default uuid_generate_v4() not null
-        constraint mas_job_record_pk
+    job_id         text                     not null
+        constraint mas_job_record_new_pk
             primary key,
-    state          text                            not null,
-    creator_id     text                            not null,
-    time_started   timestamp with time zone        not null,
+    job_state      text check ( job_state in ('SCHEDULED', 'FAILED', 'COMPLETED', 'RUNNING') )            not null,
+    mas_id         text                     not null,
+    time_started   timestamp with time zone not null,
     time_completed timestamp with time zone,
     annotations    jsonb,
-    target_id      text                            not null,
-    user_id        text                            not null
+    target_id      text                     not null,
+    user_id        text
 );
-
-create index mas_job_record_created_idx
-    on mas_job_record (time_started);
-
-create index mas_job_record_job_id_index
-    on mas_job_record (job_id);

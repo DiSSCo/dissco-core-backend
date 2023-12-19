@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -43,7 +43,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      MasJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
     var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
         pageNum, pageSizePlusOne);
@@ -53,17 +53,17 @@ public class MasJobRecordService {
     return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
   }
 
-  public JsonApiListResponseWrapper getMasJobRecordsByCreator(String creatorId, String path,
-      int pageNum, int pageSize, AnnotationState state) {
+  public JsonApiListResponseWrapper getMasJobRecordsByMasId(String masId, String path,
+      int pageNum, int pageSize, MasJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
-    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId,
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByMasId(masId,
         state, pageNum, pageSizeToCheckNext);
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByUserId(String orcid, String path,
-      int pageNum, int pageSize, AnnotationState state) {
+      int pageNum, int pageSize, MasJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(orcid, state,
@@ -91,15 +91,15 @@ public class MasJobRecordService {
       String targetId, String orcid) {
     var handles = handleComponent.postHandle(masRecords.size()).iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handles.next(), AnnotationState.SCHEDULED, masRecord.id(), targetId,
+        .map(masRecord -> new MasJobRecord(handles.next(), MasJobState.SCHEDULED, masRecord.id(), targetId,
             orcid))
         .toList();
     return masJobRecordRepository.createNewMasJobRecord(masJobRecordList); // Map<Mas Id, Job Id>
   }
 
-  public void markMasJobRecordAsRunning(String creatorId, String masJobHandle) throws NotFoundException {
-    if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobHandle) == 0) {
-      throw new NotFoundException("Unable to locate scheduled MAS job with id " + masJobHandle);
+  public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
+    if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
+      throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
     }
   }
 
