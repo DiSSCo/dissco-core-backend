@@ -40,7 +40,7 @@ public class MasJobRecordRepository {
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     var condition = MAS_JOB_RECORD.TARGET_ID.eq(targetId);
-    if (state != null){
+    if (state != null) {
       condition = condition.and(MAS_JOB_RECORD.STATE.eq(state.getState()));
     }
 
@@ -123,6 +123,9 @@ public class MasJobRecordRepository {
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
     try {
+      var dataNode = dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS) != null ?
+          mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class) :
+          null;
       return new MasJobRecordFull(
           AnnotationState.fromString(dbRecord.get(MAS_JOB_RECORD.STATE)),
           dbRecord.get(MAS_JOB_RECORD.CREATOR_ID),
@@ -131,7 +134,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
-          mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class)
+          dataNode
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

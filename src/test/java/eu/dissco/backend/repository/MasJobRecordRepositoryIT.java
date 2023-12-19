@@ -10,12 +10,14 @@ import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID_ALT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -46,6 +48,19 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     // Given
     var expected = givenMasJobRecordFullScheduled();
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordById(expected.jobId());
+
+    // Then
+    assertThat(result).isPresent().contains(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordByIdCompleted() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullCompleted();
+    postMasJobRecordFull(List.of(expected));
 
     // When
     var result = masJobRecordRepository.getMasJobRecordById(expected.jobId());
@@ -210,6 +225,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
     for (var mjr : mjrList) {
+      var dataNode = mjr.annotations() != null ?
+          JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
       context.insertInto(MAS_JOB_RECORD)
           .set(MAS_JOB_RECORD.STATE, mjr.state().getState())
           .set(MAS_JOB_RECORD.CREATOR_ID, mjr.creatorId())
@@ -217,8 +234,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.JOB_ID, mjr.jobId())
           .set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
-          .set(MAS_JOB_RECORD.ANNOTATIONS,
-              JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())))
+          .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
           .execute();
     }
