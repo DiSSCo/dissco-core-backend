@@ -123,6 +123,9 @@ public class MasJobRecordRepository {
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
     try {
+      var dataNode = dbRecord.get(MAS_JOB_RECORD_NEW.ANNOTATIONS) != null ?
+          mapper.readValue(dbRecord.get(MAS_JOB_RECORD_NEW.ANNOTATIONS).data(), JsonNode.class) :
+          null;
       return new MasJobRecordFull(
           dbRecord.get(MAS_JOB_RECORD_NEW.JOB_STATE),
           dbRecord.get(MAS_JOB_RECORD_NEW.MAS_ID),
@@ -131,7 +134,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD_NEW.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD_NEW.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD_NEW.TIME_COMPLETED),
-          mapper.readValue(dbRecord.get(MAS_JOB_RECORD_NEW.ANNOTATIONS).data(), JsonNode.class)
+          dataNode
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

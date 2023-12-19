@@ -53,6 +53,19 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetMasJobRecordByIdCompleted() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullCompleted();
+    postMasJobRecordFull(List.of(expected));
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordById(expected.jobHandle());
+
+    // Then
+    assertThat(result).isPresent().contains(expected);
+  }
+
+  @Test
   void testGetMasJobRecordByIdNotPresent() throws JsonProcessingException {
     // Given
     postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
@@ -208,6 +221,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
     for (var mjr : mjrList) {
+      var dataNode = mjr.annotations() != null ?
+          JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
       context.insertInto(MAS_JOB_RECORD_NEW)
           .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD_NEW.JOB_STATE, mjr.state())
@@ -216,8 +231,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD_NEW.TIME_STARTED, mjr.timeStarted())
           .set(MAS_JOB_RECORD_NEW.TIME_COMPLETED, mjr.timeCompleted())
-          .set(MAS_JOB_RECORD_NEW.ANNOTATIONS,
-              JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())))
+          .set(MAS_JOB_RECORD_NEW.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD_NEW.USER_ID, mjr.orcid())
           .execute();
     }
