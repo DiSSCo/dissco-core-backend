@@ -6,6 +6,7 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.UNPROCESSABLE_ENTITY,
         "Json Processing Exception",
+        e.getMessage()
+    );
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
+  }
+
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  @ExceptionHandler(PidCreationException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidCreationException e) {
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        "PidCreationException",
         e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);

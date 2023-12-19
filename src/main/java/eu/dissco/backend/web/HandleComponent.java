@@ -32,8 +32,7 @@ public class HandleComponent {
   private final TokenAuthenticator tokenAuthenticator;
   private final FdoComponent fdoComponent;
 
-  public List<String> postHandle(int n)
-      throws PidCreationException {
+  public List<String> postHandle(int n) {
     var request = Collections.nCopies(n, fdoComponent.getPostRequest());
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(requestBody);

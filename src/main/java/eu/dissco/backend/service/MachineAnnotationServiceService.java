@@ -79,7 +79,7 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid) throws PidCreationException {
+      String path, Object object, String targetId, String orcid) {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
