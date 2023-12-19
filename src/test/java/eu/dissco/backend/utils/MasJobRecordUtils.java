@@ -41,7 +41,7 @@ public class MasJobRecordUtils {
         JOB_ID,
         CREATED,
         null,
-        NullNode.getInstance()
+        null
     );
   }
 
@@ -58,7 +58,7 @@ public class MasJobRecordUtils {
         JOB_ID_ALT,
         CREATED,
         CREATED,
-        MAPPER.createObjectNode()
+        MAPPER.createObjectNode().put("annotation", "value")
     );
   }
 
