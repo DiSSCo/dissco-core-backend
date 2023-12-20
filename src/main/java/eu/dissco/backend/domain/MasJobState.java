@@ -1,8 +1,5 @@
 package eu.dissco.backend.domain;
 
-import lombok.Getter;
-
-@Getter
 public enum MasJobState {
   SCHEDULED("SCHEDULED"),
   FAILED("FAILED"),

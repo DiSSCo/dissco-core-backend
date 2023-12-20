@@ -110,9 +110,6 @@ CREATE TABLE machine_annotation_services
     deleted_on                    timestamp with time zone
 );
 
-
-create type mas_job_state as enum ('scheduled', 'failed', 'completed', 'running');
-
 create table mas_job_record_new
 (
     job_id         text                     not null

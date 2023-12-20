@@ -159,10 +159,13 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     var mjr = new MasJobRecord(JOB_ID, MasJobState.SCHEDULED, ID, ID_ALT, ORCID);
 
     // When
-    var result = masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
+    masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
+    var result = context.select(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE)
+        .from(MAS_JOB_RECORD_NEW).where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID)).fetchOne();
 
     // Then
-    assertThat(result.get(mjr.masId())).isNotNull();
+    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_ID)).isEqualTo(JOB_ID);
+    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_STATE)).isEqualTo(MasJobState.SCHEDULED);
   }
 
   @Test
@@ -213,7 +216,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
         .from(MAS_JOB_RECORD_NEW)
         .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID))
         .fetchOptional();
-
 
     // Then
     assertThat(result).isEmpty();

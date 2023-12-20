@@ -40,6 +40,7 @@ public class HandleComponent {
     try {
       var dataNode = result.get("data");
       if (!dataNode.isArray()) {
+        log.error("Unexpected response from handle API: {}", result);
         throw new PidCreationException("Unexpected response from Handle API");
       }
       var handles = new ArrayList<String>();

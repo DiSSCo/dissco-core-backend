@@ -10,8 +10,11 @@ import eu.dissco.backend.database.jooq.tables.records.MasJobRecordNewRecord;
 import eu.dissco.backend.domain.MasJobState;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 
+import org.jooq.Check;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Function8;
@@ -28,6 +31,7 @@ import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.EnumConverter;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -61,7 +65,7 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
     /**
      * The column <code>public.mas_job_record_new.job_state</code>.
      */
-    public final TableField<MasJobRecordNewRecord, MasJobState> JOB_STATE = createField(DSL.name("job_state"), org.jooq.impl.DefaultDataType.getDefaultDataType("\"public\".\"mas_job_state\"").nullable(false), this, "", new EnumConverter<Object, MasJobState>(Object.class, MasJobState.class));
+    public final TableField<MasJobRecordNewRecord, MasJobState> JOB_STATE = createField(DSL.name("job_state"), SQLDataType.CLOB.nullable(false), this, "", new EnumConverter<String, MasJobState>(String.class, MasJobState.class));
 
     /**
      * The column <code>public.mas_job_record_new.mas_id</code>.
@@ -135,6 +139,13 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
     @Override
     public UniqueKey<MasJobRecordNewRecord> getPrimaryKey() {
         return Keys.MAS_JOB_RECORD_NEW_PK;
+    }
+
+    @Override
+    public List<Check<MasJobRecordNewRecord>> getChecks() {
+        return Arrays.asList(
+            Internal.createCheck(this, DSL.name("job_state_check"), "((job_state = ANY (ARRAY['SCHEDULED'::text, 'FAILED'::text, 'COMPLETED'::text, 'RUNNING'::text])))", true)
+        );
     }
 
     @Override

@@ -176,9 +176,6 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
-    var masJobRecordList = List.of(
-        new MasJobRecord(JOB_ID, MasJobState.SCHEDULED, masRecord.id(), ID, ORCID));
-    given(masJobRecordRepository.createNewMasJobRecord(masJobRecordList)).willReturn(expected);
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When

@@ -18,10 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MasJobRecordService {
 
@@ -89,12 +92,15 @@ public class MasJobRecordService {
 
   public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
       String targetId, String orcid) {
-    var handles = handleComponent.postHandle(masRecords.size()).iterator();
+    log.info("Requesting {} handles from API", masRecords.size());
+    var handles = handleComponent.postHandle(masRecords.size());
+    var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handles.next(), MasJobState.SCHEDULED, masRecord.id(), targetId,
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MasJobState.SCHEDULED, masRecord.id(), targetId,
             orcid))
         .toList();
-    return masJobRecordRepository.createNewMasJobRecord(masJobRecordList); // Map<Mas Id, Job Id>
+    masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
