@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_SUFFIX;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -49,7 +50,7 @@ class MasJobRecordControllerTest {
 
 
     // When
-    var result = controller.getMasJobRecord(JOB_ID, mockRequest);
+    var result = controller.getMasJobRecord(PREFIX, JOB_SUFFIX, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -73,7 +74,7 @@ class MasJobRecordControllerTest {
   @Test
   void testMarkMjrAsRunning() throws Exception {
     // When
-    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, JOB_ID);
+    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, PREFIX, JOB_SUFFIX);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

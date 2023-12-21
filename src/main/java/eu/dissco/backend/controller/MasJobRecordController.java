@@ -32,9 +32,12 @@ public class MasJobRecordController extends BaseController {
     this.service = service;
   }
 
-  @GetMapping(value = "/{jobId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{jobIdPrefix}/{jobIdSuffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getMasJobRecord(
-      @PathVariable("jobId") String masJobHandle, HttpServletRequest request) throws NotFoundException {
+      @PathVariable("jobIdPrefix") String masJobHandlePrefix,
+      @PathVariable("jobIdSuffix") String masJobHandleSuffix,
+      HttpServletRequest request) throws NotFoundException {
+    var masJobHandle = masJobHandlePrefix + "/" + masJobHandleSuffix;
     return ResponseEntity.ok().body(service.getMasJobRecordById(masJobHandle, getPath(request)));
   }
 
@@ -52,13 +55,16 @@ public class MasJobRecordController extends BaseController {
 
   }
 
-  @GetMapping(value = "/{masIdPrefix}/{masIdSuffix}/{jobId}/running")
+  @GetMapping(value = "/{masIdPrefix}/{masIdSuffix}/{jobIdPrefix}/{jobIdSuffix}/running")
   public ResponseEntity<Void> markMjrAsRunning(
       @PathVariable("masIdPrefix") String masIdPrefix,
       @PathVariable("masIdSuffix") String masIdSuffix,
-      @PathVariable("jobId") String jobId) throws NotFoundException {
+      @PathVariable("jobIdPrefix") String jobIdPrefix,
+      @PathVariable("jobIdSuffix") String jobIdSuffix) throws NotFoundException {
     var masId = masIdPrefix + "/" + masIdSuffix;
+    var jobId = jobIdPrefix + "/" + jobIdSuffix;
     service.markMasJobRecordAsRunning(masId, jobId);
+    log.info("MAS Service {} successfully marked job {} as running", masId, jobId);
     return ResponseEntity.ok().build();
   }
 }
