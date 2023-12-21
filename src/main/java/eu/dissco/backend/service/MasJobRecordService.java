@@ -85,7 +85,7 @@ public class MasJobRecordService {
     if (masJobRecordListPlusOne.isEmpty()) {
       linksNode = new JsonApiLinksFull(path);
     } else {
-      linksNode = new JsonApiLinksFull(pageSize, pageNum, hasNext, path);
+      linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, path);
     }
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }

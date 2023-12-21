@@ -60,7 +60,7 @@ public class MasJobRecordUtils {
   }
 
   public static JsonApiListResponseWrapper givenMjrListResponse(int pageSize, int pageNum, boolean hasNext){
-    var linksNode = new JsonApiLinksFull(pageSize, pageNum, hasNext, MJR_URI);
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, MJR_URI);
     var mjr = givenMasJobRecordFullScheduled();
     var dataList = Collections.nCopies(pageSize,
         new JsonApiData(JOB_ID, "masJobRecord", MAPPER.valueToTree(mjr)));

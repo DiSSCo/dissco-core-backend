@@ -113,7 +113,7 @@ class MasJobRecordServiceTest {
   void testGetMasJobRecordsByCreatorIdLastPage() {
     // Given
     var pageSize = 2;
-    var pageNum = 1;
+    var pageNum = 2;
     var mjr = givenMasJobRecordFullScheduled();
     var expected = givenMjrListResponse(pageSize, pageNum, false);
 
@@ -207,7 +207,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testMarkMasJobRecordAsRunningNotFound() throws Exception {
+  void testMarkMasJobRecordAsRunningNotFound() {
     // Then
     assertThrows(NotFoundException.class,
         () -> masJobRecordService.markMasJobRecordAsRunning(ID, JOB_ID));
