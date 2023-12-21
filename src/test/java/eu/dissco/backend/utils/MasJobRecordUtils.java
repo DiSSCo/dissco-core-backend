@@ -6,8 +6,6 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import eu.dissco.backend.domain.AnnotationState;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -63,7 +61,7 @@ public class MasJobRecordUtils {
   }
 
   public static JsonApiListResponseWrapper givenMjrListResponse(int pageSize, int pageNum, boolean hasNext){
-    var linksNode = new JsonApiLinksFull(pageSize, pageNum, hasNext, MJR_URI);
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, MJR_URI);
     var mjr = givenMasJobRecordFullScheduled();
     var dataList = Collections.nCopies(pageSize,
         new JsonApiData(JOB_ID.toString(), "masJobRecord", MAPPER.valueToTree(mjr)));
