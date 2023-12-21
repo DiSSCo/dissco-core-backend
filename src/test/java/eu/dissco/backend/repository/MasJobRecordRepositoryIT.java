@@ -18,8 +18,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.domain.MjrTargetType;
+import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
+import org.jooq.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -156,7 +159,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @Test
   void testCreateNewMasJobRecord() {
     // Given
-    var mjr = new MasJobRecord(JOB_ID, MasJobState.SCHEDULED, ID, ID_ALT, ORCID);
+    var mjr = new MasJobRecord(JOB_ID, MasJobState.SCHEDULED, ID, ID_ALT,
+        MjrTargetType.DIGITAL_SPECIMEN, ORCID);
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -222,21 +226,23 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
+    ArrayList<Query> queryList = new ArrayList<>();
     for (var mjr : mjrList) {
       var dataNode = mjr.annotations() != null ?
           JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
-      context.insertInto(MAS_JOB_RECORD_NEW)
+      queryList.add(context.insertInto(MAS_JOB_RECORD_NEW)
           .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD_NEW.JOB_STATE, mjr.state())
           .set(MAS_JOB_RECORD_NEW.MAS_ID, mjr.masId())
           .set(MAS_JOB_RECORD_NEW.TARGET_ID, mjr.targetId())
+          .set(MAS_JOB_RECORD_NEW.TARGET_TYPE, mjr.targetType())
           .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD_NEW.TIME_STARTED, mjr.timeStarted())
           .set(MAS_JOB_RECORD_NEW.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD_NEW.ANNOTATIONS, dataNode)
-          .set(MAS_JOB_RECORD_NEW.USER_ID, mjr.orcid())
-          .execute();
+          .set(MAS_JOB_RECORD_NEW.USER_ID, mjr.orcid()));
     }
+    context.batch(queryList).execute();
   }
 
   private void postUser() {

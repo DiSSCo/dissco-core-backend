@@ -121,5 +121,6 @@ create table mas_job_record_new
     time_completed timestamp with time zone,
     annotations    jsonb,
     target_id      text                     not null,
-    user_id        text
+    user_id        text,
+    target_type    text check ( target_type in ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT') )                      not null
 );

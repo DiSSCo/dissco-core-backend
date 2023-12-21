@@ -5,6 +5,7 @@ import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -91,12 +92,12 @@ public class MasJobRecordService {
   }
 
   public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid) {
+      String targetId, String orcid, MjrTargetType targetType) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handleItr.next(), MasJobState.SCHEDULED, masRecord.id(), targetId,
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MasJobState.SCHEDULED, masRecord.id(), targetId, targetType,
             orcid))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);

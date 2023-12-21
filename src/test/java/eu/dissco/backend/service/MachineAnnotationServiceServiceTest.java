@@ -4,6 +4,7 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
+import static eu.dissco.backend.domain.MjrTargetType.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
@@ -102,13 +103,13 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID)).willReturn(
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, DIGITAL_SPECIMEN)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID);
+        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID, DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
@@ -121,7 +122,7 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID)).willReturn(
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, DIGITAL_SPECIMEN)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
@@ -129,7 +130,7 @@ class MachineAnnotationServiceServiceTest {
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID);
+        digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID, DIGITAL_SPECIMEN);
 
     // Then
     then(masJobRecordService).should().markMasJobRecordAsFailed(List.of(JOB_ID));

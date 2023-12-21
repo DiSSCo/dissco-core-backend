@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -30,10 +31,15 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecordFull givenMasJobRecordFullScheduled() {
+    return givenMasJobRecordFullScheduled(MjrTargetType.DIGITAL_SPECIMEN);
+  }
+
+  public static MasJobRecordFull givenMasJobRecordFullScheduled(MjrTargetType targetType) {
     return new MasJobRecordFull(
         MasJobState.SCHEDULED,
         ID_ALT,
         ID,
+        targetType,
         ORCID,
         JOB_ID,
         CREATED,
@@ -41,6 +47,7 @@ public class MasJobRecordUtils {
         null
     );
   }
+
 
   public static MasJobRecordFull givenMasJobRecordFullCompleted() {
     return givenMasJobRecordFullCompleted(ID_ALT);
@@ -51,6 +58,7 @@ public class MasJobRecordUtils {
         MasJobState.COMPLETED,
         creator,
         ID,
+        MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
         JOB_ID_ALT,
         CREATED,

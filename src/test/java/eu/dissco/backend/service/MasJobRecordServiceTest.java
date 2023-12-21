@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -54,7 +54,7 @@ class MasJobRecordServiceTest {
   void testGetMasJobRecordById() throws Exception {
     // Given
     var expected = new JsonApiWrapper(
-        new JsonApiData(JOB_ID.toString(), "masJobRecord", givenMasJobRecordFullScheduled(),
+        new JsonApiData(JOB_ID, "masJobRecord", givenMasJobRecordFullScheduled(),
             MAPPER),
         new JsonApiLinks(MJR_URI)
     );
@@ -179,7 +179,7 @@ class MasJobRecordServiceTest {
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(expected);

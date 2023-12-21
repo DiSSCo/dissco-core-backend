@@ -11,6 +11,7 @@ import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -167,7 +168,7 @@ public class DigitalMediaObjectService {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT);
   }
 
 }

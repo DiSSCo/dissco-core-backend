@@ -103,14 +103,15 @@ public class MasJobRecordRepository {
         .and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(MasJobState.SCHEDULED))
         .execute();
   }
-  
-  private Query mjrToQuery(MasJobRecord masJobRecord){
+
+  private Query mjrToQuery(MasJobRecord masJobRecord) {
     return context.insertInto(MAS_JOB_RECORD_NEW)
         .set(MAS_JOB_RECORD_NEW.JOB_ID, masJobRecord.jobId())
         .set(MAS_JOB_RECORD_NEW.JOB_STATE, masJobRecord.state())
         .set(MAS_JOB_RECORD_NEW.MAS_ID, masJobRecord.masId())
         .set(MAS_JOB_RECORD_NEW.USER_ID, masJobRecord.orcid())
         .set(MAS_JOB_RECORD_NEW.TARGET_ID, masJobRecord.targetId())
+        .set(MAS_JOB_RECORD_NEW.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD_NEW.TIME_STARTED, Instant.now());
   }
 
@@ -123,6 +124,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD_NEW.JOB_STATE),
           dbRecord.get(MAS_JOB_RECORD_NEW.MAS_ID),
           dbRecord.get(MAS_JOB_RECORD_NEW.TARGET_ID),
+          dbRecord.get(MAS_JOB_RECORD_NEW.TARGET_TYPE),
           dbRecord.get(MAS_JOB_RECORD_NEW.USER_ID),
           dbRecord.get(MAS_JOB_RECORD_NEW.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD_NEW.TIME_STARTED),

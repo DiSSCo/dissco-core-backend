@@ -13,6 +13,7 @@ import eu.dissco.backend.domain.MasJobState;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -342,6 +343,6 @@ public class SpecimenService {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN);
   }
 }
