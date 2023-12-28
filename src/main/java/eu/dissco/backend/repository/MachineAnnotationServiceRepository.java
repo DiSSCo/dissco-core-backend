@@ -8,16 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
+import eu.dissco.backend.domain.MasInput;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class MachineAnnotationServiceRepository {
 
   private final DSLContext context;
@@ -52,7 +55,8 @@ public class MachineAnnotationServiceRepository {
             machineAnnotationServicesRecord.getSupportContact(),
             machineAnnotationServicesRecord.getSlaDocumentation(),
             machineAnnotationServicesRecord.getTopicname(),
-            machineAnnotationServicesRecord.getMaxreplicas()
+            machineAnnotationServicesRecord.getMaxreplicas(),
+            mapToMasInput(machineAnnotationServicesRecord.getMasInput())
         ),
         machineAnnotationServicesRecord.getDeletedOn()
     );
@@ -68,6 +72,19 @@ public class MachineAnnotationServiceRepository {
           e);
     }
     return mapper.createObjectNode();
+  }
+
+  private MasInput mapToMasInput(JSONB jsonb){
+    try {
+      return jsonb != null ?
+          mapper.treeToValue(mapToJson(jsonb), MasInput.class)
+          : null;
+    } catch (JsonProcessingException e) {
+      log.error("Unable to read mas_input JSONB to MasInput: {}",
+          jsonb.data());
+      throw new DisscoJsonBMappingException("Failed to parse jsonb field to json: " + jsonb.data(),
+          e);
+    }
   }
 
   public List<MachineAnnotationServiceRecord> getMasRecords(List<String> mass) {

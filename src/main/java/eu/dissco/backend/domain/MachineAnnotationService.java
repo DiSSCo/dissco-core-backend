@@ -13,6 +13,7 @@ public record MachineAnnotationService(
     String sourceCodeRepository, String serviceAvailability,
     String codeMaintainer, String codeLicense,
     List<String> dependencies, String supportContact,
-    String slaDocumentation, String topicName, int maxReplicas) {
+    String slaDocumentation, String topicName, int maxReplicas,
+    MasInput masInput) {
 
 }
