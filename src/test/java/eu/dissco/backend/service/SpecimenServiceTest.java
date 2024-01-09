@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -534,7 +534,7 @@ class SpecimenServiceTest {
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
         eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID),
-        eq(TargetTypes.DIGITAL_SPECIMEN))).willReturn(response);
+        eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When

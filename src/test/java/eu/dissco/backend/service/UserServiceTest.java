@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
@@ -115,10 +115,10 @@ class UserServiceTest {
     var pageNum = 1;
     var pageSize = 1;
     var expected = givenMjrListResponse(pageNum, pageSize, true);
-    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize, JobStates.SCHEDULED)).willReturn(expected);
+    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED)).willReturn(expected);
 
     // When
-    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize, JobStates.SCHEDULED);
+    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED);
 
     // Then
     assertThat(result).isEqualTo(expected);

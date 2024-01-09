@@ -10,7 +10,7 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -61,11 +61,11 @@ class MasJobRecordControllerTest {
     // Given
     int pageNum = 1;
     int pageSize = 1;
-    given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize, JobStates.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
+    given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize, MjrJobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.getMasJobRecordsForCreator(ORCID, pageNum, pageSize, JobStates.FAILED, mockRequest);
+    var result = controller.getMasJobRecordsForCreator(ORCID, pageNum, pageSize, MjrJobState.FAILED, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

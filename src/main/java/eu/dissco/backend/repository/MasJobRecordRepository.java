@@ -7,7 +7,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
@@ -34,7 +34,7 @@ public class MasJobRecordRepository {
         .fetchOptional(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, JobStates state,
+  public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, MjrJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     var condition = MAS_JOB_RECORD_NEW.TARGET_ID.eq(targetId);
@@ -50,7 +50,7 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByMasId(String masId, JobStates state,
+  public List<MasJobRecordFull> getMasJobRecordsByMasId(String masId, MjrJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     var condition = MAS_JOB_RECORD_NEW.MAS_ID.eq((masId));
@@ -65,7 +65,7 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, JobStates state,
+  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, MjrJobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
     var condition = USER.ID.eq((userId));
@@ -89,7 +89,7 @@ public class MasJobRecordRepository {
 
   public void markMasJobRecordsAsFailed(List<String> ids) {
     context.update(MAS_JOB_RECORD_NEW)
-        .set(MAS_JOB_RECORD_NEW.JOB_STATE, JobStates.FAILED)
+        .set(MAS_JOB_RECORD_NEW.JOB_STATE, MjrJobState.FAILED)
         .set(MAS_JOB_RECORD_NEW.TIME_COMPLETED, Instant.now())
         .where(MAS_JOB_RECORD_NEW.JOB_ID.in(ids))
         .execute();
@@ -97,10 +97,10 @@ public class MasJobRecordRepository {
 
   public int markMasJobRecordAsRunning(String masId, String jobId) {
     return context.update(MAS_JOB_RECORD_NEW)
-        .set(MAS_JOB_RECORD_NEW.JOB_STATE, JobStates.RUNNING)
+        .set(MAS_JOB_RECORD_NEW.JOB_STATE, MjrJobState.RUNNING)
         .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(jobId))
         .and(MAS_JOB_RECORD_NEW.MAS_ID.eq(masId))
-        .and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(JobStates.SCHEDULED))
+        .and(MAS_JOB_RECORD_NEW.JOB_STATE.eq(MjrJobState.SCHEDULED))
         .execute();
   }
 

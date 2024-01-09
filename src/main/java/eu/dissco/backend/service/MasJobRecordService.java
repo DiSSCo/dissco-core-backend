@@ -1,8 +1,8 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -47,7 +47,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      JobStates state, String path, int pageNum, int pageSize) throws NotFoundException {
+      MjrJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
     var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
         pageNum, pageSizePlusOne);
@@ -58,7 +58,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByMasId(String masId, String path,
-      int pageNum, int pageSize, JobStates state) {
+      int pageNum, int pageSize, MjrJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByMasId(masId,
@@ -67,7 +67,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByUserId(String orcid, String path,
-      int pageNum, int pageSize, JobStates state) {
+      int pageNum, int pageSize, MjrJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(orcid, state,
@@ -92,12 +92,12 @@ public class MasJobRecordService {
   }
 
   public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, TargetTypes targetType) {
+      String targetId, String orcid, MjrTargetType targetType) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handleItr.next(), JobStates.SCHEDULED, masRecord.id(), targetId, targetType,
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(), targetId, targetType,
             orcid))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);

@@ -6,8 +6,8 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -31,12 +31,12 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecordFull givenMasJobRecordFullScheduled() {
-    return givenMasJobRecordFullScheduled(TargetTypes.DIGITAL_SPECIMEN);
+    return givenMasJobRecordFullScheduled(MjrTargetType.DIGITAL_SPECIMEN);
   }
 
-  public static MasJobRecordFull givenMasJobRecordFullScheduled(TargetTypes targetType) {
+  public static MasJobRecordFull givenMasJobRecordFullScheduled(MjrTargetType targetType) {
     return new MasJobRecordFull(
-        JobStates.SCHEDULED,
+        MjrJobState.SCHEDULED,
         ID_ALT,
         ID,
         targetType,
@@ -55,10 +55,10 @@ public class MasJobRecordUtils {
 
   public static MasJobRecordFull givenMasJobRecordFullCompleted(String creator) {
     return new MasJobRecordFull(
-        JobStates.COMPLETED,
+        MjrJobState.COMPLETED,
         creator,
         ID,
-        TargetTypes.DIGITAL_SPECIMEN,
+        MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
         JOB_ID_ALT,
         CREATED,

@@ -9,8 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
@@ -102,7 +102,7 @@ public class SpecimenService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
-      JobStates state, String path, int pageNum, int pageSize) throws NotFoundException {
+      MjrJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
@@ -343,6 +343,6 @@ public class SpecimenService {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, TargetTypes.DIGITAL_SPECIMEN);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN);
   }
 }

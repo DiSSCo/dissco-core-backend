@@ -1,15 +1,15 @@
 package eu.dissco.backend.domain;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import java.time.Instant;
 
 public record MasJobRecordFull(
-    JobStates state,
+    MjrJobState state,
     String masId,
     String targetId,
-    TargetTypes targetType,
+    MjrTargetType targetType,
     String orcid,
     String jobHandle,
     Instant timeStarted,

@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -72,11 +72,11 @@ class MasJobRecordServiceTest {
   void testGetMasJobRecordNotFound() {
     // Given
     given(masJobRecordRepository.getMasJobRecordsByTargetId(ID,
-        JobStates.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
+        MjrJobState.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
 
     // Then
     assertThrows(NotFoundException.class,
-        () -> masJobRecordService.getMasJobRecordByTargetId(ID, JobStates.SCHEDULED, MJR_URI,
+        () -> masJobRecordService.getMasJobRecordByTargetId(ID, MjrJobState.SCHEDULED, MJR_URI,
             1, 1));
   }
 
@@ -159,13 +159,13 @@ class MasJobRecordServiceTest {
     var expected = new JsonApiListResponseWrapper(Collections.emptyList(),
         new JsonApiLinksFull(MJR_URI));
     given(masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
-        JobStates.FAILED, pageNum, pageSize + 1)).willReturn(
+        MjrJobState.FAILED, pageNum, pageSize + 1)).willReturn(
         Collections.emptyList());
 
     // When
     var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
         pageSize,
-        JobStates.FAILED);
+        MjrJobState.FAILED);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -179,7 +179,7 @@ class MasJobRecordServiceTest {
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, TargetTypes.DIGITAL_SPECIMEN);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(expected);

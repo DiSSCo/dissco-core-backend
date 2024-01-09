@@ -6,8 +6,8 @@ package eu.dissco.backend.database.jooq.tables;
 
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
-import eu.dissco.backend.database.jooq.enums.JobStates;
-import eu.dissco.backend.database.jooq.enums.TargetTypes;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordNewRecord;
 
 import java.time.Instant;
@@ -61,7 +61,7 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
     /**
      * The column <code>public.mas_job_record_new.job_state</code>.
      */
-    public final TableField<MasJobRecordNewRecord, JobStates> JOB_STATE = createField(DSL.name("job_state"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(eu.dissco.backend.database.jooq.enums.JobStates.class), this, "");
+    public final TableField<MasJobRecordNewRecord, MjrJobState> JOB_STATE = createField(DSL.name("job_state"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(eu.dissco.backend.database.jooq.enums.MjrJobState.class), this, "");
 
     /**
      * The column <code>public.mas_job_record_new.mas_id</code>.
@@ -96,7 +96,7 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
     /**
      * The column <code>public.mas_job_record_new.target_type</code>.
      */
-    public final TableField<MasJobRecordNewRecord, TargetTypes> TARGET_TYPE = createField(DSL.name("target_type"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.TargetTypes.class), this, "");
+    public final TableField<MasJobRecordNewRecord, MjrTargetType> TARGET_TYPE = createField(DSL.name("target_type"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.MjrTargetType.class), this, "");
 
     private MasJobRecordNew(Name alias, Table<MasJobRecordNewRecord> aliased) {
         this(alias, aliased, null);
@@ -185,14 +185,14 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<String, JobStates, String, Instant, Instant, JSONB, String, String, TargetTypes> fieldsRow() {
+    public Row9<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType> fieldsRow() {
         return (Row9) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function9<? super String, ? super JobStates, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super TargetTypes, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function9<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -200,7 +200,7 @@ public class MasJobRecordNew extends TableImpl<MasJobRecordNewRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super String, ? super JobStates, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super TargetTypes, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
