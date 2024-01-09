@@ -111,21 +111,21 @@ CREATE TABLE machine_annotation_services
     mas_input                     jsonb
 );
 
-create type job_states as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
+create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
 
-create type target_types as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
+create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
 create table mas_job_record_new
 (
     job_id         text                     not null
         constraint mas_job_record_new_pk
             primary key,
-    job_state      job_states               not null,
+    job_state      mjr_job_state               not null,
     mas_id         text                     not null,
     time_started   timestamp with time zone not null,
     time_completed timestamp with time zone,
     annotations    jsonb,
     target_id      text                     not null,
     user_id        text,
-    target_type    target_types
+    target_type    mjr_target_type
 );
