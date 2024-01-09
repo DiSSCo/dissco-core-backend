@@ -1,11 +1,14 @@
 package eu.dissco.backend.domain;
 
+import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.TargetTypes;
+
 public record MasJobRecord(
     String jobId,
-    MasJobState state,
+    JobStates state,
     String masId,
     String targetId,
-    MjrTargetType targetType,
+    TargetTypes targetType,
     String orcid
 ) {
 

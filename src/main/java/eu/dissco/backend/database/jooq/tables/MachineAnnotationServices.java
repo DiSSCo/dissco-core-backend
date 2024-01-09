@@ -13,12 +13,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function20;
+import org.jooq.Function21;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row20;
+import org.jooq.Row21;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -160,6 +160,12 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      */
     public final TableField<MachineAnnotationServicesRecord, Instant> DELETED_ON = createField(DSL.name("deleted_on"), SQLDataType.INSTANT, this, "");
 
+    /**
+     * The column <code>public.machine_annotation_services.mas_input</code>.
+     * Optional information used to create elastic query for batch annotations
+     */
+    public final TableField<MachineAnnotationServicesRecord, JSONB> MAS_INPUT = createField(DSL.name("mas_input"), SQLDataType.JSONB, this, "Optional information used to create elastic query for batch annotations");
+
     private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -245,18 +251,18 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     }
 
     // -------------------------------------------------------------------------
-    // Row20 type methods
+    // Row21 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row20<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant> fieldsRow() {
-        return (Row20) super.fieldsRow();
+    public Row21<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, JSONB> fieldsRow() {
+        return (Row21) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function20<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super JSONB, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -264,7 +270,7 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function20<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super JSONB, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

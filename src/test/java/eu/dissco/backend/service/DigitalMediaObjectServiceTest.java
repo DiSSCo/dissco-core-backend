@@ -25,9 +25,9 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.database.jooq.enums.TargetTypes;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
-import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -297,7 +297,7 @@ class DigitalMediaObjectServiceTest {
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
     given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(DIGITAL_MEDIA_PATH),
-        eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT))).willReturn(response);
+        eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(TargetTypes.MEDIA_OBJECT))).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When

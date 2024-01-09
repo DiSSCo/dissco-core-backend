@@ -1,7 +1,7 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.database.jooq.enums.JobStates;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -47,7 +47,7 @@ public class MasJobRecordController extends BaseController {
       @PathVariable("creatorId") String creatorId,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      @RequestParam(required = false) MasJobState state,
+      @RequestParam(required = false) JobStates state,
       HttpServletRequest request) {
     return ResponseEntity.ok().body(
         service.getMasJobRecordsByMasId(creatorId, getPath(request), pageNumber, pageSize,

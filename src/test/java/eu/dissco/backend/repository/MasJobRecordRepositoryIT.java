@@ -15,10 +15,10 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullSch
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.TargetTypes;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import eu.dissco.backend.domain.MasJobState;
-import eu.dissco.backend.domain.MjrTargetType;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -101,9 +101,9 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        MasJobState.FAILED, 1, 10);
+        JobStates.FAILED, 1, 10);
     var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        MasJobState.SCHEDULED, 1, 10);
+        JobStates.SCHEDULED, 1, 10);
 
     // Then
     assertThat(resultStatusFailed).isEmpty();
@@ -118,9 +118,9 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByTargetId(ID_ALT,
-        MasJobState.FAILED, 1, 10);
+        JobStates.FAILED, 1, 10);
     var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        MasJobState.SCHEDULED, 1, 10);
+        JobStates.SCHEDULED, 1, 10);
 
     // Then
     assertThat(resultStatusFailed).isEmpty();
@@ -150,7 +150,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
-        MasJobState.SCHEDULED, 1, 1);
+        JobStates.SCHEDULED, 1, 1);
 
     // Then
     assertThat(result).isEqualTo(List.of(expected));
@@ -159,8 +159,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @Test
   void testCreateNewMasJobRecord() {
     // Given
-    var mjr = new MasJobRecord(JOB_ID, MasJobState.SCHEDULED, ID, ID_ALT,
-        MjrTargetType.DIGITAL_SPECIMEN, ORCID);
+    var mjr = new MasJobRecord(JOB_ID, JobStates.SCHEDULED, ID, ID_ALT,
+        TargetTypes.DIGITAL_SPECIMEN, ORCID);
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -169,7 +169,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_ID)).isEqualTo(JOB_ID);
-    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_STATE)).isEqualTo(MasJobState.SCHEDULED);
+    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_STATE)).isEqualTo(JobStates.SCHEDULED);
   }
 
   @Test
@@ -189,7 +189,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(timestamp).isNotNull();
-    assertThat(state).isEqualTo(MasJobState.FAILED);
+    assertThat(state).isEqualTo(JobStates.FAILED);
   }
 
   @Test
@@ -206,7 +206,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     var state = result.get(MAS_JOB_RECORD_NEW.JOB_STATE);
 
     // Then
-    assertThat(state).isEqualTo(MasJobState.RUNNING);
+    assertThat(state).isEqualTo(JobStates.RUNNING);
   }
 
   @Test

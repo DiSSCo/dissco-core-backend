@@ -7,11 +7,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.database.jooq.enums.JobStates;
+import eu.dissco.backend.database.jooq.enums.TargetTypes;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
-import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -84,7 +84,7 @@ public class DigitalMediaObjectService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForMedia(String targetId, String path,
-      MasJobState state, int pageNum, int pageSize) throws NotFoundException {
+      JobStates state, int pageNum, int pageSize) throws NotFoundException {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
@@ -168,7 +168,7 @@ public class DigitalMediaObjectService {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, TargetTypes.MEDIA_OBJECT);
   }
 
 }
