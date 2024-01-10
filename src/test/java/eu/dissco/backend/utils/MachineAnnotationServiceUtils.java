@@ -64,6 +64,17 @@ public class MachineAnnotationServiceUtils {
     );
   }
 
+  public static MachineAnnotationServiceRecord givenMasRecord(String id, Instant deleted, MasInput masInput) {
+    return new MachineAnnotationServiceRecord(
+        id,
+        1,
+        CREATED,
+        USER_ID_TOKEN,
+        givenMas(MAPPER.createObjectNode(), masInput),
+        deleted
+    );
+  }
+
   public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters) {
     return new MachineAnnotationServiceRecord(
         ID,
@@ -80,6 +91,10 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationService givenMas(JsonNode filters) {
+    return givenMas(filters, givenMasInput());
+  }
+
+  public static MachineAnnotationService givenMas(JsonNode filters, MasInput masInput){
     return new MachineAnnotationService(
         "A Machine Annotation Service",
         "public.ecr.aws/dissco/fancy-mas",
@@ -96,8 +111,7 @@ public class MachineAnnotationServiceUtils {
         "https://www.know.dissco.tech/no_sla",
         "fancy-topic-name",
         5,
-        givenMasInput()
-    );
+        masInput);
   }
 
   public static MasInput givenMasInput(){

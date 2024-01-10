@@ -4,6 +4,7 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasInput;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,7 +35,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetAllMas() throws JsonProcessingException {
     // Given
-    var expected = populateDatabase();
+    var expected = populateDatabase(true);
 
     // When
     var result = repository.getAllMas();
@@ -46,7 +47,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetMasRecords() throws JsonProcessingException {
     // Given
-    populateDatabase();
+    populateDatabase(true);
 
     // When
     var result = repository.getMasRecords(
@@ -56,12 +57,25 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     assertThat(result).hasSize(2);
   }
 
-  private List<MachineAnnotationServiceRecord> populateDatabase() throws JsonProcessingException {
+  @Test
+  void testGetAllMasNoMasInput() throws JsonProcessingException {
+    // Given
+    var expected = populateDatabase(false);
+
+    // When
+    var result = repository.getAllMas();
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  private List<MachineAnnotationServiceRecord> populateDatabase(boolean hasMasInput) throws JsonProcessingException {
     var expectedRecords = new ArrayList<MachineAnnotationServiceRecord>();
+    var masInput = hasMasInput ? givenMasInput() : null;
     for (int i = 0; i < 26; i++) {
       MachineAnnotationServiceRecord masRecord;
       if (i % 2 == 0) {
-        masRecord = MachineAnnotationServiceUtils.givenMasRecord(PREFIX + "ABC-123-XY" + i, null);
+        masRecord = MachineAnnotationServiceUtils.givenMasRecord(PREFIX + "ABC-123-XY" + i, null, masInput);
         expectedRecords.add(masRecord);
       } else {
         masRecord = MachineAnnotationServiceUtils.givenMasRecord(PREFIX + "ABC-123-XY" + i,
@@ -72,8 +86,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     return expectedRecords;
   }
 
-  private void createRecord(MachineAnnotationServiceRecord masRecord)
-      throws JsonProcessingException {
+  private void createRecord(MachineAnnotationServiceRecord masRecord) throws JsonProcessingException {
     context.insertInto(MACHINE_ANNOTATION_SERVICES)
         .set(MACHINE_ANNOTATION_SERVICES.ID, masRecord.id())
         .set(MACHINE_ANNOTATION_SERVICES.VERSION, masRecord.version())
