@@ -74,11 +74,9 @@ public class MachineAnnotationServiceRepository {
     return mapper.createObjectNode();
   }
 
-  private MasInput mapToMasInput(JSONB jsonb){
+  private MasInput mapToMasInput(JSONB jsonb) {
     try {
-      return jsonb != null ?
-          mapper.readValue(jsonb.data(), MasInput.class)
-          : null;
+      return mapper.readValue(jsonb.data(), MasInput.class);
     } catch (JsonProcessingException e) {
       log.error("Unable to read mas_input JSONB to MasInput: {}",
           jsonb.data());
