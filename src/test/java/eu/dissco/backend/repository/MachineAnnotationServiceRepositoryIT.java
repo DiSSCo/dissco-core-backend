@@ -6,6 +6,7 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.com.trilead.ssh2.crypto.digest.MAC;
 
 class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
 
@@ -30,7 +32,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAllMas() {
+  void testGetAllMas() throws JsonProcessingException {
     // Given
     var expected = populateDatabase();
 
@@ -42,7 +44,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasRecords() {
+  void testGetMasRecords() throws JsonProcessingException {
     // Given
     populateDatabase();
 
@@ -54,7 +56,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     assertThat(result).hasSize(2);
   }
 
-  private List<MachineAnnotationServiceRecord> populateDatabase() {
+  private List<MachineAnnotationServiceRecord> populateDatabase() throws JsonProcessingException {
     var expectedRecords = new ArrayList<MachineAnnotationServiceRecord>();
     for (int i = 0; i < 26; i++) {
       MachineAnnotationServiceRecord masRecord;
@@ -70,7 +72,8 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     return expectedRecords;
   }
 
-  private void createRecord(MachineAnnotationServiceRecord masRecord) {
+  private void createRecord(MachineAnnotationServiceRecord masRecord)
+      throws JsonProcessingException {
     context.insertInto(MACHINE_ANNOTATION_SERVICES)
         .set(MACHINE_ANNOTATION_SERVICES.ID, masRecord.id())
         .set(MACHINE_ANNOTATION_SERVICES.VERSION, masRecord.version())
@@ -101,6 +104,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICES.TOPICNAME, masRecord.mas().topicName())
         .set(MACHINE_ANNOTATION_SERVICES.MAXREPLICAS, masRecord.mas().maxReplicas())
         .set(MACHINE_ANNOTATION_SERVICES.DELETED_ON, masRecord.deleted())
+        .set(MACHINE_ANNOTATION_SERVICES.MAS_INPUT, JSONB.jsonb(MAPPER.writeValueAsString(masRecord.mas().masInput())))
         .execute();
   }
 }

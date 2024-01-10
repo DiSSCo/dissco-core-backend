@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
+import eu.dissco.backend.domain.MasInput;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -94,8 +95,13 @@ public class MachineAnnotationServiceUtils {
         "dontmail@dissco.eu",
         "https://www.know.dissco.tech/no_sla",
         "fancy-topic-name",
-        5
+        5,
+        givenMasInput()
     );
+  }
+
+  public static MasInput givenMasInput(){
+    return new MasInput("Input Field", "Target Field");
   }
 
   public static JsonNode givenFlattenedDigitalMedia() throws JsonProcessingException {
