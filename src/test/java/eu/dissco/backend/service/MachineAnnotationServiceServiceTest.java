@@ -105,11 +105,11 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID, false);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID, MjrTargetType.DIGITAL_SPECIMEN, false);
 
     // Then
     assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
@@ -124,13 +124,13 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID);
+    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID, false);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
         .sendObjectToQueue("fancy-topic-name", sendObject);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
-        digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+        digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID, MjrTargetType.DIGITAL_SPECIMEN, false);
 
     // Then
     then(masJobRecordService).should().markMasJobRecordAsFailed(List.of(JOB_ID));

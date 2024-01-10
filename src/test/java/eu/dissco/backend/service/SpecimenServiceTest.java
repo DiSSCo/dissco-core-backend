@@ -534,11 +534,13 @@ class SpecimenServiceTest {
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
         eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID),
-        eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
+        eq(MjrTargetType.DIGITAL_SPECIMEN),
+        eq(false))
+    ).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH);
+    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH, false);
 
     // Then
     assertThat(result).isEqualTo(response);

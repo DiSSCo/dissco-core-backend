@@ -338,11 +338,11 @@ public class SpecimenService {
     return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path)
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path, boolean allowBatch)
       throws ForbiddenException {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN, allowBatch);
   }
 }

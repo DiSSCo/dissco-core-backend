@@ -78,7 +78,7 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid, MjrTargetType targetType) {
+      String path, Object object, String targetId, String orcid, MjrTargetType targetType, boolean allowBatch) {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
@@ -86,7 +86,7 @@ public class MachineAnnotationServiceService {
     var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
     for (var masRecord : availableRecords) {
       try {
-        var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));
+        var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()), allowBatch);
         kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
         scheduledMasRecords.add(
             new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, mapper));

@@ -162,13 +162,13 @@ public class DigitalMediaObjectService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId)
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId, boolean allowBatch)
       throws ForbiddenException, PidCreationException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT, allowBatch);
   }
 
 }
