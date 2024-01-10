@@ -19,7 +19,7 @@ create table annotation
     version          integer                  not null,
     type             text                     not null,
     motivation       text                     not null,
-    motivated_by     text                             ,
+    motivated_by     text,
     target_id        text                     not null,
     target           jsonb                    not null,
     body             jsonb                    not null,
@@ -107,20 +107,25 @@ CREATE TABLE machine_annotation_services
     sla_documentation             text,
     topicname                     text,
     maxreplicas                   integer,
-    deleted_on                    timestamp with time zone
+    deleted_on                    timestamp with time zone,
+    mas_input                     jsonb
 );
+
+create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
+
+create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
 create table mas_job_record_new
 (
     job_id         text                     not null
         constraint mas_job_record_new_pk
             primary key,
-    job_state      text check ( job_state in ('SCHEDULED', 'FAILED', 'COMPLETED', 'RUNNING') )            not null,
+    job_state      mjr_job_state               not null,
     mas_id         text                     not null,
     time_started   timestamp with time zone not null,
     time_completed timestamp with time zone,
     annotations    jsonb,
     target_id      text                     not null,
     user_id        text,
-    target_type    text check ( target_type in ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT') )                      not null
+    target_type    mjr_target_type
 );

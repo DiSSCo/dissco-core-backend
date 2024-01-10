@@ -6,9 +6,9 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import eu.dissco.backend.domain.MasJobState;
-import eu.dissco.backend.domain.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -36,7 +36,7 @@ public class MasJobRecordUtils {
 
   public static MasJobRecordFull givenMasJobRecordFullScheduled(MjrTargetType targetType) {
     return new MasJobRecordFull(
-        MasJobState.SCHEDULED,
+        MjrJobState.SCHEDULED,
         ID_ALT,
         ID,
         targetType,
@@ -55,7 +55,7 @@ public class MasJobRecordUtils {
 
   public static MasJobRecordFull givenMasJobRecordFullCompleted(String creator) {
     return new MasJobRecordFull(
-        MasJobState.COMPLETED,
+        MjrJobState.COMPLETED,
         creator,
         ID,
         MjrTargetType.DIGITAL_SPECIMEN,

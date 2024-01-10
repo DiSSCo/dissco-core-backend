@@ -2,7 +2,7 @@ package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -92,7 +92,7 @@ public class UserService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForUser(String userId, String path, int pageNum,
-      int pageSize, MasJobState state) {
+      int pageSize, MjrJobState state) {
     return masJobRecordService.getMasJobRecordsByUserId(userId, path, pageNum, pageSize, state);
   }
 

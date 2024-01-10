@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.domain.MasJobState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -103,10 +103,10 @@ class UserControllerTest {
     mockRequest.setRequestURI(USER_URL);
     given(
         service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize,
-            MasJobState.SCHEDULED)).willReturn(expected);
+            MjrJobState.SCHEDULED)).willReturn(expected);
 
     // When
-    var result = controller.getMasJobRecords(pageNum, pageSize, MasJobState.SCHEDULED, authentication, mockRequest);
+    var result = controller.getMasJobRecords(pageNum, pageSize, MjrJobState.SCHEDULED, authentication, mockRequest);
 
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody()).isEqualTo(expected);

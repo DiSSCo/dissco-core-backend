@@ -7,13 +7,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.properties.FdoProperties;
+import eu.dissco.backend.web.FdoRecordBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class FdoComponentTest {
+class FdoRecordBuilderTest {
 
   @Mock
   private FdoProperties fdoProperties;
@@ -25,7 +26,7 @@ class FdoComponentTest {
     given(fdoProperties.getProfile()).willReturn(
         "https://hdl.handle.net/21.T11148/64396cf36b976ad08267");
     given(fdoProperties.getDigitalObjectType()).willReturn("https://hdl.handle.net/21.T11148/64396cf36b976ad08267");
-    var fdoComponent = new FdoComponent(MAPPER, fdoProperties);
+    var fdoComponent = new FdoRecordBuilder(MAPPER, fdoProperties);
 
     // When
     var result = fdoComponent.getPostRequest();
