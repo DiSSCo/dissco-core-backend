@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
@@ -10,6 +10,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
@@ -157,7 +158,7 @@ public class SpecimenController extends BaseController {
   @GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestParam(required = false) AnnotationState state,
+      @RequestParam(required = false) MjrJobState state,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) throws NotFoundException {
@@ -221,7 +222,7 @@ public class SpecimenController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws JsonProcessingException, ConflictException, ForbiddenException {
+      throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);

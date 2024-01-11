@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,12 +78,12 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid) {
+      String path, Object object, String targetId, String orcid, MjrTargetType targetType) {
     var masRecords = repository.getMasRecords(mass);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
-    List<UUID> failedRecords = new ArrayList<>();
+    List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid);
+    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
     for (var masRecord : availableRecords) {
       try {
         var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));

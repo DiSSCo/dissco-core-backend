@@ -1,7 +1,8 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -13,36 +14,40 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 
+import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MasJobRecordService {
 
   private final MasJobRecordRepository masJobRecordRepository;
+  private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
 
-  public JsonApiWrapper getMasJobRecordById(UUID masJobRecordId, String path)
+  public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {
-    var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordId);
+    var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordHandle);
     if (masJobRecordOptional.isEmpty()) {
       throw new NotFoundException(
-          "Unable to find MAS Job Record for job " + masJobRecordId.toString());
+          "Unable to find MAS Job Record for job " + masJobRecordHandle);
     }
     var masJobRecord = masJobRecordOptional.get();
-    var dataNode = new JsonApiData(masJobRecordId.toString(), "masJobRecord",
+    var dataNode = new JsonApiData(masJobRecordHandle, "masJobRecord",
         mapper.valueToTree(masJobRecord));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      AnnotationState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      MjrJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
     var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
         pageNum, pageSizePlusOne);
@@ -52,17 +57,17 @@ public class MasJobRecordService {
     return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
   }
 
-  public JsonApiListResponseWrapper getMasJobRecordsByCreator(String creatorId, String path,
-      int pageNum, int pageSize, AnnotationState state) {
+  public JsonApiListResponseWrapper getMasJobRecordsByMasId(String masId, String path,
+      int pageNum, int pageSize, MjrJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
-    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId,
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByMasId(masId,
         state, pageNum, pageSizeToCheckNext);
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByUserId(String orcid, String path,
-      int pageNum, int pageSize, AnnotationState state) {
+      int pageNum, int pageSize, MjrJobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(orcid, state,
@@ -75,7 +80,7 @@ public class MasJobRecordService {
     boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
     var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
     List<JsonApiData> dataList = sublist.stream().map(
-            mjr -> new JsonApiData(mjr.jobId().toString(), "masJobRecord", mapper.valueToTree(mjr)))
+            mjr -> new JsonApiData(mjr.jobHandle(), "masJobRecord", mapper.valueToTree(mjr)))
         .toList();
     JsonApiLinksFull linksNode;
     if (masJobRecordListPlusOne.isEmpty()) {
@@ -86,22 +91,26 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, UUID> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid) {
+  public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
+      String targetId, String orcid, MjrTargetType targetType) {
+    log.info("Requesting {} handles from API", masRecords.size());
+    var handles = handleComponent.postHandle(masRecords.size());
+    var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(AnnotationState.SCHEDULED, masRecord.id(), targetId,
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(), targetId, targetType,
             orcid))
         .toList();
-    return masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+    masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
   }
 
-  public void markMasJobRecordAsRunning(String creatorId, UUID masJobId) throws NotFoundException {
-    if (masJobRecordRepository.markMasJobRecordAsRunning(creatorId, masJobId) == 0) {
-      throw new NotFoundException("Unable to locate scheduled MAS job with id " + masJobId);
+  public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
+    if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
+      throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
     }
   }
 
-  public void markMasJobRecordAsFailed(List<UUID> failedJobIds) {
+  public void markMasJobRecordAsFailed(List<String> failedJobIds) {
     masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
   }
 

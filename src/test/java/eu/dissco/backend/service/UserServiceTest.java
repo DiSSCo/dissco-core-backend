@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
@@ -23,7 +23,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UserExistsException;
 import eu.dissco.backend.repository.UserRepository;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -116,10 +115,10 @@ class UserServiceTest {
     var pageNum = 1;
     var pageSize = 1;
     var expected = givenMjrListResponse(pageNum, pageSize, true);
-    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize, AnnotationState.SCHEDULED)).willReturn(expected);
+    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED)).willReturn(expected);
 
     // When
-    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize, AnnotationState.SCHEDULED);
+    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED);
 
     // Then
     assertThat(result).isEqualTo(expected);

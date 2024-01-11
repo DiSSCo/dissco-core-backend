@@ -2,7 +2,6 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -17,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.AnnotationState;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -129,7 +128,7 @@ class DigitalMediaObjectControllerTest {
   @Test
   void testGetMasJobRecordForMedia() throws Exception {
     // When
-    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, AnnotationState.SCHEDULED, 1, 1, mockRequest);
+    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, MjrJobState.SCHEDULED, 1, 1, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

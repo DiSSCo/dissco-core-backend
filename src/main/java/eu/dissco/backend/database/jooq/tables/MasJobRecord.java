@@ -4,26 +4,23 @@
 package eu.dissco.backend.database.jooq.tables;
 
 
-import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
+import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function8;
-import org.jooq.Index;
+import org.jooq.Function10;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row8;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -59,17 +56,17 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     /**
      * The column <code>public.mas_job_record.job_id</code>.
      */
-    public final TableField<MasJobRecordRecord, UUID> JOB_ID = createField(DSL.name("job_id"), SQLDataType.UUID.nullable(false).defaultValue(DSL.field(DSL.raw("uuid_generate_v4()"), SQLDataType.UUID)), this, "");
+    public final TableField<MasJobRecordRecord, String> JOB_ID = createField(DSL.name("job_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.mas_job_record.state</code>.
+     * The column <code>public.mas_job_record.job_state</code>.
      */
-    public final TableField<MasJobRecordRecord, String> STATE = createField(DSL.name("state"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<MasJobRecordRecord, MjrJobState> JOB_STATE = createField(DSL.name("job_state"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(eu.dissco.backend.database.jooq.enums.MjrJobState.class), this, "");
 
     /**
-     * The column <code>public.mas_job_record.creator_id</code>.
+     * The column <code>public.mas_job_record.mas_id</code>.
      */
-    public final TableField<MasJobRecordRecord, String> CREATOR_ID = createField(DSL.name("creator_id"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<MasJobRecordRecord, String> MAS_ID = createField(DSL.name("mas_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>public.mas_job_record.time_started</code>.
@@ -92,10 +89,21 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     public final TableField<MasJobRecordRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.mas_job_record.user_id</code>. User scheduling
-     * MAS
+     * The column <code>public.mas_job_record.user_id</code>.
      */
-    public final TableField<MasJobRecordRecord, String> USER_ID = createField(DSL.name("user_id"), SQLDataType.CLOB, this, "User scheduling MAS");
+    public final TableField<MasJobRecordRecord, String> USER_ID = createField(DSL.name("user_id"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.mas_job_record.target_type</code>.
+     */
+    public final TableField<MasJobRecordRecord, MjrTargetType> TARGET_TYPE = createField(DSL.name("target_type"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.MjrTargetType.class), this, "");
+
+    /**
+     * The column <code>public.mas_job_record.batch_metadata</code>. JSON
+     * containing: inputField, inputValue, targetField. Null if no batching was
+     * requested.
+     */
+    public final TableField<MasJobRecordRecord, JSONB> BATCH_METADATA = createField(DSL.name("batch_metadata"), SQLDataType.JSONB, this, "JSON containing: inputField, inputValue, targetField. Null if no batching was requested.");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
@@ -136,13 +144,8 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     }
 
     @Override
-    public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.MAS_JOB_RECORD_CREATED_IDX, Indexes.MAS_JOB_RECORD_JOB_ID_INDEX);
-    }
-
-    @Override
     public UniqueKey<MasJobRecordRecord> getPrimaryKey() {
-        return Keys.MAS_JOB_RECORD_PK;
+        return Keys.MAS_JOB_RECORD_NEW_PK;
     }
 
     @Override
@@ -185,18 +188,18 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row8 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<UUID, String, String, Instant, Instant, JSONB, String, String> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row10<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, JSONB> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super JSONB, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -204,7 +207,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super UUID, ? super String, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super JSONB, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
