@@ -6,6 +6,7 @@ import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +29,7 @@ class HandleComponentTest {
   @Mock
   private TokenAuthenticator tokenAuthenticator;
   @Mock
-  private FdoRecordBuilder fdoRecordBuilder;
+  private FdoRecordComponent fdoRecordComponent;
   private HandleComponent handleComponent;
 
   @BeforeAll
@@ -46,7 +47,7 @@ class HandleComponentTest {
   void setup() {
     WebClient webClient = WebClient.create(
         String.format("http://%s:%s", mockHandleServer.getHostName(), mockHandleServer.getPort()));
-    handleComponent = new HandleComponent(webClient, tokenAuthenticator, fdoRecordBuilder);
+    handleComponent = new HandleComponent(webClient, tokenAuthenticator, fdoRecordComponent);
   }
 
   @Test

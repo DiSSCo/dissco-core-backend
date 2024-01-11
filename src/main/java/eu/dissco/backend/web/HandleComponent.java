@@ -1,6 +1,7 @@
 package eu.dissco.backend.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -29,10 +30,10 @@ public class HandleComponent {
   @Qualifier("handleClient")
   private final WebClient handleClient;
   private final TokenAuthenticator tokenAuthenticator;
-  private final FdoRecordBuilder fdoRecordBuilder;
+  private final FdoRecordComponent fdoRecordComponent;
 
   public List<String> postHandle(int n) {
-    var request = Collections.nCopies(n, fdoRecordBuilder.getPostRequest());
+    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequest());
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(requestBody);
     var result = validateResponse(response);

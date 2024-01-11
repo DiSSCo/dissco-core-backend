@@ -1,15 +1,17 @@
-package eu.dissco.backend.web;
+package eu.dissco.backend.component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.properties.FdoProperties;
 import lombok.Getter;
+import org.springframework.stereotype.Component;
 
 @Getter
-public class FdoRecordBuilder {
+@Component
+public class FdoRecordComponent {
   private final JsonNode postRequest;
 
-  public FdoRecordBuilder(ObjectMapper mapper, FdoProperties fdoProperties) {
+  public FdoRecordComponent(ObjectMapper mapper, FdoProperties fdoProperties) {
     this.postRequest = mapper.createObjectNode()
         .set("data", mapper.createObjectNode()
             .put("type", "handle")
