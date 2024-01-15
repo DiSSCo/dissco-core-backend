@@ -14,7 +14,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,12 +84,12 @@ public class MachineAnnotationServiceService {
     var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    Map<String, MasJobRecord> masRecordJobIds = null;
+    Map<String, MasJobRecord> masJobRecordIdMap = null;
     if (!availableRecords.isEmpty()){
-      masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
+      masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
     }
     for (var masRecord : availableRecords) {
-      var mjr = masRecordJobIds.get(masRecord.id());
+      var mjr = masJobRecordIdMap.get(masRecord.id());
       try {
         var targetObject = new MasTarget(object, mjr.jobId());
         kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
