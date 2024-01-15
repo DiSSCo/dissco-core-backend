@@ -103,7 +103,7 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN)).willReturn(
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN, givenFlattenedDigitalSpecimen(), false)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID, false);
 
@@ -122,7 +122,7 @@ class MachineAnnotationServiceServiceTest {
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
     given(repository.getMasRecords(List.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN)).willReturn(
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN, givenFlattenedDigitalSpecimen(), false)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
     var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID, false);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)

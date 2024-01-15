@@ -83,7 +83,7 @@ public class MachineAnnotationServiceService {
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
+    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType, flattenObjectData, allowBatch);
     for (var masRecord : availableRecords) {
       try {
         var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()), allowBatch);

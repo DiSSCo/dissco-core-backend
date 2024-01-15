@@ -1,11 +1,13 @@
 package eu.dissco.backend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import eu.dissco.backend.domain.MjrBatchMetadata;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -15,6 +17,7 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 
 import eu.dissco.backend.web.HandleComponent;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,16 +95,56 @@ public class MasJobRecordService {
   }
 
   public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, MjrTargetType targetType) {
+      String targetId, String orcid, MjrTargetType targetType, JsonNode flattenObjectData,
+      boolean allowBatch) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
-    var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(), targetId, targetType,
-            orcid))
-        .toList();
+    var masJobRecordList = allowBatch ?
+        buildMjrWithBatchMetadata(masRecords, handleItr, targetId, orcid, targetType, flattenObjectData) :
+        buildMjrListNoBatchMetadata(masRecords, handleItr, targetId, orcid, targetType);
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
+    return masJobRecordList.stream()
+        .collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
+  }
+
+  private List<MasJobRecord> buildMjrListNoBatchMetadata(
+      Set<MachineAnnotationServiceRecord> masRecords, Iterator<String> handleItr, String targetId,
+      String orcid, MjrTargetType targetType) {
+    return masRecords.stream()
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(),
+            targetId, targetType,
+            orcid, null))
+        .toList();
+  }
+
+  private List<MasJobRecord> buildMjrWithBatchMetadata(
+      Set<MachineAnnotationServiceRecord> masRecords, Iterator<String> handleItr, String targetId,
+      String orcid, MjrTargetType targetType, JsonNode flattenAttributes) {
+    return masRecords.stream()
+        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(),
+            targetId, targetType,
+            orcid, buildBatchMetadata(flattenAttributes, masRecord)))
+        .toList();
+  }
+
+  private MjrBatchMetadata buildBatchMetadata(JsonNode flattenAttributes,
+      MachineAnnotationServiceRecord masRecord) {
+    var masInput = masRecord.mas().masInput();
+    if (masInput == null) {
+      return null;
+    }
+    var inputFields = List.of(masInput.targetField().split("-"));
+    var inputValue = getTargetValueNode(flattenAttributes, inputFields).asText();
+    return new MjrBatchMetadata(masInput.inputField(), inputValue, masInput.targetField());
+  }
+
+  private JsonNode getTargetValueNode(JsonNode flattenAttributes, List<String> targetField) {
+    if (targetField.size() > 1) {
+      var subfields = targetField.subList(1, targetField.size() - 1);
+      return getTargetValueNode(flattenAttributes.get(targetField.get(0)), subfields);
+    }
+    return flattenAttributes.get(targetField.get(0));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {

@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -172,14 +174,14 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testCreateMasJobRecord() {
+  void testCreateMasJobRecord() throws JsonProcessingException {
     // Given
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id());
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN, givenFlattenedDigitalSpecimen(), false);
 
     // Then
     assertThat(result).isEqualTo(expected);
