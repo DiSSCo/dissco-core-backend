@@ -7,7 +7,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
-import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD_NEW;
+import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
@@ -38,7 +38,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
   @AfterEach
   void destroy() {
-    context.truncate(MAS_JOB_RECORD_NEW).execute();
+    context.truncate(MAS_JOB_RECORD).execute();
     context.truncate(USER).execute();
   }
 
@@ -164,12 +164,12 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
-    var result = context.select(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE)
-        .from(MAS_JOB_RECORD_NEW).where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID)).fetchOne();
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+        .from(MAS_JOB_RECORD).where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID)).fetchOne();
 
     // Then
-    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_ID)).isEqualTo(JOB_ID);
-    assertThat(result.get(MAS_JOB_RECORD_NEW.JOB_STATE)).isEqualTo(MjrJobState.SCHEDULED);
+    assertThat(result.get(MAS_JOB_RECORD.JOB_ID)).isEqualTo(JOB_ID);
+    assertThat(result.get(MAS_JOB_RECORD.JOB_STATE)).isEqualTo(MjrJobState.SCHEDULED);
   }
 
   @Test
@@ -179,13 +179,13 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     masJobRecordRepository.markMasJobRecordsAsFailed(List.of(JOB_ID));
-    var result = context.select(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE,
-            MAS_JOB_RECORD_NEW.TIME_COMPLETED)
-        .from(MAS_JOB_RECORD_NEW)
-        .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID))
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE,
+            MAS_JOB_RECORD.TIME_COMPLETED)
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
         .fetchSingle();
-    var timestamp = result.get(MAS_JOB_RECORD_NEW.TIME_COMPLETED);
-    var state = result.get(MAS_JOB_RECORD_NEW.JOB_STATE);
+    var timestamp = result.get(MAS_JOB_RECORD.TIME_COMPLETED);
+    var state = result.get(MAS_JOB_RECORD.JOB_STATE);
 
     // Then
     assertThat(timestamp).isNotNull();
@@ -199,11 +199,11 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
-    var result = context.select(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE)
-        .from(MAS_JOB_RECORD_NEW)
-        .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID))
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
         .fetchSingle();
-    var state = result.get(MAS_JOB_RECORD_NEW.JOB_STATE);
+    var state = result.get(MAS_JOB_RECORD.JOB_STATE);
 
     // Then
     assertThat(state).isEqualTo(MjrJobState.RUNNING);
@@ -216,9 +216,9 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // When
     masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
-    var result = context.select(MAS_JOB_RECORD_NEW.JOB_ID, MAS_JOB_RECORD_NEW.JOB_STATE)
-        .from(MAS_JOB_RECORD_NEW)
-        .where(MAS_JOB_RECORD_NEW.JOB_ID.eq(JOB_ID))
+    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+        .from(MAS_JOB_RECORD)
+        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
         .fetchOptional();
 
     // Then
@@ -230,17 +230,17 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     for (var mjr : mjrList) {
       var dataNode = mjr.annotations() != null ?
           JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
-      queryList.add(context.insertInto(MAS_JOB_RECORD_NEW)
-          .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
-          .set(MAS_JOB_RECORD_NEW.JOB_STATE, mjr.state())
-          .set(MAS_JOB_RECORD_NEW.MAS_ID, mjr.masId())
-          .set(MAS_JOB_RECORD_NEW.TARGET_ID, mjr.targetId())
-          .set(MAS_JOB_RECORD_NEW.TARGET_TYPE, mjr.targetType())
-          .set(MAS_JOB_RECORD_NEW.JOB_ID, mjr.jobHandle())
-          .set(MAS_JOB_RECORD_NEW.TIME_STARTED, mjr.timeStarted())
-          .set(MAS_JOB_RECORD_NEW.TIME_COMPLETED, mjr.timeCompleted())
-          .set(MAS_JOB_RECORD_NEW.ANNOTATIONS, dataNode)
-          .set(MAS_JOB_RECORD_NEW.USER_ID, mjr.orcid()));
+      queryList.add(context.insertInto(MAS_JOB_RECORD)
+          .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
+          .set(MAS_JOB_RECORD.JOB_STATE, mjr.state())
+          .set(MAS_JOB_RECORD.MAS_ID, mjr.masId())
+          .set(MAS_JOB_RECORD.TARGET_ID, mjr.targetId())
+          .set(MAS_JOB_RECORD.TARGET_TYPE, mjr.targetType())
+          .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
+          .set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
+          .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
+          .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
+          .set(MAS_JOB_RECORD.USER_ID, mjr.orcid()));
     }
     context.batch(queryList).execute();
   }

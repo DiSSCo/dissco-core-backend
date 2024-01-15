@@ -1,6 +1,9 @@
 package eu.dissco.backend.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.properties.FdoProperties;
 import eu.dissco.backend.properties.WebConnectionProperties;
+import eu.dissco.backend.component.FdoRecordComponent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +18,8 @@ import reactor.netty.http.client.HttpClient;
 public class WebClientConfiguration {
 
   private final WebConnectionProperties properties;
+  private final ObjectMapper mapper;
+  private final FdoProperties fdoProperties;
 
   @Bean(name = "tokenClient")
   public WebClient tokenClient() {
@@ -32,6 +37,11 @@ public class WebClientConfiguration {
         .baseUrl(properties.getHandleEndpoint())
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
+  }
+
+  @Bean(name = "fdoRecordBuilder")
+  public FdoRecordComponent fdoRecordBuilder() {
+    return new FdoRecordComponent(mapper, fdoProperties);
   }
 
 }
