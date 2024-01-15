@@ -8,15 +8,18 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
+import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +34,6 @@ public class MachineAnnotationServiceService {
   private final KafkaPublisherService kafkaPublisherService;
   private final MasJobRecordService mjrService;
   private final ObjectMapper mapper;
-
   private boolean checkIfMasComplies(JsonNode jsonNode,
       MachineAnnotationServiceRecord masRecord) {
     var filters = masRecord.mas().targetDigitalObjectFilters();
@@ -80,27 +82,31 @@ public class MachineAnnotationServiceService {
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
       String path, Object object, String targetId, String orcid, MjrTargetType targetType) {
     var masRecords = repository.getMasRecords(mass);
-    var scheduledMasRecords = new ArrayList<JsonApiData>();
+    var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
+    Map<String, MasJobRecord> masRecordJobIds = null;
+    if (!availableRecords.isEmpty()){
+      masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
+    }
     for (var masRecord : availableRecords) {
+      var mjr = masRecordJobIds.get(masRecord.id());
       try {
-        var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));
+        var targetObject = new MasTarget(object, mjr.jobId());
         kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
-        scheduledMasRecords.add(
-            new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, mapper));
+        scheduledJobs.add(
+            new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper));
       } catch (JsonProcessingException e) {
         log.error("Failed to send masRecord: {}  to kafka", masRecord.id());
-        failedRecords.add(masRecordJobIds.get(masRecord.id()));
+        failedRecords.add(mjr.jobId());
       }
     }
     if (!failedRecords.isEmpty()) {
       mjrService.markMasJobRecordAsFailed(failedRecords);
     }
     var links = new JsonApiLinksFull(path);
-    return new JsonApiListResponseWrapper(scheduledMasRecords, links,
-        new JsonApiMeta(scheduledMasRecords.size()));
+    return new JsonApiListResponseWrapper(scheduledJobs, links,
+        new JsonApiMeta(scheduledJobs.size()));
   }
 
 

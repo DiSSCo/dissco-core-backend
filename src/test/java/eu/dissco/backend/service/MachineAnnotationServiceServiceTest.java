@@ -9,7 +9,9 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlatten
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenScheduledMasResponse;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,7 +114,7 @@ class MachineAnnotationServiceServiceTest {
         digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
-    assertThat(result).isEqualTo(givenMasResponse(masRecord, SPECIMEN_PATH));
+    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(), SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 

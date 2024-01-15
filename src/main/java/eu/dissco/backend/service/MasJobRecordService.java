@@ -91,7 +91,7 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
+  public Map<String, MasJobRecord> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
       String targetId, String orcid, MjrTargetType targetType) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
@@ -101,7 +101,7 @@ public class MasJobRecordService {
             orcid))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
+    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, mjr -> mjr));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
