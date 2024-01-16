@@ -92,13 +92,13 @@ public class MasJobRecordService {
   }
 
   public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, MjrTargetType targetType) {
+      String targetId, String orcid, MjrTargetType targetType, boolean batchingRequested) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(), targetId, targetType,
-            orcid))
+            orcid, batchingRequested))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
     return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));

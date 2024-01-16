@@ -32,6 +32,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -244,11 +245,11 @@ class SpecimenControllerTest {
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH)).willReturn(expectedResponse);
+    given(service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH, false)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, Optional.of(false), request, authentication,
         mockRequest);
 
     // Then
@@ -264,7 +265,7 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX,  Optional.of(false), request, authentication,
             mockRequest));
   }
 
@@ -278,7 +279,7 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX,Optional.of(false), request, authentication,
             mockRequest));
   }
 

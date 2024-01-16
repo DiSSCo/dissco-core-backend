@@ -3,7 +3,7 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
+import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES_TMP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
@@ -26,7 +26,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
 
   @AfterEach
   void destroy() {
-    context.truncate(MACHINE_ANNOTATION_SERVICES).execute();
+    context.truncate(MACHINE_ANNOTATION_SERVICES_TMP).execute();
   }
 
   @Test
@@ -71,36 +71,37 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   }
 
   private void createRecord(MachineAnnotationServiceRecord masRecord) {
-    context.insertInto(MACHINE_ANNOTATION_SERVICES)
-        .set(MACHINE_ANNOTATION_SERVICES.ID, masRecord.id())
-        .set(MACHINE_ANNOTATION_SERVICES.VERSION, masRecord.version())
-        .set(MACHINE_ANNOTATION_SERVICES.NAME, masRecord.mas().name())
-        .set(MACHINE_ANNOTATION_SERVICES.CREATED, masRecord.created())
-        .set(MACHINE_ANNOTATION_SERVICES.ADMINISTRATOR, masRecord.administrator())
-        .set(MACHINE_ANNOTATION_SERVICES.CONTAINER_IMAGE, masRecord.mas().containerImage())
-        .set(MACHINE_ANNOTATION_SERVICES.CONTAINER_IMAGE_TAG, masRecord.mas().containerTag())
-        .set(MACHINE_ANNOTATION_SERVICES.TARGET_DIGITAL_OBJECT_FILTERS,
+    context.insertInto(MACHINE_ANNOTATION_SERVICES_TMP)
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.ID, masRecord.id())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.VERSION, masRecord.version())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.NAME, masRecord.mas().name())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.CREATED, masRecord.created())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.ADMINISTRATOR, masRecord.administrator())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.CONTAINER_IMAGE, masRecord.mas().containerImage())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.CONTAINER_IMAGE_TAG, masRecord.mas().containerTag())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.TARGET_DIGITAL_OBJECT_FILTERS,
             masRecord.mas().targetDigitalObjectFilters() != null ? JSONB.jsonb(
                 masRecord.mas().targetDigitalObjectFilters().toString()) : null
         )
-        .set(MACHINE_ANNOTATION_SERVICES.SERVICE_DESCRIPTION,
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SERVICE_DESCRIPTION,
             masRecord.mas().serviceDescription())
-        .set(MACHINE_ANNOTATION_SERVICES.SERVICE_STATE, masRecord.mas().serviceState())
-        .set(MACHINE_ANNOTATION_SERVICES.SERVICE_AVAILABILITY,
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SERVICE_STATE, masRecord.mas().serviceState())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SERVICE_AVAILABILITY,
             masRecord.mas().serviceAvailability())
-        .set(MACHINE_ANNOTATION_SERVICES.SOURCE_CODE_REPOSITORY,
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SOURCE_CODE_REPOSITORY,
             masRecord.mas().sourceCodeRepository())
-        .set(MACHINE_ANNOTATION_SERVICES.CODE_MAINTAINER, masRecord.mas().codeMaintainer())
-        .set(MACHINE_ANNOTATION_SERVICES.CODE_LICENSE, masRecord.mas().codeLicense())
-        .set(MACHINE_ANNOTATION_SERVICES.DEPENDENCIES,
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.CODE_MAINTAINER, masRecord.mas().codeMaintainer())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.CODE_LICENSE, masRecord.mas().codeLicense())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.DEPENDENCIES,
             masRecord.mas().dependencies() != null ? masRecord.mas().dependencies()
                 .toArray(new String[0]) : null
         )
-        .set(MACHINE_ANNOTATION_SERVICES.SUPPORT_CONTACT, masRecord.mas().supportContact())
-        .set(MACHINE_ANNOTATION_SERVICES.SLA_DOCUMENTATION, masRecord.mas().slaDocumentation())
-        .set(MACHINE_ANNOTATION_SERVICES.TOPICNAME, masRecord.mas().topicName())
-        .set(MACHINE_ANNOTATION_SERVICES.MAXREPLICAS, masRecord.mas().maxReplicas())
-        .set(MACHINE_ANNOTATION_SERVICES.DELETED_ON, masRecord.deleted())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SUPPORT_CONTACT, masRecord.mas().supportContact())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.SLA_DOCUMENTATION, masRecord.mas().slaDocumentation())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.TOPICNAME, masRecord.mas().topicName())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.MAXREPLICAS, masRecord.mas().maxReplicas())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.DELETED_ON, masRecord.deleted())
+        .set(MACHINE_ANNOTATION_SERVICES_TMP.BATCHING_PERMITTED, masRecord.mas().batchingRequested())
         .execute();
   }
 }

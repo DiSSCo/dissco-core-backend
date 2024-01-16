@@ -14,6 +14,7 @@ import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -125,14 +126,16 @@ public class DigitalMediaObjectController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      @RequestParam Optional<Boolean> batching,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);
+    boolean batchingRequested = batching.orElse(false);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,
         id);
-    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId);
+    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId, batchingRequested);
     return ResponseEntity.accepted().body(massResponse);
   }
 

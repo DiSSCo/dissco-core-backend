@@ -20,6 +20,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
@@ -338,11 +339,11 @@ public class SpecimenService {
     return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path)
-      throws ForbiddenException {
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path, boolean batchingRequested)
+      throws ForbiddenException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN, batchingRequested);
   }
 }

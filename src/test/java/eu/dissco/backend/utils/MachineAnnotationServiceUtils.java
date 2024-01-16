@@ -94,7 +94,8 @@ public class MachineAnnotationServiceUtils {
         "dontmail@dissco.eu",
         "https://www.know.dissco.tech/no_sla",
         "fancy-topic-name",
-        5
+        5,
+        false
     );
   }
 
