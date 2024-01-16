@@ -79,14 +79,16 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid, MjrTargetType targetType, boolean batchingRequested)
+      String path, Object object, String targetId, String orcid, MjrTargetType targetType,
+      boolean batchingRequested)
       throws ConflictException {
     var masRecords = repository.getMasRecords(mass);
     validateBatchingRequest(batchingRequested, masRecords);
     var scheduledMasRecords = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
-    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType, batchingRequested);
+    var masRecordJobIds = mjrService.createMasJobRecord(availableRecords, targetId, orcid,
+        targetType, batchingRequested);
     for (var masRecord : availableRecords) {
       try {
         var targetObject = new MasTarget(object, masRecordJobIds.get(masRecord.id()));
@@ -106,11 +108,17 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(scheduledMasRecords.size()));
   }
 
-  private void validateBatchingRequest(Boolean batchingRequested, List<MachineAnnotationServiceRecord> masRecords)
+  private void validateBatchingRequest(Boolean batchingRequested,
+      List<MachineAnnotationServiceRecord> masRecords)
       throws ConflictException {
-    for (var masRecord: masRecords) {
-      if (Boolean.TRUE.equals(batchingRequested) && Boolean.FALSE.equals(masRecord.mas().batchingRequested())){
-        log.error("User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}", masRecord.id());
+    if (Boolean.FALSE.equals(batchingRequested)) {
+      return;
+    }
+    for (var masRecord : masRecords) {
+      if (Boolean.FALSE.equals(masRecord.mas().batchingRequested())) {
+        log.error(
+            "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",
+            masRecord.id());
         throw new ConflictException();
       }
     }
