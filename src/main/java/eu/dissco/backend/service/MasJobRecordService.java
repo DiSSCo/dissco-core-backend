@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,7 +102,7 @@ public class MasJobRecordService {
             orcid))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, mjr -> mjr));
+    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
