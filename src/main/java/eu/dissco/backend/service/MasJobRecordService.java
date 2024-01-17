@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +92,7 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, String> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
+  public Map<String, MasJobRecord> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
       String targetId, String orcid, MjrTargetType targetType) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
@@ -101,7 +102,7 @@ public class MasJobRecordService {
             orcid))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, MasJobRecord::jobId));
+    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {

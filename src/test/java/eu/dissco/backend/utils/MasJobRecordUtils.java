@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -24,9 +25,9 @@ public class MasJobRecordUtils {
   public static final String MJR_URI = "/api/v1/mjr/";
 
 
-  public static Map<String, String> givenMasJobRecordIdMap(String creatorId) {
-    var jobIdMap = new HashMap<String, String>();
-    jobIdMap.put(creatorId, JOB_ID);
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId) {
+    var jobIdMap = new HashMap<String, MasJobRecord>();
+    jobIdMap.put(masId, givenMasJobRecord());
     return jobIdMap;
   }
 
@@ -64,6 +65,17 @@ public class MasJobRecordUtils {
         CREATED,
         CREATED,
         MAPPER.createObjectNode().put("annotation", "value")
+    );
+  }
+
+  public static MasJobRecord givenMasJobRecord(){
+    return new MasJobRecord(
+        JOB_ID,
+        MjrJobState.SCHEDULED,
+        ID,
+        ID_ALT,
+        MjrTargetType.DIGITAL_SPECIMEN,
+        ORCID
     );
   }
 

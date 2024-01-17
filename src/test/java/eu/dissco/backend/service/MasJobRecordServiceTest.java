@@ -179,7 +179,7 @@ class MasJobRecordServiceTest {
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID, MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(expected);
