@@ -31,7 +31,8 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static JsonApiListResponseWrapper givenMasResponse(
-      MachineAnnotationServiceRecord masRecord, String path) {
+      MachineAnnotationServiceRecord masRecord,
+      String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, MAPPER));
@@ -62,12 +63,25 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord(String id, Instant deleted) {
-    return new MachineAnnotationServiceRecord(id, 1, CREATED, USER_ID_TOKEN, givenMas(), deleted);
+    return new MachineAnnotationServiceRecord(
+        id,
+        1,
+        CREATED,
+        USER_ID_TOKEN,
+        givenMas(),
+        deleted
+    );
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters) {
-    return new MachineAnnotationServiceRecord(ID, 1, CREATED, USER_ID_TOKEN, givenMas(filters),
-        null);
+    return new MachineAnnotationServiceRecord(
+        ID,
+        1,
+        CREATED,
+        USER_ID_TOKEN,
+        givenMas(filters),
+        null
+    );
   }
 
   public static MachineAnnotationService givenMas() {
@@ -75,109 +89,124 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationService givenMas(JsonNode filters) {
-    return new MachineAnnotationService("A Machine Annotation Service",
-        "public.ecr.aws/dissco/fancy-mas", "sha-54289", filters,
-        "A fancy mas making all dreams come true", "Definitely production ready",
-        "https://github.com/DiSSCo/fancy-mas", "public", "No one we know",
-        "https://www.apache.org/licenses/LICENSE-2.0", List.of(), "dontmail@dissco.eu",
-        "https://www.know.dissco.tech/no_sla", "fancy-topic-name", 5);
+    return new MachineAnnotationService(
+        "A Machine Annotation Service",
+        "public.ecr.aws/dissco/fancy-mas",
+        "sha-54289",
+        filters,
+        "A fancy mas making all dreams come true",
+        "Definitely production ready",
+        "https://github.com/DiSSCo/fancy-mas",
+        "public",
+        "No one we know",
+        "https://www.apache.org/licenses/LICENSE-2.0",
+        List.of(),
+        "dontmail@dissco.eu",
+        "https://www.know.dissco.tech/no_sla",
+        "fancy-topic-name",
+        5
+    );
   }
 
   public static JsonNode givenFlattenedDigitalMedia() throws JsonProcessingException {
-    return MAPPER.readValue("""
-            {
-              "ods:id": "https://doi.org/TEST/SDF-6Y6-DV7",
-              "ods:version": 1,
-              "ods:created": "2023-10-16T11:47:18.773831Z",
-              "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
-              "ac:accessUri": "https://herbarium.bgbm.org/data/iiif/BW00746010/manifest.json",
-              "dwc:institutionId": "https://ror.org/00bv4cx53",
-              "dwc:institutionName": "Botanic Garden and Botanical Museum Berlin",
-              "dcterms:format": "application/json",
-              "dcterms:license": "https://creativecommons.org/licenses/by-sa/3.0/",
-              "dcterms:source": "https://iiif.bgbm.org/?manifest=https://herbarium.bgbm.org/object/BW00746010/manifest.json",
-              "digitalSpecimen": {
-                "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
-                "occurrences": [
-                  {
-                    "dwc:habitat": "Venezuela.",
-                    "assertions": [],
-                    "location": {
-                      "dwc:continent": "Middle and South America",
-                      "dwc:country": "Venezuela"
-                    }
-                  },
-                  {
-                    "dwc:habitat": "Argentina.",
-                    "assertions": [],
-                    "location": {
-                      "dwc:continent": "South America",
-                      "dwc:country": "Argentina"
-                    }
+    return MAPPER.readValue(
+        """
+                {
+                  "ods:id": "https://doi.org/TEST/SDF-6Y6-DV7",
+                  "ods:version": 1,
+                  "ods:created": "2023-10-16T11:47:18.773831Z",
+                  "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+                  "ac:accessUri": "https://herbarium.bgbm.org/data/iiif/BW00746010/manifest.json",
+                  "dwc:institutionId": "https://ror.org/00bv4cx53",
+                  "dwc:institutionName": "Botanic Garden and Botanical Museum Berlin",
+                  "dcterms:format": "application/json",
+                  "dcterms:license": "https://creativecommons.org/licenses/by-sa/3.0/",
+                  "dcterms:source": "https://iiif.bgbm.org/?manifest=https://herbarium.bgbm.org/object/BW00746010/manifest.json",
+                  "digitalSpecimen": {
+                    "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+                    "occurrences": [
+                      {
+                        "dwc:habitat": "Venezuela.",
+                        "assertions": [],
+                        "location": {
+                          "dwc:continent": "Middle and South America",
+                          "dwc:country": "Venezuela"
+                        }
+                      },
+                      {
+                        "dwc:habitat": "Argentina.",
+                        "assertions": [],
+                        "location": {
+                          "dwc:continent": "South America",
+                          "dwc:country": "Argentina"
+                        }
+                      }
+                    ],
+                    "ods:hasMedia": "true"
                   }
-                ],
-                "ods:hasMedia": "true"
-              }
-            }
-        """, JsonNode.class);
+                }
+            """, JsonNode.class
+    );
   }
 
   public static JsonNode givenFlattenedDigitalSpecimen() throws JsonProcessingException {
-    return MAPPER.readValue("""
-            {
-              "ods:id": "https://doi.org/TEST/JDS-HJL-SJD",
-              "ods:version": 1,
-              "ods:created": "2023-10-16T12:46:28.460956Z",
-              "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
-              "ods:midsLevel": 0,
-              "ods:topicDiscipline": "Palaeontology",
-              "ods:hasMedia": false,
-              "ods:specimenName": "Graptolithina",
-              "ods:sourceSystem": "https://hdl.handle.net/TEST/6JE-97W-RDY",
-              "ods:livingOrPreserved": "Preserved",
-              "dcterms:license": "http://creativecommons.org/licenses/by-nc/4.0/",
-              "dcterms:modified": "1220960707000",
-              "dwc:basisOfRecord": "FossilSpecimen",
-              "dwc:preparations": "",
-              "dwc:institutionId": "https://ror.org/0443cwa12",
-              "dwc:institutionName": "Tallinn University of Technology",
-              "dwc:datasetName": "TalTech geological collections",
-              "materialEntity": [],
-              "dwc:identification": [
+    return MAPPER.readValue(
+        """
                 {
-                  "dwc:identificationVerificationStatus": true,
-                  "citations": [],
-                  "taxonIdentifications": [
+                  "ods:id": "https://doi.org/TEST/JDS-HJL-SJD",
+                  "ods:version": 1,
+                  "ods:created": "2023-10-16T12:46:28.460956Z",
+                  "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+                  "ods:midsLevel": 0,
+                  "ods:topicDiscipline": "Palaeontology",
+                  "ods:hasMedia": false,
+                  "ods:specimenName": "Graptolithina",
+                  "ods:sourceSystem": "https://hdl.handle.net/TEST/6JE-97W-RDY",
+                  "ods:livingOrPreserved": "Preserved",
+                  "dcterms:license": "http://creativecommons.org/licenses/by-nc/4.0/",
+                  "dcterms:modified": "1220960707000",
+                  "dwc:basisOfRecord": "FossilSpecimen",
+                  "dwc:preparations": "",
+                  "dwc:institutionId": "https://ror.org/0443cwa12",
+                  "dwc:institutionName": "Tallinn University of Technology",
+                  "dwc:datasetName": "TalTech geological collections",
+                  "materialEntity": [],
+                  "dwc:identification": [
                     {
-                      "dwc:scientificName": "Graptolithina"
+                      "dwc:identificationVerificationStatus": true,
+                      "citations": [],
+                      "taxonIdentifications": [
+                        {
+                          "dwc:scientificName": "Graptolithina"
+                        }
+                      ]
+                    }
+                  ],
+                  "assertions": [],
+                  "occurrences": [
+                    {
+                      "assertions": [],
+                      "location": {
+                        "dwc:country": "Latvia",
+                        "dwc:locality": "Ventspils D-3 borehole",
+                        "dwc:minimumElevationInMeters": 2,
+                        "dwc:maximumElevationInMeters": 2,
+                        "dwc:minimumDepthInMeters": 607.5,
+                        "georeference": {
+                          "dwc:decimalLatitude": 57.411518,
+                          "dwc:decimalLongitude": 21.569814,
+                          "dwc:geodeticDatum": "WGS84"
+                        },
+                        "geologicalContext": {
+                          "dwc:earliestEpochOrLowestSeries": "Ludlow",
+                          "dwc:latestEpochOrHighestSeries": "Ludlow"
+                        }
+                      }
                     }
                   ]
                 }
-              ],
-              "assertions": [],
-              "occurrences": [
-                {
-                  "assertions": [],
-                  "location": {
-                    "dwc:country": "Latvia",
-                    "dwc:locality": "Ventspils D-3 borehole",
-                    "dwc:minimumElevationInMeters": 2,
-                    "dwc:maximumElevationInMeters": 2,
-                    "dwc:minimumDepthInMeters": 607.5,
-                    "georeference": {
-                      "dwc:decimalLatitude": 57.411518,
-                      "dwc:decimalLongitude": 21.569814,
-                      "dwc:geodeticDatum": "WGS84"
-                    },
-                    "geologicalContext": {
-                      "dwc:earliestEpochOrLowestSeries": "Ludlow",
-                      "dwc:latestEpochOrHighestSeries": "Ludlow"
-                    }
-                  }
-                }
-              ]
-            }
-        """, JsonNode.class);
+            """, JsonNode.class
+    );
   }
 
 
