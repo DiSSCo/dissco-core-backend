@@ -17,8 +17,8 @@
         digital_media_object |
         annotation |
         user |
-        machine_annotation_services_tmp |
-        mas_job_record_tmp |
+        machine_annotation_services |
+        mas_job_record |
         mjr_job_state |
         mjr_target_type
       </includes>
