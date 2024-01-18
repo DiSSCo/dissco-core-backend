@@ -109,8 +109,7 @@ public class MachineAnnotationServiceService {
   }
 
   private void validateBatchingRequest(Boolean batchingRequested,
-      List<MachineAnnotationServiceRecord> masRecords)
-      throws ConflictException {
+      List<MachineAnnotationServiceRecord> masRecords) throws ConflictException {
     if (Boolean.FALSE.equals(batchingRequested)) {
       return;
     }

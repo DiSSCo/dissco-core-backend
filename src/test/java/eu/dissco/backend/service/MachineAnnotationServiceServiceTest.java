@@ -119,7 +119,7 @@ class MachineAnnotationServiceServiceTest {
   }
 
   @Test
-  void testScheduleMassInvalidBatchRequest() throws JsonProcessingException, ConflictException {
+  void testScheduleMassInvalidBatchRequest() throws JsonProcessingException {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());

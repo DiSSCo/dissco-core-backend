@@ -126,16 +126,15 @@ public class DigitalMediaObjectController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestParam Optional<Boolean> batching,
+      @RequestParam(defaultValue = "false") boolean batching,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
     var masIds = getMassFromRequest(requestBody);
-    boolean batchingRequested = batching.orElse(false);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,
         id);
-    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId, batchingRequested);
+    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId, batching);
     return ResponseEntity.accepted().body(massResponse);
   }
 

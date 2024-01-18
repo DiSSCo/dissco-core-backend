@@ -249,7 +249,7 @@ class SpecimenControllerTest {
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, Optional.of(false), request, authentication,
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
         mockRequest);
 
     // Then
@@ -265,7 +265,7 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX,  Optional.of(false), request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
             mockRequest));
   }
 
@@ -279,7 +279,7 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX,Optional.of(false), request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
             mockRequest));
   }
 

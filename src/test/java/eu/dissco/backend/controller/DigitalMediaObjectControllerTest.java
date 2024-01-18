@@ -160,7 +160,7 @@ class DigitalMediaObjectControllerTest {
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, Optional.of(false), request, authentication, mockRequest);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -175,7 +175,7 @@ class DigitalMediaObjectControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, Optional.of(false), request, authentication, mockRequest));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest));
   }
 
   private void givenAuthentication() {
