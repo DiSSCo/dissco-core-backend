@@ -23,6 +23,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -155,11 +156,11 @@ class DigitalMediaObjectControllerTest {
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN)).willReturn(expectedResponse);
+    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN, false)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication, mockRequest);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -174,7 +175,7 @@ class DigitalMediaObjectControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication, mockRequest));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest));
   }
 
   private void givenAuthentication() {

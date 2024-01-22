@@ -16,6 +16,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -220,6 +221,7 @@ public class SpecimenController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+      @RequestParam (defaultValue = "false" ) boolean batching,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
@@ -228,7 +230,7 @@ public class SpecimenController extends BaseController {
     var masIds = getMassFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
         masIds, id);
-    var massResponse = service.scheduleMass(id, masIds, userId, getPath(request));
+    var massResponse = service.scheduleMass(id, masIds, userId, getPath(request), batching);
     return ResponseEntity.accepted().body(massResponse);
   }
 

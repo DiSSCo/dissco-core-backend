@@ -108,7 +108,7 @@ CREATE TABLE machine_annotation_services
     topicname                     text,
     maxreplicas                   integer,
     deleted_on                    timestamp with time zone,
-    mas_input                     jsonb
+    batching_permitted            boolean not null
 );
 
 create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
@@ -128,5 +128,5 @@ create table mas_job_record
     target_id      text                     not null,
     user_id        text,
     target_type    mjr_target_type,
-    batch_metadata jsonb
+    batching_requested boolean not null
 );

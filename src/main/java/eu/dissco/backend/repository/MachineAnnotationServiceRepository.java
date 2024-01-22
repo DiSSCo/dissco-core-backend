@@ -52,7 +52,8 @@ public class MachineAnnotationServiceRepository {
             machineAnnotationServicesRecord.getSupportContact(),
             machineAnnotationServicesRecord.getSlaDocumentation(),
             machineAnnotationServicesRecord.getTopicname(),
-            machineAnnotationServicesRecord.getMaxreplicas()
+            machineAnnotationServicesRecord.getMaxreplicas(),
+            machineAnnotationServicesRecord.getBatchingPermitted()
         ),
         machineAnnotationServicesRecord.getDeletedOn()
     );

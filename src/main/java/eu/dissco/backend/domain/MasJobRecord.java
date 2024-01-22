@@ -9,7 +9,8 @@ public record MasJobRecord(
     String masId,
     String targetId,
     MjrTargetType targetType,
-    String orcid
+    String orcid,
+    boolean batchingRequested
 ) {
 
 }

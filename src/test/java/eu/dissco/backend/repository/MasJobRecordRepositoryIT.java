@@ -160,7 +160,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   void testCreateNewMasJobRecord() {
     // Given
     var mjr = new MasJobRecord(JOB_ID, MjrJobState.SCHEDULED, ID, ID_ALT,
-        MjrTargetType.DIGITAL_SPECIMEN, ORCID);
+        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false);
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -240,7 +240,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
-          .set(MAS_JOB_RECORD.USER_ID, mjr.orcid()));
+          .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
+          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested()));
     }
     context.batch(queryList).execute();
   }

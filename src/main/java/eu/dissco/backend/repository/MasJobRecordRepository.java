@@ -112,7 +112,8 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid())
         .set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId())
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
-        .set(MAS_JOB_RECORD.TIME_STARTED, Instant.now());
+        .set(MAS_JOB_RECORD.TIME_STARTED, Instant.now())
+        .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested());
   }
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
@@ -129,7 +130,8 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
-          dataNode
+          dataNode,
+          dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED)
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

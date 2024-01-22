@@ -41,6 +41,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
@@ -526,7 +527,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException, ForbiddenException {
+  void testScheduleMas() throws JsonProcessingException, ForbiddenException, ConflictException {
     // Given
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
@@ -534,11 +535,11 @@ class SpecimenServiceTest {
     given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
         eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID),
-        eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
+        eq(MjrTargetType.DIGITAL_SPECIMEN), eq(false))).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH);
+    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH, false);
 
     // Then
     assertThat(result).isEqualTo(response);

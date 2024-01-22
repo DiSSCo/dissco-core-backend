@@ -101,6 +101,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICES.TOPICNAME, masRecord.mas().topicName())
         .set(MACHINE_ANNOTATION_SERVICES.MAXREPLICAS, masRecord.mas().maxReplicas())
         .set(MACHINE_ANNOTATION_SERVICES.DELETED_ON, masRecord.deleted())
+        .set(MACHINE_ANNOTATION_SERVICES.BATCHING_PERMITTED, masRecord.mas().batchingRequested())
         .execute();
   }
 }

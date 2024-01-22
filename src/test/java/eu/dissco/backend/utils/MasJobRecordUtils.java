@@ -45,7 +45,8 @@ public class MasJobRecordUtils {
         JOB_ID,
         CREATED,
         null,
-        null
+        null,
+        false
     );
   }
 
@@ -64,7 +65,8 @@ public class MasJobRecordUtils {
         JOB_ID_ALT,
         CREATED,
         CREATED,
-        MAPPER.createObjectNode().put("annotation", "value")
+        MAPPER.createObjectNode().put("annotation", "value"),
+        false
     );
   }
 
@@ -75,7 +77,8 @@ public class MasJobRecordUtils {
         ID,
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
-        ORCID
+        ORCID,
+        false
     );
   }
 

@@ -161,10 +161,10 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     public final TableField<MachineAnnotationServicesRecord, Instant> DELETED_ON = createField(DSL.name("deleted_on"), SQLDataType.INSTANT, this, "");
 
     /**
-     * The column <code>public.machine_annotation_services.mas_input</code>.
-     * Optional information used to create elastic query for batch annotations
+     * The column
+     * <code>public.machine_annotation_services.batching_permitted</code>.
      */
-    public final TableField<MachineAnnotationServicesRecord, JSONB> MAS_INPUT = createField(DSL.name("mas_input"), SQLDataType.JSONB, this, "Optional information used to create elastic query for batch annotations");
+    public final TableField<MachineAnnotationServicesRecord, Boolean> BATCHING_PERMITTED = createField(DSL.name("batching_permitted"), SQLDataType.BOOLEAN, this, "");
 
     private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased) {
         this(alias, aliased, null);
@@ -255,14 +255,14 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     // -------------------------------------------------------------------------
 
     @Override
-    public Row21<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, JSONB> fieldsRow() {
+    public Row21<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, Boolean> fieldsRow() {
         return (Row21) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super JSONB, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -270,7 +270,7 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super JSONB, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

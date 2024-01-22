@@ -99,11 +99,9 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     public final TableField<MasJobRecordRecord, MjrTargetType> TARGET_TYPE = createField(DSL.name("target_type"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.MjrTargetType.class), this, "");
 
     /**
-     * The column <code>public.mas_job_record.batch_metadata</code>. JSON
-     * containing: inputField, inputValue, targetField. Null if no batching was
-     * requested.
+     * The column <code>public.mas_job_record.batching_requested</code>.
      */
-    public final TableField<MasJobRecordRecord, JSONB> BATCH_METADATA = createField(DSL.name("batch_metadata"), SQLDataType.JSONB, this, "JSON containing: inputField, inputValue, targetField. Null if no batching was requested.");
+    public final TableField<MasJobRecordRecord, Boolean> BATCHING_REQUESTED = createField(DSL.name("batching_requested"), SQLDataType.BOOLEAN, this, "");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
@@ -192,14 +190,14 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, JSONB> fieldsRow() {
+    public Row10<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean> fieldsRow() {
         return (Row10) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super JSONB, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -207,7 +205,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super JSONB, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

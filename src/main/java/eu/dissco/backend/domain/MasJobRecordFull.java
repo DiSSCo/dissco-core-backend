@@ -14,7 +14,8 @@ public record MasJobRecordFull(
     String jobHandle,
     Instant timeStarted,
     Instant timeCompleted,
-    JsonNode annotations
+    JsonNode annotations,
+    boolean batchingRequested
 ) {
 
 }

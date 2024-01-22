@@ -14,6 +14,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,14 +80,17 @@ public class MachineAnnotationServiceService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid, MjrTargetType targetType) {
+      String path, Object object, String targetId, String orcid, MjrTargetType targetType,
+      boolean batchingRequested)
+      throws ConflictException {
     var masRecords = repository.getMasRecords(mass);
+    validateBatchingRequest(batchingRequested, masRecords);
     var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
     Map<String, MasJobRecord> masJobRecordIdMap = null;
     if (!availableRecords.isEmpty()){
-      masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType);
+      masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType, batchingRequested);
     }
     for (var masRecord : availableRecords) {
       var mjr = masJobRecordIdMap.get(masRecord.id());
@@ -108,6 +112,20 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(scheduledJobs.size()));
   }
 
+  private void validateBatchingRequest(Boolean batchingRequested,
+      List<MachineAnnotationServiceRecord> masRecords) throws ConflictException {
+    if (Boolean.FALSE.equals(batchingRequested)) {
+      return;
+    }
+    for (var masRecord : masRecords) {
+      if (Boolean.FALSE.equals(masRecord.mas().batchingRequested())) {
+        log.error(
+            "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",
+            masRecord.id());
+        throw new ConflictException();
+      }
+    }
+  }
 
   private Set<MachineAnnotationServiceRecord> filterAvailableRecords(
       List<MachineAnnotationServiceRecord> masRecords, JsonNode flattenObjectData, Object object) {
@@ -122,6 +140,5 @@ public class MachineAnnotationServiceService {
     }
     return availableRecords;
   }
-
 
 }

@@ -17,6 +17,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
@@ -162,13 +163,13 @@ public class DigitalMediaObjectService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId)
-      throws ForbiddenException, PidCreationException {
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId, boolean batchingRequested)
+      throws ForbiddenException, PidCreationException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT);
+    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT, batchingRequested);
   }
 
 }
