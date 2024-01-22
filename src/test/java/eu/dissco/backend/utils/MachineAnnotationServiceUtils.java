@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
+import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -35,6 +36,15 @@ public class MachineAnnotationServiceUtils {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, MAPPER));
+    return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
+  }
+
+  public static JsonApiListResponseWrapper givenScheduledMasResponse(MasJobRecord masJobRecord,
+      String path) {
+    var links = new JsonApiLinksFull(path);
+    var masRecords = List.of(
+        new JsonApiData(masJobRecord.jobId(), "MachineAnnotationServiceJobRecord", masJobRecord,
+            MAPPER));
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
