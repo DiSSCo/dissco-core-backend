@@ -77,7 +77,8 @@ public class MasJobRecordUtils {
         ID,
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
-        ORCID
+        ORCID,
+        false
     );
   }
 
