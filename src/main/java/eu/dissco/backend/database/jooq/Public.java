@@ -7,8 +7,8 @@ package eu.dissco.backend.database.jooq;
 import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
-import eu.dissco.backend.database.jooq.tables.MachineAnnotationServicesTmp;
-import eu.dissco.backend.database.jooq.tables.MasJobRecordTmp;
+import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
+import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.User;
 
 import java.util.Arrays;
@@ -48,14 +48,14 @@ public class Public extends SchemaImpl {
     public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
 
     /**
-     * The table <code>public.machine_annotation_services_tmp</code>.
+     * The table <code>public.machine_annotation_services</code>.
      */
-    public final MachineAnnotationServicesTmp MACHINE_ANNOTATION_SERVICES_TMP = MachineAnnotationServicesTmp.MACHINE_ANNOTATION_SERVICES_TMP;
+    public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
 
     /**
-     * The table <code>public.mas_job_record_tmp</code>.
+     * The table <code>public.mas_job_record</code>.
      */
-    public final MasJobRecordTmp MAS_JOB_RECORD_TMP = MasJobRecordTmp.MAS_JOB_RECORD_TMP;
+    public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
     /**
      * The table <code>public.user</code>.
@@ -81,8 +81,8 @@ public class Public extends SchemaImpl {
             Annotation.ANNOTATION,
             DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
             DigitalSpecimen.DIGITAL_SPECIMEN,
-            MachineAnnotationServicesTmp.MACHINE_ANNOTATION_SERVICES_TMP,
-            MasJobRecordTmp.MAS_JOB_RECORD_TMP,
+            MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
+            MasJobRecord.MAS_JOB_RECORD,
             User.USER
         );
     }

@@ -85,7 +85,7 @@ create index digital_specimen_created_idx
 create index digital_specimen_physical_specimen_id_idx
     on digital_specimen (physical_specimen_id);
 
-CREATE TABLE machine_annotation_services_tmp
+CREATE TABLE machine_annotation_services
 (
     id                            text                     not null
         primary key,
@@ -115,7 +115,7 @@ create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED'
 
 create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
-create table mas_job_record_tmp
+create table mas_job_record
 (
     job_id         text                     not null
         constraint mas_job_record_pk

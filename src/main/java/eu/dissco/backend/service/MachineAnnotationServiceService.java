@@ -85,7 +85,6 @@ public class MachineAnnotationServiceService {
       throws ConflictException {
     var masRecords = repository.getMasRecords(mass);
     validateBatchingRequest(batchingRequested, masRecords);
-    var scheduledMasRecords = new ArrayList<JsonApiData>();
     var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);

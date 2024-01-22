@@ -1,11 +1,11 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES_TMP;
+import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesTmpRecord;
+import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
@@ -24,38 +24,38 @@ public class MachineAnnotationServiceRepository {
   private final ObjectMapper mapper;
 
   public List<MachineAnnotationServiceRecord> getAllMas() {
-    return context.selectFrom(MACHINE_ANNOTATION_SERVICES_TMP)
-        .where(MACHINE_ANNOTATION_SERVICES_TMP.DELETED_ON.isNull())
+    return context.selectFrom(MACHINE_ANNOTATION_SERVICES)
+        .where(MACHINE_ANNOTATION_SERVICES.DELETED_ON.isNull())
         .fetch(this::mapToMasRecord);
   }
 
   private MachineAnnotationServiceRecord mapToMasRecord(
-      MachineAnnotationServicesTmpRecord machineAnnotationServicesTmpRecord) {
+      MachineAnnotationServicesRecord machineAnnotationServicesRecord) {
     return new MachineAnnotationServiceRecord(
-        machineAnnotationServicesTmpRecord.getId(),
-        machineAnnotationServicesTmpRecord.getVersion(),
-        machineAnnotationServicesTmpRecord.getCreated(),
-        machineAnnotationServicesTmpRecord.getAdministrator(),
+        machineAnnotationServicesRecord.getId(),
+        machineAnnotationServicesRecord.getVersion(),
+        machineAnnotationServicesRecord.getCreated(),
+        machineAnnotationServicesRecord.getAdministrator(),
         new MachineAnnotationService(
-            machineAnnotationServicesTmpRecord.getName(),
-            machineAnnotationServicesTmpRecord.getContainerImage(),
-            machineAnnotationServicesTmpRecord.getContainerImageTag(),
-            mapToJson(machineAnnotationServicesTmpRecord.getTargetDigitalObjectFilters()),
-            machineAnnotationServicesTmpRecord.getServiceDescription(),
-            machineAnnotationServicesTmpRecord.getServiceState(),
-            machineAnnotationServicesTmpRecord.getSourceCodeRepository(),
-            machineAnnotationServicesTmpRecord.getServiceAvailability(),
-            machineAnnotationServicesTmpRecord.getCodeMaintainer(),
-            machineAnnotationServicesTmpRecord.getCodeLicense(),
-            machineAnnotationServicesTmpRecord.getDependencies() != null ? Arrays.stream(
-                machineAnnotationServicesTmpRecord.getDependencies()).toList() : null,
-            machineAnnotationServicesTmpRecord.getSupportContact(),
-            machineAnnotationServicesTmpRecord.getSlaDocumentation(),
-            machineAnnotationServicesTmpRecord.getTopicname(),
-            machineAnnotationServicesTmpRecord.getMaxreplicas(),
-            machineAnnotationServicesTmpRecord.getBatchingPermitted()
+            machineAnnotationServicesRecord.getName(),
+            machineAnnotationServicesRecord.getContainerImage(),
+            machineAnnotationServicesRecord.getContainerImageTag(),
+            mapToJson(machineAnnotationServicesRecord.getTargetDigitalObjectFilters()),
+            machineAnnotationServicesRecord.getServiceDescription(),
+            machineAnnotationServicesRecord.getServiceState(),
+            machineAnnotationServicesRecord.getSourceCodeRepository(),
+            machineAnnotationServicesRecord.getServiceAvailability(),
+            machineAnnotationServicesRecord.getCodeMaintainer(),
+            machineAnnotationServicesRecord.getCodeLicense(),
+            machineAnnotationServicesRecord.getDependencies() != null ? Arrays.stream(
+                machineAnnotationServicesRecord.getDependencies()).toList() : null,
+            machineAnnotationServicesRecord.getSupportContact(),
+            machineAnnotationServicesRecord.getSlaDocumentation(),
+            machineAnnotationServicesRecord.getTopicname(),
+            machineAnnotationServicesRecord.getMaxreplicas(),
+            machineAnnotationServicesRecord.getBatchingPermitted()
         ),
-        machineAnnotationServicesTmpRecord.getDeletedOn()
+        machineAnnotationServicesRecord.getDeletedOn()
     );
   }
 
@@ -72,9 +72,9 @@ public class MachineAnnotationServiceRepository {
   }
 
   public List<MachineAnnotationServiceRecord> getMasRecords(List<String> mass) {
-    return context.selectFrom(MACHINE_ANNOTATION_SERVICES_TMP)
-        .where(MACHINE_ANNOTATION_SERVICES_TMP.ID.in(mass))
-        .and(MACHINE_ANNOTATION_SERVICES_TMP.DELETED_ON.isNull())
+    return context.selectFrom(MACHINE_ANNOTATION_SERVICES)
+        .where(MACHINE_ANNOTATION_SERVICES.ID.in(mass))
+        .and(MACHINE_ANNOTATION_SERVICES.DELETED_ON.isNull())
         .fetch(this::mapToMasRecord);
   }
 }
