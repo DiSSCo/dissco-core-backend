@@ -89,22 +89,22 @@ class AnnotationServiceTest {
   @Test
   void testGetAnnotationsForUser() throws Exception {
     // Given
-    String userId = USER_ID_TOKEN;
     String annotationId = "123";
     int pageNumber = 1;
     int pageSize = 15;
     var totalCount = 30L;
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        userId, annotationId, true);
+        USER_ID_TOKEN, annotationId, true);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
 
-    given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
+    given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
 
     // When
-    var received = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize, path);
 
     // Then
     assertThat(received).isEqualTo(expected);
@@ -113,22 +113,21 @@ class AnnotationServiceTest {
   @Test
   void testGetAnnotationsForUserLastPage() throws Exception {
     // Given
-    String userId = USER_ID_TOKEN;
     String annotationId = "123";
     int pageNumber = 2;
     int pageSize = 15;
     var totalCount = 30L;
     String path = SANDBOX_URI + "api/v1/annotations/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        userId, annotationId, false);
+        USER_ID_TOKEN, annotationId, false);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
-
-    given(elasticRepository.getAnnotationsForCreator(userId, pageNumber, pageSize))
+    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
+    given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
 
     // When
-    var received = service.getAnnotationsForUser(userId, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize, path);
 
     // Then
     assertThat(received).isEqualTo(expected);
