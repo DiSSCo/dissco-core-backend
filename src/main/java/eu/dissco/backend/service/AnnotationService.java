@@ -139,9 +139,10 @@ public class AnnotationService {
     }
   }
 
-  public JsonApiListResponseWrapper getAnnotationsForUser(String userId, int pageNumber,
-      int pageSize, String path) throws IOException {
-    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(userId, pageNumber,
+  public JsonApiListResponseWrapper getAnnotationsForUser(String userToken, int pageNumber,
+      int pageSize, String path) throws IOException, ForbiddenException {
+    var user = getUserInformation(userToken);
+    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(user.orcid(), pageNumber,
         pageSize);
     return wrapListResponseElasticSearchResults(elasticSearchResults, pageNumber, pageSize, path);
   }

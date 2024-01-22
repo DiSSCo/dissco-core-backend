@@ -134,10 +134,10 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
-      Authentication authentication) throws IOException {
-    var userId = authentication.getName();
-    log.info("Received get request to show all annotations for user: {}", userId);
-    var annotations = service.getAnnotationsForUser(userId, pageNumber, pageSize, getPath(request));
+      Authentication authentication) throws IOException, ForbiddenException {
+    var userToken = authentication.getName();
+    log.info("Received get request to show all annotations for user: {}", userToken);
+    var annotations = service.getAnnotationsForUser(userToken, pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
