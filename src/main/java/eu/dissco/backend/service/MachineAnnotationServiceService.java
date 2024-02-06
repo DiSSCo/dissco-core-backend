@@ -95,7 +95,7 @@ public class MachineAnnotationServiceService {
     for (var masRecord : availableRecords) {
       var mjr = masJobRecordIdMap.get(masRecord.id());
       try {
-        var targetObject = new MasTarget(object, mjr.jobId());
+        var targetObject = new MasTarget(object, mjr.jobId(), batchingRequested);
         kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
         scheduledJobs.add(
             new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper));

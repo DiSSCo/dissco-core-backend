@@ -117,7 +117,7 @@ class MachineAnnotationServiceServiceTest {
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
         MjrTargetType.DIGITAL_SPECIMEN, false)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimen, JOB_ID);
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID, false);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(), List.of(ID), SPECIMEN_PATH,
@@ -172,7 +172,7 @@ class MachineAnnotationServiceServiceTest {
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
         MjrTargetType.DIGITAL_SPECIMEN, false)).willReturn(
         givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID);
+    var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID, false);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
         .sendObjectToQueue("fancy-topic-name", sendObject);
 
