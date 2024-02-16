@@ -1,6 +1,5 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.domain.MappingTerms.getAggregationList;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
@@ -15,14 +14,17 @@ import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.util.NamedValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
-import eu.dissco.backend.domain.MappingTerms;
+import eu.dissco.backend.domain.MappingTerm;
+import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
@@ -34,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -52,6 +55,14 @@ public class ElasticSearchRepository {
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
 
+  private static Builder getTerm(String field, Builder t, boolean alphabetical) {
+    var term = t.field(field);
+    if (alphabetical) {
+      term.order(NamedValue.of("_key", SortOrder.Asc));
+    }
+    return term;
+  }
+
   private List<Query> generateQueries(Map<String, List<String>> params) {
     var queries = new ArrayList<Query>();
     for (var entry : params.entrySet()) {
@@ -61,7 +72,8 @@ public class ElasticSearchRepository {
           var sanitisedValue = value.replace("/", "//");
           query = new Query.Builder().queryString(q -> q.query(sanitisedValue)).build();
         } else {
-          query = new Query.Builder().term(t -> t.field(entry.getKey()).value(value)).build();
+          query = new Query.Builder().term(
+              t -> t.field(entry.getKey()).value(value).caseInsensitive(Boolean.TRUE)).build();
         }
         queries.add(query);
       }
@@ -86,7 +98,8 @@ public class ElasticSearchRepository {
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
         .index(properties.getAnnotationIndex())
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED_ANNOTATION).order(SortOrder.Desc))).from(offset)
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED_ANNOTATION).order(SortOrder.Desc)))
+        .from(offset)
         .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
         .map(this::mapToAnnotationResponse).toList();
@@ -145,9 +158,7 @@ public class ElasticSearchRepository {
   }
 
   public Pair<Long, List<DigitalSpecimenWrapper>> search(Map<String, List<String>> params,
-      int pageNumber,
-      int pageSize)
-      throws IOException {
+      int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var queries = generateQueries(params);
@@ -187,13 +198,16 @@ public class ElasticSearchRepository {
     }
   }
 
-  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params)
+  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params,
+      Set<MappingTerm> aggregationTerms, boolean isTaxonomyOnly)
       throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
     var queries = generateQueries(params);
-    for (var aggregationTerm : getAggregationList()) {
-      aggregationQueries.put(aggregationTerm.getName(), AggregationBuilders.terms()
-          .field(aggregationTerm.getFullName()).build()._toAggregation());
+    var size = isTaxonomyOnly ? Integer.MAX_VALUE : 10;
+    for (var aggregationTerm : aggregationTerms) {
+      aggregationQueries.put(aggregationTerm.requestName(),
+          AggregationBuilders.terms()
+              .field(aggregationTerm.fullName()).size(size).build()._toAggregation());
     }
     var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
@@ -205,7 +219,7 @@ public class ElasticSearchRepository {
 
   private Map<String, Map<String, Long>> collectResult(
       Map<String, Aggregate> aggregations) {
-    var mapped = new HashMap<String, Map<String, Long>>();
+    var mapped = new LinkedHashMap<String, Map<String, Long>>();
     for (var entry : aggregations.entrySet()) {
       var aggregation = new LinkedHashMap<String, Long>();
       if (entry.getValue()._get() instanceof StringTermsAggregate value) {
@@ -222,12 +236,12 @@ public class ElasticSearchRepository {
     return mapped;
   }
 
-  public Pair<Long, Map<String, Map<String, Long>>> getAggregation(MappingTerms mappingTerm)
+  public Pair<Long, Map<String, Map<String, Long>>> getAggregation(DefaultMappingTerms mappingTerm)
       throws IOException {
     var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
-        .aggregations(mappingTerm.getName(),
-            AggregationBuilders.terms().field(mappingTerm.getFullName()).build()._toAggregation())
+        .aggregations(mappingTerm.requestName(),
+            AggregationBuilders.terms().field(mappingTerm.fullName()).build()._toAggregation())
         .size(0)
         .build();
     var aggregation = client.search(aggregationRequest, ObjectNode.class);
@@ -236,14 +250,17 @@ public class ElasticSearchRepository {
     return Pair.of(totalRecords, aggregationResult);
   }
 
-  public Map<String, Map<String, Long>> searchTermValue(String name, String field, String value)
+  public Map<String, Map<String, Long>> aggregateTermValue(String name, String field, String value,
+      boolean sort)
       throws IOException {
     var searchQuery = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
-        .query(q -> q.prefix(m -> m.field(field).value(value)))
-        .aggregations(name, agg -> agg.terms(t -> t.field(field)))
+        .query(q -> q.prefix(m -> m.field(field).value(value).caseInsensitive(Boolean.TRUE)))
+        .aggregations(name,
+            agg -> agg.terms(t -> getTerm(field, t, sort)))
         .size(0)
         .build();
     var aggregation = client.search(searchQuery, ObjectNode.class);
     return collectResult(aggregation.aggregations());
   }
+
 }

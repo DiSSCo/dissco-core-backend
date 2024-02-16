@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
+import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -184,6 +185,22 @@ class SpecimenControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
   }
+  @Test
+  void testTaxonAggregation() throws Exception {
+    //Given
+    var paramMap = new MultiValueMapAdapter(Map.of("Kingdom", List.of("Animalia")));
+    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenTaxonAggregationMap()));
+    given(service.taxonAggregations(eq(paramMap), anyString())).willReturn(
+        new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+    // When
+    var result = controller.taxonAggregation(paramMap, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+  }
+
 
   @Test
   void testDiscipline() throws Exception {
@@ -213,11 +230,11 @@ class SpecimenControllerTest {
   void testSearchTermValue() throws Exception {
     //Given
     var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.searchTermValue(anyString(), anyString(), anyString())).willReturn(
+    given(service.searchTermValue(anyString(), anyString(), anyString(), eq(false))).willReturn(
         new JsonApiWrapper(data, new JsonApiLinks("test")));
 
     // When
-    var result = controller.searchTermValue("sourceSystem", "20.500", mockRequest);
+    var result = controller.searchTermValue("sourceSystem", "20.500", false, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

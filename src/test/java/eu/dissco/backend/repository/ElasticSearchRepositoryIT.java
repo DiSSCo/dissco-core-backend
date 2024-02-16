@@ -7,10 +7,14 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
+import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
+import static eu.dissco.backend.TestUtils.SPECIMEN_NAME_2;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.domain.MappingTerms.SOURCE_SYSTEM_ID;
+import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_ID;
+import static eu.dissco.backend.domain.DefaultMappingTerms.getAggregationSet;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +27,7 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
@@ -206,7 +211,7 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_ID.getFullName(), List.of(SOURCE_SYSTEM_ID_2)));
+        Map.of(SOURCE_SYSTEM_ID.fullName(), List.of(SOURCE_SYSTEM_ID_2)), getAggregationSet(), false);
 
     // Then
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
@@ -257,12 +262,38 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
     // When
-    var responseReceived = repository.searchTermValue(SOURCE_SYSTEM_ID.getName(),
-        SOURCE_SYSTEM_ID.getFullName(), SOURCE_SYSTEM_ID_2);
+    var responseReceived = repository.aggregateTermValue(SOURCE_SYSTEM_ID.requestName(),
+        SOURCE_SYSTEM_ID.fullName(), SOURCE_SYSTEM_ID_2, false);
 
     // Then
     assertThat(responseReceived.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
     assertThat(responseReceived.get("sourceSystemId")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
+  }
+
+  @Test
+  void testSearchTermValueOrderAsc() throws IOException {
+    // Given
+    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      DigitalSpecimenWrapper specimen;
+      if (i < 9) {
+        specimen = givenDigitalSpecimenSpecimenName(PREFIX + "/" + i, SPECIMEN_NAME);
+      } else {
+        specimen = givenDigitalSpecimenSpecimenName(PREFIX + "/" + i, SPECIMEN_NAME_2);
+      }
+      specimenTestRecords.add(specimen);
+    }
+
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.aggregateTermValue(DefaultMappingTerms.SPECIMEN_NAME.requestName(),
+        DefaultMappingTerms.SPECIMEN_NAME.fullName(), "A", true);
+
+    // Then
+    var iterator = responseReceived.get("specimenName").keySet().iterator();
+    assertThat(iterator.next()).isEqualTo(SPECIMEN_NAME_2);
+    assertThat(iterator.next()).isEqualTo(SPECIMEN_NAME);
   }
 
   @Test

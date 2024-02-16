@@ -38,6 +38,10 @@ public class TestUtils {
   public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
   public static final String SOURCE_SYSTEM_ID_1 = HANDLE + "20.5000.1025/3XA-8PT-SAY";
   public static final String SOURCE_SYSTEM_ID_2 = HANDLE + "20.5000.1025/ANO-THE-RAY";
+  public static final String PHYSICAL_ID = "global_id_123123";
+
+  public static final String SPECIMEN_NAME = "Abyssothyris Thomson, 1927";
+  public static final String SPECIMEN_NAME_2 = "Aackia Yosii, 1966";
 
   public static final ObjectMapper MAPPER;
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
@@ -97,32 +101,36 @@ public class TestUtils {
   // Digital Specimen
   public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id)
       throws JsonProcessingException {
-    return givenDigitalSpecimenWrapper(id, "global_id_123123");
+    return givenDigitalSpecimenWrapper(id, PHYSICAL_ID);
   }
 
   public static DigitalSpecimenWrapper givenDigitalSpecimenSourceSystem(String id,
       String sourceSystem)
       throws JsonProcessingException {
-    return givenDigitalSpecimenWrapper(id, "global_id_123123", 1, sourceSystem);
+    return givenDigitalSpecimenWrapper(id, PHYSICAL_ID, 1, sourceSystem, SPECIMEN_NAME);
   }
 
   public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId)
       throws JsonProcessingException {
-    return givenDigitalSpecimenWrapper(id, physicalId, 1, SOURCE_SYSTEM_ID_1);
+    return givenDigitalSpecimenWrapper(id, physicalId, 1, SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
   }
 
   public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
       String sourceSystem)
       throws JsonProcessingException {
-    return givenDigitalSpecimenWrapper(id, physicalId, 1, sourceSystem);
+    return givenDigitalSpecimenWrapper(id, physicalId, 1, sourceSystem, SPECIMEN_NAME);
+  }
+
+  public static DigitalSpecimenWrapper givenDigitalSpecimenSpecimenName(String id, String specimenName)
+      throws JsonProcessingException {
+    return givenDigitalSpecimenWrapper(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, specimenName);
   }
 
   public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
-      Integer version,
-      String sourceSystemId)
+      Integer version, String sourceSystemId, String specimenName)
       throws JsonProcessingException {
     return new DigitalSpecimenWrapper(
-        givenDigitalSpecimen(id, physicalId, version, sourceSystemId),
+        givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName),
         givenSpecimenOriginalData());
   }
 
@@ -159,7 +167,7 @@ public class TestUtils {
   }
 
   private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
-      String sourceSystemId) {
+      String sourceSystemId, String specimenName) {
     return new DigitalSpecimen()
         .withOdsId(id)
         .withOdsPhysicalSpecimenId(physicalId)
@@ -172,7 +180,7 @@ public class TestUtils {
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
         .withDwcPreparations("")
         .withDctermsLicense("http://creativecommons.org/licenses/by/4.0/legalcode")
-        .withOdsSpecimenName("Leucanthemum ircutianum (Turcz.) Turcz.ex DC.")
+        .withOdsSpecimenName(specimenName)
         .withDwcInstitutionId("https://ror.org/0349vqz63")
         .withDwcInstitutionName("Royal Botanic Garden Edinburgh Herbarium")
         .withOdsSourceSystem(sourceSystemId)
@@ -188,6 +196,11 @@ public class TestUtils {
         "sourceSystem", Map.of(SOURCE_SYSTEM_ID_1, 5L, SOURCE_SYSTEM_ID_2, 5L),
         "typeStatus", Map.of("type", 10L),
         "hasMedia", Map.of("true", 10L)
+    );
+  }
+  public static Map<String, Map<String, Long>> givenTaxonAggregationMap() {
+    return Map.of(
+        "phylum", Map.of("Chordata", 3782L)
     );
   }
 }

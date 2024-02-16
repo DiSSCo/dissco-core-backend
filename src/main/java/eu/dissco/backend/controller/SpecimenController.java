@@ -16,7 +16,6 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -191,6 +190,16 @@ public class SpecimenController extends BaseController {
   }
 
   @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "taxonomy/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> taxonAggregation(
+      @RequestParam MultiValueMap<String, String> params, HttpServletRequest request)
+      throws IOException, UnknownParameterException {
+    log.info("Request for taxonomy aggregations");
+    var aggregations = service.taxonAggregations(params, getPath(request));
+    return ResponseEntity.ok(aggregations);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "discipline", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> discipline(HttpServletRequest request) throws IOException {
     log.info("Request for aggregations");
@@ -201,10 +210,12 @@ public class SpecimenController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "searchTermValue", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> searchTermValue(
-      @RequestParam String term, @RequestParam String value, HttpServletRequest request)
+      @RequestParam String term, @RequestParam String value,
+      @RequestParam(defaultValue = "false") boolean sort,
+      HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request text search for term value of term: {} with value: {}", term, value);
-    var result = service.searchTermValue(term, value, getPath(request));
+    var result = service.searchTermValue(term, value, getPath(request), sort);
     return ResponseEntity.ok(result);
   }
 
@@ -221,7 +232,7 @@ public class SpecimenController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestParam (defaultValue = "false" ) boolean batching,
+      @RequestParam(defaultValue = "false") boolean batching,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
