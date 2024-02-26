@@ -40,7 +40,9 @@ public enum DefaultMappingTerms implements MappingTerm {
       "digitalSpecimenWrapper.ods:attributes.ods:topicDiscipline.keyword"),
   QUERY("q", "q");
 
-  private static final Set<MappingTerm> aggregationList = fillAggregationList();
+
+  private static final Set<MappingTerm> aggregationSet = fillAggregationList();
+
   private static final Map<String, MappingTerm> paramMapping = fillParamMapping();
   private final String requestName;
   private final String fullName;
@@ -51,7 +53,7 @@ public enum DefaultMappingTerms implements MappingTerm {
   }
 
   public static Set<MappingTerm> getAggregationSet() {
-    return aggregationList;
+    return aggregationSet;
   }
 
   public static Map<String, MappingTerm> getParamMapping() {

@@ -272,7 +272,7 @@ public class SpecimenService {
     var pageNumber = getIntParam("pageNumber", params, DEFAULT_PAGE_NUM);
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
-    var mappedParams = mapParamsKeyword(params, DefaultMappingTerms.getParamMapping());
+    var mappedParams = mapParamsKeyword(params, getParamMapping());
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
     var specimenPlusOne = elasticRepository.search(map, pageNumber, pageSize);
@@ -334,7 +334,7 @@ public class SpecimenService {
 
   public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
       throws IOException, UnknownParameterException {
-    var mappedParams = mapParamsKeyword(params, DefaultMappingTerms.getParamMapping());
+    var mappedParams = mapParamsKeyword(params, getParamMapping());
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
     var aggregations = elasticRepository.getAggregations(map, DefaultMappingTerms.getAggregationSet(),

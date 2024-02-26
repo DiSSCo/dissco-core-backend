@@ -22,9 +22,9 @@ import co.elastic.clients.util.NamedValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerm;
-import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
@@ -50,14 +50,13 @@ public class ElasticSearchRepository {
   private static final String FIELD_CREATED = "created";
   private static final String FIELD_CREATED_ANNOTATION = "dcterms:created";
   private static final String DIGITAL_SPECIMEN_WRAPPER = "digitalSpecimenWrapper";
-  private static final String FIELD_GENERATED = "generated";
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
 
-  private static Builder getTerm(String field, Builder t, boolean alphabetical) {
+  private static Builder getTerm(String field, Builder t, boolean sort) {
     var term = t.field(field);
-    if (alphabetical) {
+    if (sort) {
       term.order(NamedValue.of("_key", SortOrder.Asc));
     }
     return term;

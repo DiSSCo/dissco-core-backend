@@ -3,7 +3,9 @@ package eu.dissco.backend.domain;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public enum TaxonMappingTerms implements MappingTerm {
   KINGDOM("kingdom",
       "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword"),
@@ -45,8 +47,9 @@ public enum TaxonMappingTerms implements MappingTerm {
 
   public static TaxonMappingTerms getNextLevel(int ordinal) throws UnknownParameterException {
     if (values.length > ordinal) {
-      return values[ordinal+1];
+      return values[ordinal + 1];
     } else {
+      log.warn("Failed to get next level after Genus, requested ordinal was: {}", ordinal);
       throw new UnknownParameterException("No more levels after Genus");
     }
   }
