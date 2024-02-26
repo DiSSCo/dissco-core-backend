@@ -1,9 +1,10 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.domain.MappingTerms.TOPIC_DISCIPLINE;
-import static eu.dissco.backend.domain.MappingTerms.getMappedTerm;
+import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.domain.DefaultMappingTerms.getParamMapping;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +15,9 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.MappingTerm;
+import eu.dissco.backend.domain.DefaultMappingTerms;
+import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -35,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -69,6 +74,16 @@ public class SpecimenService {
   private final MongoRepository mongoRepository;
   private final MasJobRecordService masJobRecordService;
   private final UserService userService;
+
+  private static TaxonMappingTerms retrieveNextTaxLevel(
+      Map<TaxonMappingTerms, List<String>> mappedParams) throws UnknownParameterException {
+    var maxResult = mappedParams.keySet().stream().max(comparing(Enum::ordinal));
+    if (maxResult.isEmpty()) {
+      return TaxonMappingTerms.KINGDOM;
+    } else {
+      return TaxonMappingTerms.getNextLevel(maxResult.get().ordinal());
+    }
+  }
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
@@ -257,7 +272,10 @@ public class SpecimenService {
     var pageNumber = getIntParam("pageNumber", params, DEFAULT_PAGE_NUM);
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
-    var specimenPlusOne = elasticRepository.search(mapParamsKeyword(params), pageNumber, pageSize);
+    var mappedParams = mapParamsKeyword(params, getParamMapping());
+    var map = mappedParams.entrySet().stream()
+        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
+    var specimenPlusOne = elasticRepository.search(map, pageNumber, pageSize);
     return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, params, path);
   }
 
@@ -286,13 +304,15 @@ public class SpecimenService {
     }
   }
 
-  private Map<String, List<String>> mapParamsKeyword(MultiValueMap<String, String> params)
+  private <T extends MappingTerm> Map<T, List<String>> mapParamsKeyword(
+      MultiValueMap<String, String> requestParams,
+      Map<String, T> acceptedParams)
       throws UnknownParameterException {
-    var mappedParams = new HashMap<String, List<String>>();
-    for (var entry : params.entrySet()) {
-      var mappedParam = getMappedTerm(entry.getKey());
-      if (mappedParam.isPresent()) {
-        mappedParams.put(mappedParam.get(), entry.getValue());
+    var mappedParams = new HashMap<T, List<String>>();
+    for (var entry : requestParams.entrySet()) {
+      var mappedParam = acceptedParams.get(entry.getKey());
+      if (mappedParam != null) {
+        mappedParams.put(mappedParam, entry.getValue());
       } else {
         throw new UnknownParameterException("Parameter: " + entry.getKey() + " is not recognised");
       }
@@ -300,9 +320,25 @@ public class SpecimenService {
     return mappedParams;
   }
 
+  public JsonApiWrapper taxonAggregations(MultiValueMap<String, String> params,
+      String path) throws UnknownParameterException, IOException {
+    var mappedParams = mapParamsKeyword(params, TaxonMappingTerms.getTaxonMapping());
+    var aggregateTerm = retrieveNextTaxLevel(mappedParams);
+    var map = mappedParams.entrySet().stream()
+        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
+    var aggregations = elasticRepository.getAggregations(map, Set.of(aggregateTerm), true);
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
+        mapper.valueToTree(aggregations));
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
   public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
       throws IOException, UnknownParameterException {
-    var aggregations = elasticRepository.getAggregations(mapParamsKeyword(params));
+    var mappedParams = mapParamsKeyword(params, getParamMapping());
+    var map = mappedParams.entrySet().stream()
+        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
+    var aggregations = elasticRepository.getAggregations(map, DefaultMappingTerms.getAggregationSet(),
+        false);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -316,11 +352,12 @@ public class SpecimenService {
         new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
   }
 
-  public JsonApiWrapper searchTermValue(String name, String value, String path)
+  public JsonApiWrapper searchTermValue(String name, String value, String path, boolean sort)
       throws UnknownParameterException, IOException {
-    var mappedTerm = getMappedTerm(name);
-    if (mappedTerm.isPresent()) {
-      var aggregations = elasticRepository.searchTermValue(name, mappedTerm.get(), value);
+    var mappedTerm = getParamMapping().get(name);
+    if (mappedTerm != null) {
+      var aggregations = elasticRepository.aggregateTermValue(name, mappedTerm.fullName(), value,
+          sort);
       var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
           mapper.valueToTree(aggregations));
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -339,11 +376,15 @@ public class SpecimenService {
     return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId, String path, boolean batchingRequested)
+  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId,
+      String path, boolean batchingRequested)
       throws ForbiddenException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid, MjrTargetType.DIGITAL_SPECIMEN, batchingRequested);
+    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid,
+        MjrTargetType.DIGITAL_SPECIMEN, batchingRequested);
   }
+
+
 }

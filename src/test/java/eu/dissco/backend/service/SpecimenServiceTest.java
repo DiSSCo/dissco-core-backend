@@ -7,10 +7,12 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
+import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.domain.MappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
+import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -225,7 +228,7 @@ class SpecimenServiceTest {
     given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
-        SOURCE_SYSTEM_ID_1);
+        SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
     var attributeNode = MAPPER.valueToTree(
         new DigitalSpecimenFull(digitalSpecimenWrapper.digitalSpecimen(),
             digitalSpecimenWrapper.originalData(), digitalMedia, annotations));
@@ -245,7 +248,7 @@ class SpecimenServiceTest {
     // Given
     int version = 4;
     var givenSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
-        SOURCE_SYSTEM_ID_1);
+        SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
     var specimen = givenMongoDBResponse();
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
@@ -453,7 +456,7 @@ class SpecimenServiceTest {
     params.put("sourceSystemId", List.of(SOURCE_SYSTEM_ID_1));
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenAggregationMap();
-    given(elasticRepository.getAggregations(anyMap())).willReturn(aggregationMap);
+    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(aggregationMap);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
         MAPPER.valueToTree(aggregationMap));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
@@ -461,6 +464,26 @@ class SpecimenServiceTest {
 
     // When
     var result = service.aggregations(map, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testTaxonAggregation() throws IOException, UnknownParameterException {
+    // Given
+    var params = new HashMap<String, List<String>>();
+    params.put("kingdom", List.of("animalia"));
+    var map = new MultiValueMapAdapter<>(params);
+    var aggregationMap = givenTaxonAggregationMap();
+    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(true))).willReturn(aggregationMap);
+    var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
+        MAPPER.valueToTree(aggregationMap));
+    var linksNode = new JsonApiLinks(SPECIMEN_PATH);
+    var expected = new JsonApiWrapper(dataNode, linksNode);
+
+    // When
+    var result = service.taxonAggregations(map, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -488,15 +511,15 @@ class SpecimenServiceTest {
   void testSearchTermValue() throws IOException, UnknownParameterException {
     // Given
     var aggregation = Map.of("topicDiscipline", Map.of("Zoology", 349555L));
-    given(elasticRepository.searchTermValue(TOPIC_DISCIPLINE.getName(),
-        TOPIC_DISCIPLINE.getFullName(), "Z")).willReturn(aggregation);
+    given(elasticRepository.aggregateTermValue(TOPIC_DISCIPLINE.requestName(),
+        TOPIC_DISCIPLINE.fullName(), "Z", false)).willReturn(aggregation);
     var dataNode = new JsonApiData(String.valueOf(("topicDiscipline" + "Z").hashCode()),
         "aggregations", MAPPER.valueToTree(aggregation));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
     var expected = new JsonApiWrapper(dataNode, linksNode);
 
     // When
-    var result = service.searchTermValue("topicDiscipline", "Z", SPECIMEN_PATH);
+    var result = service.searchTermValue("topicDiscipline", "Z", SPECIMEN_PATH, false);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -506,7 +529,7 @@ class SpecimenServiceTest {
   void testSearchTermUnknown() {
     // When / Then
     assertThatThrownBy(
-        () -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH)).isInstanceOf(
+        () -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH, false)).isInstanceOf(
         UnknownParameterException.class);
   }
 
@@ -547,7 +570,7 @@ class SpecimenServiceTest {
 
   private String givenJsonLDString() {
     return """
-        {"@id":"hdl:20.5000.1025/ABC-123-XYZ","@type":"https://doi.org/21.T11148/894b1e6cad57e921764e","@context":{"dwc:institutionId":{"@type":"@id"},"ods:sourceSystemId":{"@type":"@id"},"ods:hasSpecimenMedia":{"@container":"@list","@type":"@id"},"hdl":"https://hdl.handle.net/","dwc":"https://rs.tdwg.org/dwc/terms/","dcterms":"https://purl.org/dc/terms/","ods":"https://github.com/DiSSCo/openDS/ods-ontology/terms/"},"ods:primarySpecimenData":{"ods:id":"20.5000.1025/ABC-123-XYZ","ods:version":1,"ods:created":"2022-11-01T09:59:24Z","ods:type":"https://doi.org/21.T11148/894b1e6cad57e921764e","ods:midsLevel":0,"ods:physicalSpecimenId":"global_id_123123","ods:physicalSpecimenIdType":"Resolvable","ods:topicDiscipline":"Botany","ods:markedAsType":true,"ods:hasMedia":true,"ods:specimenName":"Leucanthemum ircutianum (Turcz.) Turcz.ex DC.","ods:sourceSystem":"https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY","dcterms:license":"http://creativecommons.org/licenses/by/4.0/legalcode","dcterms:modified":"03/12/2012","dwc:preparations":"","dwc:institutionId":"https://ror.org/0349vqz63","dwc:institutionName":"Royal Botanic Garden Edinburgh Herbarium","dwc:datasetName":"Royal Botanic Garden Edinburgh Herbarium","materialEntity":[],"dwc:identification":[],"assertions":[],"occurrences":[{"assertions":[],"location":{"dwc:country":"Scotland"}}],"entityRelationships":[],"citations":[],"identifiers":[],"chronometricAge":[]},"ods:hasSpecimenMedia":["hdl:20.5000.1025XXX-XXX-YYY"]}""";
+        {"@id":"hdl:20.5000.1025/ABC-123-XYZ","@type":"https://doi.org/21.T11148/894b1e6cad57e921764e","@context":{"dwc:institutionId":{"@type":"@id"},"ods:sourceSystemId":{"@type":"@id"},"ods:hasSpecimenMedia":{"@container":"@list","@type":"@id"},"hdl":"https://hdl.handle.net/","dwc":"https://rs.tdwg.org/dwc/terms/","dcterms":"https://purl.org/dc/terms/","ods":"https://github.com/DiSSCo/openDS/ods-ontology/terms/"},"ods:primarySpecimenData":{"ods:id":"20.5000.1025/ABC-123-XYZ","ods:version":1,"ods:created":"2022-11-01T09:59:24Z","ods:type":"https://doi.org/21.T11148/894b1e6cad57e921764e","ods:midsLevel":0,"ods:physicalSpecimenId":"global_id_123123","ods:physicalSpecimenIdType":"Resolvable","ods:topicDiscipline":"Botany","ods:markedAsType":true,"ods:hasMedia":true,"ods:specimenName":"Abyssothyris Thomson, 1927","ods:sourceSystem":"https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY","dcterms:license":"http://creativecommons.org/licenses/by/4.0/legalcode","dcterms:modified":"03/12/2012","dwc:preparations":"","dwc:institutionId":"https://ror.org/0349vqz63","dwc:institutionName":"Royal Botanic Garden Edinburgh Herbarium","dwc:datasetName":"Royal Botanic Garden Edinburgh Herbarium","materialEntity":[],"dwc:identification":[],"assertions":[],"occurrences":[{"assertions":[],"location":{"dwc:country":"Scotland"}}],"entityRelationships":[],"citations":[],"identifiers":[],"chronometricAge":[]},"ods:hasSpecimenMedia":["hdl:20.5000.1025XXX-XXX-YYY"]}""";
   }
 
 
@@ -567,7 +590,7 @@ class SpecimenServiceTest {
                        "ods:topicDiscipline": "Botany",
                        "ods:markedAsType": true,
                        "ods:hasMedia": true,
-                       "ods:specimenName": "Leucanthemum ircutianum (Turcz.) Turcz.ex DC.",
+                       "ods:specimenName": "Abyssothyris Thomson, 1927",
                        "ods:sourceSystem": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
                        "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
                        "dcterms:modified": "03/12/2012",

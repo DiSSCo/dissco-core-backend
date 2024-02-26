@@ -1,0 +1,117 @@
+package eu.dissco.backend.domain;
+
+import static eu.dissco.backend.domain.TaxonMappingTerms.KINGDOM;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+public enum DefaultMappingTerms implements MappingTerm {
+  COUNTRY("country",
+      "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:country.keyword"),
+  COUNTRY_CODE("countryCode",
+      "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:countryCode.keyword"),
+  MIDS_LEVEL("midsLevel", "midsLevel"),
+  PHYSICAL_SPECIMEN_ID("physicalSpecimenId",
+      "digitalSpecimenWrapper.ods:attributes.ods:physicalSpecimenId.keyword"),
+  TYPE_STATUS("typeStatus",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:typeStatus.keyword"),
+  LICENSE("license", "digitalSpecimenWrapper.ods:attributes.dcterms:license.keyword"),
+  HAS_MEDIA("hasMedia", "digitalSpecimenWrapper.ods:attributes.ods:hasMedia"),
+  ORGANISATION_ID("organisationId",
+      "digitalSpecimenWrapper.ods:attributes.dwc:institutionId.keyword"),
+  ORGANISATION_NAME("organisationName",
+      "digitalSpecimenWrapper.ods:attributes.dwc:institutionName.keyword"),
+  SOURCE_SYSTEM_ID("sourceSystemId",
+      "digitalSpecimenWrapper.ods:attributes.ods:sourceSystem.keyword"),
+  SPECIMEN_NAME("specimenName", "digitalSpecimenWrapper.ods:attributes.ods:specimenName.keyword"),
+  DATASET_NAME("datasetName", "digitalSpecimenWrapper.ods:attributes.dwc:datasetName.keyword"),
+  COLLECTION_CODE("collectionCode",
+      "digitalSpecimenWrapper.ods:attributes.dwc:collectionCode.keyword"),
+  COLLECTION_ID("collectionId", "digitalSpecimenWrapper.ods:attributes.dwc:collectionId.keyword"),
+  IDENTIFIED_BY("identifiedBy",
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:identifiedBy.keyword"),
+  BASIS_OF_RECORD("basisOfRecord",
+      "digitalSpecimenWrapper.ods:attributes.dwc:basisOfRecord.keyword"),
+  LIVING_OR_PRESERVED("livingOrPreserved",
+      "digitalSpecimenWrapper.ods:attributes.ods:livingOrPreserved.keyword"),
+  TOPIC_DISCIPLINE("topicDiscipline",
+      "digitalSpecimenWrapper.ods:attributes.ods:topicDiscipline.keyword"),
+  QUERY("q", "q");
+
+
+  private static final Set<MappingTerm> aggregationSet = fillAggregationList();
+
+  private static final Map<String, MappingTerm> paramMapping = fillParamMapping();
+  private final String requestName;
+  private final String fullName;
+
+  DefaultMappingTerms(String requestName, String fullName) {
+    this.requestName = requestName;
+    this.fullName = fullName;
+  }
+
+  public static Set<MappingTerm> getAggregationSet() {
+    return aggregationSet;
+  }
+
+  public static Map<String, MappingTerm> getParamMapping() {
+    return paramMapping;
+  }
+
+  private static Set<MappingTerm> fillAggregationList() {
+    var aggregationTerms = new HashSet<MappingTerm>();
+    aggregationTerms.add(COUNTRY);
+    aggregationTerms.add(MIDS_LEVEL);
+    aggregationTerms.add(TYPE_STATUS);
+    aggregationTerms.add(LICENSE);
+    aggregationTerms.add(HAS_MEDIA);
+    aggregationTerms.add(ORGANISATION_NAME);
+    aggregationTerms.add(ORGANISATION_ID);
+    aggregationTerms.add(SOURCE_SYSTEM_ID);
+    aggregationTerms.add(DATASET_NAME);
+    aggregationTerms.add(KINGDOM);
+    aggregationTerms.add(LIVING_OR_PRESERVED);
+    aggregationTerms.add(TOPIC_DISCIPLINE);
+    aggregationTerms.add(COLLECTION_CODE);
+    aggregationTerms.add(IDENTIFIED_BY);
+    aggregationTerms.add(COLLECTION_ID);
+    return aggregationTerms;
+  }
+
+  private static Map<String, MappingTerm> fillParamMapping() {
+    var paramMap = new HashMap<String, MappingTerm>();
+    paramMap.put(COUNTRY.requestName, COUNTRY);
+    paramMap.put(COUNTRY_CODE.requestName, COUNTRY_CODE);
+    paramMap.put(MIDS_LEVEL.requestName, MIDS_LEVEL);
+    paramMap.put(PHYSICAL_SPECIMEN_ID.requestName, PHYSICAL_SPECIMEN_ID);
+    paramMap.put(TYPE_STATUS.requestName, TYPE_STATUS);
+    paramMap.put(LICENSE.requestName, LICENSE);
+    paramMap.put(HAS_MEDIA.requestName, HAS_MEDIA);
+    paramMap.put(ORGANISATION_ID.requestName, ORGANISATION_ID);
+    paramMap.put(ORGANISATION_NAME.requestName, ORGANISATION_NAME);
+    paramMap.put(SOURCE_SYSTEM_ID.requestName, SOURCE_SYSTEM_ID);
+    paramMap.put(SPECIMEN_NAME.requestName, SPECIMEN_NAME);
+    paramMap.put(DATASET_NAME.requestName, DATASET_NAME);
+    paramMap.put(BASIS_OF_RECORD.requestName, BASIS_OF_RECORD);
+    paramMap.put(LIVING_OR_PRESERVED.requestName, LIVING_OR_PRESERVED);
+    paramMap.put(TOPIC_DISCIPLINE.requestName, TOPIC_DISCIPLINE);
+    paramMap.put(COLLECTION_CODE.requestName, COLLECTION_CODE);
+    paramMap.put(IDENTIFIED_BY.requestName, IDENTIFIED_BY);
+    paramMap.put(COLLECTION_ID.requestName, COLLECTION_ID);
+    paramMap.put(QUERY.requestName, QUERY);
+    paramMap.putAll(TaxonMappingTerms.getTaxonMapping());
+    return paramMap;
+  }
+
+  @Override
+  public String requestName() {
+    return requestName;
+  }
+
+  @Override
+  public String fullName() {
+    return fullName;
+  }
+}
