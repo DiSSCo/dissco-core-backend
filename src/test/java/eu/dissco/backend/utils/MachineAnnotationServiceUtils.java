@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -53,9 +54,20 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static JsonApiRequestWrapper givenMasRequest(String type) {
-    var mass = Map.of("mass", List.of(ID));
+    var mass = Map.of("mass", List.of(givenMasJobRequest()));
     var apiRequest = new JsonApiRequest(type, MAPPER.valueToTree(mass));
     return new JsonApiRequestWrapper(apiRequest);
+  }
+
+  public static MasJobRequest givenMasJobRequest() {
+    return givenMasJobRequest(false);
+  }
+
+  public static MasJobRequest givenMasJobRequest(boolean batching) {
+    return new MasJobRequest(
+        ID,
+        batching
+    );
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord() {

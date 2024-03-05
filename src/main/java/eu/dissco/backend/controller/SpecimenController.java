@@ -232,16 +232,15 @@ public class SpecimenController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestParam(defaultValue = "false") boolean batching,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
+      throws ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
-    var masIds = getMassFromRequest(requestBody);
+    var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
-        masIds, id);
-    var massResponse = service.scheduleMass(id, masIds, userId, getPath(request), batching);
+        masRequests, id);
+    var massResponse = service.scheduleMass(id, masRequests, userId, getPath(request));
     return ResponseEntity.accepted().body(massResponse);
   }
 

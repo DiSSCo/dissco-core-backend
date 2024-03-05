@@ -12,11 +12,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerm;
-import eu.dissco.backend.domain.DefaultMappingTerms;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -337,7 +338,8 @@ public class SpecimenService {
     var mappedParams = mapParamsKeyword(params, getParamMapping());
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var aggregations = elasticRepository.getAggregations(map, DefaultMappingTerms.getAggregationSet(),
+    var aggregations = elasticRepository.getAggregations(map,
+        DefaultMappingTerms.getAggregationSet(),
         false);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));
@@ -376,14 +378,14 @@ public class SpecimenService {
     return mapper.convertValue(digitalSpecimen.digitalSpecimen(), ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> masIds, String userId,
-      String path, boolean batchingRequested)
+  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
+      String userId, String path)
       throws ForbiddenException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masIds, path, digitalSpecimen, id, orcid,
-        MjrTargetType.DIGITAL_SPECIMEN, batchingRequested);
+    return masService.scheduleMass(flattenAttributes, masRequests, path, digitalSpecimen, id, orcid,
+        MjrTargetType.DIGITAL_SPECIMEN);
   }
 
 

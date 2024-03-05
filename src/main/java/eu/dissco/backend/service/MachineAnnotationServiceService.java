@@ -9,6 +9,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -34,6 +35,7 @@ public class MachineAnnotationServiceService {
   private final KafkaPublisherService kafkaPublisherService;
   private final MasJobRecordService mjrService;
   private final ObjectMapper mapper;
+
   private boolean checkIfMasComplies(JsonNode jsonNode,
       MachineAnnotationServiceRecord masRecord) {
     var filters = masRecord.mas().targetDigitalObjectFilters();
@@ -79,23 +81,25 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(availableMass.size()));
   }
 
-  public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData, List<String> mass,
-      String path, Object object, String targetId, String orcid, MjrTargetType targetType,
-      boolean batchingRequested)
-      throws ConflictException {
-    var masRecords = repository.getMasRecords(mass);
-    validateBatchingRequest(batchingRequested, masRecords);
+  public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData,
+      Map<String, MasJobRequest> masRequests, String path, Object object, String targetId,
+      String orcid,
+      MjrTargetType targetType) throws ConflictException {
+    var masRecords = repository.getMasRecords(masRequests.keySet());
+    validateBatchingRequest(masRequests, masRecords);
     var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
     var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
     Map<String, MasJobRecord> masJobRecordIdMap = null;
-    if (!availableRecords.isEmpty()){
-      masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid, targetType, batchingRequested);
+    if (!availableRecords.isEmpty()) {
+      masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid,
+          targetType, masRequests);
     }
     for (var masRecord : availableRecords) {
       var mjr = masJobRecordIdMap.get(masRecord.id());
       try {
-        var targetObject = new MasTarget(object, mjr.jobId(), batchingRequested);
+        var targetObject = new MasTarget(object, mjr.jobId(),
+            masRequests.get(masRecord.id()).batching());
         kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
         scheduledJobs.add(
             new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper));
@@ -112,12 +116,13 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(scheduledJobs.size()));
   }
 
-  private void validateBatchingRequest(Boolean batchingRequested,
+  private void validateBatchingRequest(Map<String, MasJobRequest> mass,
       List<MachineAnnotationServiceRecord> masRecords) throws ConflictException {
-    if (Boolean.FALSE.equals(batchingRequested)) {
-      return;
-    }
     for (var masRecord : masRecords) {
+      var batchingRequested = mass.get(masRecord.id()).batching();
+      if (Boolean.FALSE.equals(batchingRequested)) {
+        return;
+      }
       if (Boolean.FALSE.equals(masRecord.mas().batchingRequested())) {
         log.error(
             "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",

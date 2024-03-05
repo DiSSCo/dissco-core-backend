@@ -10,6 +10,7 @@ import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,8 +48,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     populateDatabase();
 
     // When
-    var result = repository.getMasRecords(
-        List.of(PREFIX + "ABC-123-XY14", PREFIX + "ABC-123-XY18"));
+    var result = repository.getMasRecords(Set.of(PREFIX + "ABC-123-XY14", PREFIX + "ABC-123-XY18"));
 
     // Then
     assertThat(result).hasSize(2);

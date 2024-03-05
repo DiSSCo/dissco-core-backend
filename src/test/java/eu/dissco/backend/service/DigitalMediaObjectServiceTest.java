@@ -16,6 +16,7 @@ import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +41,7 @@ import eu.dissco.backend.schema.EntityRelationships;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -296,12 +298,15 @@ class DigitalMediaObjectServiceTest {
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
     given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
-    given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(DIGITAL_MEDIA_PATH),
-        eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT), eq(false))).willReturn(response);
+    given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
+        eq(DIGITAL_MEDIA_PATH),
+        eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT))).willReturn(
+        response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN, false);
+    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
+        USER_ID_TOKEN);
 
     // Then
     assertThat(result).isEqualTo(response);

@@ -14,7 +14,6 @@ import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -120,21 +119,23 @@ public class DigitalMediaObjectController extends BaseController {
   ) throws NotFoundException {
     var path = getPath(request);
     var id = prefix + '/' + suffix;
-    return ResponseEntity.ok(service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
+    return ResponseEntity.ok(
+        service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
   }
 
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestParam(defaultValue = "false") boolean batching,
-      @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication, HttpServletRequest request)
-      throws JsonProcessingException, ConflictException, ForbiddenException, PidCreationException {
+      @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
+      HttpServletRequest request)
+      throws ConflictException, ForbiddenException, PidCreationException {
     var userId = authentication.getName();
     var id = prefix + '/' + suffix;
-    var masIds = getMassFromRequest(requestBody);
-    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masIds,
+    var masRequests = getMassRequestFromRequest(requestBody);
+    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
+        masRequests,
         id);
-    var massResponse = service.scheduleMass(id, masIds, getPath(request), userId, batching);
+    var massResponse = service.scheduleMass(id, masRequests, getPath(request), userId);
     return ResponseEntity.accepted().body(massResponse);
   }
 
