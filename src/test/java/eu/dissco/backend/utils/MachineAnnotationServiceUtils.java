@@ -86,12 +86,16 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters) {
+    return givenMasRecord(filters, false);
+  }
+
+  public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters, boolean batching) {
     return new MachineAnnotationServiceRecord(
         ID,
         1,
         CREATED,
         USER_ID_TOKEN,
-        givenMas(filters),
+        givenMas(filters, batching),
         null
     );
   }
@@ -101,6 +105,10 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationService givenMas(JsonNode filters) {
+    return givenMas(filters, false);
+  }
+
+  public static MachineAnnotationService givenMas(JsonNode filters, boolean batching) {
     return new MachineAnnotationService(
         "A Machine Annotation Service",
         "public.ecr.aws/dissco/fancy-mas",
@@ -117,7 +125,7 @@ public class MachineAnnotationServiceUtils {
         "https://www.know.dissco.tech/no_sla",
         "fancy-topic-name",
         5,
-        false
+        batching
     );
   }
 

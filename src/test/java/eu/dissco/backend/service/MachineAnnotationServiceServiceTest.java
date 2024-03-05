@@ -111,22 +111,21 @@ class MachineAnnotationServiceServiceTest {
   void testScheduleMass() throws JsonProcessingException, ConflictException {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
-    var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
+    var masRecord = givenMasRecord(givenFiltersDigitalSpecimen(), true);
     given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest()))).willReturn(
-        givenMasJobRecordIdMap(masRecord.id()));
-    var sendObject = new MasTarget(digitalSpecimen, JOB_ID, false);
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest(true)))).willReturn(
+        givenMasJobRecordIdMap(masRecord.id(), true));
+    var sendObject = new MasTarget(digitalSpecimen, JOB_ID, true);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(ID, givenMasJobRequest()),
-        SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
+        Map.of(ID, givenMasJobRequest(true)),
+        SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
-    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(), SPECIMEN_PATH));
+    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(true), SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 

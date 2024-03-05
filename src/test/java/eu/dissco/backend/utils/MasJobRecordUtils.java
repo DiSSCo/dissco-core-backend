@@ -25,9 +25,12 @@ public class MasJobRecordUtils {
   public static final String MJR_URI = "/api/v1/mjr/";
 
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId) {
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
+    return givenMasJobRecordIdMap(masId, false);
+  }
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching) {
     var jobIdMap = new HashMap<String, MasJobRecord>();
-    jobIdMap.put(masId, givenMasJobRecord());
+    jobIdMap.put(masId, givenMasJobRecord(batching));
     return jobIdMap;
   }
 
@@ -71,6 +74,10 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecord givenMasJobRecord(){
+    return givenMasJobRecord(false);
+  }
+
+  public static MasJobRecord givenMasJobRecord(boolean batching){
     return new MasJobRecord(
         JOB_ID,
         MjrJobState.SCHEDULED,
@@ -78,7 +85,7 @@ public class MasJobRecordUtils {
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
-        false
+        batching
     );
   }
 
