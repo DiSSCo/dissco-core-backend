@@ -18,6 +18,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
@@ -456,7 +457,8 @@ class SpecimenServiceTest {
     params.put("sourceSystemId", List.of(SOURCE_SYSTEM_ID_1));
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenAggregationMap();
-    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(aggregationMap);
+    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(
+        aggregationMap);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
         MAPPER.valueToTree(aggregationMap));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
@@ -476,7 +478,8 @@ class SpecimenServiceTest {
     params.put("kingdom", List.of("animalia"));
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenTaxonAggregationMap();
-    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(true))).willReturn(aggregationMap);
+    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(true))).willReturn(
+        aggregationMap);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
         MAPPER.valueToTree(aggregationMap));
     var linksNode = new JsonApiLinks(SPECIMEN_PATH);
@@ -555,14 +558,16 @@ class SpecimenServiceTest {
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimenWrapper);
-    given(masService.scheduleMass(any(JsonNode.class), eq(List.of(ID)), eq(SPECIMEN_PATH),
+    given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
+        eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
         eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID),
-        eq(MjrTargetType.DIGITAL_SPECIMEN), eq(false))).willReturn(response);
+        eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH, false);
+    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), USER_ID_TOKEN,
+        SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(response);

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MachineAnnotationService;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -53,9 +54,20 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static JsonApiRequestWrapper givenMasRequest(String type) {
-    var mass = Map.of("mass", List.of(ID));
+    var mass = Map.of("mass", List.of(givenMasJobRequest()));
     var apiRequest = new JsonApiRequest(type, MAPPER.valueToTree(mass));
     return new JsonApiRequestWrapper(apiRequest);
+  }
+
+  public static MasJobRequest givenMasJobRequest() {
+    return givenMasJobRequest(false);
+  }
+
+  public static MasJobRequest givenMasJobRequest(boolean batching) {
+    return new MasJobRequest(
+        ID,
+        batching
+    );
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord() {
@@ -74,12 +86,16 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters) {
+    return givenMasRecord(filters, false);
+  }
+
+  public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters, boolean batching) {
     return new MachineAnnotationServiceRecord(
         ID,
         1,
         CREATED,
         USER_ID_TOKEN,
-        givenMas(filters),
+        givenMas(filters, batching),
         null
     );
   }
@@ -89,6 +105,10 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationService givenMas(JsonNode filters) {
+    return givenMas(filters, false);
+  }
+
+  public static MachineAnnotationService givenMas(JsonNode filters, boolean batching) {
     return new MachineAnnotationService(
         "A Machine Annotation Service",
         "public.ecr.aws/dissco/fancy-mas",
@@ -105,7 +125,7 @@ public class MachineAnnotationServiceUtils {
         "https://www.know.dissco.tech/no_sla",
         "fancy-topic-name",
         5,
-        false
+        batching
     );
   }
 

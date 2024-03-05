@@ -11,6 +11,7 @@ import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
@@ -71,7 +72,7 @@ public class MachineAnnotationServiceRepository {
     return mapper.createObjectNode();
   }
 
-  public List<MachineAnnotationServiceRecord> getMasRecords(List<String> mass) {
+  public List<MachineAnnotationServiceRecord> getMasRecords(Set<String> mass) {
     return context.selectFrom(MACHINE_ANNOTATION_SERVICES)
         .where(MACHINE_ANNOTATION_SERVICES.ID.in(mass))
         .and(MACHINE_ANNOTATION_SERVICES.DELETED_ON.isNull())

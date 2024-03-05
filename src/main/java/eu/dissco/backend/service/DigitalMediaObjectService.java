@@ -12,6 +12,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -27,6 +28,7 @@ import eu.dissco.backend.repository.SpecimenRepository;
 import eu.dissco.backend.schema.DigitalEntity;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -163,13 +165,15 @@ public class DigitalMediaObjectService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, List<String> mass, String path, String userId, boolean batchingRequested)
+  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
+      String path, String userId)
       throws ForbiddenException, PidCreationException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, mass, path, digitalMedia, id, orcid, MjrTargetType.MEDIA_OBJECT, batchingRequested);
+    return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
+        MjrTargetType.MEDIA_OBJECT);
   }
 
 }

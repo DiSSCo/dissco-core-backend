@@ -9,11 +9,17 @@ public record MachineAnnotationService(
     @NotBlank String containerImage,
     @NotBlank String containerTag,
     JsonNode targetDigitalObjectFilters,
-    String serviceDescription, String serviceState,
-    String sourceCodeRepository, String serviceAvailability,
-    String codeMaintainer, String codeLicense,
-    List<String> dependencies, String supportContact,
-    String slaDocumentation, String topicName, int maxReplicas,
+    String serviceDescription,
+    String serviceState,
+    String sourceCodeRepository,
+    String serviceAvailability,
+    String codeMaintainer,
+    String codeLicense,
+    List<String> dependencies,
+    String supportContact,
+    String slaDocumentation,
+    String topicName,
+    int maxReplicas,
     @NotBlank boolean batchingRequested) {
 
 }

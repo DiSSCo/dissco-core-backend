@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
@@ -28,6 +29,7 @@ import eu.dissco.backend.repository.MasJobRecordRepository;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,11 +41,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MasJobRecordServiceTest {
 
+  @Mock
+  HandleComponent handleComponent;
   private MasJobRecordService masJobRecordService;
   @Mock
   private MasJobRecordRepository masJobRecordRepository;
-  @Mock
-  HandleComponent handleComponent;
 
   @BeforeEach
   void setup() {
@@ -179,7 +181,8 @@ class MasJobRecordServiceTest {
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
-    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID, MjrTargetType.DIGITAL_SPECIMEN, false);
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest()));
 
     // Then
     assertThat(result).isEqualTo(expected);

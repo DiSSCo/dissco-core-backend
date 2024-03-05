@@ -6,6 +6,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -13,12 +14,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
-
 import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -92,17 +91,25 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, MasJobRecord> createMasJobRecord(Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, MjrTargetType targetType, boolean batchingRequested) {
+  public Map<String, MasJobRecord> createMasJobRecord(
+      Set<MachineAnnotationServiceRecord> masRecords,
+      String targetId, String orcid, MjrTargetType targetType, Map<String, MasJobRequest> mass) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(handleItr.next(), MjrJobState.SCHEDULED, masRecord.id(), targetId, targetType,
-            orcid, batchingRequested))
+        .map(masRecord -> new MasJobRecord(
+            handleItr.next(),
+            MjrJobState.SCHEDULED,
+            masRecord.id(),
+            targetId,
+            targetType,
+            orcid,
+            mass.get(masRecord.id()).batching()))
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
+    return masJobRecordList.stream()
+        .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {

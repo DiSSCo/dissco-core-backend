@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -19,7 +20,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -33,7 +33,6 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.SpecimenService;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,11 +48,11 @@ class SpecimenControllerTest {
 
   MockHttpServletRequest mockRequest;
   @Mock
+  Authentication authentication;
+  @Mock
   private SpecimenService service;
   @Mock
   private ApplicationProperties applicationProperties;
-  @Mock
-  Authentication authentication;
   private SpecimenController controller;
 
   @BeforeEach
@@ -185,11 +184,13 @@ class SpecimenControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
   }
+
   @Test
   void testTaxonAggregation() throws Exception {
     //Given
     var paramMap = new MultiValueMapAdapter(Map.of("Kingdom", List.of("Animalia")));
-    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenTaxonAggregationMap()));
+    var data = new JsonApiData("id", "aggregations",
+        MAPPER.valueToTree(givenTaxonAggregationMap()));
     given(service.taxonAggregations(eq(paramMap), anyString())).willReturn(
         new JsonApiWrapper(data, new JsonApiLinks("test")));
 
@@ -257,16 +258,17 @@ class SpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException, ConflictException, ForbiddenException {
+  void testScheduleMas() throws ConflictException, ForbiddenException {
     // Given
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, List.of(ID), USER_ID_TOKEN, SPECIMEN_PATH, false)).willReturn(expectedResponse);
+    given(service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), USER_ID_TOKEN,
+        SPECIMEN_PATH)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
         mockRequest);
 
     // Then
@@ -282,21 +284,21 @@ class SpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
             mockRequest));
   }
 
   @Test
   void testScheduleMasNoAttribute() {
     // Given
-    var mass = Map.of("somethingElse", List.of(ID));
+    var mass = Map.of("somethingElse", Map.of(ID, false));
     var apiRequest = new JsonApiRequest("MasRequest", MAPPER.valueToTree(mass));
     var request = new JsonApiRequestWrapper(apiRequest);
     givenAuthentication();
 
     // When / Then
     assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, false, request, authentication,
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
             mockRequest));
   }
 

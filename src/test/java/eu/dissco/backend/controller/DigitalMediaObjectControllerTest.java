@@ -9,6 +9,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonResponse;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -23,7 +24,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaObjectService;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -129,7 +130,8 @@ class DigitalMediaObjectControllerTest {
   @Test
   void testGetMasJobRecordForMedia() throws Exception {
     // When
-    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, MjrJobState.SCHEDULED, 1, 1, mockRequest);
+    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, MjrJobState.SCHEDULED, 1, 1,
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -156,11 +158,13 @@ class DigitalMediaObjectControllerTest {
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, List.of(ID), DIGITAL_MEDIA_PATH, USER_ID_TOKEN, false)).willReturn(expectedResponse);
+    given(service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
+        USER_ID_TOKEN)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request,
+        authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -175,7 +179,8 @@ class DigitalMediaObjectControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, false, request, authentication, mockRequest));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
   }
 
   private void givenAuthentication() {
