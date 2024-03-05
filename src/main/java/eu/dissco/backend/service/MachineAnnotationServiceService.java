@@ -83,8 +83,7 @@ public class MachineAnnotationServiceService {
 
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData,
       Map<String, MasJobRequest> masRequests, String path, Object object, String targetId,
-      String orcid,
-      MjrTargetType targetType) throws ConflictException {
+      String orcid, MjrTargetType targetType) throws ConflictException {
     var masRecords = repository.getMasRecords(masRequests.keySet());
     validateBatchingRequest(masRequests, masRecords);
     var scheduledJobs = new ArrayList<JsonApiData>();
