@@ -72,7 +72,7 @@ public class ElasticSearchRepository {
           query = new Query.Builder().queryString(q -> q.query(sanitisedValue)).build();
         } else {
           query = new Query.Builder().term(
-              t -> t.field(entry.getKey()).value(value).caseInsensitive(Boolean.TRUE)).build();
+              t -> t.field(entry.getKey()).value(value)).build();
         }
         queries.add(query);
       }
