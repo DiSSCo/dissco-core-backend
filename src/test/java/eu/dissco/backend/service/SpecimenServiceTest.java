@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaObjectFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
+import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -58,6 +59,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -478,7 +480,11 @@ class SpecimenServiceTest {
     params.put("kingdom", List.of("animalia"));
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenTaxonAggregationMap();
-    given(elasticRepository.getAggregations(anyMap(), anySet(), eq(true))).willReturn(
+    given(elasticRepository.getAggregations(
+        Map.of(
+            "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword",
+            List.of("animalia")),
+        Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true)).willReturn(
         aggregationMap);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
         MAPPER.valueToTree(aggregationMap));
