@@ -18,7 +18,8 @@ public enum TaxonMappingTerms implements MappingTerm {
   FAMILY("family",
       "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:family.keyword"),
   GENUS("genus",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:genus.keyword");
+      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:genus.keyword"),
+  SPECIES("species", "digitalSpecimenWrapper.ods:attributes.ods:specimenName.keyword");
 
   private static final Map<String, TaxonMappingTerms> taxonMapping = fillTaxonMapping();
   private static final TaxonMappingTerms[] values = values();
@@ -42,16 +43,8 @@ public enum TaxonMappingTerms implements MappingTerm {
     paramMap.put(ORDER.requestName, ORDER);
     paramMap.put(FAMILY.requestName, FAMILY);
     paramMap.put(GENUS.requestName, GENUS);
+    paramMap.put(SPECIES.requestName, SPECIES);
     return paramMap;
-  }
-
-  public static TaxonMappingTerms getNextLevel(int ordinal) throws UnknownParameterException {
-    if (values.length > ordinal) {
-      return values[ordinal + 1];
-    } else {
-      log.warn("Failed to get next level after Genus, requested ordinal was: {}", ordinal);
-      throw new UnknownParameterException("No more levels after Genus");
-    }
   }
 
   @Override

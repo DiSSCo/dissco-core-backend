@@ -76,14 +76,20 @@ public class SpecimenService {
   private final MasJobRecordService masJobRecordService;
   private final UserService userService;
 
-  private static TaxonMappingTerms retrieveNextTaxLevel(
-      Map<TaxonMappingTerms, List<String>> mappedParams) throws UnknownParameterException {
+  private static Set<MappingTerm> retrieveTaxRanks(
+      Map<TaxonMappingTerms, List<String>> mappedParams) {
     var maxResult = mappedParams.keySet().stream().max(comparing(Enum::ordinal));
+    var levels = new HashSet<MappingTerm>();
     if (maxResult.isEmpty()) {
-      return TaxonMappingTerms.KINGDOM;
+      levels.add(TaxonMappingTerms.KINGDOM);
     } else {
-      return TaxonMappingTerms.getNextLevel(maxResult.get().ordinal());
+      for (var value : TaxonMappingTerms.getTaxonMapping().values()) {
+        if (value.ordinal() <= maxResult.get().ordinal() + 1) {
+          levels.add(value);
+        }
+      }
     }
+    return levels;
   }
 
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
@@ -324,10 +330,10 @@ public class SpecimenService {
   public JsonApiWrapper taxonAggregations(MultiValueMap<String, String> params,
       String path) throws UnknownParameterException, IOException {
     var mappedParams = mapParamsKeyword(params, TaxonMappingTerms.getTaxonMapping());
-    var aggregateTerm = retrieveNextTaxLevel(mappedParams);
+    var aggregateTerm = retrieveTaxRanks(mappedParams);
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var aggregations = elasticRepository.getAggregations(map, Set.of(aggregateTerm), true);
+    var aggregations = elasticRepository.getAggregations(map, aggregateTerm, true);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
