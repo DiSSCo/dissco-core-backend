@@ -27,11 +27,17 @@ public class MasJobRecordUtils {
 
 
   public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
-    return givenMasJobRecordIdMap(masId, false);
+    return givenMasJobRecordIdMap(masId, false, TTL_DEFAULT);
   }
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching) {
+
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, long ttl){
+    return givenMasJobRecordIdMap(masId, false, ttl);
+  }
+
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching,
+      Long ttl) {
     var jobIdMap = new HashMap<String, MasJobRecord>();
-    jobIdMap.put(masId, givenMasJobRecord(batching));
+    jobIdMap.put(masId, givenMasJobRecord(batching, ttl));
     return jobIdMap;
   }
 
@@ -79,10 +85,10 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecord givenMasJobRecord(){
-    return givenMasJobRecord(false);
+    return givenMasJobRecord(false, TTL_DEFAULT);
   }
 
-  public static MasJobRecord givenMasJobRecord(boolean batching){
+  public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl){
     return new MasJobRecord(
         JOB_ID,
         MjrJobState.SCHEDULED,
@@ -91,7 +97,7 @@ public class MasJobRecordUtils {
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
         batching,
-        TTL_DEFAULT
+        ttl
     );
   }
 
