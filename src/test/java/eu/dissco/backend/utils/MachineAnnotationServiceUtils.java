@@ -66,8 +66,8 @@ public class MachineAnnotationServiceUtils {
   public static MasJobRequest givenMasJobRequest(boolean batching) {
     return new MasJobRequest(
         ID,
-        batching
-    );
+        batching,
+        null);
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord() {

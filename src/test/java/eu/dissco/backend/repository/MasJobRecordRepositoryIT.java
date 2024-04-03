@@ -10,6 +10,7 @@ import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -160,7 +161,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   void testCreateNewMasJobRecord() {
     // Given
     var mjr = new MasJobRecord(JOB_ID, MjrJobState.SCHEDULED, ID, ID_ALT,
-        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false);
+        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false, TTL_DEFAULT);
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -241,7 +242,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
-          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested()));
+          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
+          .set(MAS_JOB_RECORD.TIME_TO_LIVE, mjr.timeToLive()));
     }
     context.batch(queryList).execute();
   }

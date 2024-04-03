@@ -23,6 +23,7 @@ public class MasJobRecordUtils {
   public static final String JOB_SUFFIX = "TR9-6D6-Z4A";
   public static final String JOB_ID_ALT = "20.5000.1025/P3D-22A-MRY";
   public static final String MJR_URI = "/api/v1/mjr/";
+  public static Integer TTL_DEFAULT = 86400;
 
 
   public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
@@ -49,7 +50,8 @@ public class MasJobRecordUtils {
         CREATED,
         null,
         null,
-        false
+        false,
+        TTL_DEFAULT
     );
   }
 
@@ -69,7 +71,8 @@ public class MasJobRecordUtils {
         CREATED,
         CREATED,
         MAPPER.createObjectNode().put("annotation", "value"),
-        false
+        false,
+        TTL_DEFAULT
     );
   }
 
@@ -85,7 +88,8 @@ public class MasJobRecordUtils {
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
-        batching
+        batching,
+        TTL_DEFAULT
     );
   }
 

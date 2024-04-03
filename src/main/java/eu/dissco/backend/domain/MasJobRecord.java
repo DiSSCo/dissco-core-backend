@@ -10,7 +10,7 @@ public record MasJobRecord(
     String targetId,
     MjrTargetType targetType,
     String orcid,
-    boolean batchingRequested
-) {
+    boolean batchingRequested,
+    Integer timeToLive) {
 
 }
