@@ -133,7 +133,8 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
           dataNode,
           dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED),
-          dbRecord.get(MAS_JOB_RECORD.TIME_TO_LIVE)
+          dbRecord.get(MAS_JOB_RECORD.TIME_TO_LIVE),
+          dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

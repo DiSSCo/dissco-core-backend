@@ -51,7 +51,8 @@ public class MasJobRecordUtils {
         null,
         null,
         false,
-        TTL_DEFAULT
+        TTL_DEFAULT,
+        null
     );
   }
 
@@ -72,7 +73,8 @@ public class MasJobRecordUtils {
         CREATED,
         MAPPER.createObjectNode().put("annotation", "value"),
         false,
-        TTL_DEFAULT
+        TTL_DEFAULT,
+        null
     );
   }
 

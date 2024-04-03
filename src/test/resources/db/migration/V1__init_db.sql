@@ -116,6 +116,8 @@ create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED'
 
 create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
+create type error_code as enum ('TIMEOUT');
+
 create table mas_job_record
 (
     job_id         text                     not null
@@ -130,5 +132,6 @@ create table mas_job_record
     user_id        text,
     target_type    mjr_target_type,
     batching_requested boolean not null,
-    time_to_live   int
+    time_to_live   int,
+    error          error_code
 );
