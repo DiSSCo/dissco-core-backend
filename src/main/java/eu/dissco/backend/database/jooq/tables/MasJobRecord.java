@@ -154,7 +154,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
 
     @Override
     public UniqueKey<MasJobRecordRecord> getPrimaryKey() {
-        return Keys.MAS_JOB_RECORD_NEW_PK;
+        return Keys.MAS_JOB_RECORD_PK;
     }
 
     @Override
