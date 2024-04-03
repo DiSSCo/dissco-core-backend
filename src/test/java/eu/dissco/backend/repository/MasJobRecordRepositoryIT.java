@@ -20,6 +20,7 @@ import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -231,6 +232,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     for (var mjr : mjrList) {
       var dataNode = mjr.annotations() != null ?
           JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
+      var ttl = mjr.timeStarted().plusSeconds(mjr.timeToLive());
       queryList.add(context.insertInto(MAS_JOB_RECORD)
           .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD.JOB_STATE, mjr.state())
@@ -243,7 +245,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
           .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
-          .set(MAS_JOB_RECORD.TIME_TO_LIVE, mjr.timeToLive()));
+          .set(MAS_JOB_RECORD.TIME_TO_LIVE, ttl));
     }
     context.batch(queryList).execute();
   }
