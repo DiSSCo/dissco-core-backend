@@ -10,6 +10,7 @@ import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,6 +20,7 @@ import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -160,7 +162,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   void testCreateNewMasJobRecord() {
     // Given
     var mjr = new MasJobRecord(JOB_ID, MjrJobState.SCHEDULED, ID, ID_ALT,
-        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false);
+        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false, TTL_DEFAULT);
 
     // When
     masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
@@ -230,6 +232,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     for (var mjr : mjrList) {
       var dataNode = mjr.annotations() != null ?
           JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
+      var ttl = mjr.timeStarted().plusSeconds(mjr.timeToLive());
       queryList.add(context.insertInto(MAS_JOB_RECORD)
           .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
           .set(MAS_JOB_RECORD.JOB_STATE, mjr.state())
@@ -241,7 +244,8 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
-          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested()));
+          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
+          .set(MAS_JOB_RECORD.TIME_TO_LIVE, ttl));
     }
     context.batch(queryList).execute();
   }

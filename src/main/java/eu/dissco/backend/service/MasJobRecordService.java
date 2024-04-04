@@ -93,19 +93,25 @@ public class MasJobRecordService {
 
   public Map<String, MasJobRecord> createMasJobRecord(
       Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, MjrTargetType targetType, Map<String, MasJobRequest> mass) {
+      String targetId, String orcid, MjrTargetType targetType, Map<String, MasJobRequest> masRequests) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
-        .map(masRecord -> new MasJobRecord(
-            handleItr.next(),
-            MjrJobState.SCHEDULED,
-            masRecord.id(),
-            targetId,
-            targetType,
-            orcid,
-            mass.get(masRecord.id()).batching()))
+        .map(masRecord -> {
+          var request = masRequests.get(masRecord.id());
+          Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
+          return new MasJobRecord(
+              handleItr.next(),
+              MjrJobState.SCHEDULED,
+              masRecord.id(),
+              targetId,
+              targetType,
+              orcid,
+              request.batching(),
+              ttl
+          );
+        })
         .toList();
     masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
     return masJobRecordList.stream()

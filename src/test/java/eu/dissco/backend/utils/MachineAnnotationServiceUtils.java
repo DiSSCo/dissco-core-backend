@@ -60,14 +60,14 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MasJobRequest givenMasJobRequest() {
-    return givenMasJobRequest(false);
+    return givenMasJobRequest(false, null);
   }
 
-  public static MasJobRequest givenMasJobRequest(boolean batching) {
+  public static MasJobRequest givenMasJobRequest(boolean batching, Long ttl) {
     return new MasJobRequest(
         ID,
-        batching
-    );
+        batching,
+        ttl);
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord() {

@@ -6,6 +6,7 @@ package eu.dissco.backend.database.jooq.tables;
 
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
+import eu.dissco.backend.database.jooq.enums.ErrorCode;
 import eu.dissco.backend.database.jooq.enums.MjrJobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
@@ -15,12 +16,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function10;
+import org.jooq.Function12;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row10;
+import org.jooq.Row12;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -103,6 +104,16 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      */
     public final TableField<MasJobRecordRecord, Boolean> BATCHING_REQUESTED = createField(DSL.name("batching_requested"), SQLDataType.BOOLEAN, this, "");
 
+    /**
+     * The column <code>public.mas_job_record.error</code>.
+     */
+    public final TableField<MasJobRecordRecord, ErrorCode> ERROR = createField(DSL.name("error"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.ErrorCode.class), this, "");
+
+    /**
+     * The column <code>public.mas_job_record.time_to_live</code>.
+     */
+    public final TableField<MasJobRecordRecord, Instant> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INSTANT, this, "");
+
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -143,7 +154,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
 
     @Override
     public UniqueKey<MasJobRecordRecord> getPrimaryKey() {
-        return Keys.MAS_JOB_RECORD_NEW_PK;
+        return Keys.MAS_JOB_RECORD_PK;
     }
 
     @Override
@@ -186,18 +197,18 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row12 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row12<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean, ErrorCode, Instant> fieldsRow() {
+        return (Row12) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -205,7 +216,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
