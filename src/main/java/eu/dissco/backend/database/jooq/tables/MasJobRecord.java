@@ -16,12 +16,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function12;
+import org.jooq.Function13;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row12;
+import org.jooq.Row13;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -114,6 +114,11 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      */
     public final TableField<MasJobRecordRecord, Instant> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INSTANT, this, "");
 
+    /**
+     * The column <code>public.mas_job_record.expires_on</code>.
+     */
+    public final TableField<MasJobRecordRecord, Instant> EXPIRES_ON = createField(DSL.name("expires_on"), SQLDataType.INSTANT, this, "");
+
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -197,18 +202,18 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row12 type methods
+    // Row13 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row12<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean, ErrorCode, Instant> fieldsRow() {
-        return (Row12) super.fieldsRow();
+    public Row13<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean, ErrorCode, Instant, Instant> fieldsRow() {
+        return (Row13) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function13<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? super Instant, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -216,7 +221,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function13<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? super Instant, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

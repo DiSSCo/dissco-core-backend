@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -191,14 +192,14 @@ class MasJobRecordServiceTest {
   @Test
   void testCreateMasJobRecordCustomTTL() {
     // Given
-    var ttl = 3600L;
-    var masRecord = givenMasRecord();
+    Integer ttl = 3600;
+    var masRecord = givenMasRecord(ID, CREATED, ttl);
     var expected = givenMasJobRecordIdMap(masRecord.id(), ttl);
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest(false, ttl)));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest(false, (long) ttl)));
 
     // Then
     assertThat(result).isEqualTo(expected);

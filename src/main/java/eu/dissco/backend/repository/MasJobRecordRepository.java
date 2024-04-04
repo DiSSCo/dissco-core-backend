@@ -107,7 +107,7 @@ public class MasJobRecordRepository {
 
   private Query mjrToQuery(MasJobRecord masJobRecord) {
     var now = Instant.now();
-    var ttl = now.plusSeconds(masJobRecord.timeToLive());
+    var expiresOn = now.plusSeconds(masJobRecord.timeToLive());
     return context.insertInto(MAS_JOB_RECORD)
         .set(MAS_JOB_RECORD.JOB_ID, masJobRecord.jobId())
         .set(MAS_JOB_RECORD.JOB_STATE, masJobRecord.state())
@@ -117,7 +117,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD.TIME_STARTED, now)
         .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested())
-        .set(MAS_JOB_RECORD.TIME_TO_LIVE, ttl);
+        .set(MAS_JOB_RECORD.EXPIRES_ON, expiresOn);
   }
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
@@ -126,7 +126,7 @@ public class MasJobRecordRepository {
           mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class) :
           null;
       var timeCreated = dbRecord.get(MAS_JOB_RECORD.TIME_STARTED);
-      var ttl = ChronoUnit.SECONDS.between(timeCreated, dbRecord.get(MAS_JOB_RECORD.TIME_TO_LIVE));
+      var expiresOn = ChronoUnit.SECONDS.between(timeCreated, dbRecord.get(MAS_JOB_RECORD.EXPIRES_ON));
       return new MasJobRecordFull(
           dbRecord.get(MAS_JOB_RECORD.JOB_STATE),
           dbRecord.get(MAS_JOB_RECORD.MAS_ID),
@@ -138,7 +138,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
           dataNode,
           dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED),
-          ttl,
+          expiresOn,
           dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
     } catch (JsonProcessingException e) {

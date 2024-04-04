@@ -100,7 +100,7 @@ public class MasJobRecordService {
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
           var request = masRequests.get(masRecord.id());
-          Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
+          var ttl = (long) masRecord.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
               MjrJobState.SCHEDULED,

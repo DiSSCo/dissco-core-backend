@@ -23,6 +23,8 @@ import java.util.Map;
 
 public class MachineAnnotationServiceUtils {
 
+  public static final Integer TTL_INT = 86400;
+
   public static JsonApiListResponseWrapper givenMasResponse(String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
@@ -66,8 +68,8 @@ public class MachineAnnotationServiceUtils {
   public static MasJobRequest givenMasJobRequest(boolean batching, Long ttl) {
     return new MasJobRequest(
         ID,
-        batching,
-        ttl);
+        batching
+    );
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord() {
@@ -75,13 +77,18 @@ public class MachineAnnotationServiceUtils {
   }
 
   public static MachineAnnotationServiceRecord givenMasRecord(String id, Instant deleted) {
+    return givenMasRecord(id, deleted, TTL_INT);
+  }
+
+  public static MachineAnnotationServiceRecord givenMasRecord(String id, Instant deleted, Integer ttl) {
     return new MachineAnnotationServiceRecord(
         id,
         1,
         CREATED,
         USER_ID_TOKEN,
         givenMas(),
-        deleted
+        deleted,
+        ttl
     );
   }
 
@@ -96,7 +103,8 @@ public class MachineAnnotationServiceUtils {
         CREATED,
         USER_ID_TOKEN,
         givenMas(filters, batching),
-        null
+        null,
+        TTL_INT
     );
   }
 

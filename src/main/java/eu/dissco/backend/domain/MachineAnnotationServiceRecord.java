@@ -16,7 +16,8 @@ public record MachineAnnotationServiceRecord(
     String administrator,
     @NotNull
     MachineAnnotationService mas,
-    Instant deleted
+    Instant deleted,
+    Integer timeToLive
 ) {
 
 }
