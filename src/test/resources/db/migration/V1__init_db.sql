@@ -111,7 +111,7 @@ CREATE TABLE machine_annotation_services
     batching_permitted            boolean not null
 );
 
-create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
+create type job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
 
 create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
@@ -120,7 +120,7 @@ create table mas_job_record
     job_id         text                     not null
         constraint mas_job_record_pk
             primary key,
-    job_state      mjr_job_state               not null,
+    job_state      job_state               not null,
     mas_id         text                     not null,
     time_started   timestamp with time zone not null,
     time_completed timestamp with time zone,

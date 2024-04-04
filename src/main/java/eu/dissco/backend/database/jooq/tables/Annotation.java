@@ -17,13 +17,13 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function17;
+import org.jooq.Function18;
 import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row17;
+import org.jooq.Row18;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -142,6 +142,11 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      */
     public final TableField<AnnotationRecord, UUID> ANNOTATION_HASH = createField(DSL.name("annotation_hash"), SQLDataType.UUID, this, "hashes motivation, target, and creator fields");
 
+    /**
+     * The column <code>public.annotation.mjr_job_id</code>.
+     */
+    public final TableField<AnnotationRecord, String> MJR_JOB_ID = createField(DSL.name("mjr_job_id"), SQLDataType.CLOB, this, "");
+
     private Annotation(Name alias, Table<AnnotationRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -230,18 +235,18 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row17 type methods
+    // Row18 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<String, Integer, String, String, String, String, JSONB, JSONB, String, JSONB, Instant, JSONB, Instant, Instant, JSONB, Instant, UUID> fieldsRow() {
-        return (Row17) super.fieldsRow();
+    public Row18<String, Integer, String, String, String, String, JSONB, JSONB, String, JSONB, Instant, JSONB, Instant, Instant, JSONB, Instant, UUID, String> fieldsRow() {
+        return (Row18) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function17<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function18<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -249,7 +254,7 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function17<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function18<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? super JSONB, ? super JSONB, ? super String, ? super JSONB, ? super Instant, ? super JSONB, ? super Instant, ? super Instant, ? super JSONB, ? super Instant, ? super UUID, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

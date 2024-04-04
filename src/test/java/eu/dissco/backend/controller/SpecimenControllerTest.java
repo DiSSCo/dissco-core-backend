@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -137,7 +137,7 @@ class SpecimenControllerTest {
   void testGetMjrsForSpecimen() throws Exception {
 
     // When
-    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, MjrJobState.SCHEDULED,
+    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, JobState.SCHEDULED,
         1, 1, mockRequest);
 
     // THen

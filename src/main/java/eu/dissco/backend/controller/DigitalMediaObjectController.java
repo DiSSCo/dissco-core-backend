@@ -3,7 +3,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -112,7 +112,7 @@ public class DigitalMediaObjectController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordForMedia(
       @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix,
-      @RequestParam(required = false) MjrJobState state,
+      @RequestParam(required = false) JobState state,
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request
