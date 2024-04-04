@@ -191,7 +191,7 @@ class MasJobRecordServiceTest {
   @Test
   void testCreateMasJobRecordCustomTTL() {
     // Given
-    Long ttl = (long) 3600;
+    var ttl = 3600L;
     var masRecord = givenMasRecord();
     var expected = givenMasJobRecordIdMap(masRecord.id(), ttl);
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));

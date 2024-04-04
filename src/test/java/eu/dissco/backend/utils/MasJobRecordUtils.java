@@ -23,7 +23,7 @@ public class MasJobRecordUtils {
   public static final String JOB_SUFFIX = "TR9-6D6-Z4A";
   public static final String JOB_ID_ALT = "20.5000.1025/P3D-22A-MRY";
   public static final String MJR_URI = "/api/v1/mjr/";
-  public static Long TTL_DEFAULT = (long) 86400;
+  public static Long TTL_DEFAULT = 86400L;
 
 
   public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
