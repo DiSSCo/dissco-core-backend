@@ -134,6 +134,5 @@ create table mas_job_record
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
-    time_to_live       timestamp with time zone,
     expires_on         timestamp with time zone not null
 );

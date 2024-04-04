@@ -169,7 +169,7 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     /**
      * The column <code>public.machine_annotation_services.time_to_live</code>.
      */
-    public final TableField<MachineAnnotationServicesRecord, Integer> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("86400"), SQLDataType.INTEGER)), this, "");
+    public final TableField<MachineAnnotationServicesRecord, Integer> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("86400"), SQLDataType.INTEGER)), this, "");
 
     private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased) {
         this(alias, aliased, null);
