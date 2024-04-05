@@ -163,7 +163,7 @@ public class SpecimenController extends BaseController {
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
-    log.info("Received ger request for MAS Job records for specimen {}", id);
+    log.info("Received get request for MAS Job records for specimen {}", id);
     String path = getPath(request);
     return ResponseEntity.ok(
         service.getMasJobRecordsForSpecimen(id, state, path, pageNumber, pageSize));

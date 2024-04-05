@@ -109,7 +109,8 @@ CREATE TABLE machine_annotation_services
     topicname                     text,
     maxreplicas                   integer,
     deleted_on                    timestamp with time zone,
-    batching_permitted            boolean not null
+    batching_permitted            boolean                  not null,
+    time_to_live                  integer default 86400    not null
 );
 
 create type mjr_job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
@@ -133,5 +134,5 @@ create table mas_job_record
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
-    time_to_live       timestamp with time zone
+    expires_on         timestamp with time zone
 );

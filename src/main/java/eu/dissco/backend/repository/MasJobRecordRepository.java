@@ -117,7 +117,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD.TIME_STARTED, now)
         .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested())
-        .set(MAS_JOB_RECORD.TIME_TO_LIVE, ttl);
+        .set(MAS_JOB_RECORD.EXPIRES_ON, ttl);
   }
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
@@ -126,7 +126,7 @@ public class MasJobRecordRepository {
           mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class) :
           null;
       var timeCreated = dbRecord.get(MAS_JOB_RECORD.TIME_STARTED);
-      var ttl = ChronoUnit.SECONDS.between(timeCreated, dbRecord.get(MAS_JOB_RECORD.TIME_TO_LIVE));
+      var ttl = ChronoUnit.SECONDS.between(timeCreated, dbRecord.get(MAS_JOB_RECORD.EXPIRES_ON));
       return new MasJobRecordFull(
           dbRecord.get(MAS_JOB_RECORD.JOB_STATE),
           dbRecord.get(MAS_JOB_RECORD.MAS_ID),

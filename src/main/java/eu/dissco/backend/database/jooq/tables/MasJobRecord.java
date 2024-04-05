@@ -110,9 +110,9 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     public final TableField<MasJobRecordRecord, ErrorCode> ERROR = createField(DSL.name("error"), SQLDataType.VARCHAR.asEnumDataType(eu.dissco.backend.database.jooq.enums.ErrorCode.class), this, "");
 
     /**
-     * The column <code>public.mas_job_record.time_to_live</code>.
+     * The column <code>public.mas_job_record.expires_on</code>.
      */
-    public final TableField<MasJobRecordRecord, Instant> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INSTANT, this, "");
+    public final TableField<MasJobRecordRecord, Instant> EXPIRES_ON = createField(DSL.name("expires_on"), SQLDataType.INSTANT.nullable(false), this, "");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, null);
