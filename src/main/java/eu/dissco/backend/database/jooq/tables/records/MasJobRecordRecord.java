@@ -182,16 +182,16 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     }
 
     /**
-     * Setter for <code>public.mas_job_record.time_to_live</code>.
+     * Setter for <code>public.mas_job_record.expires_on</code>.
      */
-    public void setTimeToLive(Instant value) {
+    public void setExpiresOn(Instant value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>public.mas_job_record.time_to_live</code>.
+     * Getter for <code>public.mas_job_record.expires_on</code>.
      */
-    public Instant getTimeToLive() {
+    public Instant getExpiresOn() {
         return (Instant) get(11);
     }
 
@@ -275,7 +275,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
 
     @Override
     public Field<Instant> field12() {
-        return MasJobRecord.MAS_JOB_RECORD.TIME_TO_LIVE;
+        return MasJobRecord.MAS_JOB_RECORD.EXPIRES_ON;
     }
 
     @Override
@@ -335,7 +335,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
 
     @Override
     public Instant component12() {
-        return getTimeToLive();
+        return getExpiresOn();
     }
 
     @Override
@@ -395,7 +395,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
 
     @Override
     public Instant value12() {
-        return getTimeToLive();
+        return getExpiresOn();
     }
 
     @Override
@@ -466,7 +466,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
 
     @Override
     public MasJobRecordRecord value12(Instant value) {
-        setTimeToLive(value);
+        setExpiresOn(value);
         return this;
     }
 
@@ -501,7 +501,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     /**
      * Create a detached, initialised MasJobRecordRecord
      */
-    public MasJobRecordRecord(String jobId, MjrJobState jobState, String masId, Instant timeStarted, Instant timeCompleted, JSONB annotations, String targetId, String userId, MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant timeToLive) {
+    public MasJobRecordRecord(String jobId, MjrJobState jobState, String masId, Instant timeStarted, Instant timeCompleted, JSONB annotations, String targetId, String userId, MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant expiresOn) {
         super(MasJobRecord.MAS_JOB_RECORD);
 
         setJobId(jobId);
@@ -515,7 +515,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
         setTargetType(targetType);
         setBatchingRequested(batchingRequested);
         setError(error);
-        setTimeToLive(timeToLive);
+        setExpiresOn(expiresOn);
         resetChangedOnNotNull();
     }
 }
