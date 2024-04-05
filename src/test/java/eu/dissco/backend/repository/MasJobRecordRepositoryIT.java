@@ -245,7 +245,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
           .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
           .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
-          .set(MAS_JOB_RECORD.TIME_TO_LIVE, ttl));
+          .set(MAS_JOB_RECORD.EXPIRES_ON, ttl));
     }
     context.batch(queryList).execute();
   }
