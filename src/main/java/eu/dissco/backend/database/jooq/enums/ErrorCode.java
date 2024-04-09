@@ -17,7 +17,9 @@ import org.jooq.Schema;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public enum ErrorCode implements EnumType {
 
-    TIMEOUT("TIMEOUT");
+    TIMEOUT("TIMEOUT"),
+
+    DISSCO_EXCEPTION("DISSCO_EXCEPTION");
 
     private final String literal;
 

@@ -161,7 +161,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @Test
   void testCreateNewMasJobRecord() {
     // Given
-    var mjr = new MasJobRecord(JOB_ID, MjrJobState.SCHEDULED, ID, ID_ALT,
+    var mjr = new MasJobRecord(JOB_ID, JobState.SCHEDULED, ID, ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN, ORCID, false, TTL_DEFAULT);
 
     // When

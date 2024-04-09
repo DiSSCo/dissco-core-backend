@@ -103,7 +103,7 @@ public class MasJobRecordService {
           Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
-              MjrJobState.SCHEDULED,
+              JobState.SCHEDULED,
               masRecord.id(),
               targetId,
               targetType,

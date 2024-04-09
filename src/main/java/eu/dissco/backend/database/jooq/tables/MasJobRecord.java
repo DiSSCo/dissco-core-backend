@@ -7,7 +7,7 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.enums.ErrorCode;
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
 
@@ -201,14 +201,14 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row12<String, MjrJobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean, ErrorCode, Instant> fieldsRow() {
+    public Row12<String, JobState, String, Instant, Instant, JSONB, String, String, MjrTargetType, Boolean, ErrorCode, Instant> fieldsRow() {
         return (Row12) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function12<? super String, ? super JobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -216,7 +216,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function12<? super String, ? super MjrJobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function12<? super String, ? super JobState, ? super String, ? super Instant, ? super Instant, ? super JSONB, ? super String, ? super String, ? super MjrTargetType, ? super Boolean, ? super ErrorCode, ? super Instant, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
