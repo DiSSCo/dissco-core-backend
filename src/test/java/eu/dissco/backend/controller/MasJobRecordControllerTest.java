@@ -10,7 +10,7 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -26,17 +26,16 @@ import org.springframework.mock.web.MockHttpServletRequest;
 @ExtendWith(MockitoExtension.class)
 class MasJobRecordControllerTest {
 
-  @Mock
-  private MasJobRecordService masJobRecordService;
+  private static final String MJR_PATH = "https://sandbox.dissco.tech" + MJR_URI;
   @Mock
   ApplicationProperties properties;
+  @Mock
+  private MasJobRecordService masJobRecordService;
   private MockHttpServletRequest mockRequest;
   private MasJobRecordController controller;
 
-  private static final String MJR_PATH = "https://sandbox.dissco.tech" + MJR_URI;
-
   @BeforeEach
-  void setup(){
+  void setup() {
     controller = new MasJobRecordController(MAPPER, properties, masJobRecordService);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(MJR_URI);
@@ -44,10 +43,10 @@ class MasJobRecordControllerTest {
 
   @Test
   void testGetMasJobRecord() throws Exception {
-   // Given
-    given(masJobRecordService.getMasJobRecordById(JOB_ID, MJR_PATH)).willReturn(new JsonApiWrapper(null, null));
+    // Given
+    given(masJobRecordService.getMasJobRecordById(JOB_ID, MJR_PATH)).willReturn(
+        new JsonApiWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
-
 
     // When
     var result = controller.getMasJobRecord(PREFIX, JOB_SUFFIX, mockRequest);
@@ -61,11 +60,13 @@ class MasJobRecordControllerTest {
     // Given
     int pageNum = 1;
     int pageSize = 1;
-    given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize, MjrJobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
+    given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize,
+        JobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.getMasJobRecordsForCreator(ORCID, pageNum, pageSize, MjrJobState.FAILED, mockRequest);
+    var result = controller.getMasJobRecordsForCreator(ORCID, pageNum, pageSize, JobState.FAILED,
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

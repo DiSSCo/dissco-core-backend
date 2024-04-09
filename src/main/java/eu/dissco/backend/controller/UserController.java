@@ -2,7 +2,7 @@ package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -89,12 +89,13 @@ public class UserController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecords(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      @RequestParam(required = false) MjrJobState state,
+      @RequestParam(required = false) JobState state,
       Authentication authentication,
-     HttpServletRequest request) {
+      HttpServletRequest request) {
     var userId = authentication.getName();
     log.info("User: {} has requested a list of their Mas Job records", userId);
-    var response = service.getMasJobRecordsForUser(userId, getPath(request), pageNumber, pageSize, state);
+    var response = service.getMasJobRecordsForUser(userId, getPath(request), pageNumber, pageSize,
+        state);
     return ResponseEntity.ok(response);
   }
 

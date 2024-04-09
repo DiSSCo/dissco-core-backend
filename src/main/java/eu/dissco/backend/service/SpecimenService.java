@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
@@ -125,7 +125,7 @@ public class SpecimenService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
-      MjrJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      JobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 

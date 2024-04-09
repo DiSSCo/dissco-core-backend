@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
@@ -47,7 +47,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      MjrJobState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      JobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     var pageSizePlusOne = pageSize + 1;
     var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
         pageNum, pageSizePlusOne);
@@ -58,7 +58,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByMasId(String masId, String path,
-      int pageNum, int pageSize, MjrJobState state) {
+      int pageNum, int pageSize, JobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByMasId(masId,
@@ -67,7 +67,7 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsByUserId(String orcid, String path,
-      int pageNum, int pageSize, MjrJobState state) {
+      int pageNum, int pageSize, JobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
     masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByUserId(orcid, state,
@@ -103,7 +103,7 @@ public class MasJobRecordService {
           Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
-              MjrJobState.SCHEDULED,
+              JobState.SCHEDULED,
               masRecord.id(),
               targetId,
               targetType,

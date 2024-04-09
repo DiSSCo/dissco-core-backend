@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -74,11 +74,11 @@ class MasJobRecordServiceTest {
   void testGetMasJobRecordNotFound() {
     // Given
     given(masJobRecordRepository.getMasJobRecordsByTargetId(ID,
-        MjrJobState.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
+        JobState.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
 
     // Then
     assertThrows(NotFoundException.class,
-        () -> masJobRecordService.getMasJobRecordByTargetId(ID, MjrJobState.SCHEDULED, MJR_URI,
+        () -> masJobRecordService.getMasJobRecordByTargetId(ID, JobState.SCHEDULED, MJR_URI,
             1, 1));
   }
 
@@ -161,13 +161,13 @@ class MasJobRecordServiceTest {
     var expected = new JsonApiListResponseWrapper(Collections.emptyList(),
         new JsonApiLinksFull(MJR_URI));
     given(masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
-        MjrJobState.FAILED, pageNum, pageSize + 1)).willReturn(
+        JobState.FAILED, pageNum, pageSize + 1)).willReturn(
         Collections.emptyList());
 
     // When
     var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
         pageSize,
-        MjrJobState.FAILED);
+        JobState.FAILED);
 
     // Then
     assertThat(result).isEqualTo(expected);

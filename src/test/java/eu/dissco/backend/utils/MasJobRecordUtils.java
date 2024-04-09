@@ -6,7 +6,7 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -47,7 +47,7 @@ public class MasJobRecordUtils {
 
   public static MasJobRecordFull givenMasJobRecordFullScheduled(MjrTargetType targetType) {
     return new MasJobRecordFull(
-        MjrJobState.SCHEDULED,
+        JobState.SCHEDULED,
         ID_ALT,
         ID,
         targetType,
@@ -69,7 +69,7 @@ public class MasJobRecordUtils {
 
   public static MasJobRecordFull givenMasJobRecordFullCompleted(String creator) {
     return new MasJobRecordFull(
-        MjrJobState.COMPLETED,
+        JobState.COMPLETED,
         creator,
         ID,
         MjrTargetType.DIGITAL_SPECIMEN,
@@ -91,7 +91,7 @@ public class MasJobRecordUtils {
   public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl){
     return new MasJobRecord(
         JOB_ID,
-        MjrJobState.SCHEDULED,
+        JobState.SCHEDULED,
         ID,
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
@@ -101,7 +101,8 @@ public class MasJobRecordUtils {
     );
   }
 
-  public static JsonApiListResponseWrapper givenMjrListResponse(int pageSize, int pageNum, boolean hasNext){
+  public static JsonApiListResponseWrapper givenMjrListResponse(int pageSize, int pageNum,
+      boolean hasNext) {
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, MJR_URI);
     var mjr = givenMasJobRecordFullScheduled();
     var dataList = Collections.nCopies(pageSize,

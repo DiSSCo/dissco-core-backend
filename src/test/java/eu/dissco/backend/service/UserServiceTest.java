@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import eu.dissco.backend.database.jooq.enums.MjrJobState;
+import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidIdException;
@@ -109,16 +109,18 @@ class UserServiceTest {
   }
 
   @Test
-  void testGetMjrFromUserId(){
+  void testGetMjrFromUserId() {
     // When
     var path = "path";
     var pageNum = 1;
     var pageSize = 1;
     var expected = givenMjrListResponse(pageNum, pageSize, true);
-    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED)).willReturn(expected);
+    given(masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, path, pageNum, pageSize,
+        JobState.SCHEDULED)).willReturn(expected);
 
     // When
-    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize, MjrJobState.SCHEDULED);
+    var result = service.getMasJobRecordsForUser(USER_ID_TOKEN, path, pageNum, pageSize,
+        JobState.SCHEDULED);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -144,7 +146,7 @@ class UserServiceTest {
   }
 
   @Test
-  void testFindUserFromOrcid() throws Exception{
+  void testFindUserFromOrcid() throws Exception {
     // Given
     given(repository.findOptionalFromOrcid(ORCID)).willReturn(Optional.of(givenUser()));
 
