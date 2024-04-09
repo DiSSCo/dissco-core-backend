@@ -12,6 +12,7 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasReco
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenScheduledMasResponse;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -114,18 +115,18 @@ class MachineAnnotationServiceServiceTest {
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen(), true);
     given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest(true)))).willReturn(
-        givenMasJobRecordIdMap(masRecord.id(), true));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest(true, null)))).willReturn(
+        givenMasJobRecordIdMap(masRecord.id(), true, TTL_DEFAULT));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID, true);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(ID, givenMasJobRequest(true)),
+        Map.of(ID, givenMasJobRequest(true, null)),
         SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
-    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(true), SPECIMEN_PATH));
+    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(true, TTL_DEFAULT), SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 
@@ -164,7 +165,7 @@ class MachineAnnotationServiceServiceTest {
     // Then
     assertThrows(ConflictException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
-            Map.of(ID, givenMasJobRequest(true)), SPECIMEN_PATH,
+            Map.of(ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
             digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN));
   }

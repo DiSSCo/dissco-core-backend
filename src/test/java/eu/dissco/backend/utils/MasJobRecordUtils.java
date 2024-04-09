@@ -23,15 +23,21 @@ public class MasJobRecordUtils {
   public static final String JOB_SUFFIX = "TR9-6D6-Z4A";
   public static final String JOB_ID_ALT = "20.5000.1025/P3D-22A-MRY";
   public static final String MJR_URI = "/api/v1/mjr/";
+  public static Long TTL_DEFAULT = 86400L;
 
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId) {
-    return givenMasJobRecordIdMap(masId, false);
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
+    return givenMasJobRecordIdMap(masId, false, TTL_DEFAULT);
   }
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching) {
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, long ttl){
+    return givenMasJobRecordIdMap(masId, false, ttl);
+  }
+
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching,
+      Long ttl) {
     var jobIdMap = new HashMap<String, MasJobRecord>();
-    jobIdMap.put(masId, givenMasJobRecord(batching));
+    jobIdMap.put(masId, givenMasJobRecord(batching, ttl));
     return jobIdMap;
   }
 
@@ -50,7 +56,9 @@ public class MasJobRecordUtils {
         CREATED,
         null,
         null,
-        false
+        false,
+        TTL_DEFAULT,
+        null
     );
   }
 
@@ -70,15 +78,17 @@ public class MasJobRecordUtils {
         CREATED,
         CREATED,
         MAPPER.createObjectNode().put("annotation", "value"),
-        false
+        false,
+        TTL_DEFAULT,
+        null
     );
   }
 
-  public static MasJobRecord givenMasJobRecord() {
-    return givenMasJobRecord(false);
+  public static MasJobRecord givenMasJobRecord(){
+    return givenMasJobRecord(false, TTL_DEFAULT);
   }
 
-  public static MasJobRecord givenMasJobRecord(boolean batching) {
+  public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl){
     return new MasJobRecord(
         JOB_ID,
         JobState.SCHEDULED,
@@ -86,7 +96,8 @@ public class MasJobRecordUtils {
         ID_ALT,
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
-        batching
+        batching,
+        ttl
     );
   }
 
@@ -98,6 +109,4 @@ public class MasJobRecordUtils {
         new JsonApiData(JOB_ID, "masJobRecord", MAPPER.valueToTree(mjr)));
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
-
-
 }

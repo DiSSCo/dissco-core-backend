@@ -189,6 +189,22 @@ class MasJobRecordServiceTest {
   }
 
   @Test
+  void testCreateMasJobRecordCustomTTL() {
+    // Given
+    var ttl = 3600L;
+    var masRecord = givenMasRecord();
+    var expected = givenMasJobRecordIdMap(masRecord.id(), ttl);
+    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+
+    // When
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest(false, ttl)));
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testMarkMasJobRecordAsFailed() {
     // When
     masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));

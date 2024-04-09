@@ -19,8 +19,9 @@
         user |
         machine_annotation_services |
         mas_job_record |
-        job_state |
-        mjr_target_type
+        mjr_job_state |
+        mjr_target_type |
+        error_code
       </includes>
       <forcedTypes>
         <forcedType>

@@ -12,6 +12,7 @@ import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +106,8 @@ public class MasJobRecordRepository {
   }
 
   private Query mjrToQuery(MasJobRecord masJobRecord) {
+    var now = Instant.now();
+    var ttl = now.plusSeconds(masJobRecord.timeToLive());
     return context.insertInto(MAS_JOB_RECORD)
         .set(MAS_JOB_RECORD.JOB_ID, masJobRecord.jobId())
         .set(MAS_JOB_RECORD.JOB_STATE, masJobRecord.state())
@@ -112,8 +115,9 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid())
         .set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId())
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
-        .set(MAS_JOB_RECORD.TIME_STARTED, Instant.now())
-        .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested());
+        .set(MAS_JOB_RECORD.TIME_STARTED, now)
+        .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested())
+        .set(MAS_JOB_RECORD.EXPIRES_ON, ttl);
   }
 
   private MasJobRecordFull recordToMasJobRecord(Record dbRecord) {
@@ -121,6 +125,8 @@ public class MasJobRecordRepository {
       var dataNode = dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS) != null ?
           mapper.readValue(dbRecord.get(MAS_JOB_RECORD.ANNOTATIONS).data(), JsonNode.class) :
           null;
+      var timeCreated = dbRecord.get(MAS_JOB_RECORD.TIME_STARTED);
+      var ttl = ChronoUnit.SECONDS.between(timeCreated, dbRecord.get(MAS_JOB_RECORD.EXPIRES_ON));
       return new MasJobRecordFull(
           dbRecord.get(MAS_JOB_RECORD.JOB_STATE),
           dbRecord.get(MAS_JOB_RECORD.MAS_ID),
@@ -131,7 +137,9 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
           dataNode,
-          dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED)
+          dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED),
+          ttl,
+          dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);

@@ -13,12 +13,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function21;
+import org.jooq.Function22;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row21;
+import org.jooq.Row22;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -166,6 +166,11 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      */
     public final TableField<MachineAnnotationServicesRecord, Boolean> BATCHING_PERMITTED = createField(DSL.name("batching_permitted"), SQLDataType.BOOLEAN, this, "");
 
+    /**
+     * The column <code>public.machine_annotation_services.time_to_live</code>.
+     */
+    public final TableField<MachineAnnotationServicesRecord, Integer> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("86400"), SQLDataType.INTEGER)), this, "");
+
     private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -251,18 +256,18 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     }
 
     // -------------------------------------------------------------------------
-    // Row21 type methods
+    // Row22 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row21<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, Boolean> fieldsRow() {
-        return (Row21) super.fieldsRow();
+    public Row22<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, Boolean, Integer> fieldsRow() {
+        return (Row22) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function22<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? super Integer, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -270,7 +275,7 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function21<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function22<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? super Integer, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
