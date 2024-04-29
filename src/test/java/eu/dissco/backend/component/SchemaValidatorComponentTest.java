@@ -78,21 +78,21 @@ class SchemaValidatorComponentTest {
   private static Stream<Arguments> validAnnotations(){
     return Stream.of(
         Arguments.of(givenAnnotationRequest(), true),
-        Arguments.of(givenAnnotationRequest().withOdsId(ID), false)
+        Arguments.of(givenAnnotationRequest().setOdsId(ID), false)
     );
   }
 
   private static Stream<Arguments> invalidAnnotations() {
     return Stream.of(
-        Arguments.of(givenAnnotationRequest().withOaCreator(givenCreator(ORCID)), "oa:creator"),
-        Arguments.of(givenAnnotationRequest().withDcTermsCreated(CREATED), "dcterms:created"),
-        Arguments.of(givenAnnotationRequest().withOaGenerated(CREATED), "oa:generated"),
-        Arguments.of(givenAnnotationRequest().withAsGenerator(givenGenerator()), "as:generator"),
-        Arguments.of(givenAnnotationRequest().withOdsId(ID), "ods:id"),
-        Arguments.of(givenAnnotationRequest().withRdfType(null), "rdf:type"),
-        Arguments.of(givenAnnotationRequest().withOaBody(null), "oa:body"),
-        Arguments.of(givenAnnotationRequest().withOaTarget(null), "oa:target"),
-        Arguments.of(givenAnnotationRequest().withOaMotivation(null), "oa:motivation")
+        Arguments.of(givenAnnotationRequest().setOaCreator(givenCreator(ORCID)), "oa:creator"),
+        Arguments.of(givenAnnotationRequest().setDcTermsCreated(CREATED), "dcterms:created"),
+        Arguments.of(givenAnnotationRequest().setOaGenerated(CREATED), "oa:generated"),
+        Arguments.of(givenAnnotationRequest().setAsGenerator(givenGenerator()), "as:generator"),
+        Arguments.of(givenAnnotationRequest().setOdsId(ID), "ods:id"),
+        Arguments.of(givenAnnotationRequest().setRdfType(null), "rdf:type"),
+        Arguments.of(givenAnnotationRequest().setOaBody(null), "oa:body"),
+        Arguments.of(givenAnnotationRequest().setOaTarget(null), "oa:target"),
+        Arguments.of(givenAnnotationRequest().setOaMotivation(null), "oa:motivation")
     );
   }
 

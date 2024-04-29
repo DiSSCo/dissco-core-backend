@@ -51,35 +51,37 @@ public class AnnotationUtils {
   }
 
   public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
-    return new Annotation()
-        .withOdsId(annotationId)
-        .withRdfType("Annotation")
-        .withOdsVersion(1)
-        .withOaBody(givenOaBody())
-        .withOaMotivation(Motivation.COMMENTING)
-        .withOaTarget(givenOaTarget(targetId))
-        .withOaCreator(givenCreator(userId))
-        .withDcTermsCreated(CREATED)
-        .withOaGenerated(CREATED)
-        .withAsGenerator(givenGenerator())
-        .withOdsAggregateRating(givenAggregationRating());
+    return Annotation.builder()
+        .odsId(annotationId)
+        .rdfType("Annotation")
+        .odsVersion(1)
+        .oaBody(givenOaBody())
+        .oaMotivation(Motivation.COMMENTING)
+        .oaTarget(givenOaTarget(targetId))
+        .oaCreator(givenCreator(userId))
+        .dcTermsCreated(CREATED)
+        .oaGenerated(CREATED)
+        .asGenerator(givenGenerator())
+        .odsAggregateRating(givenAggregationRating())
+        .build();
   }
 
   public static Annotation givenAnnotationKafkaRequest(boolean isUpdate){
     var request = givenAnnotationRequest()
-        .withOaCreator(givenCreator(ORCID));
+        .setOaCreator(givenCreator(ORCID));
     if (!isUpdate){
       return request;
     }
     return request
-        .withDcTermsCreated(CREATED);
+        .setDcTermsCreated(CREATED);
   }
 
   public static Annotation givenAnnotationRequest(String targetId) {
-    return new Annotation()
-        .withOaBody(givenOaBody())
-        .withOaMotivation(Motivation.COMMENTING)
-        .withOaTarget(givenOaTarget(targetId));
+    return Annotation.builder()
+        .oaBody(givenOaBody())
+        .oaMotivation(Motivation.COMMENTING)
+        .oaTarget(givenOaTarget(targetId))
+        .build();
   }
 
   public static Annotation givenAnnotationRequest() {
@@ -87,18 +89,20 @@ public class AnnotationUtils {
   }
 
   public static Body givenOaBody() {
-    return new Body()
-        .withOdsType("ods:specimenName")
-        .withOaValue(new ArrayList<>(List.of("a comment")))
-        .withDcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
-        .withOdsScore(0.99);
+    return Body.builder()
+        .odsType("ods:specimenName")
+        .oaValue(new ArrayList<>(List.of("a comment")))
+        .dcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+        .odsScore(0.99)
+        .build();
   }
 
   public static Target givenOaTarget(String targetId) {
-    return new Target()
-        .withOdsId(targetId)
-        .withSelector(givenSelector())
-        .withOdsType("digital_specimen");
+    return Target.builder()
+        .odsId(targetId)
+        .oaSelector(givenSelector())
+        .odsType("digital_specimen")
+        .build();
   }
 
   public static FieldSelector givenSelector() {
@@ -107,24 +111,27 @@ public class AnnotationUtils {
   }
 
   public static Creator givenCreator(String userId) {
-    return new Creator()
-        .withFoafName("Test User")
-        .withOdsId(userId)
-        .withOdsType("ORCID");
+    return Creator.builder()
+        .foafName("Test User")
+        .odsId(userId)
+        .odsType("ORCID")
+        .build();
   }
 
   public static Generator givenGenerator(){
-    return new Generator()
-        .withFoafName("DiSSCo backend")
-        .withOdsId("https://sandbox.dissco.tech")
-        .withOdsType("Technical Backend");
+    return Generator.builder()
+        .foafName("DiSSCo backend")
+        .odsId("https://sandbox.dissco.tech")
+        .odsType("Technical Backend")
+        .build();
   }
 
   public static AggregateRating givenAggregationRating(){
-    return new AggregateRating()
-        .withRatingValue(0.1)
-        .withOdsType("Score")
-        .withRatingCount(0.2);
+    return AggregateRating.builder()
+        .ratingValue(0.1)
+        .odsType("Score")
+        .ratingCount(0.2)
+        .build();
   }
 
   public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Annotation request) {
