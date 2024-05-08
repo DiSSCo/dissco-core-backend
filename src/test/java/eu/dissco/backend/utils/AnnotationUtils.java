@@ -53,7 +53,6 @@ public class AnnotationUtils {
   public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
     return Annotation.builder()
         .odsId(annotationId)
-        .rdfType("Annotation")
         .odsVersion(1)
         .oaBody(givenOaBody())
         .oaMotivation(Motivation.COMMENTING)
