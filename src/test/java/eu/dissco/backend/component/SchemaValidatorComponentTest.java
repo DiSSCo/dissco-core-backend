@@ -89,7 +89,6 @@ class SchemaValidatorComponentTest {
         Arguments.of(givenAnnotationRequest().setOaGenerated(CREATED), "oa:generated"),
         Arguments.of(givenAnnotationRequest().setAsGenerator(givenGenerator()), "as:generator"),
         Arguments.of(givenAnnotationRequest().setOdsId(ID), "ods:id"),
-        Arguments.of(givenAnnotationRequest().setRdfType(null), "rdf:type"),
         Arguments.of(givenAnnotationRequest().setOaBody(null), "oa:body"),
         Arguments.of(givenAnnotationRequest().setOaTarget(null), "oa:target"),
         Arguments.of(givenAnnotationRequest().setOaMotivation(null), "oa:motivation")

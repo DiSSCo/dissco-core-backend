@@ -57,7 +57,7 @@ jobs:
       - name: Trivy - Stop on Severe Vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
-          if: ${{ github.event_name == 'pull_request' }}
+          if: github.event_name == 'pull_request'
           image-ref: '${{ github.event.repository.name }}'
           format: 'table'
           ignore-unfixed: true

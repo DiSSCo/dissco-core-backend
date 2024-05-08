@@ -10,33 +10,31 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Builder
 public class Annotation {
-
   @JsonProperty("ods:id")
-  String odsId;
+  private String odsId;
   @JsonProperty("rdf:type")
-  @Builder.Default
-  String rdfType = "Annotation";
+  private final String rdfType = "Annotation";
   @JsonProperty("ods:version")
-  Integer odsVersion;
+  private Integer odsVersion;
   @JsonProperty("oa:motivation")
-  Motivation oaMotivation;
+  private Motivation oaMotivation;
   @JsonProperty("oa:motivatedBy")
-  String oaMotivatedBy;
+  private String oaMotivatedBy;
   @JsonProperty("oa:target")
-  Target oaTarget;
+  private Target oaTarget;
   @JsonProperty("oa:body")
-  Body oaBody;
+  private Body oaBody;
   @JsonProperty("oa:creator")
-  Creator oaCreator;
+  private Creator oaCreator;
   @JsonProperty("dcterms:created")
-  Instant dcTermsCreated;
+  private Instant dcTermsCreated;
   @JsonProperty("ods:deletedOn")
-  Instant odsDeletedOn;
+  private Instant odsDeletedOn;
   @JsonProperty("as:generator")
-  Generator asGenerator;
+  private Generator asGenerator;
   @JsonProperty("oa:generated")
-  Instant oaGenerated;
+  private Instant oaGenerated;
   @JsonProperty("schema.org:aggregateRating")
-  AggregateRating odsAggregateRating;
+  private AggregateRating odsAggregateRating;
 
 }
