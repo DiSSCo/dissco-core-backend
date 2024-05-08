@@ -26,8 +26,8 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.DefaultMappingTerms;
+import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
@@ -391,8 +391,8 @@ class ElasticSearchRepositoryIT {
     for (int i = 0; i < pageSize + 1; i++) {
       String id = PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(HANDLE + id).withOdsAggregateRating(null));
-      givenAnnotations.add(annotation.withOdsAggregateRating(null));
+      expected.add(givenAnnotationResponse(HANDLE + id).setOdsAggregateRating(null));
+      givenAnnotations.add(annotation.setOdsAggregateRating(null));
     }
     for (int i = 11; i < pageSize * 2; i++) {
       var annotation = givenAnnotationResponse( PREFIX + "/" + i);

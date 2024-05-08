@@ -103,18 +103,19 @@ public class AnnotationService {
 
   private Annotation processAnnotation(Annotation annotationRequest, User user, boolean isUpdate) {
     annotationRequest
-        .withOaCreator(processCreator(user));
+        .setOaCreator(processCreator(user));
     if (isUpdate) {
       return annotationRequest;
     }
-    return annotationRequest.withDcTermsCreated(Instant.now());
+    return annotationRequest.setDcTermsCreated(Instant.now());
   }
 
   private Creator processCreator(User user) {
-    return new Creator()
-        .withOdsId(user.orcid())
-        .withFoafName(user.firstName() + " " + user.lastName())
-        .withOdsType("ORCID");
+    return Creator.builder()
+        .odsId(user.orcid())
+        .foafName(user.firstName() + " " + user.lastName())
+        .odsType("ORCID")
+        .build();
   }
 
   private Annotation parseToAnnotation(JsonNode response) throws JsonProcessingException {
@@ -127,7 +128,7 @@ public class AnnotationService {
     var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
       if (annotation.getOdsId() == null) {
-        annotation.withOdsId(id);
+        annotation.setOdsId(id);
       }
       processAnnotation(annotation, user, true);
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);

@@ -12,10 +12,10 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationKafkaRequest;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationKafkaRequest;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +42,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.utils.AnnotationUtils;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
@@ -248,7 +246,7 @@ class AnnotationServiceTest {
     // Given
     var annotationRequest = givenAnnotationRequest();
     var annotationToKafkaRequest = givenAnnotationKafkaRequest(false);
-    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().withOaCreator(givenCreator(ORCID)));
+    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().setOaCreator(givenCreator(ORCID)));
 
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
 
@@ -303,10 +301,11 @@ class AnnotationServiceTest {
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
     given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
     given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
-    var annotationRequest = givenAnnotationRequest().withOdsId(ID);
-    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true).withDcTermsCreated(null)
-        .withOdsId(ID);
-    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().withOaCreator(givenCreator(ORCID)));
+    var annotationRequest = givenAnnotationRequest().setOdsId(ID);
+    var annotationToKafkaRequest = givenAnnotationKafkaRequest(true)
+        .setDcTermsCreated(null)
+        .setOdsId(ID);
+    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse().setOaCreator(givenCreator(ORCID)));
 
     try (var mockedStatic = mockStatic(Instant.class)) {
       mockTime(mockedStatic);

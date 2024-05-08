@@ -107,7 +107,7 @@ public class ElasticSearchRepository {
   private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
     try {
       var annotation = mapper.treeToValue(annotationNode, Annotation.class);
-      return annotation.withOdsId(HANDLE_STRING + annotation.getOdsId());
+      return annotation.setOdsId(HANDLE_STRING + annotation.getOdsId());
     } catch (JsonProcessingException e) {
       throw new DiSSCoElasticMappingException(e);
     }
