@@ -12,13 +12,11 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 @ConfigurationProperties("fdo")
 public class FdoProperties {
+
   @NotBlank
-  private final String profile;
+  private final String mjrType = "https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6";
 
   @NotBlank
   private final String agent;
-
-  @NotBlank
-  private final String digitalObjectType;
 
 }

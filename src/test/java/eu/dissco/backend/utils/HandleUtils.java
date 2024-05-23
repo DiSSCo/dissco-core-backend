@@ -11,10 +11,8 @@ public class HandleUtils {
     return MAPPER.readTree("""
         {
           "data" : {
-            "type" : "handle",
+            "type" : "https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6",
             "attributes" : {
-              "fdoProfile" : "https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
-              "digitalObjectType":"https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
               "issuedForAgent" : "https://ror.org/0566bfb96"
             }
           }
