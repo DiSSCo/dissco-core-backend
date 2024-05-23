@@ -21,10 +21,8 @@ class FdoRecordComponentTest {
   @Test
   void testGetRequest() throws Exception {
     // Given
+    given(fdoProperties.getMjrType()).willReturn("https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6");
     given(fdoProperties.getAgent()).willReturn("https://ror.org/0566bfb96");
-    given(fdoProperties.getProfile()).willReturn(
-        "https://hdl.handle.net/21.T11148/64396cf36b976ad08267");
-    given(fdoProperties.getDigitalObjectType()).willReturn("https://hdl.handle.net/21.T11148/64396cf36b976ad08267");
     var fdoComponent = new FdoRecordComponent(MAPPER, fdoProperties);
 
     // When
@@ -32,7 +30,6 @@ class FdoRecordComponentTest {
 
     // Then
     assertThat(result).isEqualTo(givenPostHandleRequest());
-
   }
 
 }
