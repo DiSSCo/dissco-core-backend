@@ -22,6 +22,7 @@ import eu.dissco.backend.schema.Occurrences;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class TestUtils {
 
@@ -47,6 +48,7 @@ public class TestUtils {
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
   public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
+  public static final UUID BATCH_ID = UUID.fromString("f43e4ec6-ca1c-4a88-9aac-08f6da4b0b1c");
 
   public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 

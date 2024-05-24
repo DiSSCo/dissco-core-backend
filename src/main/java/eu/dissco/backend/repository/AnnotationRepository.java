@@ -78,6 +78,7 @@ public class AnnotationRepository {
           .oaGenerated(dbRecord.get(ANNOTATION.GENERATED))
           .odsAggregateRating(mapper.readValue(dbRecord.get(ANNOTATION.AGGREGATE_RATING).data(),
               AggregateRating.class))
+          .odsBatchId(dbRecord.get(ANNOTATION.BATCH_ID))
           .build();
     } catch (JsonProcessingException e) {
       log.error("Failed to parse annotation body to Json", e);
