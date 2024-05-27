@@ -37,6 +37,8 @@ public class Annotation {
   private Instant oaGenerated;
   @JsonProperty("schema.org:aggregateRating")
   private AggregateRating odsAggregateRating;
+  @JsonProperty("placeInBatch")
+  private Integer placeInBatch;
   @JsonProperty("ods:batchId")
   private UUID odsBatchId;
 

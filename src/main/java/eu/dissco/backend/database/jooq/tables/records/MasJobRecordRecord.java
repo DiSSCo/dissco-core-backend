@@ -98,14 +98,14 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     }
 
     /**
-     * Setter for <code>public.mas_job_record.annotations</code>.
+     * Setter for <code>public.mas_job_record.annotation</code>.
      */
     public void setAnnotations(JSONB value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>public.mas_job_record.annotations</code>.
+     * Getter for <code>public.mas_job_record.annotation</code>.
      */
     public JSONB getAnnotations() {
         return (JSONB) get(5);

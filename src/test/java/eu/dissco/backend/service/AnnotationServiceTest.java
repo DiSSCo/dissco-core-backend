@@ -91,7 +91,7 @@ class AnnotationServiceTest {
     int pageNumber = 1;
     int pageSize = 15;
     var totalCount = 30L;
-    String path = SANDBOX_URI + "api/v1/annotations/creator/json";
+    String path = SANDBOX_URI + "api/v1/annotation/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, annotationId, true);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
@@ -115,7 +115,7 @@ class AnnotationServiceTest {
     int pageNumber = 2;
     int pageSize = 15;
     var totalCount = 30L;
-    String path = SANDBOX_URI + "api/v1/annotations/creator/json";
+    String path = SANDBOX_URI + "api/v1/annotation/creator/json";
     var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, annotationId, false);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
@@ -175,7 +175,7 @@ class AnnotationServiceTest {
     int pageSize = 15;
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
-    String path = SANDBOX_URI + "api/v1/annotations/all/json";
+    String path = SANDBOX_URI + "api/v1/annotation/all/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, true);
     given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
@@ -194,7 +194,7 @@ class AnnotationServiceTest {
     int pageSize = 15;
     String userId = USER_ID_TOKEN;
     String annotationId = "123";
-    String path = SANDBOX_URI + "api/v1/annotations/all/json";
+    String path = SANDBOX_URI + "api/v1/annotation/all/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         userId, annotationId, false);
     given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
@@ -211,7 +211,7 @@ class AnnotationServiceTest {
   void testGetLatestAnnotations() throws IOException {
     int pageSize = 15;
     int pageNumber = 1;
-    String path = SANDBOX_URI + "api/v1/annotations/latest/json";
+    String path = SANDBOX_URI + "api/v1/annotation/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, true);
     var elasticResponse = Collections.nCopies(pageSize + 1, givenAnnotationResponse(ID));
@@ -228,7 +228,7 @@ class AnnotationServiceTest {
   void testGetLatestAnnotationsLastPage() throws IOException {
     int pageSize = 15;
     int pageNumber = 1;
-    String path = SANDBOX_URI + "api/v1/annotations/latest/json";
+    String path = SANDBOX_URI + "api/v1/annotation/latest/json";
     var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
         USER_ID_TOKEN, ID, false);
     var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse(ID));
@@ -278,7 +278,8 @@ class AnnotationServiceTest {
       mockTime(mockedStatic);
 
       // When
-      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH);
+      var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH
+      );
 
       // Then
       assertThat(result).isNull();
@@ -292,7 +293,8 @@ class AnnotationServiceTest {
 
     // Then
     assertThrowsExactly(ForbiddenException.class,
-        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH));
+        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH
+        ));
   }
 
   @Test

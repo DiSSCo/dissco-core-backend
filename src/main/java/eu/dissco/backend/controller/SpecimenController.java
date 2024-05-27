@@ -138,7 +138,7 @@ public class SpecimenController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotations of specimen with id: {}", id);
+    log.info("Received get request for annotation of specimen with id: {}", id);
     var annotations = service.getAnnotations(id, getPath(request));
     return ResponseEntity.ok(annotations);
   }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Object sent to annotation processing service",
+  "properties": {
+    "annotation": {
+      "type": "object",
+      "properties": {
+        "$ref": "annotation_request.json"
+      }
+    },
+    "batchMetadata": {
+      "type": "array",
+      "items": {
+        "$ref": "batch_metadata.json"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "annotations",
+    "batchMetadata"
+  ]
+}

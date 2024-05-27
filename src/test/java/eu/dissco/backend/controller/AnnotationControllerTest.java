@@ -13,10 +13,10 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSin
 import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
+import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -151,7 +151,7 @@ class AnnotationControllerTest {
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
-    given(service.persistAnnotation(any(), any(), any())).willReturn(null);
+    given(service.persistAnnotation(any(Annotation.class), any(), any())).willReturn(null);
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);

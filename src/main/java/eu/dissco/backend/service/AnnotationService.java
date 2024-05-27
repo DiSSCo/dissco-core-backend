@@ -5,11 +5,13 @@ import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -83,7 +85,26 @@ public class AnnotationService {
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
+  public JsonApiWrapper persistAnnotation(AnnotationEvent eventRequest, String userId, String path)
+      throws ForbiddenException, JsonProcessingException {
+    var user = getUserInformation(userId);
+    var processedAnnotation = processAnnotation(eventRequest.annotation(), user, false)
+        .setPlaceInBatch(1);
+    var processedEvent = ((ObjectNode) mapper.createObjectNode()
+        .set("batchMetadata", buildArrayNode(eventRequest.batchMetadata())))
+        .set("annotations", buildArrayNode(processedAnnotation));
+    var response = annotationClient.postAnnotationBatch(mapper.valueToTree(processedEvent));
+    return formatResponse(response, path);
+  }
+
+  private ArrayNode buildArrayNode(Object object){
+    return mapper.createArrayNode()
+        .add(mapper.valueToTree(object));
+  }
+
+
+  public JsonApiWrapper formatResponse(JsonNode response, String path)
+      throws JsonProcessingException {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response);
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
@@ -123,7 +144,8 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
-      String path, String prefix, String suffix) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
+      String path, String prefix, String suffix)
+      throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
     var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
@@ -134,7 +156,8 @@ public class AnnotationService {
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
-      log.info("No active annotation with id: {} found for user {} with orcid {}", id, userId, user.orcid());
+      log.info("No active annotation with id: {} found for user {} with orcid {}", id, userId,
+          user.orcid());
       throw new NoAnnotationFoundException(
           "No active annotation with id: " + id + " was found for user");
     }
@@ -182,7 +205,7 @@ public class AnnotationService {
     return wrapListResponse(annotations, path);
   }
 
-  private String getFullId(String id){
+  private String getFullId(String id) {
     return (id.contains("https://doi.org/")) ? id : "https://doi.org/" + id;
   }
 
