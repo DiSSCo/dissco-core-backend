@@ -23,7 +23,7 @@ public class WebSecurityConfig {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
         .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
         .requestMatchers(HttpMethod.GET, "**").permitAll()
-        //.requestMatchers(HttpMethod.POST, "*/v1/annotations/batch").hasRole("admin")
+        .requestMatchers(HttpMethod.POST, "*/v1/annotations/batch").hasRole("dissco-web-batch-annotation")
         .anyRequest().authenticated());
 
     http.oauth2ResourceServer(jwtoauth2ResourceServer -> jwtoauth2ResourceServer
