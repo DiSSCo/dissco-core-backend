@@ -124,7 +124,7 @@ public class MachineAnnotationServiceService {
       }
       if (Boolean.FALSE.equals(masRecord.mas().batchingRequested())) {
         log.error(
-            "User is attempting to schedule batch annotation with a mas that does not allow this. MAS id: {}",
+            "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",
             masRecord.id());
         throw new ConflictException();
       }

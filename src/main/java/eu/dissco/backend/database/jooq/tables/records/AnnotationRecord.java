@@ -26,231 +26,231 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> impl
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>public.annotation.id</code>.
+     * Setter for <code>public.annotations.id</code>.
      */
     public void setId(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>public.annotation.id</code>.
+     * Getter for <code>public.annotations.id</code>.
      */
     public String getId() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>public.annotation.version</code>.
+     * Setter for <code>public.annotations.version</code>.
      */
     public void setVersion(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>public.annotation.version</code>.
+     * Getter for <code>public.annotations.version</code>.
      */
     public Integer getVersion() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>public.annotation.type</code>.
+     * Setter for <code>public.annotations.type</code>.
      */
     public void setType(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>public.annotation.type</code>.
+     * Getter for <code>public.annotations.type</code>.
      */
     public String getType() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>public.annotation.motivation</code>.
+     * Setter for <code>public.annotations.motivation</code>.
      */
     public void setMotivation(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>public.annotation.motivation</code>.
+     * Getter for <code>public.annotations.motivation</code>.
      */
     public String getMotivation() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>public.annotation.motivated_by</code>.
+     * Setter for <code>public.annotations.motivated_by</code>.
      */
     public void setMotivatedBy(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>public.annotation.motivated_by</code>.
+     * Getter for <code>public.annotations.motivated_by</code>.
      */
     public String getMotivatedBy() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>public.annotation.target_id</code>.
+     * Setter for <code>public.annotations.target_id</code>.
      */
     public void setTargetId(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>public.annotation.target_id</code>.
+     * Getter for <code>public.annotations.target_id</code>.
      */
     public String getTargetId() {
         return (String) get(5);
     }
 
     /**
-     * Setter for <code>public.annotation.target</code>.
+     * Setter for <code>public.annotations.target</code>.
      */
     public void setTarget(JSONB value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>public.annotation.target</code>.
+     * Getter for <code>public.annotations.target</code>.
      */
     public JSONB getTarget() {
         return (JSONB) get(6);
     }
 
     /**
-     * Setter for <code>public.annotation.body</code>.
+     * Setter for <code>public.annotations.body</code>.
      */
     public void setBody(JSONB value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>public.annotation.body</code>.
+     * Getter for <code>public.annotations.body</code>.
      */
     public JSONB getBody() {
         return (JSONB) get(7);
     }
 
     /**
-     * Setter for <code>public.annotation.creator_id</code>.
+     * Setter for <code>public.annotations.creator_id</code>.
      */
     public void setCreatorId(String value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>public.annotation.creator_id</code>.
+     * Getter for <code>public.annotations.creator_id</code>.
      */
     public String getCreatorId() {
         return (String) get(8);
     }
 
     /**
-     * Setter for <code>public.annotation.creator</code>.
+     * Setter for <code>public.annotations.creator</code>.
      */
     public void setCreator(JSONB value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>public.annotation.creator</code>.
+     * Getter for <code>public.annotations.creator</code>.
      */
     public JSONB getCreator() {
         return (JSONB) get(9);
     }
 
     /**
-     * Setter for <code>public.annotation.created</code>.
+     * Setter for <code>public.annotations.created</code>.
      */
     public void setCreated(Instant value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>public.annotation.created</code>.
+     * Getter for <code>public.annotations.created</code>.
      */
     public Instant getCreated() {
         return (Instant) get(10);
     }
 
     /**
-     * Setter for <code>public.annotation.generator</code>.
+     * Setter for <code>public.annotations.generator</code>.
      */
     public void setGenerator(JSONB value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>public.annotation.generator</code>.
+     * Getter for <code>public.annotations.generator</code>.
      */
     public JSONB getGenerator() {
         return (JSONB) get(11);
     }
 
     /**
-     * Setter for <code>public.annotation.generated</code>.
+     * Setter for <code>public.annotations.generated</code>.
      */
     public void setGenerated(Instant value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>public.annotation.generated</code>.
+     * Getter for <code>public.annotations.generated</code>.
      */
     public Instant getGenerated() {
         return (Instant) get(12);
     }
 
     /**
-     * Setter for <code>public.annotation.last_checked</code>.
+     * Setter for <code>public.annotations.last_checked</code>.
      */
     public void setLastChecked(Instant value) {
         set(13, value);
     }
 
     /**
-     * Getter for <code>public.annotation.last_checked</code>.
+     * Getter for <code>public.annotations.last_checked</code>.
      */
     public Instant getLastChecked() {
         return (Instant) get(13);
     }
 
     /**
-     * Setter for <code>public.annotation.aggregate_rating</code>.
+     * Setter for <code>public.annotations.aggregate_rating</code>.
      */
     public void setAggregateRating(JSONB value) {
         set(14, value);
     }
 
     /**
-     * Getter for <code>public.annotation.aggregate_rating</code>.
+     * Getter for <code>public.annotations.aggregate_rating</code>.
      */
     public JSONB getAggregateRating() {
         return (JSONB) get(14);
     }
 
     /**
-     * Setter for <code>public.annotation.deleted_on</code>.
+     * Setter for <code>public.annotations.deleted_on</code>.
      */
     public void setDeletedOn(Instant value) {
         set(15, value);
     }
 
     /**
-     * Getter for <code>public.annotation.deleted_on</code>.
+     * Getter for <code>public.annotations.deleted_on</code>.
      */
     public Instant getDeletedOn() {
         return (Instant) get(15);
     }
 
     /**
-     * Setter for <code>public.annotation.annotation_hash</code>. hashes
+     * Setter for <code>public.annotations.annotation_hash</code>. hashes
      * motivation, target, and creator fields
      */
     public void setAnnotationHash(UUID value) {
@@ -258,7 +258,7 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> impl
     }
 
     /**
-     * Getter for <code>public.annotation.annotation_hash</code>. hashes
+     * Getter for <code>public.annotations.annotation_hash</code>. hashes
      * motivation, target, and creator fields
      */
     public UUID getAnnotationHash() {
@@ -266,28 +266,28 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> impl
     }
 
     /**
-     * Setter for <code>public.annotation.mjr_job_id</code>.
+     * Setter for <code>public.annotations.mjr_job_id</code>.
      */
     public void setMjrJobId(String value) {
         set(17, value);
     }
 
     /**
-     * Getter for <code>public.annotation.mjr_job_id</code>.
+     * Getter for <code>public.annotations.mjr_job_id</code>.
      */
     public String getMjrJobId() {
         return (String) get(17);
     }
 
     /**
-     * Setter for <code>public.annotation.batch_id</code>.
+     * Setter for <code>public.annotations.batch_id</code>.
      */
     public void setBatchId(UUID value) {
         set(18, value);
     }
 
     /**
-     * Getter for <code>public.annotation.batch_id</code>.
+     * Getter for <code>public.annotations.batch_id</code>.
      */
     public UUID getBatchId() {
         return (UUID) get(18);

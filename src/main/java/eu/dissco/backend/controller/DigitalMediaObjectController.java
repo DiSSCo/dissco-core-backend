@@ -70,7 +70,7 @@ public class DigitalMediaObjectController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotation on digitalMedia with id: {}", id);
+    log.info("Received get request for annotations on digitalMedia with id: {}", id);
     var annotations = service.getAnnotationsOnDigitalMedia(id, getPath(request));
     return ResponseEntity.ok(annotations);
   }

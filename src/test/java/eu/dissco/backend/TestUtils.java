@@ -74,7 +74,7 @@ public class TestUtils {
 
   public static JsonApiWrapper givenUserRequestInvalidType() {
     return new JsonApiWrapper(
-        new JsonApiData(USER_ID_TOKEN, "annotation", MAPPER.valueToTree(givenUser())), null);
+        new JsonApiData(USER_ID_TOKEN, "annotations", MAPPER.valueToTree(givenUser())), null);
   }
 
   public static JsonApiWrapper givenUserRequest(String id) {

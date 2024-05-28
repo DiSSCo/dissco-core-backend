@@ -60,7 +60,7 @@ class ElasticSearchRepositoryIT {
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
       "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.7.1");
   private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
-  private static final String ANNOTATION_INDEX = "annotation";
+  private static final String ANNOTATION_INDEX = "annotations";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";

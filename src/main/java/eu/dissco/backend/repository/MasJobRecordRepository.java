@@ -142,7 +142,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
     } catch (JsonProcessingException e) {
-      throw new DisscoJsonBMappingException("Unable to parse annotation from MAS job record", e);
+      throw new DisscoJsonBMappingException("Unable to parse annotations from MAS job record", e);
     }
 
   }

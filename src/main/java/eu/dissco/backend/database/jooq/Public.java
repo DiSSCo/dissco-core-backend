@@ -33,7 +33,7 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.annotation</code>.
+     * The table <code>public.annotations</code>.
      */
     public final Annotation ANNOTATION = Annotation.ANNOTATION;
 

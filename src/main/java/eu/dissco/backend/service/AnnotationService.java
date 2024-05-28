@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
-  private static final String ANNOTATION = "annotation";
+  private static final String ANNOTATION = "annotations";
   private static final String VERSION = "version";
 
   private final AnnotationRepository repository;
@@ -87,7 +87,7 @@ public class AnnotationService {
   public JsonApiWrapper persistAnnotation(AnnotationEvent eventRequest, String userId, String path)
       throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var processedAnnotation = processAnnotation(eventRequest.annotation().get(0), user, false)
+    var processedAnnotation = processAnnotation(eventRequest.annotations().get(0), user, false)
         .setPlaceInBatch(1);
     var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
         eventRequest.batchMetadata());
@@ -148,10 +148,10 @@ public class AnnotationService {
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
-      log.info("No active annotation with id: {} found for user {} with orcid {}", id, userId,
+      log.info("No active annotations with id: {} found for user {} with orcid {}", id, userId,
           user.orcid());
       throw new NoAnnotationFoundException(
-          "No active annotation with id: " + id + " was found for user");
+          "No active annotations with id: " + id + " was found for user");
     }
   }
 
@@ -179,9 +179,9 @@ public class AnnotationService {
       annotationClient.deleteAnnotation(prefix, suffix);
       return true;
     } else {
-      log.info("No active annotation with id: {} found for user: {}", id, userId);
+      log.info("No active annotations with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException(
-          "No active annotation with id: " + id + " was found for user");
+          "No active annotations with id: " + id + " was found for user");
     }
   }
 

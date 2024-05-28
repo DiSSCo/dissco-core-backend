@@ -55,7 +55,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotation: {}", id);
+    log.info("Received get request for annotations: {}", id);
     var annotation = service.getAnnotation(id, getPath(request));
     return ResponseEntity.ok(annotation);
   }
@@ -65,7 +65,7 @@ public class AnnotationController extends BaseController {
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request)
       throws IOException {
-    log.info("Received get request for latest paginated annotation. Page number: {}, page size {}",
+    log.info("Received get request for latest paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
     var annotations = service.getLatestAnnotations(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
@@ -78,7 +78,7 @@ public class AnnotationController extends BaseController {
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotation: {} with version: {}", id, version);
+    log.info("Received get request for annotations: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, getPath(request));
     return ResponseEntity.ok(annotation);
   }
@@ -88,7 +88,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request) {
-    log.info("Received get request for json paginated annotation. Page number: {}, page size {}",
+    log.info("Received get request for json paginated annotations. Page number: {}, page size {}",
         pageNumber, pageSize);
     var annotations = service.getAnnotations(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
@@ -102,7 +102,7 @@ public class AnnotationController extends BaseController {
     var annotation = getAnnotationFromRequest(requestBody);
     schemaValidator.validateAnnotationRequest(annotation, true);
     var userId = authentication.getName();
-    log.info("Received new annotation from user: {}", userId);
+    log.info("Received new annotations from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
@@ -119,7 +119,7 @@ public class AnnotationController extends BaseController {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var userId = authentication.getName();
-    log.info("Received new annotation from user: {}", userId);
+    log.info("Received new annotations from user: {}", userId);
     var annotationResponse = service.persistAnnotation(event, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
@@ -137,7 +137,7 @@ public class AnnotationController extends BaseController {
     var id = prefix + '/' + suffix;
     var userId = authentication.getName();
     var annotation = getAnnotationFromRequest(requestBody);
-    log.info("Received update for annotation: {} from user: {}", id, userId);
+    log.info("Received update for annotations: {} from user: {}", id, userId);
     var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request), prefix, suffix);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
@@ -154,7 +154,7 @@ public class AnnotationController extends BaseController {
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
       Authentication authentication) throws IOException, ForbiddenException {
     var userToken = authentication.getName();
-    log.info("Received get request to show all annotation for user: {}", userToken);
+    log.info("Received get request to show all annotations for user: {}", userToken);
     var annotations = service.getAnnotationsForUser(userToken, pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(annotations);
   }
@@ -164,7 +164,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for versions of annotation with id: {}", id);
+    log.info("Received get request for versions of annotations with id: {}", id);
     var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
@@ -176,7 +176,7 @@ public class AnnotationController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException {
     var userId = authentication.getName();
-    log.info("Received delete for annotation: {} from user: {}", (prefix + suffix), userId);
+    log.info("Received delete for annotations: {} from user: {}", (prefix + suffix), userId);
     var success = service.deleteAnnotation(prefix, suffix, authentication.getName());
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -187,17 +187,17 @@ public class AnnotationController extends BaseController {
 
   private Annotation getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException {
-    if (!requestBody.data().type().equals("annotation")) {
+    if (!requestBody.data().type().equals("annotations")) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
+          "Invalid type. Type must be \"annotations\" but was " + requestBody.data().type());
     }
     return mapper.treeToValue(requestBody.data().attributes(), Annotation.class);
   }
   private AnnotationEvent getAnnotationFromRequestEvent(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException {
-    if (!requestBody.data().type().equals("annotation")) {
+    if (!requestBody.data().type().equals("annotations")) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
+          "Invalid type. Type must be \"annotations\" but was " + requestBody.data().type());
     }
     return mapper.treeToValue(requestBody.data().attributes(), AnnotationEvent.class);
   }

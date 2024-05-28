@@ -77,7 +77,7 @@ public class MasJobRecordUtils {
         JOB_ID_ALT,
         CREATED,
         CREATED,
-        MAPPER.createObjectNode().put("annotation", "value"),
+        MAPPER.createObjectNode().put("annotations", "value"),
         false,
         TTL_DEFAULT,
         null

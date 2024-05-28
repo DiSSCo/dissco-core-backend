@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "annotation", url = "${feign.annotations}")
+@FeignClient(name = "annotations", url = "${feign.annotations}")
 public interface AnnotationClient {
 
   @PostMapping(value = "")

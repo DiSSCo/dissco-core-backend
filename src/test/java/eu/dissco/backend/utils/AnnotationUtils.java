@@ -32,7 +32,7 @@ import java.util.List;
 
 public class AnnotationUtils {
 
-  public static final String ANNOTATION_URI = "/api/v1/annotation/";
+  public static final String ANNOTATION_URI = "/api/v1/annotations/";
   public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
 
   private AnnotationUtils() {
@@ -141,7 +141,7 @@ public class AnnotationUtils {
   public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Object request) {
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
-            "annotation",
+            "annotations",
             MAPPER.valueToTree(request)
         )
     );
@@ -155,13 +155,13 @@ public class AnnotationUtils {
 
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
     var annotation = givenAnnotationResponse(ID, userId);
-    var dataNode = new JsonApiData(ID, "annotation", MAPPER.valueToTree(annotation));
+    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public static JsonApiWrapper givenAnnotationResponseBatch(String path, String userId) {
     var annotation = givenAnnotationResponse(ID, userId).setPlaceInBatch(1);
-    var dataNode = new JsonApiData(ID, "annotation", MAPPER.valueToTree(annotation));
+    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -175,7 +175,7 @@ public class AnnotationUtils {
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotation",
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotations",
         MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
   }
 
@@ -184,7 +184,7 @@ public class AnnotationUtils {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
     List<JsonApiData> dataNodes = new ArrayList<>();
 
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotation",
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotations",
         MAPPER.valueToTree(givenAnnotationResponse(id)))));
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
