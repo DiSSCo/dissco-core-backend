@@ -80,9 +80,9 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     public final TableField<MasJobRecordRecord, Instant> TIME_COMPLETED = createField(DSL.name("time_completed"), SQLDataType.INSTANT, this, "");
 
     /**
-     * The column <code>public.mas_job_record.annotation</code>.
+     * The column <code>public.mas_job_record.annotations</code>.
      */
-    public final TableField<MasJobRecordRecord, JSONB> ANNOTATIONS = createField(DSL.name("annotation"), SQLDataType.JSONB, this, "");
+    public final TableField<MasJobRecordRecord, JSONB> ANNOTATIONS = createField(DSL.name("annotations"), SQLDataType.JSONB, this, "");
 
     /**
      * The column <code>public.mas_job_record.target_id</code>.
