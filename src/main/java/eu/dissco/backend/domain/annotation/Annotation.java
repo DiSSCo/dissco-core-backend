@@ -2,6 +2,7 @@ package eu.dissco.backend.domain.annotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -36,5 +37,7 @@ public class Annotation {
   private Instant oaGenerated;
   @JsonProperty("schema.org:aggregateRating")
   private AggregateRating odsAggregateRating;
+  @JsonProperty("ods:batchId")
+  private UUID odsBatchId;
 
 }

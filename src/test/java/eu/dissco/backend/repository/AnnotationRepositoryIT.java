@@ -1,10 +1,10 @@
 package eu.dissco.backend.repository;
 
+import static eu.dissco.backend.TestUtils.BATCH_ID;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
@@ -39,7 +39,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetAnnotation() throws JsonProcessingException {
     // Given
-    var expectedAnnotation = givenAnnotationResponse();
+    var expectedAnnotation = givenAnnotationResponse().setOdsBatchId(BATCH_ID);
     postAnnotations(List.of(expectedAnnotation));
 
     // When
@@ -156,6 +156,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
           .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
           .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
           .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchId())
           .onConflict(ANNOTATION.ID).doUpdate()
           .set(ANNOTATION.VERSION, annotation.getOdsVersion())
           .set(ANNOTATION.TYPE, annotation.getRdfType())
@@ -171,7 +172,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
           .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
           .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
           .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated());
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchId());
       queryList.add(query);
     }
     context.batch(queryList).execute();

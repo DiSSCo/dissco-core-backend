@@ -32,7 +32,8 @@ create table annotation
     aggregate_rating jsonb,
     deleted_on       timestamp with time zone,
     annotation_hash  uuid,
-    mjr_job_id       text
+    mjr_job_id       text,
+    batch_id         uuid
 );
 
 create table digital_media_object
