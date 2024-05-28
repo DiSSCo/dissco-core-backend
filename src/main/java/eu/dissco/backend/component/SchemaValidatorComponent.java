@@ -7,7 +7,6 @@ import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -29,6 +28,23 @@ public class SchemaValidatorComponent {
     log.error("Invalid annotation request. Errors {}", errors);
     throw new InvalidAnnotationRequestException(errors.toString());
   }
+
+  public void validateAnnotationEventRequest(AnnotationEvent event, boolean isNew)
+      throws InvalidAnnotationRequestException {
+    if (event.annotation().size() != 1 || event.batchMetadata().size() != 1
+        || event.batchMetadata().get(0).getSearchParams().isEmpty()) {
+      var searchParamSize = event.batchMetadata().isEmpty() ? "0"
+          : event.batchMetadata().get(0).getSearchParams().size();
+      log.error(
+          "Invalid annotation event: contains {} annotations (1 expected), {} batch metadata (1 expected), and {} searchParams (min 1)",
+          event.annotation().size(), event.batchMetadata().size(),
+          searchParamSize);
+      throw new InvalidAnnotationRequestException(
+          "Event can only contain: 1 annotation, 1 batch metadata, and minimum 1 search param");
+    }
+    validateAnnotationRequest(event.annotation().get(0), isNew);
+  }
+
 
   void validateId(Annotation annotation, Boolean isNew) throws InvalidAnnotationRequestException {
     if (Boolean.TRUE.equals(isNew) && annotation.getOdsId() != null) {

@@ -1,9 +1,8 @@
 package eu.dissco.backend.domain.annotation.batch;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.dissco.backend.domain.annotation.Annotation;
-import lombok.Value;
+import java.util.List;
 
-public record AnnotationEvent(Annotation annotation, BatchMetadata batchMetadata) {
+public record AnnotationEvent(List<Annotation> annotation, List<BatchMetadata> batchMetadata) {
 
 }

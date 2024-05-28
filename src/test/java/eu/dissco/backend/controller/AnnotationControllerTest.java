@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
@@ -146,6 +147,25 @@ class AnnotationControllerTest {
   }
 
   @Test
+  void testCreateAnnotationBatch() throws Exception {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    var event = givenAnnotationEventRequest();
+    var request = givenJsonApiAnnotationRequest(event);
+    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+    given(service.persistAnnotation(event, USER_ID_TOKEN, ANNOTATION_PATH))
+        .willReturn(expectedResponse);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+
+    // When
+    var receivedResponse = controller.createAnnotationBatch(authentication, request, mockRequest);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
   void testCreateAnnotationNullResponse() throws Exception {
     // Given
     givenAuthentication(USER_ID_TOKEN);
@@ -155,6 +175,23 @@ class AnnotationControllerTest {
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testCreateAnnotationBatchNullResponse() throws Exception {
+    // Given
+    givenAuthentication(USER_ID_TOKEN);
+    var event = givenAnnotationEventRequest();
+    var request = givenJsonApiAnnotationRequest(event);
+    given(service.persistAnnotation(event, USER_ID_TOKEN, ANNOTATION_PATH))
+        .willReturn(null);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+
+    // When
+    var receivedResponse = controller.createAnnotationBatch(authentication, request, mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

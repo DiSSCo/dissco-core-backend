@@ -5,7 +5,6 @@ import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
@@ -88,20 +87,13 @@ public class AnnotationService {
   public JsonApiWrapper persistAnnotation(AnnotationEvent eventRequest, String userId, String path)
       throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var processedAnnotation = processAnnotation(eventRequest.annotation(), user, false)
+    var processedAnnotation = processAnnotation(eventRequest.annotation().get(0), user, false)
         .setPlaceInBatch(1);
-    var processedEvent = ((ObjectNode) mapper.createObjectNode()
-        .set("batchMetadata", buildArrayNode(eventRequest.batchMetadata())))
-        .set("annotations", buildArrayNode(processedAnnotation));
-    var response = annotationClient.postAnnotationBatch(mapper.valueToTree(processedEvent));
+    var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
+        eventRequest.batchMetadata());
+    var response = annotationClient.postAnnotationBatch(processedEvent);
     return formatResponse(response, path);
   }
-
-  private ArrayNode buildArrayNode(Object object){
-    return mapper.createArrayNode()
-        .add(mapper.valueToTree(object));
-  }
-
 
   public JsonApiWrapper formatResponse(JsonNode response, String path)
       throws JsonProcessingException {

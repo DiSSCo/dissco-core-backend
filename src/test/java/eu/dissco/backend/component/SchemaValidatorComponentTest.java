@@ -4,7 +4,9 @@ import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
+import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
 import static eu.dissco.backend.utils.AnnotationUtils.givenCreator;
 import static eu.dissco.backend.utils.AnnotationUtils.givenGenerator;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -14,9 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion.VersionFlag;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +60,21 @@ class SchemaValidatorComponentTest {
   }
 
   @Test
+  void testValidateAnnotationEventRequest() {
+    // When Then
+    assertDoesNotThrow(
+        () -> schemaValidator.validateAnnotationEventRequest(givenAnnotationEventRequest(), true));
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidEvents")
+  void testValidateAnnotationEventRequestInvalid(AnnotationEvent event) {
+    // When Then
+    assertThrows(InvalidAnnotationRequestException.class,
+        () -> schemaValidator.validateAnnotationEventRequest(event, true));
+  }
+
+  @Test
   void testUpdateMissingId() {
     // Given
     var annotationRequest = givenAnnotationRequest();
@@ -75,7 +96,7 @@ class SchemaValidatorComponentTest {
         schemaValidator.validateAnnotationRequest(annotationRequest, isNew));
   }
 
-  private static Stream<Arguments> validAnnotations(){
+  private static Stream<Arguments> validAnnotations() {
     return Stream.of(
         Arguments.of(givenAnnotationRequest(), true),
         Arguments.of(givenAnnotationRequest().setOdsId(ID), false)
@@ -95,4 +116,16 @@ class SchemaValidatorComponentTest {
     );
   }
 
+  private static Stream<Arguments> invalidEvents() {
+    return Stream.of(
+        Arguments.of(new AnnotationEvent(Collections.nCopies(2, givenAnnotationRequest()),
+            List.of(givenBatchMetadata()))),
+        Arguments.of(new AnnotationEvent(List.of(givenAnnotationRequest()),
+            Collections.nCopies(2, givenBatchMetadata()))),
+        Arguments.of(new AnnotationEvent(List.of(givenAnnotationRequest()),
+            List.of(new BatchMetadata(Collections.emptyList())))),
+        Arguments.of(new AnnotationEvent(List.of(givenAnnotationRequest()),
+            Collections.emptyList()))
+    );
+  }
 }

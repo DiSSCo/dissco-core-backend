@@ -17,6 +17,20 @@ public class InstantSerializer extends JsonSerializer<Instant> {
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(
       ZoneOffset.UTC);
 
+
+  /*
+  1 - 2022-11-01T09:59:24Z gd
+  2 - 2022-11-01T09:59:24Z
+  3 - 2022-11-01T09:59:24Z
+  4 - 2022-11-01T09:59:24Z
+  5 - 2022-11-01T09:59:24Z
+  6 - 2022-11-01T09:59:24Z
+  7 - 2022-11-01T09:59:24Z
+  8 - 2022-11-01T09:59:24Z
+  9 - 2022-11-01T09:59:24Z
+      2022-11-01T09:59:24Z
+
+   */
   @Override
   public void serialize(Instant value, JsonGenerator jsonGenerator,
       SerializerProvider serializerProvider) {

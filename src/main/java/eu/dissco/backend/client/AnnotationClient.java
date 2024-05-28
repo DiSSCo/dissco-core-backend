@@ -18,7 +18,7 @@ public interface AnnotationClient {
   JsonNode postAnnotation(@RequestBody Annotation annotation);
 
   @PostMapping(value = "/batch")
-  JsonNode postAnnotationBatch(@RequestBody JsonNode event);
+  JsonNode postAnnotationBatch(@RequestBody AnnotationEvent event);
 
   @PutMapping(value = "/{prefix}/{suffix}")
   JsonNode updateAnnotation(@PathVariable("prefix") String prefix,
