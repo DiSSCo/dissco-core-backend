@@ -19,7 +19,7 @@ import eu.dissco.backend.database.jooq.tables.User;
 public class Tables {
 
     /**
-     * The table <code>public.annotations</code>.
+     * The table <code>public.annotation</code>.
      */
     public static final Annotation ANNOTATION = Annotation.ANNOTATION;
 
