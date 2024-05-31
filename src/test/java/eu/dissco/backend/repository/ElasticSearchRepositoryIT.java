@@ -35,6 +35,7 @@ import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
+import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -479,6 +480,23 @@ class ElasticSearchRepositoryIT {
 
     // Then
     assertThat(result).isEqualTo(2L);
+  }
+
+  @Test
+  void getCountForBatchAnnotationsBlankParam() throws Exception {
+    // Given
+    var batchMetadata = new BatchMetadata(List.of(new SearchParam(
+        "digitalSpecimenWrapper.ods:attributes.occurrences[*].dwc:FieldNumber",
+        ""
+    )));
+    postDigitalSpecimens(parseToElasticFormat(List.of(givenDigitalSpecimenWrapper(ID))));
+
+    // When
+    var result = repository.getCountForBatchAnnotations(batchMetadata,
+        AnnotationTargetType.DIGITAL_SPECIMEN);
+
+    // Then
+    assertThat(result).isEqualTo(1L);
   }
 
   private List<JsonNode> parseAnnotationToElasticFormat(List<Annotation> annotations) {
