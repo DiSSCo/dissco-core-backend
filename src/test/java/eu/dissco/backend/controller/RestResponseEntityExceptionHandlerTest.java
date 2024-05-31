@@ -9,6 +9,7 @@ import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,17 @@ class RestResponseEntityExceptionHandlerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void testIOExceptionMessage() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleIOException(new IOException());
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
   }
 
   @Test

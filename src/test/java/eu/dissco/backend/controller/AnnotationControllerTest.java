@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
@@ -144,6 +145,15 @@ class AnnotationControllerTest {
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  void testGetBatchConfirmation() throws Exception {
+    // When
+    var result = controller.getCountForBatchAnnotations(givenAnnotationCountRequest());
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test

@@ -12,6 +12,7 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventProcessed;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
@@ -22,6 +23,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseBatch;
+import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
 import static eu.dissco.backend.utils.AnnotationUtils.givenCreator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -30,8 +32,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -52,6 +56,7 @@ import java.time.temporal.ChronoField;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.kafka.common.errors.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -265,6 +270,61 @@ class AnnotationServiceTest {
       // Then
       assertThat(responseReceived).isEqualTo(expected);
     }
+  }
+
+  @Test
+  void testGetAnnotationBatchCount() throws Exception {
+    // Given
+    given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(), AnnotationTargetType.DIGITAL_SPECIMEN))
+        .willReturn(10L);
+    MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
+    var expected = MAPPER.readTree("""
+        {
+          "data": {
+            "type": "batchAnnotationCount",
+            "attributes": {
+              "objectAffected": 10,
+              "batchMetadata": {
+                "searchParams": [
+                  {
+                    "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                    "inputValue": "Netherlands"
+                  }
+                ]
+              }
+            }
+          }
+        }
+        """);
+
+    // When
+    var result = service.getCountForBatchAnnotations(givenAnnotationCountRequest());
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+    MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, false);
+  }
+
+  @Test
+  void testGetAnnotationBatchCountMissingValue() {
+    // Given
+    var badRequest = MAPPER.createObjectNode()
+        .set("data", MAPPER.createObjectNode()
+            .set("attributes", MAPPER.createObjectNode()
+                .put("annotation", "hello")));
+
+    // When / Then
+    assertThrowsExactly(InvalidRequestException.class, () -> service.getCountForBatchAnnotations(badRequest));
+  }
+
+  @Test
+  void testGetAnnotationBatchCountNpe() {
+    // Given
+    var badRequest = MAPPER.createObjectNode()
+        .set("data", MAPPER.createObjectNode());
+
+    // When / Then
+    assertThrowsExactly(InvalidRequestException.class, () -> service.getCountForBatchAnnotations(badRequest));
   }
 
   @Test

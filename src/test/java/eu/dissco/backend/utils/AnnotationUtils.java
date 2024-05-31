@@ -8,6 +8,8 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.annotation.AggregateRating;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Body;
@@ -212,5 +214,35 @@ public class AnnotationUtils {
         "Netherlands"
     );
   }
+
+  public static SearchParam givenSearchParam(String country) {
+    return new SearchParam(
+        "digitalSpecimenWrapper.ods:attributes.occurrences[*].location.dwc:country",
+        country
+    );
+  }
+
+  public static JsonNode givenAnnotationCountRequest() throws JsonProcessingException {
+    return MAPPER.readTree("""
+        {
+          "data": {
+            "type": "batchAnnotationCount",
+            "attributes": {
+              "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+              "batchMetadata": {
+                "searchParams": [
+                  {
+                    "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                    "inputValue": "Netherlands"
+                  }
+                ]
+              }
+            }
+          }
+        }
+        """);
+  }
+
+
 
 }

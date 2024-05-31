@@ -8,6 +8,7 @@ import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -27,6 +28,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
+  }
+
+  @ResponseStatus(HttpStatus.BAD_GATEWAY)
+  @ExceptionHandler(IOException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleIOException(java.io.IOException e){
+    logger.error("An IOException has occurred. Check elastic connection.", e);
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.BAD_GATEWAY,
+        "ElasticSearch exception",
+        "Unable to connect to ElasticSearch services"
+    );
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(exceptionResponse);
   }
 
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
