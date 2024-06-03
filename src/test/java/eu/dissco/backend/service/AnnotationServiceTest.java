@@ -32,7 +32,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
@@ -55,12 +57,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -275,7 +280,8 @@ class AnnotationServiceTest {
   @Test
   void testGetAnnotationBatchCount() throws Exception {
     // Given
-    given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(), AnnotationTargetType.DIGITAL_SPECIMEN))
+    given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(),
+        AnnotationTargetType.DIGITAL_SPECIMEN))
         .willReturn(10L);
     MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
     var expected = MAPPER.readTree("""
@@ -305,16 +311,12 @@ class AnnotationServiceTest {
     MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, false);
   }
 
-  @Test
-  void testGetAnnotationBatchCountMissingValue() {
-    // Given
-    var badRequest = MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode()
-            .set("attributes", MAPPER.createObjectNode()
-                .put("annotation", "hello")));
-
+  @ParameterizedTest
+  @MethodSource("badAnnotationCountRequest")
+  void testGetAnnotationBatchCountBadRequest(JsonNode badRequest){
     // When / Then
-    assertThrowsExactly(InvalidRequestException.class, () -> service.getCountForBatchAnnotations(badRequest));
+    assertThrowsExactly(InvalidRequestException.class,
+        () -> service.getCountForBatchAnnotations(badRequest));
   }
 
   @Test
@@ -324,7 +326,8 @@ class AnnotationServiceTest {
         .set("data", MAPPER.createObjectNode());
 
     // When / Then
-    assertThrowsExactly(InvalidRequestException.class, () -> service.getCountForBatchAnnotations(badRequest));
+    assertThrowsExactly(InvalidRequestException.class,
+        () -> service.getCountForBatchAnnotations(badRequest));
   }
 
   @Test
@@ -489,6 +492,46 @@ class AnnotationServiceTest {
         () -> service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
   }
 
+
+  private static Stream<Arguments> badAnnotationCountRequest() throws JsonProcessingException {
+    return Stream.of(
+        Arguments.of(MAPPER.readTree("""
+            {
+              "data": {
+                "type": "annotations",
+                "attributes": {
+                  "batchMetadata": {
+                    "searchParams": [
+                      {
+                        "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                        "inputValue": "Canada"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+            """)),
+        Arguments.of(MAPPER.readTree("""
+            {
+              "data": {
+                "type": "annotations",
+                "attributes": {
+                  "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e"
+                }
+              }
+            }
+            """)),
+        Arguments.of(MAPPER.readTree("""
+            {
+              "data": {
+                "type": "annotations"
+              }
+            }
+            """)),
+        Arguments.of(MAPPER.createObjectNode())
+    );
+  }
 
   private void mockTime(MockedStatic<Instant> mockedStatic) {
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
