@@ -33,7 +33,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ResponseStatus(HttpStatus.BAD_GATEWAY)
   @ExceptionHandler(IOException.class)
   public ResponseEntity<ExceptionResponseWrapper> handleIOException(java.io.IOException e){
-    logger.error("An IOException has occurred. Check elastic connection.", e);
+    logger.error("An IOException has occurred.", e);
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.BAD_GATEWAY,
         "ElasticSearch exception",

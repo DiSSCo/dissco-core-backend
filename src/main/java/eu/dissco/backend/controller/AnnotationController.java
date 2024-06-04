@@ -116,6 +116,7 @@ public class AnnotationController extends BaseController {
     }
   }
 
+  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonNode> getCountForBatchAnnotations(JsonNode request) throws IOException {
@@ -124,6 +125,7 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(result);
   }
 
+  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotationBatch(Authentication authentication,

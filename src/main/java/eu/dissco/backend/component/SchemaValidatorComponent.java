@@ -33,7 +33,7 @@ public class SchemaValidatorComponent {
       throws InvalidAnnotationRequestException {
     if (event.annotations().size() != 1 || event.batchMetadata().size() != 1
         || event.batchMetadata().get(0).getSearchParams().isEmpty()) {
-      var searchParamSize = event.batchMetadata().isEmpty() ? "0"
+      var searchParamSize = event.batchMetadata().isEmpty() ? 0
           : event.batchMetadata().get(0).getSearchParams().size();
       log.error(
           "Invalid annotations event: contains {} annotations (1 expected), {} batch metadata (1 expected), and {} searchParams (min 1)",
