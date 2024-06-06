@@ -36,8 +36,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     logger.error("An IOException has occurred.", e);
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.BAD_GATEWAY,
-        "ElasticSearch exception",
-        "Unable to connect to ElasticSearch services"
+        "Bad Gateway",
+        "A connection error has occurred. Please try again later"
     );
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(exceptionResponse);
   }
