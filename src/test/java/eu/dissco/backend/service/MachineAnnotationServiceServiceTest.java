@@ -17,7 +17,7 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
@@ -29,6 +29,7 @@ import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
+import eu.dissco.backend.exceptions.BatchingNotPermittedException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.Collections;
@@ -163,7 +164,7 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
 
     // Then
-    assertThrows(ConflictException.class,
+    assertThrowsExactly(BatchingNotPermittedException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
             Map.of(ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
             digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
