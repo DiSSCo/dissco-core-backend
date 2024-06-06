@@ -8,6 +8,7 @@ import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -29,6 +30,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
   }
 
+  @ResponseStatus(HttpStatus.BAD_GATEWAY)
+  @ExceptionHandler(IOException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleIOException(java.io.IOException e){
+    logger.error("An IOException has occurred.", e);
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.BAD_GATEWAY,
+        "Bad Gateway",
+        "A connection error has occurred. Please try again later"
+    );
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(exceptionResponse);
+  }
+
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
   @ExceptionHandler(PidCreationException.class)
   public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidCreationException e) {
@@ -43,8 +56,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ResponseStatus(HttpStatus.CONFLICT)
   @ExceptionHandler(ConflictException.class)
   public ResponseEntity<ExceptionResponseWrapper> handleException(ConflictException e) {
-
-    var message = "A conflict has occurred. Attempting to create a resource that already exists. ";
+    logger.error("A conflict exception has occurred", e);
+    var message = "A conflict has occurred. Attempting to create a resource that already exists.";
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.CONFLICT,
         "ID Conflict",

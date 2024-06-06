@@ -9,7 +9,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.Creator;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -29,6 +32,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.kafka.common.errors.InvalidRequestException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -36,7 +40,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
-  private static final String ANNOTATION = "annotation";
+  private static final String ANNOTATION = "annotations";
+  private static final String ATTRIBUTES = "attributes";
+  private static final String DATA = "data";
   private static final String VERSION = "version";
 
   private final AnnotationRepository repository;
@@ -83,7 +89,19 @@ public class AnnotationService {
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path) throws JsonProcessingException {
+  public JsonApiWrapper persistAnnotation(AnnotationEvent eventRequest, String userId, String path)
+      throws ForbiddenException, JsonProcessingException {
+    var user = getUserInformation(userId);
+    var processedAnnotation = processAnnotation(eventRequest.annotations().get(0), user, false)
+        .setPlaceInBatch(1);
+    var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
+        eventRequest.batchMetadata());
+    var response = annotationClient.postAnnotationBatch(processedEvent);
+    return formatResponse(response, path);
+  }
+
+  public JsonApiWrapper formatResponse(JsonNode response, String path)
+      throws JsonProcessingException {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response);
       var dataNode = new JsonApiData(annotationResponse.getOdsId(), ANNOTATION,
@@ -91,6 +109,36 @@ public class AnnotationService {
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
     return null;
+  }
+
+  public JsonNode getCountForBatchAnnotations(JsonNode annotationCountJson) throws IOException {
+    var annotationCountRequest = getAnnotationBatchCount(annotationCountJson);
+    var count = elasticRepository.getCountForBatchAnnotations(annotationCountRequest.getLeft(),
+        annotationCountRequest.getRight());
+    return mapper.createObjectNode()
+        .set(DATA, mapper.createObjectNode()
+            .put("type", "batchAnnotationCount")
+            .set(ATTRIBUTES, mapper.createObjectNode()
+                .put("objectAffected", count)
+                .set("batchMetadata", mapper.valueToTree(annotationCountRequest.getLeft()))));
+  }
+
+  private Pair<BatchMetadata, AnnotationTargetType> getAnnotationBatchCount(
+      JsonNode annotationCountRequest) {
+    try {
+      var batchMetadata = mapper.treeToValue(
+          annotationCountRequest.get(DATA).get(ATTRIBUTES).get("batchMetadata"),
+          BatchMetadata.class);
+      var targetType = mapper.treeToValue(
+          annotationCountRequest.get(DATA).get(ATTRIBUTES).get("annotationTargetType"),
+          AnnotationTargetType.class);
+      assert (batchMetadata != null);
+      assert (targetType != null);
+      return Pair.of(batchMetadata, targetType);
+    } catch (JsonProcessingException | NullPointerException | AssertionError e) {
+      log.info("Unable to read request body for batch annotation count", e);
+      throw new InvalidRequestException("Invalid request for batch annotation request");
+    }
   }
 
   private User getUserInformation(String userId) throws ForbiddenException {
@@ -123,7 +171,8 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, Annotation annotation, String userId,
-      String path, String prefix, String suffix) throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
+      String path, String prefix, String suffix)
+      throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
     var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
@@ -134,9 +183,10 @@ public class AnnotationService {
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
-      log.info("No active annotation with id: {} found for user {} with orcid {}", id, userId, user.orcid());
+      log.info("No active annotations with id: {} found for user {} with orcid {}", id, userId,
+          user.orcid());
       throw new NoAnnotationFoundException(
-          "No active annotation with id: " + id + " was found for user");
+          "No active annotations with id: " + id + " was found for user");
     }
   }
 
@@ -164,9 +214,9 @@ public class AnnotationService {
       annotationClient.deleteAnnotation(prefix, suffix);
       return true;
     } else {
-      log.info("No active annotation with id: {} found for user: {}", id, userId);
+      log.info("No active annotations with id: {} found for user: {}", id, userId);
       throw new NoAnnotationFoundException(
-          "No active annotation with id: " + id + " was found for user");
+          "No active annotations with id: " + id + " was found for user");
     }
   }
 
@@ -182,7 +232,7 @@ public class AnnotationService {
     return wrapListResponse(annotations, path);
   }
 
-  private String getFullId(String id){
+  private String getFullId(String id) {
     return (id.contains("https://doi.org/")) ? id : "https://doi.org/" + id;
   }
 

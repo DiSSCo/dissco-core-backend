@@ -123,7 +123,8 @@ public class TestUtils {
     return givenDigitalSpecimenWrapper(id, physicalId, 1, sourceSystem, SPECIMEN_NAME);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenSpecimenName(String id, String specimenName)
+  public static DigitalSpecimenWrapper givenDigitalSpecimenSpecimenName(String id,
+      String specimenName)
       throws JsonProcessingException {
     return givenDigitalSpecimenWrapper(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, specimenName);
   }
@@ -133,6 +134,13 @@ public class TestUtils {
       throws JsonProcessingException {
     return new DigitalSpecimenWrapper(
         givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName),
+        givenSpecimenOriginalData());
+  }
+
+  public static DigitalSpecimenWrapper givenDigitalSpecimenAltCountry(String id) throws JsonProcessingException {
+    return new DigitalSpecimenWrapper(
+        givenDigitalSpecimen(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, "Alt Country Specimen",
+            "Netherlands"),
         givenSpecimenOriginalData());
   }
 
@@ -168,8 +176,8 @@ public class TestUtils {
             """, JsonNode.class);
   }
 
-  private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
-      String sourceSystemId, String specimenName) {
+  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
+      String sourceSystemId, String specimenName, String country) {
     return new DigitalSpecimen()
         .withOdsId(id)
         .withOdsPhysicalSpecimenId(physicalId)
@@ -190,7 +198,12 @@ public class TestUtils {
         .withOdsMarkedAsType(Boolean.TRUE)
         .withOdsHasMedia(Boolean.TRUE)
         .withOccurrences(
-            List.of(new Occurrences().withLocation(new Location().withDwcCountry("Scotland"))));
+            List.of(new Occurrences().withLocation(new Location().withDwcCountry(country))));
+  }
+
+  private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
+      String sourceSystemId, String specimenName) {
+    return givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName, "Scotland");
   }
 
   public static Map<String, Map<String, Long>> givenAggregationMap() {
@@ -200,6 +213,7 @@ public class TestUtils {
         "hasMedia", Map.of("true", 10L)
     );
   }
+
   public static Map<String, Map<String, Long>> givenTaxonAggregationMap() {
     return Map.of(
         "phylum", Map.of("Chordata", 3782L)

@@ -1,9 +1,13 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -16,6 +20,7 @@ import eu.dissco.backend.service.AnnotationService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.InvalidRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +49,8 @@ public class AnnotationController extends BaseController {
   private final SchemaValidatorComponent schemaValidator;
 
   public AnnotationController(
-      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service, SchemaValidatorComponent schemaValidator) {
+      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service,
+      SchemaValidatorComponent schemaValidator) {
     super(mapper, applicationProperties);
     this.service = service;
     this.schemaValidator = schemaValidator;
@@ -54,7 +60,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotation(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotation: {}", id);
+    log.info("Received get request for annotations: {}", id);
     var annotation = service.getAnnotation(id, getPath(request));
     return ResponseEntity.ok(annotation);
   }
@@ -77,7 +83,7 @@ public class AnnotationController extends BaseController {
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotation: {} with version: {}", id, version);
+    log.info("Received get request for annotations: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, getPath(request));
     return ResponseEntity.ok(annotation);
   }
@@ -101,8 +107,35 @@ public class AnnotationController extends BaseController {
     var annotation = getAnnotationFromRequest(requestBody);
     schemaValidator.validateAnnotationRequest(annotation, true);
     var userId = authentication.getName();
-    log.info("Received new annotation from user: {}", userId);
+    log.info("Received new annotations from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
+    if (annotationResponse != null) {
+      return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
+    } else {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
+  }
+
+  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonNode> getCountForBatchAnnotations(JsonNode request) throws IOException {
+    log.info("Received request for batch annotation count");
+    var result = service.getCountForBatchAnnotations(request);
+    return ResponseEntity.ok(result);
+  }
+
+  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
+  @ResponseStatus(HttpStatus.CREATED)
+  @PostMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> createAnnotationBatch(Authentication authentication,
+      @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
+      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
+    var event = getAnnotationFromRequestEvent(requestBody);
+    schemaValidator.validateAnnotationEventRequest(event, true);
+    var userId = authentication.getName();
+    log.info("Received new batch annotation from user: {}", userId);
+    var annotationResponse = service.persistAnnotation(event, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {
@@ -119,8 +152,9 @@ public class AnnotationController extends BaseController {
     var id = prefix + '/' + suffix;
     var userId = authentication.getName();
     var annotation = getAnnotationFromRequest(requestBody);
-    log.info("Received update for annotation: {} from user: {}", id, userId);
-    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request), prefix, suffix);
+    log.info("Received update for annotations: {} from user: {}", id, userId);
+    var annotationResponse = service.updateAnnotation(id, annotation, userId, getPath(request),
+        prefix, suffix);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
     } else {
@@ -137,7 +171,8 @@ public class AnnotationController extends BaseController {
       Authentication authentication) throws IOException, ForbiddenException {
     var userToken = authentication.getName();
     log.info("Received get request to show all annotations for user: {}", userToken);
-    var annotations = service.getAnnotationsForUser(userToken, pageNumber, pageSize, getPath(request));
+    var annotations = service.getAnnotationsForUser(userToken, pageNumber, pageSize,
+        getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
@@ -146,7 +181,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for versions of annotation with id: {}", id);
+    log.info("Received get request for versions of annotations with id: {}", id);
     var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
@@ -158,7 +193,7 @@ public class AnnotationController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException {
     var userId = authentication.getName();
-    log.info("Received delete for annotation: {} from user: {}", (prefix + suffix), userId);
+    log.info("Received delete for annotations: {} from user: {}", (prefix + suffix), userId);
     var success = service.deleteAnnotation(prefix, suffix, authentication.getName());
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -169,11 +204,20 @@ public class AnnotationController extends BaseController {
 
   private Annotation getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException {
-    if (!requestBody.data().type().equals("annotation")) {
+    if (!requestBody.data().type().equals("annotations")) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be \"annotation\" but was " + requestBody.data().type());
+          "Invalid type. Type must be \"annotations\" but was " + requestBody.data().type());
     }
     return mapper.treeToValue(requestBody.data().attributes(), Annotation.class);
+  }
+
+  private AnnotationEvent getAnnotationFromRequestEvent(JsonApiRequestWrapper requestBody)
+      throws JsonProcessingException {
+    if (!requestBody.data().type().equals("annotations")) {
+      throw new IllegalArgumentException(
+          "Invalid type. Type must be \"annotations\" but was " + requestBody.data().type());
+    }
+    return mapper.treeToValue(requestBody.data().attributes(), AnnotationEvent.class);
   }
 
   @ExceptionHandler(NoAnnotationFoundException.class)

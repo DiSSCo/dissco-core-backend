@@ -81,7 +81,7 @@ public class AnnotationRepository {
           .odsBatchId(dbRecord.get(ANNOTATION.BATCH_ID))
           .build();
     } catch (JsonProcessingException e) {
-      log.error("Failed to parse annotation body to Json", e);
+      log.error("Failed to parse annotations body to Json", e);
       return null;
     }
   }

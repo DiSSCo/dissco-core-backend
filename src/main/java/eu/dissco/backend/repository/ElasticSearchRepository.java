@@ -16,16 +16,21 @@ import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.CountRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.transport.TransportOptions;
 import co.elastic.clients.util.NamedValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -260,6 +265,40 @@ public class ElasticSearchRepository {
         .build();
     var aggregation = client.search(searchQuery, ObjectNode.class);
     return collectResult(aggregation.aggregations());
+  }
+
+  public long getCountForBatchAnnotations(BatchMetadata batchMetadata,
+      AnnotationTargetType targetType)
+      throws IOException {
+    var index =
+        targetType.equals(AnnotationTargetType.DIGITAL_SPECIMEN)
+            ? properties.getDigitalSpecimenIndex()
+            : properties.getDigitalMediaObjectIndex();
+    var query = generateBatchAnnotationQuery(batchMetadata);
+    var countRequest = new CountRequest.Builder()
+        .index(index)
+        .query(
+            q -> q.bool(b -> b.must(query)))
+        .build();
+    return client
+        .count(countRequest)
+        .count();
+  }
+
+  private List<Query> generateBatchAnnotationQuery(BatchMetadata batchMetadata) {
+    var qList = new ArrayList<Query>();
+    for (var searchParam : batchMetadata.getSearchParams()) {
+      var key = searchParam.inputField().replaceAll("\\[[^]]*]", "") + ".keyword";
+      var val = searchParam.inputValue();
+      if (!val.isBlank()) {
+        qList.add(
+            new Query.Builder().term(t -> t.field(key).value(val).caseInsensitive(true)).build());
+      } else {
+        qList.add(
+            new Query.Builder().bool(b -> b.mustNot(q -> q.exists(e -> e.field(key)))).build());
+      }
+    }
+    return qList;
   }
 
 }

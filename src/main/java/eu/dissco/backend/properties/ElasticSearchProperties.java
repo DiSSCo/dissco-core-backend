@@ -30,6 +30,6 @@ public class ElasticSearchProperties {
   private String digitalMediaObjectIndex = "digital-media-object";
 
   @NotBlank
-  private String annotationIndex = "annotation";
+  private String annotationIndex = "annotations";
 
 }

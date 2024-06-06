@@ -3,6 +3,8 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.HANDLE;
+import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
@@ -10,12 +12,14 @@ import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME_2;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenDigitalSpecimenAltCountry;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_ID;
 import static eu.dissco.backend.domain.DefaultMappingTerms.getAggregationSet;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -29,6 +33,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
+import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,7 +67,7 @@ class ElasticSearchRepositoryIT {
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
       "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.7.1");
   private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
-  private static final String ANNOTATION_INDEX = "annotation";
+  private static final String ANNOTATION_INDEX = "annotations";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
@@ -211,7 +218,8 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_ID.fullName(), List.of(SOURCE_SYSTEM_ID_2)), getAggregationSet(), false);
+        Map.of(SOURCE_SYSTEM_ID.fullName(), List.of(SOURCE_SYSTEM_ID_2)), getAggregationSet(),
+        false);
 
     // Then
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
@@ -287,7 +295,8 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
     // When
-    var responseReceived = repository.aggregateTermValue(DefaultMappingTerms.SPECIMEN_NAME.requestName(),
+    var responseReceived = repository.aggregateTermValue(
+        DefaultMappingTerms.SPECIMEN_NAME.requestName(),
         DefaultMappingTerms.SPECIMEN_NAME.fullName(), "A", true);
 
     // Then
@@ -369,7 +378,7 @@ class ElasticSearchRepositoryIT {
       givenAnnotations.add(annotation);
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -395,7 +404,7 @@ class ElasticSearchRepositoryIT {
       givenAnnotations.add(annotation.setOdsAggregateRating(null));
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse( PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -452,6 +461,42 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived.getLeft()).isZero();
     assertThat(responseReceived.getRight()).isEmpty();
+  }
+
+  @Test
+  void getCountForBatchAnnotations() throws Exception {
+    // Given
+    var batchMetadata = new BatchMetadata(List.of(givenSearchParam("Scotland")));
+    var givenSpecimens = List.of(
+        givenDigitalSpecimenWrapper(ID),
+        givenDigitalSpecimenAltCountry(ID_ALT),
+        givenDigitalSpecimenWrapper("A-third-specimen")
+    );
+    postDigitalSpecimens(parseToElasticFormat(givenSpecimens));
+
+    // When
+    var result = repository.getCountForBatchAnnotations(batchMetadata,
+        AnnotationTargetType.DIGITAL_SPECIMEN);
+
+    // Then
+    assertThat(result).isEqualTo(2L);
+  }
+
+  @Test
+  void getCountForBatchAnnotationsBlankParam() throws Exception {
+    // Given
+    var batchMetadata = new BatchMetadata(List.of(new SearchParam(
+        "digitalSpecimenWrapper.ods:attributes.occurrences[*].dwc:FieldNumber",
+        ""
+    )));
+    postDigitalSpecimens(parseToElasticFormat(List.of(givenDigitalSpecimenWrapper(ID))));
+
+    // When
+    var result = repository.getCountForBatchAnnotations(batchMetadata,
+        AnnotationTargetType.DIGITAL_SPECIMEN);
+
+    // Then
+    assertThat(result).isEqualTo(1L);
   }
 
   private List<JsonNode> parseAnnotationToElasticFormat(List<Annotation> annotations) {

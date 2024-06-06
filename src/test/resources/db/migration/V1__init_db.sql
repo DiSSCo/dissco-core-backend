@@ -123,7 +123,7 @@ create type error_code as enum ('TIMEOUT', 'DISSCO_EXCEPTION');
 create table mas_job_record
 (
     job_id             text                     not null
-        constraint mas_job_record_new_pk
+        constraint mas_job_record_pk
             primary key,
     job_state          job_state                not null,
     mas_id             text                     not null,
@@ -135,5 +135,6 @@ create table mas_job_record
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
-    expires_on         timestamp with time zone
+    expires_on         timestamp with time zone not null
 );
+

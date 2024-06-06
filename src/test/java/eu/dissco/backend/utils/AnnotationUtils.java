@@ -8,6 +8,8 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.annotation.AggregateRating;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.Body;
@@ -16,6 +18,9 @@ import eu.dissco.backend.domain.annotation.FieldSelector;
 import eu.dissco.backend.domain.annotation.Generator;
 import eu.dissco.backend.domain.annotation.Motivation;
 import eu.dissco.backend.domain.annotation.Target;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
+import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -39,18 +44,20 @@ public class AnnotationUtils {
     return Collections.nCopies(n, givenAnnotationResponse(annotationId));
   }
 
-  public static Annotation givenAnnotationResponse(){
+  public static Annotation givenAnnotationResponse() {
     return givenAnnotationResponse(ID, USER_ID_TOKEN, TARGET_ID);
   }
 
   public static Annotation givenAnnotationResponse(String annotationId) {
     return givenAnnotationResponse(annotationId, USER_ID_TOKEN, TARGET_ID);
   }
+
   public static Annotation givenAnnotationResponse(String annotationId, String userId) {
     return givenAnnotationResponse(annotationId, userId, TARGET_ID);
   }
 
-  public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
+  public static Annotation givenAnnotationResponse(String annotationId, String userId,
+      String targetId) {
     return Annotation.builder()
         .odsId(annotationId)
         .odsVersion(1)
@@ -65,10 +72,10 @@ public class AnnotationUtils {
         .build();
   }
 
-  public static Annotation givenAnnotationKafkaRequest(boolean isUpdate){
+  public static Annotation givenAnnotationKafkaRequest(boolean isUpdate) {
     var request = givenAnnotationRequest()
         .setOaCreator(givenCreator(ORCID));
-    if (!isUpdate){
+    if (!isUpdate) {
       return request;
     }
     return request
@@ -117,7 +124,7 @@ public class AnnotationUtils {
         .build();
   }
 
-  public static Generator givenGenerator(){
+  public static Generator givenGenerator() {
     return Generator.builder()
         .foafName("DiSSCo backend")
         .odsId("https://sandbox.dissco.tech")
@@ -125,7 +132,7 @@ public class AnnotationUtils {
         .build();
   }
 
-  public static AggregateRating givenAggregationRating(){
+  public static AggregateRating givenAggregationRating() {
     return AggregateRating.builder()
         .ratingValue(0.1)
         .odsType("Score")
@@ -133,10 +140,10 @@ public class AnnotationUtils {
         .build();
   }
 
-  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Annotation request) {
+  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Object request) {
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
-            "annotation",
+            "annotations",
             MAPPER.valueToTree(request)
         )
     );
@@ -150,7 +157,13 @@ public class AnnotationUtils {
 
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
     var annotation = givenAnnotationResponse(ID, userId);
-    var dataNode = new JsonApiData(ID, "annotation", MAPPER.valueToTree(annotation));
+    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
+    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
+  public static JsonApiWrapper givenAnnotationResponseBatch(String path, String userId) {
+    var annotation = givenAnnotationResponse(ID, userId).setPlaceInBatch(1);
+    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -164,7 +177,7 @@ public class AnnotationUtils {
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotation",
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotations",
         MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
   }
 
@@ -173,9 +186,63 @@ public class AnnotationUtils {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
     List<JsonApiData> dataNodes = new ArrayList<>();
 
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotation",
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotations",
         MAPPER.valueToTree(givenAnnotationResponse(id)))));
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
+
+  public static AnnotationEvent givenAnnotationEventRequest() {
+    return new AnnotationEvent(List.of(givenAnnotationRequest()),
+        List.of(new BatchMetadata(List.of(givenSearchParam()))));
+  }
+
+  public static AnnotationEvent givenAnnotationEventProcessed() {
+    return new AnnotationEvent(List.of(givenAnnotationRequest()
+        .setOaCreator(givenCreator(ORCID))
+        .setPlaceInBatch(1)
+        .setDcTermsCreated(CREATED)),
+        List.of(new BatchMetadata(List.of(givenSearchParam()))));
+  }
+
+  public static BatchMetadata givenBatchMetadata() {
+    return new BatchMetadata(List.of(givenSearchParam()));
+  }
+
+  public static SearchParam givenSearchParam() {
+    return new SearchParam(
+        "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+        "Netherlands"
+    );
+  }
+
+  public static SearchParam givenSearchParam(String country) {
+    return new SearchParam(
+        "digitalSpecimenWrapper.ods:attributes.occurrences[*].location.dwc:country",
+        country
+    );
+  }
+
+  public static JsonNode givenAnnotationCountRequest() throws JsonProcessingException {
+    return MAPPER.readTree("""
+        {
+          "data": {
+            "type": "batchAnnotationCount",
+            "attributes": {
+              "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+              "batchMetadata": {
+                "searchParams": [
+                  {
+                    "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                    "inputValue": "Netherlands"
+                  }
+                ]
+              }
+            }
+          }
+        }
+        """);
+  }
+
+
 
 }
