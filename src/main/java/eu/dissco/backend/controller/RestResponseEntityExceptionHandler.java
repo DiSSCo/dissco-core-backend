@@ -56,8 +56,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   @ResponseStatus(HttpStatus.CONFLICT)
   @ExceptionHandler(ConflictException.class)
   public ResponseEntity<ExceptionResponseWrapper> handleException(ConflictException e) {
-
-    var message = "A conflict has occurred. Attempting to create a resource that already exists. ";
+    logger.error("A conflict exception has occurred", e);
+    var message = "A conflict has occurred. Attempting to create a resource that already exists.";
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.CONFLICT,
         "ID Conflict",
