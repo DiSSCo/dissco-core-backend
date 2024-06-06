@@ -15,6 +15,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
+import eu.dissco.backend.exceptions.BatchingNotPermittedException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import java.util.ArrayList;
@@ -126,7 +127,7 @@ public class MachineAnnotationServiceService {
         log.error(
             "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",
             masRecord.id());
-        throw new ConflictException();
+        throw new BatchingNotPermittedException();
       }
     }
   }
