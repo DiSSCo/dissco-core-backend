@@ -44,7 +44,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMapAdapter;
 
 @ExtendWith(MockitoExtension.class)
-class SpecimenControllerTest {
+class DigitalSpecimenControllerTest {
 
   MockHttpServletRequest mockRequest;
   @Mock
@@ -53,11 +53,11 @@ class SpecimenControllerTest {
   private SpecimenService service;
   @Mock
   private ApplicationProperties applicationProperties;
-  private SpecimenController controller;
+  private DigitalSpecimenController controller;
 
   @BeforeEach
   void setup() {
-    controller = new SpecimenController(applicationProperties, MAPPER, service);
+    controller = new DigitalSpecimenController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(SPECIMEN_URI);
   }
@@ -83,15 +83,6 @@ class SpecimenControllerTest {
   void testGetSpecimenById() {
     // When
     var result = controller.getSpecimenById(PREFIX, SUFFIX, mockRequest);
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetSpecimenByIdJsonLd() {
-    // When
-    var result = controller.getSpecimenByIdJsonLD(PREFIX, SUFFIX);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -5,7 +5,6 @@ import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -37,7 +36,7 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.DigitalMediaObjectFull;
+import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -50,9 +49,9 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.repository.SpecimenRepository;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,11 +71,11 @@ import org.springframework.util.MultiValueMapAdapter;
 class SpecimenServiceTest {
 
   @Mock
-  private SpecimenRepository repository;
+  private DigitalSpecimenRepository repository;
   @Mock
   private ElasticSearchRepository elasticRepository;
   @Mock
-  private DigitalMediaObjectService digitalMediaObjectService;
+  private DigitalMediaService digitalMediaService;
   @Mock
   private AnnotationService annotationService;
   @Mock
@@ -92,7 +91,7 @@ class SpecimenServiceTest {
 
   @BeforeEach
   void setup() {
-    service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaObjectService,
+    service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaService,
         masService, annotationService, mongoRepository, masJobRecordService, userService);
   }
 
@@ -181,7 +180,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenById() throws JsonProcessingException {
+  void testGetSpecimenById() {
     // Given
     var dataNode = givenDigitalSpecimenJsonApiData(givenDigitalSpecimenWrapper(ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
@@ -195,20 +194,20 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenByIdFull() throws JsonProcessingException {
+  void testGetSpecimenByIdFull() {
     // Given
-    var specimenWrapper = givenDigitalSpecimenWrapper(ID);
-    var digitalMedia = List.of(new DigitalMediaObjectFull(givenDigitalMediaObject(ID), List.of()));
+    var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
+    var digitalMedia = List.of(new DigitalMediaFull(givenDigitalMediaObject(ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
-    given(repository.getLatestSpecimenById(ID)).willReturn(specimenWrapper);
-    given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
+    given(digitalMediaService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var attributeNode = MAPPER.valueToTree(
-        new DigitalSpecimenFull(specimenWrapper.digitalSpecimen(), specimenWrapper.originalData(),
+        new DigitalSpecimenFull(digitalSpecimen,
             digitalMedia,
             annotations));
     var expected = new JsonApiWrapper(
-        new JsonApiData(ID, specimenWrapper.digitalSpecimen().getOdsType(), attributeNode),
+        new JsonApiData(ID, digitalSpecimen.getOdsType(), attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -224,17 +223,16 @@ class SpecimenServiceTest {
     int version = 4;
     var specimen = givenMongoDBResponse();
     var digitalMedia = List.of(
-        new DigitalMediaObjectFull(givenDigitalMediaObject(DOI + ID), List.of()));
+        new DigitalMediaFull(givenDigitalMediaObject(DOI + ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
-    given(digitalMediaObjectService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(digitalMediaService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
         SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
     var attributeNode = MAPPER.valueToTree(
-        new DigitalSpecimenFull(digitalSpecimenWrapper.digitalSpecimen(),
-            digitalSpecimenWrapper.originalData(), digitalMedia, annotations));
+        new DigitalSpecimenFull(digitalSpecimenWrapper, digitalMedia, annotations));
     var expected = new JsonApiWrapper(
         new JsonApiData(DOI + ID, DIGITAL_SPECIMEN_TYPE, attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
@@ -279,8 +277,8 @@ class SpecimenServiceTest {
     arrayNode.add(1).add(2);
     var dataNode = new JsonApiData(ID, "digitalSpecimenVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
-    try (var mockedStatic = mockStatic(ServiceUtils.class)) {
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
+    try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
+      mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
 
       // When
@@ -311,28 +309,13 @@ class SpecimenServiceTest {
     var digitalMediaList = List.of(digitalMedia);
     var expected = new JsonApiListResponseWrapper(List.of(digitalMedia),
         new JsonApiLinksFull(SPECIMEN_PATH));
-    given(digitalMediaObjectService.getDigitalMediaForSpecimen(ID)).willReturn(digitalMediaList);
+    given(digitalMediaService.getDigitalMediaForSpecimen(ID)).willReturn(digitalMediaList);
 
     // When
     var result = service.getDigitalMedia(ID, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testSpecimenByIdJsonLD() throws IOException {
-    // Given
-    var specimens = givenDigitalSpecimenWrapper(ID);
-    given(repository.getLatestSpecimenById(ID)).willReturn(specimens);
-    given(digitalMediaObjectService.getDigitalMediaIdsForSpecimen(ID)).willReturn(
-        List.of(PREFIX + "XXX-XXX-YYY"));
-
-    // When
-    var result = service.getSpecimenByIdJsonLD(ID);
-
-    // Then
-    assertThat(MAPPER.valueToTree(result).toString()).hasToString(givenJsonLDString());
   }
 
   @Test
@@ -419,9 +402,9 @@ class SpecimenServiceTest {
     params.put("typeStatus", List.of("holotype"));
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of(
-        "digitalSpecimenWrapper.ods:attributes.occurrences.location.dwc:country.keyword",
+        "ods:hasEvent.ods:Location.dwc:country.keyword",
         List.of("France", "Albania"),
-        "digitalSpecimenWrapper.ods:attributes.dwc:identification.dwc:typeStatus.keyword",
+        "ods:hasIdentification.dwc:typeStatus.keyword",
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
@@ -456,7 +439,7 @@ class SpecimenServiceTest {
   void testAggregation() throws IOException, UnknownParameterException {
     // Given
     var params = new HashMap<String, List<String>>();
-    params.put("sourceSystemId", List.of(SOURCE_SYSTEM_ID_1));
+    params.put("sourceSystemID", List.of(SOURCE_SYSTEM_ID_1));
     var map = new MultiValueMapAdapter<>(params);
     var aggregationMap = givenAggregationMap();
     given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(
@@ -482,7 +465,7 @@ class SpecimenServiceTest {
     var aggregationMap = givenTaxonAggregationMap();
     given(elasticRepository.getAggregations(
         Map.of(
-            "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword",
+            "ods:hasIdentification.ods:hasTaxonIdentification.dwc:kingdom.keyword",
             List.of("animalia")),
         Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true)).willReturn(
         aggregationMap);
@@ -543,7 +526,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testGetMas() throws JsonProcessingException {
+  void testGetMas() {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
@@ -559,7 +542,7 @@ class SpecimenServiceTest {
   }
 
   @Test
-  void testScheduleMas() throws JsonProcessingException, ForbiddenException, ConflictException {
+  void testScheduleMas() throws ForbiddenException, ConflictException {
     // Given
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
@@ -567,7 +550,7 @@ class SpecimenServiceTest {
     given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
         eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
-        eq(digitalSpecimenWrapper.digitalSpecimen().getOdsId()), eq(ORCID),
+        eq(digitalSpecimenWrapper.getOdsID()), eq(ORCID),
         eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
     given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
@@ -579,79 +562,37 @@ class SpecimenServiceTest {
     assertThat(result).isEqualTo(response);
   }
 
-  private String givenJsonLDString() {
-    return """
-        {"@id":"hdl:20.5000.1025/ABC-123-XYZ","@type":"https://doi.org/21.T11148/894b1e6cad57e921764e","@context":{"dwc:institutionId":{"@type":"@id"},"ods:sourceSystemId":{"@type":"@id"},"ods:hasSpecimenMedia":{"@container":"@list","@type":"@id"},"hdl":"https://hdl.handle.net/","dwc":"https://rs.tdwg.org/dwc/terms/","dcterms":"https://purl.org/dc/terms/","ods":"https://github.com/DiSSCo/openDS/ods-ontology/terms/"},"ods:primarySpecimenData":{"ods:id":"20.5000.1025/ABC-123-XYZ","ods:version":1,"ods:created":"2022-11-01T09:59:24Z","ods:type":"https://doi.org/21.T11148/894b1e6cad57e921764e","ods:midsLevel":0,"ods:physicalSpecimenId":"global_id_123123","ods:physicalSpecimenIdType":"Resolvable","ods:topicDiscipline":"Botany","ods:markedAsType":true,"ods:hasMedia":true,"ods:specimenName":"Abyssothyris Thomson, 1927","ods:sourceSystem":"https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY","dcterms:license":"http://creativecommons.org/licenses/by/4.0/legalcode","dcterms:modified":"03/12/2012","dwc:preparations":"","dwc:institutionId":"https://ror.org/0349vqz63","dwc:institutionName":"Royal Botanic Garden Edinburgh Herbarium","dwc:datasetName":"Royal Botanic Garden Edinburgh Herbarium","materialEntity":[],"dwc:identification":[],"assertions":[],"occurrences":[{"assertions":[],"location":{"dwc:country":"Scotland"}}],"entityRelationships":[],"citations":[],"identifiers":[],"chronometricAge":[]},"ods:hasSpecimenMedia":["hdl:20.5000.1025XXX-XXX-YYY"]}""";
-  }
-
 
   private JsonNode givenMongoDBResponse() throws JsonProcessingException {
     return MAPPER.readValue("""
         {
-               "id": "20.5000.1025/ABC-123-XYZ",
-               "midsLevel": 0,
-               "version": 4,
-               "created": "2022-11-01T09:59:24Z",
-               "digitalSpecimenWrapper": {
-                   "ods:physicalSpecimenId": "123",
-                   "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
-                   "ods:attributes": {
-                       "ods:physicalSpecimenId": "123",
-                       "ods:physicalSpecimenIdType": "Resolvable",
-                       "ods:topicDiscipline": "Botany",
-                       "ods:markedAsType": true,
-                       "ods:hasMedia": true,
-                       "ods:specimenName": "Abyssothyris Thomson, 1927",
-                       "ods:sourceSystem": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
-                       "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-                       "dcterms:modified": "03/12/2012",
-                       "dwc:preparations": "",
-                       "dwc:institutionId": "https://ror.org/0349vqz63",
-                       "dwc:institutionName": "Royal Botanic Garden Edinburgh Herbarium",
-                       "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
-                       "materialEntity": [],
-                       "dwc:identification": [],
-                       "assertions": [],
-                       "occurrences": [
-                           {
-                               "assertions": [],
-                               "location": {
-                                   "dwc:country": "Scotland"
+               "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+               "@type": "ods:DigitalSpecimen",
+               "ods:ID": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+               "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+               "ods:midsLevel": 0,
+               "ods:version": 4,
+               "ods:created": "2022-11-01T09:59:24.000Z",
+               "ods:physicalSpecimenID": "123",
+               "ods:physicalSpecimenIDType": "Resolvable",
+               "ods:isMarkedAsType": true,
+               "ods:isKnownToContainMedia": true,
+               "ods:specimenName": "Abyssothyris Thomson, 1927",
+               "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+               "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+               "dcterms:modified": "03/12/2012",
+               "dwc:preparations": "",
+               "ods:organisationID": "https://ror.org/0349vqz63",
+               "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
+               "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
+               "ods:hasEvent": [
+                       {
+                          "ods:hasAssertion": [],
+                          "ods:Location": {
+                             "dwc:country": "Scotland"
                                }
                            }
-                       ],
-                       "entityRelationships": [],
-                       "citations": [],
-                       "identifiers": [],
-                       "chronometricAge": []
-                   },
-                   "ods:originalAttributes": {
-                       "dwc:class": "Malacostraca",
-                       "dwc:genus": "Mesuca",
-                       "dwc:order": "Decapoda",
-                       "dwc:family": "Ocypodidae",
-                       "dwc:phylum": "Arthropoda",
-                       "dwc:country": "Nicobar Islands",
-                       "dwc:locality": "Harbour",
-                       "dwc:continent": "Eastern Indian Ocean",
-                       "dwc:eventDate": "01/01/1846",
-                       "dwc:recordedBy": "Rosen",
-                       "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-                       "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
-                       "dcterms:modified": "03/12/2012",
-                       "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
-                       "dwc:preparations": "various - 1",
-                       "dwc:basisOfRecord": "PreservedSpecimen",
-                       "dwc:catalogNumber": "NHMD79044",
-                       "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
-                       "dwc:collectionCode": "IV",
-                       "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
-                       "dwc:institutionCode": "NHMD",
-                       "dwc:specificEpithet": "dussumieri",
-                       "dwc:acceptedNameUsage": "Mesuca dussumieri",
-                       "dwc:otherCatalogNumbers": "CRU-001196"
-                   }
-               }
+                       ]
            }
                   """, JsonNode.class);
   }

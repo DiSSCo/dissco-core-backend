@@ -19,7 +19,7 @@ public class JsonApiData {
     this.attributes = attributes;
   }
 
-  public <T extends Record> JsonApiData(String id, String type, T domainObject,
+  public <T extends Object> JsonApiData(String id, String type, T domainObject,
       ObjectMapper mapper) {
     this.id = id;
     this.type = type;

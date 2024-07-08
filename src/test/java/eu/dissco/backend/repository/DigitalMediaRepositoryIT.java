@@ -1,11 +1,9 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
@@ -15,9 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
-import eu.dissco.backend.domain.DigitalSpecimenWrapper;
-import java.time.Instant;
+import eu.dissco.backend.schema.DigitalMedia;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;
@@ -26,15 +23,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
+class DigitalMediaRepositoryIT extends BaseRepositoryIT {
 
-  private DigitalMediaObjectRepository repository;
+  private DigitalMediaRepository repository;
 
   @BeforeEach
   void setup() {
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     mapper.setSerializationInclusion(Include.NON_NULL);
-    repository = new DigitalMediaObjectRepository(mapper, context);
+    repository = new DigitalMediaRepository(mapper, context);
   }
 
   @AfterEach
@@ -52,12 +49,12 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = ID_ALT;
     var specimen = givenDigitalSpecimenWrapper(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObjectWrapper> mediaObjectsAll = new ArrayList<>();
+    List<DigitalMedia> mediaObjectsAll = new ArrayList<>();
     for (int i = 0; i < pageSize * 2; i++) {
       mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i), specimenId));
     }
     postMediaObjects(mediaObjectsAll);
-    List<DigitalMediaObjectWrapper> mediaObjectsReceived = new ArrayList<>();
+    List<DigitalMedia> mediaObjectsReceived = new ArrayList<>();
 
     // When
     var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
@@ -69,8 +66,7 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     assertThat(pageOne).hasSize(pageSize + 1);
     assertThat(pageTwo).hasSize(pageSize);
     assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
-        media -> givenDigitalMediaObject(DOI + media.digitalEntity().getOdsId(),
-            specimenId, SOURCE_SYSTEM_ID_1)).toList());
+        media -> givenDigitalMediaObject(DOI + media.getOdsID(), specimenId)).toList());
   }
 
   @Test
@@ -87,14 +83,14 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedResponse).isEqualTo(
-        givenDigitalMediaObject(DOI + ID, ID_ALT, SOURCE_SYSTEM_ID_1, 2));
+        givenDigitalMediaObject(DOI + ID, ID_ALT, 2));
   }
 
   @Test
   void testGetDigitalMediaForSpecimen() throws JsonProcessingException {
     // Given
     String specimenId = ID_ALT;
-    List<DigitalMediaObjectWrapper> postedMediaObjects = List.of(
+    List<DigitalMedia> postedMediaObjects = List.of(
         givenDigitalMediaObject(ID, specimenId),
         givenDigitalMediaObject("aa", specimenId));
     postMediaObjects(postedMediaObjects);
@@ -108,8 +104,8 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(receivedResponse).hasSameElementsAs(
         List.of(
-            givenDigitalMediaObject(DOI + ID, specimenId, SOURCE_SYSTEM_ID_1),
-            givenDigitalMediaObject(DOI + "aa", specimenId, SOURCE_SYSTEM_ID_1)));
+            givenDigitalMediaObject(DOI + ID, specimenId),
+            givenDigitalMediaObject(DOI + "aa", specimenId)));
   }
 
   @Test
@@ -119,9 +115,9 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     String specimenId = "specimenId";
     var specimen = givenDigitalSpecimenWrapper(specimenId);
     postDigitalSpecimen(specimen);
-    List<DigitalMediaObjectWrapper> mediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId, HANDLE + SOURCE_SYSTEM_ID_1),
-        givenDigitalMediaObject(ID_ALT, specimenId, HANDLE + SOURCE_SYSTEM_ID_1));
+    List<DigitalMedia> mediaObjects = List.of(
+        givenDigitalMediaObject(ID, specimenId),
+        givenDigitalMediaObject(ID_ALT, specimenId));
     postMediaObjects(mediaObjects);
 
     // When
@@ -131,69 +127,64 @@ class DigitalMediaObjectRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
   }
 
-  private void postMediaObjects(List<DigitalMediaObjectWrapper> mediaObjects)
+  private void postMediaObjects(List<DigitalMedia> mediaObjects)
       throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
-    for (DigitalMediaObjectWrapper mediaObject : mediaObjects) {
-      var specimenId = mediaObject.digitalEntity().getEntityRelationships().get(0)
-          .getObjectEntityIri();
+    for (DigitalMedia mediaObject : mediaObjects) {
+      var specimenId = mediaObject.getOdsHasEntityRelationship().get(0)
+          .getDwcRelatedResourceID();
       var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.digitalEntity().getOdsId())
-          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.digitalEntity().getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.digitalEntity().getOdsType())
-          .set(DIGITAL_MEDIA_OBJECT.CREATED,
-              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
+          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getOdsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
-          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.digitalEntity().getAcAccessUri())
+          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
-              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject.digitalEntity())))
-          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
-              JSONB.jsonb(mediaObject.originalData().toString()))
+              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
+          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
           .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+              mediaObject.getOdsCreated().toInstant())
           .onConflict(DIGITAL_SPECIMEN.ID).doUpdate()
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.digitalEntity().getOdsId())
-          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.digitalEntity().getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.digitalEntity().getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
+          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED,
-              Instant.parse(mediaObject.digitalEntity().getOdsCreated()))
+              mediaObject.getOdsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
-          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.digitalEntity().getAcAccessUri())
+          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
-              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject.digitalEntity())))
-          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA,
-              JSONB.jsonb(mediaObject.originalData().toString()))
+              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
+          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
           .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              Instant.parse(mediaObject.digitalEntity().getOdsCreated()));
+              mediaObject.getOdsCreated().toInstant());
       queryList.add(query);
     }
     context.batch(queryList).execute();
   }
 
-  private void postDigitalSpecimen(DigitalSpecimenWrapper specimenWrapper)
+  private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen)
       throws JsonProcessingException {
     context.insertInto(DIGITAL_SPECIMEN)
-        .set(DIGITAL_SPECIMEN.ID, specimenWrapper.digitalSpecimen().getOdsId())
-        .set(DIGITAL_SPECIMEN.VERSION, specimenWrapper.digitalSpecimen().getOdsVersion())
-        .set(DIGITAL_SPECIMEN.TYPE, specimenWrapper.digitalSpecimen().getOdsType())
+        .set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getOdsID())
+        .set(DIGITAL_SPECIMEN.VERSION, digitalSpecimen.getOdsVersion())
+        .set(DIGITAL_SPECIMEN.TYPE, digitalSpecimen.getOdsType())
         .set(DIGITAL_SPECIMEN.MIDSLEVEL,
-            specimenWrapper.digitalSpecimen().getOdsMidsLevel().shortValue())
+            digitalSpecimen.getOdsMidsLevel().shortValue())
         .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,
-            specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenId())
+            digitalSpecimen.getOdsPhysicalSpecimenID())
         .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE,
-            specimenWrapper.digitalSpecimen().getOdsPhysicalSpecimenIdType().value())
-        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, specimenWrapper.digitalSpecimen().getOdsSpecimenName())
+            digitalSpecimen.getOdsPhysicalSpecimenIDType().value())
+        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, digitalSpecimen.getOdsSpecimenName())
         .set(DIGITAL_SPECIMEN.ORGANIZATION_ID,
-            specimenWrapper.digitalSpecimen().getDwcInstitutionId())
+            digitalSpecimen.getOdsOrganisationID())
         .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
-            specimenWrapper.digitalSpecimen().getOdsSourceSystem())
+            digitalSpecimen.getOdsSourceSystemID())
         .set(DIGITAL_SPECIMEN.CREATED,
-            Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
-        .set(DIGITAL_SPECIMEN.LAST_CHECKED,
-            Instant.parse(specimenWrapper.digitalSpecimen().getOdsCreated()))
+            digitalSpecimen.getOdsCreated().toInstant())
+        .set(DIGITAL_SPECIMEN.LAST_CHECKED, digitalSpecimen.getOdsCreated().toInstant())
         .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
-            MAPPER.writeValueAsString(specimenWrapper.digitalSpecimen())))
-        .set(DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(specimenWrapper.originalData().toString()))
+            MAPPER.writeValueAsString(digitalSpecimen)))
         .execute();
   }
 

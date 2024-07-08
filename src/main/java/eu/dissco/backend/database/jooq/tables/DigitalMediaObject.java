@@ -11,20 +11,20 @@ import eu.dissco.backend.database.jooq.tables.records.DigitalMediaObjectRecord;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
+import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Function10;
 import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Records;
-import org.jooq.Row10;
+import org.jooq.PlainSQL;
+import org.jooq.QueryPart;
+import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.SelectField;
+import org.jooq.Select;
+import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -106,11 +106,11 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
     public final TableField<DigitalMediaObjectRecord, JSONB> ORIGINAL_DATA = createField(DSL.name("original_data"), SQLDataType.JSONB.nullable(false), this, "");
 
     private DigitalMediaObject(Name alias, Table<DigitalMediaObjectRecord> aliased) {
-        this(alias, aliased, null);
+        this(alias, aliased, (Field<?>[]) null, null);
     }
 
-    private DigitalMediaObject(Name alias, Table<DigitalMediaObjectRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    private DigitalMediaObject(Name alias, Table<DigitalMediaObjectRecord> aliased, Field<?>[] parameters, Condition where) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table(), where);
     }
 
     /**
@@ -134,10 +134,6 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
      */
     public DigitalMediaObject() {
         this(DSL.name("digital_media_object"), null);
-    }
-
-    public <O extends Record> DigitalMediaObject(Table<O> child, ForeignKey<O, DigitalMediaObjectRecord> key) {
-        super(child, key, DIGITAL_MEDIA_OBJECT);
     }
 
     @Override
@@ -194,27 +190,87 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
         return new DigitalMediaObject(name.getQualifiedName(), null);
     }
 
-    // -------------------------------------------------------------------------
-    // Row10 type methods
-    // -------------------------------------------------------------------------
-
+    /**
+     * Create an inline derived table from this table
+     */
     @Override
-    public Row10<String, Integer, String, String, String, Instant, Instant, Instant, JSONB, JSONB> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public DigitalMediaObject where(Condition condition) {
+        return new DigitalMediaObject(getQualifiedName(), aliased() ? this : null, null, condition);
     }
 
     /**
-     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     * Create an inline derived table from this table
      */
-    public <U> SelectField<U> mapping(Function10<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? extends U> from) {
-        return convertFrom(Records.mapping(from));
+    @Override
+    public DigitalMediaObject where(Collection<? extends Condition> conditions) {
+        return where(DSL.and(conditions));
     }
 
     /**
-     * Convenience mapping calling {@link SelectField#convertFrom(Class,
-     * Function)}.
+     * Create an inline derived table from this table
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super Integer, ? super String, ? super String, ? super String, ? super Instant, ? super Instant, ? super Instant, ? super JSONB, ? super JSONB, ? extends U> from) {
-        return convertFrom(toType, Records.mapping(from));
+    @Override
+    public DigitalMediaObject where(Condition... conditions) {
+        return where(DSL.and(conditions));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public DigitalMediaObject where(Field<Boolean> condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public DigitalMediaObject where(SQL condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public DigitalMediaObject where(@Stringly.SQL String condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public DigitalMediaObject where(@Stringly.SQL String condition, Object... binds) {
+        return where(DSL.condition(condition, binds));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public DigitalMediaObject where(@Stringly.SQL String condition, QueryPart... parts) {
+        return where(DSL.condition(condition, parts));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public DigitalMediaObject whereExists(Select<?> select) {
+        return where(DSL.exists(select));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public DigitalMediaObject whereNotExists(Select<?> select) {
+        return where(DSL.notExists(select));
     }
 }

@@ -210,14 +210,14 @@ public class AnnotationUtils {
 
   public static SearchParam givenSearchParam() {
     return new SearchParam(
-        "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+        "ods:hasEvent.ods:Location.dwc:country.keyword",
         "Netherlands"
     );
   }
 
   public static SearchParam givenSearchParam(String country) {
     return new SearchParam(
-        "digitalSpecimenWrapper.ods:attributes.occurrences[*].location.dwc:country",
+        "ods:hasEvent[*].ods:Location.dwc:country",
         country
     );
   }
@@ -232,7 +232,7 @@ public class AnnotationUtils {
               "batchMetadata": {
                 "searchParams": [
                   {
-                    "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                    "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
                 ]

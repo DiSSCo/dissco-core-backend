@@ -20,9 +20,9 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonRespons
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationKafkaRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseBatch;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseList;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseBatch;
 import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
 import static eu.dissco.backend.utils.AnnotationUtils.givenCreator;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -293,7 +293,7 @@ class AnnotationServiceTest {
               "batchMetadata": {
                 "searchParams": [
                   {
-                    "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
+                    "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
                 ]
@@ -457,8 +457,8 @@ class AnnotationServiceTest {
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
-    try (var mockedStatic = mockStatic(ServiceUtils.class)) {
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
+    try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
+      mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
       // When
       var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);

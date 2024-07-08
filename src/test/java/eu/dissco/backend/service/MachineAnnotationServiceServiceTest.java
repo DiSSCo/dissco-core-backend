@@ -123,11 +123,12 @@ class MachineAnnotationServiceServiceTest {
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(ID, givenMasJobRequest(true, null)),
-        SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
+        SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
-    assertThat(result).isEqualTo(givenScheduledMasResponse(givenMasJobRecord(true, TTL_DEFAULT), SPECIMEN_PATH));
+    assertThat(result).isEqualTo(
+        givenScheduledMasResponse(givenMasJobRecord(true, TTL_DEFAULT), SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 
@@ -147,7 +148,7 @@ class MachineAnnotationServiceServiceTest {
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(ID, givenMasJobRequest()),
         SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
+        digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
@@ -157,7 +158,7 @@ class MachineAnnotationServiceServiceTest {
   }
 
   @Test
-  void testScheduleMassInvalidBatchRequest() throws JsonProcessingException {
+  void testScheduleMassInvalidBatchRequest() {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
@@ -167,7 +168,7 @@ class MachineAnnotationServiceServiceTest {
     assertThrowsExactly(BatchingNotPermittedException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
             Map.of(ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
-            digitalSpecimen, digitalSpecimen.digitalSpecimen().getOdsId(), ORCID,
+            digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN));
   }
 
@@ -187,7 +188,7 @@ class MachineAnnotationServiceServiceTest {
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(ID, givenMasJobRequest()), SPECIMEN_PATH,
-        digitalSpecimenWrapper, digitalSpecimenWrapper.digitalSpecimen().getOdsId(), ORCID,
+        digitalSpecimenWrapper, digitalSpecimenWrapper.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then

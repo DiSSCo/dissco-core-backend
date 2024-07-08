@@ -3,7 +3,6 @@ package eu.dissco.backend.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
-import eu.dissco.backend.domain.DigitalSpecimenJsonLD;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -35,12 +34,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/api/v1/specimens")
-public class SpecimenController extends BaseController {
+@RequestMapping("/api/v1/digital-specimen")
+public class DigitalSpecimenController extends BaseController {
 
   private final SpecimenService service;
 
-  public SpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
+  public DigitalSpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
       SpecimenService service) {
     super(mapper, applicationProperties);
     this.service = service;
@@ -74,16 +73,6 @@ public class SpecimenController extends BaseController {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenById(id, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
-
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/jsonld", produces = "application/ld+json")
-  public ResponseEntity<DigitalSpecimenJsonLD> getSpecimenByIdJsonLD(
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix) {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for jsonld view of specimen with id: {}", id);
-    var specimen = service.getSpecimenByIdJsonLD(id);
     return ResponseEntity.ok(specimen);
   }
 

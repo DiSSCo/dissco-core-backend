@@ -21,7 +21,7 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.service.DigitalMediaObjectService;
+import eu.dissco.backend.service.DigitalMediaService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,20 +35,20 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
-class DigitalMediaObjectControllerTest {
+class DigitalMediaControllerTest {
 
   @Mock
-  private DigitalMediaObjectService service;
+  private DigitalMediaService service;
   @Mock
   private ApplicationProperties applicationProperties;
   @Mock
   private Authentication authentication;
-  private DigitalMediaObjectController controller;
+  private DigitalMediaController controller;
   private MockHttpServletRequest mockRequest;
 
   @BeforeEach
   void setup() {
-    controller = new DigitalMediaObjectController(applicationProperties, MAPPER, service);
+    controller = new DigitalMediaController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
   }

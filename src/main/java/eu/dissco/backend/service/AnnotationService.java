@@ -1,6 +1,6 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

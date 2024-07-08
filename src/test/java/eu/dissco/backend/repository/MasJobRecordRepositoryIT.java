@@ -20,7 +20,6 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.JSONB;

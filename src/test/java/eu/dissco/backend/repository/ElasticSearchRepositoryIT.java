@@ -28,17 +28,19 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DefaultMappingTerms;
-import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.properties.ElasticSearchProperties;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -111,7 +113,7 @@ class ElasticSearchRepositoryIT {
 
   private static Stream<Arguments> provideKeyValue() {
     return Stream.of(
-        Arguments.of("digitalSpecimenWrapper.ods:physicalSpecimenId.keyword", "global_id_45634",
+        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45634",
             1L),
         Arguments.of("q", PREFIX + "/0", 10L)
     );
@@ -136,13 +138,13 @@ class ElasticSearchRepositoryIT {
   @MethodSource("provideKeyValue")
   void testSearch(String field, String value, Long totalHits) throws IOException {
     // Given
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
-    String targetId = PREFIX + "/0";
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    String targetId = DOI + "/" + PREFIX + "/0";
     var physicalId = "global_id_45634";
     var targetSpecimen = givenDigitalSpecimenWrapper(targetId, physicalId);
     specimenTestRecords.add(targetSpecimen);
     for (int i = 1; i < 10; i++) {
-      var specimen = givenDigitalSpecimenWrapper(PREFIX + "/" + i);
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       specimenTestRecords.add(specimen);
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
@@ -153,7 +155,7 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
     assertThat(responseReceived.getRight()).contains(
-        givenDigitalSpecimenWrapper(DOI + targetId, physicalId, SOURCE_SYSTEM_ID_1));
+        givenDigitalSpecimenWrapper(targetId, physicalId, SOURCE_SYSTEM_ID_1));
   }
 
   @Test
@@ -162,9 +164,9 @@ class ElasticSearchRepositoryIT {
     int pageNumber = 0;
     int pageSize = 10;
     long totalHits = 15L;
-    var digitalSpecimens = new ArrayList<DigitalSpecimenWrapper>();
+    var digitalSpecimens = new ArrayList<DigitalSpecimen>();
     for (int i = 0; i < totalHits; i++) {
-      String id = PREFIX + "/" + i;
+      String id = DOI + PREFIX + "/" + i;
       digitalSpecimens.add(givenDigitalSpecimenWrapper(id));
     }
     postDigitalSpecimens(parseToElasticFormat(digitalSpecimens));
@@ -182,18 +184,18 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageNumber = 2;
     int pageSize = 5;
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
-      var specimen = givenDigitalSpecimenWrapper(PREFIX + "/" + i);
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       specimenTestRecords.add(specimen);
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
     // When
     var responseReceived = repository.search(
-        Map.of("digitalSpecimenWrapper.ods:attributes.dwc:institutionId.keyword",
-            List.of("https://ror.org/0349vqz63")), pageNumber, pageSize);
+        Map.of("ods:organisationID.keyword", List.of("https://ror.org/0349vqz63")), pageNumber,
+        pageSize);
 
     // Then
     assertThat(responseReceived.getLeft()).isEqualTo(10L);
@@ -203,13 +205,15 @@ class ElasticSearchRepositoryIT {
   @Test
   void testAggregations() throws IOException {
     // Given
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimenWrapper specimen;
+      DigitalSpecimen specimen;
       if (i < 5) {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_1);
       } else {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_2);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_2);
       }
       specimenTestRecords.add(specimen);
     }
@@ -223,20 +227,22 @@ class ElasticSearchRepositoryIT {
 
     // Then
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
-    assertThat(responseReceived.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
-    assertThat(responseReceived.get("sourceSystemId").get(SOURCE_SYSTEM_ID_1)).isNull();
+    assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
+    assertThat(responseReceived.get("sourceSystemID").get(SOURCE_SYSTEM_ID_1)).isNull();
   }
 
   @Test
   void testAggregation() throws IOException {
     // Given
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimenWrapper specimen;
+      DigitalSpecimen specimen;
       if (i < 5) {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_1);
       } else {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_2);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_2);
       }
       specimenTestRecords.add(specimen);
     }
@@ -248,21 +254,23 @@ class ElasticSearchRepositoryIT {
 
     // Then
     var aggregation = responseReceived.getRight();
-    assertThat(aggregation.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
-    assertThat(aggregation.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_1, 5L);
+    assertThat(aggregation.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
+    assertThat(aggregation.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_1, 5L);
     assertThat(responseReceived.getLeft()).isEqualTo(10L);
   }
 
   @Test
   void testSearchTermValue() throws IOException {
     // Given
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimenWrapper specimen;
+      DigitalSpecimen specimen;
       if (i < 5) {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_1);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_1);
       } else {
-        specimen = givenDigitalSpecimenSourceSystem(PREFIX + "/" + i, SOURCE_SYSTEM_ID_2);
+        specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
+            SOURCE_SYSTEM_ID_2);
       }
       specimenTestRecords.add(specimen);
     }
@@ -274,20 +282,20 @@ class ElasticSearchRepositoryIT {
         SOURCE_SYSTEM_ID.fullName(), SOURCE_SYSTEM_ID_2, false);
 
     // Then
-    assertThat(responseReceived.get("sourceSystemId")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
-    assertThat(responseReceived.get("sourceSystemId")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
+    assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
+    assertThat(responseReceived.get("sourceSystemID")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
   }
 
   @Test
   void testSearchTermValueOrderAsc() throws IOException {
     // Given
-    List<DigitalSpecimenWrapper> specimenTestRecords = new ArrayList<>();
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      DigitalSpecimenWrapper specimen;
+      DigitalSpecimen specimen;
       if (i < 9) {
-        specimen = givenDigitalSpecimenSpecimenName(PREFIX + "/" + i, SPECIMEN_NAME);
+        specimen = givenDigitalSpecimenSpecimenName(DOI + PREFIX + "/" + i, SPECIMEN_NAME);
       } else {
-        specimen = givenDigitalSpecimenSpecimenName(PREFIX + "/" + i, SPECIMEN_NAME_2);
+        specimen = givenDigitalSpecimenSpecimenName(DOI + PREFIX + "/" + i, SPECIMEN_NAME_2);
       }
       specimenTestRecords.add(specimen);
     }
@@ -310,17 +318,17 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageSize = 10;
     int pageNumber = 1;
-    var givenSpecimens = new ArrayList<DigitalSpecimenWrapper>();
-    var responseExpected = new ArrayList<DigitalSpecimenWrapper>();
+    var givenSpecimens = new ArrayList<DigitalSpecimen>();
+    var responseExpected = new ArrayList<DigitalSpecimen>();
 
     for (int i = 0; i < pageSize + 1; i++) {
-      var specimen = givenDigitalSpecimenWrapper(PREFIX + "/" + i);
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       responseExpected.add(
           givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i, SOURCE_SYSTEM_ID_1));
       givenSpecimens.add(specimen);
     }
     for (int i = pageSize; i < pageSize * 2; i++) {
-      var specimen = givenDigitalSpecimenWrapper(PREFIX + "/" + i);
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       givenSpecimens.add(specimen);
     }
     postDigitalSpecimens(parseToElasticFormat(givenSpecimens));
@@ -337,16 +345,16 @@ class ElasticSearchRepositoryIT {
     // Given
     int pageSize = 10;
     int pageNumber = 2;
-    List<DigitalSpecimenWrapper> givenSpecimens = new ArrayList<>();
-    List<DigitalSpecimenWrapper> responseExpected = new ArrayList<>();
+    List<DigitalSpecimen> givenSpecimens = new ArrayList<>();
+    List<DigitalSpecimen> responseExpected = new ArrayList<>();
 
     for (int i = 0; i < pageSize; i++) {
-      var specimen = givenDigitalSpecimenWrapper(PREFIX + "/" + i);
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       givenSpecimens.add(specimen);
     }
 
     for (int i = pageSize; i < pageSize * 2; i++) {
-      var specimen = givenOlderSpecimen(PREFIX + "/" + i);
+      var specimen = givenOlderSpecimen(DOI + PREFIX + "/" + i);
       responseExpected.add(
           givenOlderSpecimen(DOI + PREFIX + "/" + i, SOURCE_SYSTEM_ID_1));
       givenSpecimens.add(specimen);
@@ -360,7 +368,7 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.getRight()).hasSize(pageSize).hasSameElementsAs(responseExpected);
   }
 
-  private List<JsonNode> parseToElasticFormat(List<DigitalSpecimenWrapper> givenSpecimens) {
+  private List<JsonNode> parseToElasticFormat(List<DigitalSpecimen> givenSpecimens) {
     return givenSpecimens.stream().map(this::toElasticFormat).toList();
   }
 
@@ -486,7 +494,7 @@ class ElasticSearchRepositoryIT {
   void getCountForBatchAnnotationsBlankParam() throws Exception {
     // Given
     var batchMetadata = new BatchMetadata(List.of(new SearchParam(
-        "digitalSpecimenWrapper.ods:attributes.occurrences[*].dwc:FieldNumber",
+        "ods:hasEvent[*].dwc:FieldNumber",
         ""
     )));
     postDigitalSpecimens(parseToElasticFormat(List.of(givenDigitalSpecimenWrapper(ID))));
@@ -503,32 +511,20 @@ class ElasticSearchRepositoryIT {
     return annotations.stream().map(this::annotationToElasticFormat).toList();
   }
 
-  private JsonNode toElasticFormat(DigitalSpecimenWrapper specimen) {
-    var objectNode = MAPPER.createObjectNode();
-    objectNode.put("id", specimen.digitalSpecimen().getOdsId());
-    objectNode.put("midsLevel", specimen.digitalSpecimen().getOdsMidsLevel());
-    objectNode.put("created", specimen.digitalSpecimen().getOdsCreated());
-    objectNode.put("version", specimen.digitalSpecimen().getOdsVersion());
-    var wrapperNode = MAPPER.createObjectNode();
-    wrapperNode.put("ods:physicalSpecimenId",
-        specimen.digitalSpecimen().getOdsPhysicalSpecimenId());
-    wrapperNode.put("ods:type", specimen.digitalSpecimen().getOdsType());
-    wrapperNode.set("ods:attributes", MAPPER.valueToTree(specimen.digitalSpecimen()));
-    wrapperNode.set("ods:originalAttributes", specimen.originalData());
-    objectNode.set("digitalSpecimenWrapper", wrapperNode);
-    return objectNode;
+  private JsonNode toElasticFormat(DigitalSpecimen specimen) {
+    var node = (ObjectNode) MAPPER.valueToTree(specimen);
+    // topicDiscipline default mapping to text will fail the test, removing it before we run the test
+    node.remove("ods:topicDiscipline");
+    return node;
   }
 
-  private DigitalSpecimenWrapper givenOlderSpecimen(String id) throws JsonProcessingException {
+  private DigitalSpecimen givenOlderSpecimen(String id) {
     return givenOlderSpecimen(id, SOURCE_SYSTEM_ID_1);
   }
 
-  private DigitalSpecimenWrapper givenOlderSpecimen(String id, String sourceSystem)
-      throws JsonProcessingException {
+  private DigitalSpecimen givenOlderSpecimen(String id, String sourceSystem) {
     var spec = givenDigitalSpecimenSourceSystem(id, sourceSystem);
-    return new DigitalSpecimenWrapper(
-        spec.digitalSpecimen().withOdsCreated(CREATED_ALT),
-        spec.originalData());
+    return spec.withOdsCreated(Date.from(Instant.parse(CREATED_ALT)));
   }
 
   public BulkResponse postDigitalSpecimens(List<JsonNode> digitalSpecimens)
@@ -536,7 +532,7 @@ class ElasticSearchRepositoryIT {
     var bulkRequest = new BulkRequest.Builder();
     for (var digitalSpecimen : digitalSpecimens) {
       bulkRequest.operations(op -> op.index(
-          idx -> idx.index(DIGITAL_SPECIMEN_INDEX).id(digitalSpecimen.get("id").asText())
+          idx -> idx.index(DIGITAL_SPECIMEN_INDEX).id(digitalSpecimen.get("@id").asText())
               .document(digitalSpecimen)));
     }
     var response = client.bulk(bulkRequest.build());

@@ -2,24 +2,23 @@ package eu.dissco.backend;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import eu.dissco.backend.configuration.DateDeserializer;
+import eu.dissco.backend.configuration.DateSerializer;
 import eu.dissco.backend.configuration.InstantDeserializer;
 import eu.dissco.backend.configuration.InstantSerializer;
-import eu.dissco.backend.domain.DigitalSpecimenWrapper;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.schema.DigitalSpecimen;
-import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIdType;
-import eu.dissco.backend.schema.DigitalSpecimen.OdsTopicDiscipline;
+import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIDType;
+import eu.dissco.backend.schema.Event;
 import eu.dissco.backend.schema.Location;
-import eu.dissco.backend.schema.Occurrences;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +56,8 @@ public class TestUtils {
     SimpleModule dateModule = new SimpleModule();
     dateModule.addSerializer(Instant.class, new InstantSerializer());
     dateModule.addDeserializer(Instant.class, new InstantDeserializer());
+    dateModule.addSerializer(Date.class, new DateSerializer());
+    dateModule.addDeserializer(Date.class, new DateDeserializer());
     mapper.registerModule(dateModule);
     mapper.setSerializationInclusion(Include.NON_NULL);
     MAPPER = mapper.copy();
@@ -101,110 +102,70 @@ public class TestUtils {
   }
 
   // Digital Specimen
-  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id)
-      throws JsonProcessingException {
+  public static DigitalSpecimen givenDigitalSpecimenWrapper(String id) {
     return givenDigitalSpecimenWrapper(id, PHYSICAL_ID);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenSourceSystem(String id,
-      String sourceSystem)
-      throws JsonProcessingException {
+  public static DigitalSpecimen givenDigitalSpecimenSourceSystem(String id,
+      String sourceSystem) {
     return givenDigitalSpecimenWrapper(id, PHYSICAL_ID, 1, sourceSystem, SPECIMEN_NAME);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId)
-      throws JsonProcessingException {
+  public static DigitalSpecimen givenDigitalSpecimenWrapper(String id, String physicalId) {
     return givenDigitalSpecimenWrapper(id, physicalId, 1, SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
-      String sourceSystem)
-      throws JsonProcessingException {
+  public static DigitalSpecimen givenDigitalSpecimenWrapper(String id, String physicalId,
+      String sourceSystem) {
     return givenDigitalSpecimenWrapper(id, physicalId, 1, sourceSystem, SPECIMEN_NAME);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenSpecimenName(String id,
-      String specimenName)
-      throws JsonProcessingException {
+  public static DigitalSpecimen givenDigitalSpecimenSpecimenName(String id, String specimenName) {
     return givenDigitalSpecimenWrapper(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, specimenName);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenWrapper(String id, String physicalId,
-      Integer version, String sourceSystemId, String specimenName)
-      throws JsonProcessingException {
-    return new DigitalSpecimenWrapper(
-        givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName),
-        givenSpecimenOriginalData());
+  public static DigitalSpecimen givenDigitalSpecimenWrapper(String id, String physicalId,
+      Integer version, String sourceSystemId, String specimenName) {
+    return givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName);
   }
 
-  public static DigitalSpecimenWrapper givenDigitalSpecimenAltCountry(String id) throws JsonProcessingException {
-    return new DigitalSpecimenWrapper(
-        givenDigitalSpecimen(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, "Alt Country Specimen",
-            "Netherlands"),
-        givenSpecimenOriginalData());
-  }
-
-  private static JsonNode givenSpecimenOriginalData() throws JsonProcessingException {
-    return MAPPER.readValue(
-        """
-              {
-                "dwc:class": "Malacostraca",
-                "dwc:genus": "Mesuca",
-                "dwc:order": "Decapoda",
-                "dwc:family": "Ocypodidae",
-                "dwc:phylum": "Arthropoda",
-                "dwc:country": "Nicobar Islands",
-                "dwc:locality": "Harbour",
-                "dwc:continent": "Eastern Indian Ocean",
-                "dwc:eventDate": "01/01/1846",
-                "dwc:recordedBy": "Rosen",
-                "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-                "dwc:datasetName": "Natural History Museum Denmark Invertebrate Zoology",
-                "dcterms:modified": "03/12/2012",
-                "dwc:occurrenceID": "debe5b20-e945-40e8-8a55-6d92391ff495",
-                "dwc:preparations": "various - 1",
-                "dwc:basisOfRecord": "PreservedSpecimen",
-                "dwc:catalogNumber": "NHMD79044",
-                "dwc:institutionID": "http://grbio.org/cool/mci8-ehqk",
-                "dwc:collectionCode": "IV",
-                "dwc:higherGeography": "Eastern Indian Ocean, Nicobar Islands",
-                "dwc:institutionCode": "NHMD",
-                "dwc:specificEpithet": "dussumieri",
-                "dwc:acceptedNameUsage": "Mesuca dussumieri",
-                "dwc:otherCatalogNumbers": "CRU-001196"
-              }
-            """, JsonNode.class);
-  }
-
-  public static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
+  private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
       String sourceSystemId, String specimenName, String country) {
-    return new DigitalSpecimen()
-        .withOdsId(id)
-        .withOdsPhysicalSpecimenId(physicalId)
+    return new eu.dissco.backend.schema.DigitalSpecimen()
+        .withId(id)
+        .withType("ods:DigitalSpecimen")
+        .withOdsID(id)
+        .withOdsPhysicalSpecimenID(physicalId)
         .withOdsVersion(version)
         .withOdsMidsLevel(0)
-        .withOdsCreated(CREATED.toString())
+        .withOdsCreated(Date.from(CREATED))
         .withOdsType(DIGITAL_SPECIMEN_TYPE)
-        .withOdsTopicDiscipline(OdsTopicDiscipline.BOTANY)
         .withDctermsModified("03/12/2012")
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
         .withDwcPreparations("")
         .withDctermsLicense("http://creativecommons.org/licenses/by/4.0/legalcode")
         .withOdsSpecimenName(specimenName)
-        .withDwcInstitutionId("https://ror.org/0349vqz63")
-        .withDwcInstitutionName("Royal Botanic Garden Edinburgh Herbarium")
-        .withOdsSourceSystem(sourceSystemId)
-        .withOdsPhysicalSpecimenIdType(OdsPhysicalSpecimenIdType.RESOLVABLE)
-        .withOdsMarkedAsType(Boolean.TRUE)
-        .withOdsHasMedia(Boolean.TRUE)
-        .withOccurrences(
-            List.of(new Occurrences().withLocation(new Location().withDwcCountry(country))));
+        .withOdsOrganisationID("https://ror.org/0349vqz63")
+        .withOdsOrganisationName("Royal Botanic Garden Edinburgh Herbarium")
+        .withOdsSourceSystemID(sourceSystemId)
+        .withOdsPhysicalSpecimenIDType(OdsPhysicalSpecimenIDType.RESOLVABLE)
+        .withOdsIsMarkedAsType(Boolean.TRUE)
+        .withOdsIsKnownToContainMedia(Boolean.TRUE)
+        .withOdsHasEvent(
+            List.of(new Event().withOdsLocation(new Location().withDwcCountry(country))));
   }
 
   private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,
       String sourceSystemId, String specimenName) {
     return givenDigitalSpecimen(id, physicalId, version, sourceSystemId, specimenName, "Scotland");
   }
+
+
+  public static DigitalSpecimen givenDigitalSpecimenAltCountry(String id) {
+    return givenDigitalSpecimen(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, "Alt Country Specimen",
+            "Netherlands");
+  }
+
 
   public static Map<String, Map<String, Long>> givenAggregationMap() {
     return Map.of(
