@@ -62,7 +62,7 @@ public class DigitalMediaRepository {
           .withId(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
           .withOdsID(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
           .withOdsType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
-          .withOdsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
+          .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException(

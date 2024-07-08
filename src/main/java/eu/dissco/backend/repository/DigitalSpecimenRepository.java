@@ -36,7 +36,7 @@ public class DigitalSpecimenRepository {
           .withOdsID("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
           .withOdsType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
           .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
-          .withOdsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
+          .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));
     } catch (JsonProcessingException e) {
       throw new DisscoJsonBMappingException(

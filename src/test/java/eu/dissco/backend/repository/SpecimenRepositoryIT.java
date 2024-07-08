@@ -71,9 +71,9 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
           .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
               specimenWrapper.getOdsSourceSystemID())
           .set(DIGITAL_SPECIMEN.CREATED,
-              specimenWrapper.getOdsCreated().toInstant())
+              specimenWrapper.getDctermsCreated().toInstant())
           .set(DIGITAL_SPECIMEN.LAST_CHECKED,
-              specimenWrapper.getOdsCreated().toInstant())
+              specimenWrapper.getDctermsCreated().toInstant())
           .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
               MAPPER.writeValueAsString(specimenWrapper)))
           .execute();

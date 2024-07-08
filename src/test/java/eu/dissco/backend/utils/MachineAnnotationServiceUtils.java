@@ -135,7 +135,7 @@ public class MachineAnnotationServiceUtils {
                 {
                   "ods:id": "https://doi.org/TEST/SDF-6Y6-DV7",
                   "ods:version": 1,
-                  "ods:created": "2023-10-16T11:47:18.773831Z",
+                  "dcterms:created": "2023-10-16T11:47:18.773831Z",
                   "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
                   "ac:accessUri": "https://herbarium.bgbm.org/data/iiif/BW00746010/manifest.json",
                   "dwc:institutionId": "https://ror.org/00bv4cx53",
@@ -176,7 +176,7 @@ public class MachineAnnotationServiceUtils {
                 {
                   "ods:id": "https://doi.org/TEST/JDS-HJL-SJD",
                   "ods:version": 1,
-                  "ods:created": "2023-10-16T12:46:28.460956Z",
+                  "dcterms:created": "2023-10-16T12:46:28.460956Z",
                   "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                   "ods:midsLevel": 0,
                   "ods:topicDiscipline": "Palaeontology",

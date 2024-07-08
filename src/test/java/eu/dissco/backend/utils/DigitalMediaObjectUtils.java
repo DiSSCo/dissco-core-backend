@@ -77,7 +77,7 @@ public class DigitalMediaObjectUtils {
         .withOdsID(mediaId)
         .withOdsVersion(version)
         .withOdsStatus(OdsStatus.ODS_ACTIVE)
-        .withOdsCreated(Date.from(created))
+        .withDctermsCreated(Date.from(created))
         .withOdsType(type)
         .withAcAccessURI(url)
         .withDctermsType(DctermsType.STILL_IMAGE)

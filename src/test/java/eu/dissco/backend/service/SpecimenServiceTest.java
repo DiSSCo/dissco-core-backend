@@ -572,7 +572,7 @@ class SpecimenServiceTest {
                "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                "ods:midsLevel": 0,
                "ods:version": 4,
-               "ods:created": "2022-11-01T09:59:24.000Z",
+               "dcterms:created": "2022-11-01T09:59:24.000Z",
                "ods:physicalSpecimenID": "123",
                "ods:physicalSpecimenIDType": "Resolvable",
                "ods:isMarkedAsType": true,

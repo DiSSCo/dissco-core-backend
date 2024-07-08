@@ -137,27 +137,27 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
           .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
           .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
           .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
-          .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getOdsCreated().toInstant())
+          .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
           .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
               JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
           .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
           .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              mediaObject.getOdsCreated().toInstant())
+              mediaObject.getDctermsCreated().toInstant())
           .onConflict(DIGITAL_SPECIMEN.ID).doUpdate()
           .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
           .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
           .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED,
-              mediaObject.getOdsCreated().toInstant())
+              mediaObject.getDctermsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
           .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
               JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
           .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
           .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              mediaObject.getOdsCreated().toInstant());
+              mediaObject.getDctermsCreated().toInstant());
       queryList.add(query);
     }
     context.batch(queryList).execute();
@@ -181,8 +181,8 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
         .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
             digitalSpecimen.getOdsSourceSystemID())
         .set(DIGITAL_SPECIMEN.CREATED,
-            digitalSpecimen.getOdsCreated().toInstant())
-        .set(DIGITAL_SPECIMEN.LAST_CHECKED, digitalSpecimen.getOdsCreated().toInstant())
+            digitalSpecimen.getDctermsCreated().toInstant())
+        .set(DIGITAL_SPECIMEN.LAST_CHECKED, digitalSpecimen.getDctermsCreated().toInstant())
         .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
             MAPPER.writeValueAsString(digitalSpecimen)))
         .execute();

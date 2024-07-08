@@ -138,7 +138,7 @@ public class TestUtils {
         .withOdsPhysicalSpecimenID(physicalId)
         .withOdsVersion(version)
         .withOdsMidsLevel(0)
-        .withOdsCreated(Date.from(CREATED))
+        .withDctermsCreated(Date.from(CREATED))
         .withOdsType(DIGITAL_SPECIMEN_TYPE)
         .withDctermsModified("03/12/2012")
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")

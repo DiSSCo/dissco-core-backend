@@ -524,7 +524,7 @@ class ElasticSearchRepositoryIT {
 
   private DigitalSpecimen givenOlderSpecimen(String id, String sourceSystem) {
     var spec = givenDigitalSpecimenSourceSystem(id, sourceSystem);
-    return spec.withOdsCreated(Date.from(Instant.parse(CREATED_ALT)));
+    return spec.withDctermsCreated(Date.from(Instant.parse(CREATED_ALT)));
   }
 
   public BulkResponse postDigitalSpecimens(List<JsonNode> digitalSpecimens)

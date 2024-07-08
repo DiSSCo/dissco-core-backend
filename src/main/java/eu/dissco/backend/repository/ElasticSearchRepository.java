@@ -48,8 +48,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
-  private static final String FIELD_CREATED = "ods:created";
-  private static final String FIELD_CREATED_ANNOTATION = "dcterms:created";
+  private static final String FIELD_CREATED = "dcterms:created";
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
@@ -97,7 +96,7 @@ public class ElasticSearchRepository {
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var searchRequest = new SearchRequest.Builder()
         .index(properties.getAnnotationIndex())
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED_ANNOTATION).order(SortOrder.Desc)))
+        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
         .from(offset)
         .size(pageSizePlusOne).build();
     return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)

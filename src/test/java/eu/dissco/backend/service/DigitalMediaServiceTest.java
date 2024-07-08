@@ -321,7 +321,7 @@ class DigitalMediaServiceTest {
                    "ods:ID": "https://doi.org/20.5000.1025/ABC-123-XYZ",
                    "ods:version": 1,
                    "ods:status": "ods:Active",
-                   "ods:created": "2022-11-01T09:59:24.000Z",
+                   "dcterms:created": "2022-11-01T09:59:24.000Z",
                    "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
                    "dcterms:type": "StillImage",
                    "ac:accessURI": "https://dissco.com",
