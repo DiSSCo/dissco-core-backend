@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
-public class ServiceUtils {
+public class DigitalServiceUtils {
 
-  private ServiceUtils() {
+  private DigitalServiceUtils() {
   }
-
 
   protected static JsonNode createVersionNode(List<Integer> versions, ObjectMapper mapper) {
     var versionsNode = mapper.createObjectNode();

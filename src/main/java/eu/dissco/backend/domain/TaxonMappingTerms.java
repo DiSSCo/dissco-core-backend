@@ -7,21 +7,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public enum TaxonMappingTerms implements MappingTerm {
   KINGDOM("kingdom",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:kingdom.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:kingdom.keyword"),
   PHYLUM("phylum",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:phylum.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:phylum.keyword"),
   CLASS("class",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:class.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:class.keyword"),
   ORDER("order",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:order.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:order.keyword"),
   FAMILY("family",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:family.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:family.keyword"),
   GENUS("genus",
-      "digitalSpecimenWrapper.ods:attributes.dwc:identification.taxonIdentifications.dwc:genus.keyword"),
-  SPECIES("species", "digitalSpecimenWrapper.ods:attributes.ods:specimenName.keyword");
+      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:genus.keyword"),
+  SPECIES("species", "ods:hasIdentification.ods:hasTaxonIdentification.dwc:scientificName.keyword");
 
   private static final Map<String, TaxonMappingTerms> taxonMapping = fillTaxonMapping();
-  private static final TaxonMappingTerms[] values = values();
   private final String requestName;
   private final String fullName;
 

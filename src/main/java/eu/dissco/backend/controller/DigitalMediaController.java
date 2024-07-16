@@ -12,7 +12,7 @@ import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.service.DigitalMediaObjectService;
+import eu.dissco.backend.service.DigitalMediaService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,13 +32,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("api/v1/digitalmedia")
-public class DigitalMediaObjectController extends BaseController {
+@RequestMapping("api/v1/digital-media")
+public class DigitalMediaController extends BaseController {
 
-  private final DigitalMediaObjectService service;
+  private final DigitalMediaService service;
 
-  public DigitalMediaObjectController(ApplicationProperties applicationProperties,
-      ObjectMapper mapper, DigitalMediaObjectService service) {
+  public DigitalMediaController(ApplicationProperties applicationProperties,
+      ObjectMapper mapper, DigitalMediaService service) {
     super(mapper, applicationProperties);
     this.service = service;
   }

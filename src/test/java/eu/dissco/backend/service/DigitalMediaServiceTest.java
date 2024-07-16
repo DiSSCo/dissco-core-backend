@@ -27,17 +27,17 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
+import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.repository.DigitalMediaObjectRepository;
+import eu.dissco.backend.repository.DigitalMediaRepository;
+import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.repository.SpecimenRepository;
-import eu.dissco.backend.schema.EntityRelationships;
+import eu.dissco.backend.schema.DigitalMedia;
+import eu.dissco.backend.schema.EntityRelationship;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,10 +53,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DigitalMediaObjectServiceTest {
+class DigitalMediaServiceTest {
 
   @Mock
-  private DigitalMediaObjectRepository repository;
+  private DigitalMediaRepository repository;
   @Mock
   private AnnotationService annotationService;
   @Mock
@@ -64,23 +64,23 @@ class DigitalMediaObjectServiceTest {
   @Mock
   private MongoRepository mongoRepository;
   @Mock
-  private SpecimenRepository specimenRepository;
+  private DigitalSpecimenRepository digitalSpecimenRepository;
   @Mock
   private MasJobRecordService masJobRecordService;
   @Mock
   private UserService userService;
 
-  private DigitalMediaObjectService service;
+  private DigitalMediaService service;
 
-  static Stream<List<EntityRelationships>> missingSpecimenDoiAttributes() {
+  static Stream<List<EntityRelationship>> missingSpecimenDoiAttributes() {
     return Stream.of(List.of(), List.of(
-        new EntityRelationships().withObjectEntityIri(SOURCE_SYSTEM_ID_1)
-            .withEntityRelationshipType("hasSourceSystem")));
+        new EntityRelationship().withDwcRelatedResourceID(SOURCE_SYSTEM_ID_1)
+            .withDwcRelationshipOfResource("hasSourceSystem")));
   }
 
   @BeforeEach
   void setup() {
-    service = new DigitalMediaObjectService(repository, annotationService, specimenRepository,
+    service = new DigitalMediaService(repository, annotationService, digitalSpecimenRepository,
         masService, mongoRepository, MAPPER, masJobRecordService, userService);
   }
 
@@ -131,8 +131,8 @@ class DigitalMediaObjectServiceTest {
     var mediaObject = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
     var expected = new JsonApiWrapper(
-        new JsonApiData(mediaObject.digitalEntity().getOdsId(), mediaObject.digitalEntity()
-            .getOdsType(), MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
+        new JsonApiData(mediaObject.getOdsID(), mediaObject.getOdsType(),
+            MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
     var responseReceived = service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH);
@@ -164,8 +164,8 @@ class DigitalMediaObjectServiceTest {
     arrayNode.add(1).add(2);
     var dataNode = new JsonApiData(ID, "digitalMediaVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(DIGITAL_MEDIA_PATH));
-    try (var mockedStatic = mockStatic(ServiceUtils.class)) {
-      mockedStatic.when(() -> ServiceUtils.createVersionNode(versionsList, MAPPER))
+    try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
+      mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);
 
       // When
@@ -184,7 +184,7 @@ class DigitalMediaObjectServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         mongoResponse);
 
-    var type = mongoResponse.get("digitalMediaObjectWrapper").get("ods:type").asText();
+    var type = mongoResponse.get("ods:type").asText();
 
     var expectedResponse = new JsonApiWrapper(
         new JsonApiData(DOI + ID, type, MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
@@ -201,14 +201,14 @@ class DigitalMediaObjectServiceTest {
   void testGetDigitalMediaObjectFull() {
     // Given
     List<String> mediaIds = List.of("1", "2", "3");
-    List<DigitalMediaObjectWrapper> mediaObjects = new ArrayList<>();
-    List<DigitalMediaObjectFull> responseExpected = new ArrayList<>();
+    List<DigitalMedia> mediaObjects = new ArrayList<>();
+    List<DigitalMediaFull> responseExpected = new ArrayList<>();
 
     for (String id : mediaIds) {
       var mediaObject = givenDigitalMediaObject(id);
       mediaObjects.add(mediaObject);
       var annotation = givenAnnotationResponse();
-      responseExpected.add(new DigitalMediaObjectFull(mediaObject, List.of(annotation)));
+      responseExpected.add(new DigitalMediaFull(mediaObject, List.of(annotation)));
       given(annotationService.getAnnotationForTargetObject(String.valueOf(id))).willReturn(
           List.of(annotation));
     }
@@ -226,8 +226,8 @@ class DigitalMediaObjectServiceTest {
     // Given
     var mediaObject = givenDigitalMediaObject(ID);
     var responseExpected = List.of(new JsonApiData(
-        mediaObject.digitalEntity().getOdsId(),
-        mediaObject.digitalEntity().getOdsType(),
+        mediaObject.getOdsID(),
+        mediaObject.getOdsType(),
         MAPPER.valueToTree(mediaObject)));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
 
@@ -252,14 +252,14 @@ class DigitalMediaObjectServiceTest {
   }
 
   @Test
-  void testGetMas() throws JsonProcessingException {
+  void testGetMas() {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
     var specimenId = DOI + ID_ALT;
     var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
-    given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
+    given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
         response);
 
@@ -272,13 +272,13 @@ class DigitalMediaObjectServiceTest {
 
   @ParameterizedTest
   @MethodSource("missingSpecimenDoiAttributes")
-  void testGetMasWithoutSpecimenId(List<EntityRelationships> entityRelationships) {
+  void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships) {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
-    digitalMedia.digitalEntity().setEntityRelationships(entityRelationships);
+    digitalMedia.setOdsHasEntityRelationship(entityRelationships);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
-    given(specimenRepository.getLatestSpecimenById(null)).willReturn(null);
+    given(digitalSpecimenRepository.getLatestSpecimenById(null)).willReturn(null);
     given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
         response);
 
@@ -297,7 +297,7 @@ class DigitalMediaObjectServiceTest {
     var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
-    given(specimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
+    given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
     given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
         eq(DIGITAL_MEDIA_PATH),
         eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT))).willReturn(
@@ -316,32 +316,27 @@ class DigitalMediaObjectServiceTest {
     return MAPPER.readValue(
         """ 
             {
-                "id": "20.5000.1025/ABC-123-XYZ",
-                "version": 1,
-                "created": "2022-11-01T09:59:24Z",
-                "digitalMediaObjectWrapper": {
-                  "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
-                  "ods:digitalSpecimenId": "TEST/1DZ-PB3-35C",
-                  "ods:attributes": {
-                    "ac:accessUri": "https://dissco.com",
-                    "dcterms:format": "image/jpeg",
-                    "assertions": [],
-                    "citations": [],
-                    "identifiers": [],
-                    "entityRelationships": [
-                      {
-                        "entityRelationshipType": "hasDigitalSpecimen",
-                        "objectEntityIri": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
-                      }
-                    ]
-                  },
-                  "ods:originalAttributes": {
-                    "dcterms:type": "StillImage",
-                    "dcterms:title": "19942272"
-                  }
-                }
-              }
-                          """, JsonNode.class
+                   "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+                   "@type": "ods:DigitalMedia",
+                   "ods:ID": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+                   "ods:version": 1,
+                   "ods:status": "ods:Active",
+                   "dcterms:created": "2022-11-01T09:59:24.000Z",
+                   "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+                   "dcterms:type": "StillImage",
+                   "ac:accessURI": "https://dissco.com",
+                   "dcterms:format":"image/jpeg",
+                   "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+                   "ods:hasEntityRelationship": [
+                     {
+                       "@type": "ods:EntityRelationship",
+                       "dwc:relationshipOfResource": "hasDigitalSpecimen",
+                       "dwc:relatedResourceID": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
+                     }
+                   ],
+                   "ods:hasAgent": []
+                 }
+            """, JsonNode.class
     );
   }
 }

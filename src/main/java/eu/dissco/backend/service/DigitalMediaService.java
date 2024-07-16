@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
-import static eu.dissco.backend.service.ServiceUtils.createVersionNode;
+import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,9 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.DigitalMediaObjectFull;
-import eu.dissco.backend.domain.DigitalMediaObjectWrapper;
-import eu.dissco.backend.domain.DigitalSpecimenWrapper;
+import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -22,10 +20,11 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
-import eu.dissco.backend.repository.DigitalMediaObjectRepository;
+import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import eu.dissco.backend.repository.SpecimenRepository;
-import eu.dissco.backend.schema.DigitalEntity;
+import eu.dissco.backend.repository.DigitalSpecimenRepository;
+import eu.dissco.backend.schema.DigitalMedia;
+import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,11 +35,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DigitalMediaObjectService {
+public class DigitalMediaService {
 
-  private final DigitalMediaObjectRepository repository;
+  private final DigitalMediaRepository repository;
   private final AnnotationService annotationService;
-  private final SpecimenRepository specimenRepository;
+  private final DigitalSpecimenRepository digitalSpecimenRepository;
   private final MachineAnnotationServiceService masService;
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
@@ -52,16 +51,15 @@ public class DigitalMediaObjectService {
       String path) {
     var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
     var dataNodePlusOne = mediaPlusOne.stream().map(media ->
-        new JsonApiData(media.digitalEntity().getOdsId(), media.digitalEntity().getOdsType(),
+        new JsonApiData(media.getOdsID(), media.getOdsType(),
             mapper.valueToTree(media))).toList();
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
   public JsonApiWrapper getDigitalMediaById(String id, String path) {
     var mediaObject = repository.getLatestDigitalMediaObjectById(id);
-    var dataNode = new JsonApiData(mediaObject.digitalEntity().getOdsId(),
-        mediaObject.digitalEntity()
-            .getOdsType(), mediaObject, mapper);
+    var dataNode = new JsonApiData(mediaObject.getOdsID(),
+        mediaObject.getOdsType(), mediaObject, mapper);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
@@ -81,8 +79,8 @@ public class DigitalMediaObjectService {
       throws JsonProcessingException, NotFoundException {
     var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
-    var dataNode = new JsonApiData(digitalMedia.digitalEntity().getOdsId(),
-        digitalMedia.digitalEntity().getOdsType(), digitalMedia, mapper);
+    var dataNode = new JsonApiData(digitalMedia.getOdsID(), digitalMedia.getOdsType(), digitalMedia,
+        mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -91,28 +89,17 @@ public class DigitalMediaObjectService {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
-  private DigitalMediaObjectWrapper mapResultToDigitalMedia(JsonNode dataNode) {
-    var digitalMediaNode = dataNode.get("digitalMediaObjectWrapper");
-    var digitalMedia = mapper.convertValue(digitalMediaNode.get("ods:attributes"),
-            DigitalEntity.class)
-        .withOdsId(DOI_STRING + dataNode.get("id").asText())
-        .withOdsType(digitalMediaNode.get("ods:type").asText())
-        .withOdsVersion(dataNode.get("version").asInt())
-        .withOdsCreated(dataNode.get("created").asText());
-    return new DigitalMediaObjectWrapper(
-        digitalMedia,
-        digitalMediaNode.get("ods:originalAttributes")
-    );
+  private DigitalMedia mapResultToDigitalMedia(JsonNode dataNode) {
+    return mapper.convertValue(dataNode, DigitalMedia.class);
   }
 
   // Used By Other Services
-  public List<DigitalMediaObjectFull> getDigitalMediaObjectFull(String id) {
-    var digitalMediaFull = new ArrayList<DigitalMediaObjectFull>();
-    var digitalMedia = repository.getDigitalMediaForSpecimen(id);
-    for (var digitalMediaObject : digitalMedia) {
-      var annotation = annotationService.getAnnotationForTargetObject(
-          digitalMediaObject.digitalEntity().getOdsId());
-      digitalMediaFull.add(new DigitalMediaObjectFull(digitalMediaObject, annotation));
+  public List<DigitalMediaFull> getDigitalMediaObjectFull(String id) {
+    var digitalMediaFull = new ArrayList<DigitalMediaFull>();
+    var digitalMedias = repository.getDigitalMediaForSpecimen(id);
+    for (var digitalMedia : digitalMedias) {
+      var annotation = annotationService.getAnnotationForTargetObject(digitalMedia.getOdsID());
+      digitalMediaFull.add(new DigitalMediaFull(digitalMedia, annotation));
     }
     return digitalMediaFull;
   }
@@ -125,8 +112,7 @@ public class DigitalMediaObjectService {
     var mediaList = repository.getDigitalMediaForSpecimen(id);
     List<JsonApiData> dataNode = new ArrayList<>();
     mediaList.forEach(media -> dataNode.add(
-        new JsonApiData(media.digitalEntity().getOdsId(), media.digitalEntity().getOdsType(),
-            mapper.valueToTree(media))));
+        new JsonApiData(media.getOdsID(), media.getOdsType(), mapper.valueToTree(media))));
     return dataNode;
   }
 
@@ -141,25 +127,24 @@ public class DigitalMediaObjectService {
 
   public JsonApiListResponseWrapper getMass(String id, String path) {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
+    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.getMassForObject(flattenObjectData, path);
   }
 
-  private String getDsDoiFromDmo(DigitalMediaObjectWrapper digitalMedia) {
-    for (var entityRelationship : digitalMedia.digitalEntity()
-        .getEntityRelationships()) {
-      if (entityRelationship.getEntityRelationshipType().equals("hasDigitalSpecimen")) {
-        return entityRelationship.getObjectEntityIri().replace(DOI_STRING, "");
+  private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
+    for (var entityRelationship : digitalMedia.getOdsHasEntityRelationship()) {
+      if (entityRelationship.getDwcRelationshipOfResource().equals("hasDigitalSpecimen")) {
+        return entityRelationship.getDwcRelatedResourceID().replace(DOI_STRING, "");
       }
     }
     log.warn("Digital Media Object with doi: {} is not attached to a specimen",
-        digitalMedia.digitalEntity().getOdsId());
+        digitalMedia.getOdsID());
     return null;
   }
 
-  private JsonNode flattenAttributes(DigitalMediaObjectWrapper digitalMedia,
-      DigitalSpecimenWrapper digitalSpecimen) {
+  private JsonNode flattenAttributes(DigitalMedia digitalMedia,
+      DigitalSpecimen digitalSpecimen) {
     var objectNode = (ObjectNode) mapper.valueToTree(digitalMedia);
     objectNode.set("digitalSpecimen", mapper.valueToTree(digitalSpecimen));
     return objectNode;
@@ -170,7 +155,7 @@ public class DigitalMediaObjectService {
       throws ForbiddenException, PidCreationException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    var digitalSpecimen = specimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
+    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
         MjrTargetType.MEDIA_OBJECT);

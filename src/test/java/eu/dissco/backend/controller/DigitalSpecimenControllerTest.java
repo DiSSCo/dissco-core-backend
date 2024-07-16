@@ -30,7 +30,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.service.SpecimenService;
+import eu.dissco.backend.service.DigitalSpecimenService;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,20 +44,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMapAdapter;
 
 @ExtendWith(MockitoExtension.class)
-class SpecimenControllerTest {
+class DigitalSpecimenControllerTest {
 
   MockHttpServletRequest mockRequest;
   @Mock
   Authentication authentication;
   @Mock
-  private SpecimenService service;
+  private DigitalSpecimenService service;
   @Mock
   private ApplicationProperties applicationProperties;
-  private SpecimenController controller;
+  private DigitalSpecimenController controller;
 
   @BeforeEach
   void setup() {
-    controller = new SpecimenController(applicationProperties, MAPPER, service);
+    controller = new DigitalSpecimenController(applicationProperties, MAPPER, service);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(SPECIMEN_URI);
   }
@@ -83,15 +83,6 @@ class SpecimenControllerTest {
   void testGetSpecimenById() {
     // When
     var result = controller.getSpecimenById(PREFIX, SUFFIX, mockRequest);
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetSpecimenByIdJsonLd() {
-    // When
-    var result = controller.getSpecimenByIdJsonLD(PREFIX, SUFFIX);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

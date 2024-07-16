@@ -9,18 +9,18 @@ import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
 
 import java.time.Instant;
-import java.util.function.Function;
+import java.util.Collection;
 
+import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Function22;
 import org.jooq.JSONB;
 import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Records;
-import org.jooq.Row22;
+import org.jooq.PlainSQL;
+import org.jooq.QueryPart;
+import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.SelectField;
+import org.jooq.Select;
+import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -172,11 +172,11 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
     public final TableField<MachineAnnotationServicesRecord, Integer> TIME_TO_LIVE = createField(DSL.name("time_to_live"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("86400"), SQLDataType.INTEGER)), this, "");
 
     private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased) {
-        this(alias, aliased, null);
+        this(alias, aliased, (Field<?>[]) null, null);
     }
 
-    private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    private MachineAnnotationServices(Name alias, Table<MachineAnnotationServicesRecord> aliased, Field<?>[] parameters, Condition where) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table(), where);
     }
 
     /**
@@ -200,10 +200,6 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
      */
     public MachineAnnotationServices() {
         this(DSL.name("machine_annotation_services"), null);
-    }
-
-    public <O extends Record> MachineAnnotationServices(Table<O> child, ForeignKey<O, MachineAnnotationServicesRecord> key) {
-        super(child, key, MACHINE_ANNOTATION_SERVICES);
     }
 
     @Override
@@ -255,27 +251,87 @@ public class MachineAnnotationServices extends TableImpl<MachineAnnotationServic
         return new MachineAnnotationServices(name.getQualifiedName(), null);
     }
 
-    // -------------------------------------------------------------------------
-    // Row22 type methods
-    // -------------------------------------------------------------------------
-
+    /**
+     * Create an inline derived table from this table
+     */
     @Override
-    public Row22<String, Integer, String, Instant, String, String, String, JSONB, String, String, String, String, String, String, String[], String, String, String, Integer, Instant, Boolean, Integer> fieldsRow() {
-        return (Row22) super.fieldsRow();
+    public MachineAnnotationServices where(Condition condition) {
+        return new MachineAnnotationServices(getQualifiedName(), aliased() ? this : null, null, condition);
     }
 
     /**
-     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     * Create an inline derived table from this table
      */
-    public <U> SelectField<U> mapping(Function22<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? super Integer, ? extends U> from) {
-        return convertFrom(Records.mapping(from));
+    @Override
+    public MachineAnnotationServices where(Collection<? extends Condition> conditions) {
+        return where(DSL.and(conditions));
     }
 
     /**
-     * Convenience mapping calling {@link SelectField#convertFrom(Class,
-     * Function)}.
+     * Create an inline derived table from this table
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function22<? super String, ? super Integer, ? super String, ? super Instant, ? super String, ? super String, ? super String, ? super JSONB, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String[], ? super String, ? super String, ? super String, ? super Integer, ? super Instant, ? super Boolean, ? super Integer, ? extends U> from) {
-        return convertFrom(toType, Records.mapping(from));
+    @Override
+    public MachineAnnotationServices where(Condition... conditions) {
+        return where(DSL.and(conditions));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public MachineAnnotationServices where(Field<Boolean> condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public MachineAnnotationServices where(SQL condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public MachineAnnotationServices where(@Stringly.SQL String condition) {
+        return where(DSL.condition(condition));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public MachineAnnotationServices where(@Stringly.SQL String condition, Object... binds) {
+        return where(DSL.condition(condition, binds));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    @PlainSQL
+    public MachineAnnotationServices where(@Stringly.SQL String condition, QueryPart... parts) {
+        return where(DSL.condition(condition, parts));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public MachineAnnotationServices whereExists(Select<?> select) {
+        return where(DSL.exists(select));
+    }
+
+    /**
+     * Create an inline derived table from this table
+     */
+    @Override
+    public MachineAnnotationServices whereNotExists(Select<?> select) {
+        return where(DSL.notExists(select));
     }
 }
