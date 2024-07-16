@@ -112,7 +112,7 @@ public class ElasticSearchRepository {
     }
   }
 
-  private DigitalSpecimen mapToDigitalSpecimenWrapper(ObjectNode json) {
+  private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
     try {
       return mapper.treeToValue(json, DigitalSpecimen.class);
     } catch (JsonProcessingException e) {
@@ -178,7 +178,7 @@ public class ElasticSearchRepository {
     var searchResult = client.search(searchRequest, ObjectNode.class);
     var specimens = searchResult.hits().hits().stream()
         .map(Hit::source)
-        .map(this::mapToDigitalSpecimenWrapper).toList();
+        .map(this::mapToDigitalSpecimen).toList();
     if (searchResult.hits().total() == null) {
       return Pair.of(0L, specimens);
     } else {

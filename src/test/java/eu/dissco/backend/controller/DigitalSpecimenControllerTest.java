@@ -30,7 +30,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.service.SpecimenService;
+import eu.dissco.backend.service.DigitalSpecimenService;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ class DigitalSpecimenControllerTest {
   @Mock
   Authentication authentication;
   @Mock
-  private SpecimenService service;
+  private DigitalSpecimenService service;
   @Mock
   private ApplicationProperties applicationProperties;
   private DigitalSpecimenController controller;

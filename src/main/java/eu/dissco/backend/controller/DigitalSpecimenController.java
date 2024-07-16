@@ -12,7 +12,7 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.service.SpecimenService;
+import eu.dissco.backend.service.DigitalSpecimenService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +37,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequestMapping("/api/v1/digital-specimen")
 public class DigitalSpecimenController extends BaseController {
 
-  private final SpecimenService service;
+  private final DigitalSpecimenService service;
 
   public DigitalSpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
-      SpecimenService service) {
+      DigitalSpecimenService service) {
     super(mapper, applicationProperties);
     this.service = service;
   }

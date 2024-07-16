@@ -47,7 +47,7 @@ import org.springframework.util.MultiValueMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SpecimenService {
+public class DigitalSpecimenService {
 
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
@@ -116,8 +116,7 @@ public class SpecimenService {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
-  private JsonApiWrapper mapFullSpecimen(String id, String path,
-      eu.dissco.backend.schema.DigitalSpecimen specimen) {
+  private JsonApiWrapper mapFullSpecimen(String id, String path, DigitalSpecimen specimen) {
     var digitalMedia = digitalMediaService.getDigitalMediaObjectFull(id);
     var annotation = annotationService.getAnnotationForTargetObject(id);
     var attributeNode = mapper.valueToTree(
@@ -151,13 +150,13 @@ public class SpecimenService {
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
-  private eu.dissco.backend.schema.DigitalSpecimen mapResultToSpecimen(JsonNode result)
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result)
       throws JsonProcessingException {
-    return mapper.treeToValue(result, eu.dissco.backend.schema.DigitalSpecimen.class);
+    return mapper.treeToValue(result, DigitalSpecimen.class);
   }
 
   private JsonApiListResponseWrapper wrapListResponse(
-      Pair<Long, List<eu.dissco.backend.schema.DigitalSpecimen>> elasticSearchResults,
+      Pair<Long, List<DigitalSpecimen>> elasticSearchResults,
       int pageSize, int pageNumber, String path) {
     var digitalSpecimenList = elasticSearchResults.getRight();
     var dataNodePlusOne = digitalSpecimenList.stream()
@@ -172,7 +171,7 @@ public class SpecimenService {
   }
 
   private JsonApiListResponseWrapper wrapListResponseSearchResults(
-      Pair<Long, List<eu.dissco.backend.schema.DigitalSpecimen>> digitalSpecimenSearchResult,
+      Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
         .map(specimen -> new JsonApiData(specimen.getOdsID(), specimen.getOdsType(), specimen,

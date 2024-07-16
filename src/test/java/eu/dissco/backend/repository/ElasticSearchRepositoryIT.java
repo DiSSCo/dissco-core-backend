@@ -139,7 +139,7 @@ class ElasticSearchRepositoryIT {
   void testSearch(String field, String value, Long totalHits) throws IOException {
     // Given
     List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
-    String targetId = DOI + "/" + PREFIX + "/0";
+    String targetId = DOI + PREFIX + "/0";
     var physicalId = "global_id_45634";
     var targetSpecimen = givenDigitalSpecimenWrapper(targetId, physicalId);
     specimenTestRecords.add(targetSpecimen);

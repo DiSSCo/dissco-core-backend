@@ -68,7 +68,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.util.MultiValueMapAdapter;
 
 @ExtendWith(MockitoExtension.class)
-class SpecimenServiceTest {
+class DigitalSpecimenServiceTest {
 
   @Mock
   private DigitalSpecimenRepository repository;
@@ -87,11 +87,11 @@ class SpecimenServiceTest {
   @Mock
   private UserService userService;
 
-  private SpecimenService service;
+  private DigitalSpecimenService service;
 
   @BeforeEach
   void setup() {
-    service = new SpecimenService(MAPPER, repository, elasticRepository, digitalMediaService,
+    service = new DigitalSpecimenService(MAPPER, repository, elasticRepository, digitalMediaService,
         masService, annotationService, mongoRepository, masJobRecordService, userService);
   }
 
@@ -594,7 +594,7 @@ class SpecimenServiceTest {
                            }
                        ]
            }
-                  """, JsonNode.class);
+        """, JsonNode.class);
   }
 
 

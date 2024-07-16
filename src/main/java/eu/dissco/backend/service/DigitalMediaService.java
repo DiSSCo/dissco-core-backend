@@ -133,7 +133,7 @@ public class DigitalMediaService {
   }
 
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
-    for (eu.dissco.backend.schema.EntityRelationship entityRelationship : digitalMedia.getOdsHasEntityRelationship()) {
+    for (var entityRelationship : digitalMedia.getOdsHasEntityRelationship()) {
       if (entityRelationship.getDwcRelationshipOfResource().equals("hasDigitalSpecimen")) {
         return entityRelationship.getDwcRelatedResourceID().replace(DOI_STRING, "");
       }
