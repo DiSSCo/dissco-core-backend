@@ -6,13 +6,8 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.annotation.AggregateRating;
-import eu.dissco.backend.domain.annotation.Annotation;
-import eu.dissco.backend.domain.annotation.Body;
-import eu.dissco.backend.domain.annotation.Creator;
-import eu.dissco.backend.domain.annotation.Generator;
-import eu.dissco.backend.domain.annotation.Motivation;
-import eu.dissco.backend.domain.annotation.Target;
+import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
+import eu.dissco.backend.schema.Annotation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +24,7 @@ public class AnnotationRepository {
   private final ObjectMapper mapper;
 
   public Annotation getAnnotation(String id) {
-    return context.select(ANNOTATION.asterisk())
+    return context.select(ANNOTATION.DATA)
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
         .fetchOne(this::mapToAnnotation);
@@ -49,40 +44,25 @@ public class AnnotationRepository {
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
         .and(ANNOTATION.CREATOR_ID.eq(userId))
-        .and(ANNOTATION.DELETED_ON.isNull())
+        .and(ANNOTATION.TOMBSTONED_ON.isNull())
         .fetch().size();
   }
 
   public List<Annotation> getForTarget(String id) {
-    return context.select(ANNOTATION.asterisk())
+    return context.select(ANNOTATION.DATA)
         .from(ANNOTATION)
         .where(ANNOTATION.TARGET_ID.eq(id))
-        .and(ANNOTATION.DELETED_ON.isNull())
+        .and(ANNOTATION.TOMBSTONED_ON.isNull())
         .fetch(this::mapToAnnotation);
   }
 
   private Annotation mapToAnnotation(Record dbRecord) {
     try {
-      return Annotation.builder()
-          .odsId(dbRecord.get(ANNOTATION.ID))
-          .odsVersion(dbRecord.get(ANNOTATION.VERSION))
-          .oaMotivation(Motivation.fromString(dbRecord.get(ANNOTATION.MOTIVATION)))
-          .oaMotivatedBy(dbRecord.get(ANNOTATION.MOTIVATED_BY))
-          .oaTarget(mapper.readValue(dbRecord.get(ANNOTATION.TARGET).data(), Target.class))
-          .oaBody(mapper.readValue(dbRecord.get(ANNOTATION.BODY).data(), Body.class))
-          .oaCreator(mapper.readValue(dbRecord.get(ANNOTATION.CREATOR).data(), Creator.class))
-          .dcTermsCreated(dbRecord.get(ANNOTATION.CREATED))
-          .odsDeletedOn(dbRecord.get(ANNOTATION.DELETED_ON))
-          .asGenerator(
-              mapper.readValue(dbRecord.get(ANNOTATION.GENERATOR).data(), Generator.class))
-          .oaGenerated(dbRecord.get(ANNOTATION.GENERATED))
-          .odsAggregateRating(mapper.readValue(dbRecord.get(ANNOTATION.AGGREGATE_RATING).data(),
-              AggregateRating.class))
-          .odsBatchId(dbRecord.get(ANNOTATION.BATCH_ID))
-          .build();
+      return mapper.readValue(dbRecord.get(ANNOTATION.DATA).data(),
+          Annotation.class);
     } catch (JsonProcessingException e) {
-      log.error("Failed to parse annotations body to Json", e);
-      return null;
+      log.error("Failed to get data from database, Unable to parse JSONB to JSON", e);
+      throw new DisscoJsonBMappingException("Unable to convert jsonb to annotation", e);
     }
   }
 

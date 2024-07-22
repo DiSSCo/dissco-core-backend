@@ -1,9 +1,9 @@
 package eu.dissco.backend.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.properties.FdoProperties;
 import eu.dissco.backend.properties.WebConnectionProperties;
-import eu.dissco.backend.component.FdoRecordComponent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

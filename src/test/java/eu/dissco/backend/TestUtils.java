@@ -1,13 +1,7 @@
 package eu.dissco.backend;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import eu.dissco.backend.configuration.DateDeserializer;
-import eu.dissco.backend.configuration.DateSerializer;
-import eu.dissco.backend.configuration.InstantDeserializer;
-import eu.dissco.backend.configuration.InstantSerializer;
 import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -35,33 +29,22 @@ public class TestUtils {
   public static final String SUFFIX = "ABC-123-XYZ";
   public static final String ID = PREFIX + "/" + SUFFIX;
   public static final String ID_ALT = PREFIX + "/" + "AAA-111-ZZZ";
-  public static final String TARGET_ID = PREFIX + "/TAR_GET_001";
+  public static final String TARGET_ID = HANDLE + PREFIX + "/TAR-GET-001";
   public static final String SOURCE_SYSTEM_ID_1 = HANDLE + "20.5000.1025/3XA-8PT-SAY";
   public static final String SOURCE_SYSTEM_ID_2 = HANDLE + "20.5000.1025/ANO-THE-RAY";
+  public static final String MAS_ID = HANDLE + "20.5000.1025/ABC-123-XYZ";
   public static final String PHYSICAL_ID = "global_id_123123";
 
   public static final String SPECIMEN_NAME = "Abyssothyris Thomson, 1927";
   public static final String SPECIMEN_NAME_2 = "Aackia Yosii, 1966";
 
-  public static final ObjectMapper MAPPER;
+  public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
   public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
   public static final UUID BATCH_ID = UUID.fromString("f43e4ec6-ca1c-4a88-9aac-08f6da4b0b1c");
 
   public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
-
-  static {
-    var mapper = new ObjectMapper().findAndRegisterModules();
-    SimpleModule dateModule = new SimpleModule();
-    dateModule.addSerializer(Instant.class, new InstantSerializer());
-    dateModule.addDeserializer(Instant.class, new InstantDeserializer());
-    dateModule.addSerializer(Date.class, new DateSerializer());
-    dateModule.addDeserializer(Date.class, new DateDeserializer());
-    mapper.registerModule(dateModule);
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    MAPPER = mapper.copy();
-  }
 
   // Users
   public static JsonApiWrapper givenUserResponse() {
@@ -163,7 +146,7 @@ public class TestUtils {
 
   public static DigitalSpecimen givenDigitalSpecimenAltCountry(String id) {
     return givenDigitalSpecimen(id, PHYSICAL_ID, 1, SOURCE_SYSTEM_ID_1, "Alt Country Specimen",
-            "Netherlands");
+        "Netherlands");
   }
 
 

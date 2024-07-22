@@ -6,7 +6,6 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
@@ -26,6 +25,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.Collections;
 import java.util.List;
@@ -176,13 +176,13 @@ class MasJobRecordServiceTest {
   @Test
   void testCreateMasJobRecord() {
     // Given
-    var masRecord = givenMasRecord();
-    var expected = givenMasJobRecordIdMap(masRecord.id());
+    var masRecord = MachineAnnotationServiceUtils.givenMas();
+    var expected = givenMasJobRecordIdMap(masRecord.getId());
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest()));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest()));
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -192,13 +192,13 @@ class MasJobRecordServiceTest {
   void testCreateMasJobRecordCustomTTL() {
     // Given
     var ttl = 3600L;
-    var masRecord = givenMasRecord();
-    var expected = givenMasJobRecordIdMap(masRecord.id(), ttl);
+    var masRecord = MachineAnnotationServiceUtils.givenMas();
+    var expected = givenMasJobRecordIdMap(masRecord.getId(), ttl);
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.id(), givenMasJobRequest(false, ttl)));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest(false, ttl)));
 
     // Then
     assertThat(result).isEqualTo(expected);

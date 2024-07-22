@@ -13,27 +13,22 @@ CREATE TABLE public.user
 
 create table annotation
 (
-    id               text                     not null
-        constraint annotation_pk
+    id              text                     not null
+        constraint new_annotation_pk
             primary key,
-    version          integer                  not null,
-    type             text                     not null,
-    motivation       text                     not null,
-    motivated_by     text,
-    target_id        text                     not null,
-    target           jsonb                    not null,
-    body             jsonb                    not null,
-    creator_id       text                     not null,
-    creator          jsonb                    not null,
-    created          timestamp with time zone not null,
-    generator        jsonb                    not null,
-    generated        timestamp with time zone not null,
-    last_checked     timestamp with time zone not null,
-    aggregate_rating jsonb,
-    deleted_on       timestamp with time zone,
-    annotation_hash  uuid,
-    mjr_job_id       text,
-    batch_id         uuid
+    version         integer                  not null,
+    type            text                     not null,
+    annotation_hash uuid,
+    motivation      text                     not null,
+    mjr_job_id      text,
+    batch_id        uuid,
+    creator_id      text                     not null,
+    created         timestamp with time zone not null,
+    modified        timestamp with time zone not null,
+    last_checked    timestamp with time zone not null,
+    tombstoned_on   timestamp with time zone,
+    target_id       text                     not null,
+    data            jsonb
 );
 
 create table digital_media_object
@@ -87,31 +82,27 @@ create index digital_specimen_created_idx
 create index digital_specimen_physical_specimen_id_idx
     on digital_specimen (physical_specimen_id);
 
-CREATE TABLE machine_annotation_services
+
+create table machine_annotation_service
 (
-    id                            text                     not null
+    id                     text                     not null
         primary key,
-    version                       integer                  not null,
-    name                          varchar                  not null,
-    created                       timestamp with time zone not null,
-    administrator                 text                     not null,
-    container_image               text                     not null,
-    container_image_tag           text                     not null,
-    target_digital_object_filters jsonb,
-    service_description           text,
-    service_state                 text,
-    source_code_repository        text,
-    service_availability          text,
-    code_maintainer               text,
-    code_license                  text,
-    dependencies                  text[],
-    support_contact               text,
-    sla_documentation             text,
-    topicname                     text,
-    maxreplicas                   integer,
-    deleted_on                    timestamp with time zone,
-    batching_permitted            boolean                  not null,
-    time_to_live                  integer default 86400    not null
+    version                integer                  not null,
+    name                   varchar                  not null,
+    date_created           timestamp with time zone not null,
+    date_modified          timestamp with time zone not null,
+    date_tombstoned        timestamp with time zone,
+    creator                text                     not null,
+    container_image        text                     not null,
+    container_image_tag    text                     not null,
+    creative_work_state    text,
+    source_code_repository text,
+    service_availability   text,
+    code_maintainer        text,
+    code_license           text,
+    batching_permitted     boolean,
+    time_to_live           integer default 86400    not null,
+    data                   jsonb                    not null
 );
 
 create type job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');

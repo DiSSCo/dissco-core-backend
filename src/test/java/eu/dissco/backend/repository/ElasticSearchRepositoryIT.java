@@ -31,11 +31,11 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DefaultMappingTerms;
-import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.properties.ElasticSearchProperties;
+import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
 import java.time.Instant;
@@ -380,13 +380,13 @@ class ElasticSearchRepositoryIT {
     List<Annotation> givenAnnotations = new ArrayList<>();
     List<Annotation> expected = new ArrayList<>();
     for (int i = 0; i < pageSize + 1; i++) {
-      String id = PREFIX + "/" + i;
+      String id = HANDLE + PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(HANDLE + id));
+      expected.add(givenAnnotationResponse(id));
       givenAnnotations.add(annotation);
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse(HANDLE + PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -406,13 +406,13 @@ class ElasticSearchRepositoryIT {
     List<Annotation> givenAnnotations = new ArrayList<>();
     List<Annotation> expected = new ArrayList<>();
     for (int i = 0; i < pageSize + 1; i++) {
-      String id = PREFIX + "/" + i;
+      String id = HANDLE + PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(HANDLE + id).setOdsAggregateRating(null));
-      givenAnnotations.add(annotation.setOdsAggregateRating(null));
+      expected.add(givenAnnotationResponse(id).withSchemaAggregateRating(null));
+      givenAnnotations.add(annotation.withSchemaAggregateRating(null));
     }
     for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(PREFIX + "/" + i);
+      var annotation = givenAnnotationResponse(HANDLE + PREFIX + "/" + i);
       givenAnnotations.add(annotation);
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
@@ -433,9 +433,9 @@ class ElasticSearchRepositoryIT {
     List<Annotation> givenAnnotations = new ArrayList<>();
     List<Annotation> expected = new ArrayList<>();
     for (long i = 0; i < totalHits; i++) {
-      String id = PREFIX + "/" + i;
+      String id = HANDLE + PREFIX + "/" + i;
       if (i <= pageSize) {
-        expected.add(givenAnnotationResponse(HANDLE + id, USER_ID_TOKEN));
+        expected.add(givenAnnotationResponse(id, USER_ID_TOKEN));
       }
       givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
       givenAnnotations.add(givenAnnotationResponse(id + "1", "A different User"));
@@ -549,7 +549,7 @@ class ElasticSearchRepositoryIT {
     for (var annotation : annotations) {
       bulkRequest.operations(
           op -> op.index(
-              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("ods:id").asText())
+              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("ods:ID").asText())
                   .document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());

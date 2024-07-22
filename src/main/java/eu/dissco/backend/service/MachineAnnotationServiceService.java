@@ -1,13 +1,11 @@
 package eu.dissco.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.MasTarget;
@@ -18,6 +16,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.exceptions.BatchingNotPermittedException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
+import eu.dissco.backend.schema.MachineAnnotationService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,15 +37,13 @@ public class MachineAnnotationServiceService {
   private final ObjectMapper mapper;
 
   private boolean checkIfMasComplies(JsonNode jsonNode,
-      MachineAnnotationServiceRecord masRecord) {
-    var filters = masRecord.mas().targetDigitalObjectFilters();
-    var fields = filters.fields();
+      MachineAnnotationService machineAnnotationService) {
+    var filters = machineAnnotationService.getOdsTargetDigitalObjectFilter();
+    var fields = filters.getAdditionalProperties();
     var complies = true;
-    while (fields.hasNext() && complies) {
-      var field = fields.next();
-      var fieldKey = field.getKey();
-      var allowedValues = mapper.convertValue(field.getValue(), new TypeReference<List<Object>>() {
-      });
+    for (var stringObjectEntry : fields.entrySet()) {
+      var allowedValues = (List<Object>) stringObjectEntry.getValue();
+      var fieldKey = stringObjectEntry.getKey();
       try {
         var values = JsonPath.read(jsonNode.toString(), fieldKey);
         if (values instanceof List<?>) {
@@ -74,7 +71,7 @@ public class MachineAnnotationServiceService {
       boolean complies = checkIfMasComplies(jsonNode, masRecord);
       if (complies) {
         availableMass.add(
-            new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, mapper));
+            new JsonApiData(masRecord.getId(), "ods:MachineAnnotationService", masRecord, mapper));
       }
     }
     var links = new JsonApiLinksFull(path);
@@ -85,26 +82,26 @@ public class MachineAnnotationServiceService {
   public JsonApiListResponseWrapper scheduleMass(JsonNode flattenObjectData,
       Map<String, MasJobRequest> masRequests, String path, Object object, String targetId,
       String orcid, MjrTargetType targetType) throws ConflictException {
-    var masRecords = repository.getMasRecords(masRequests.keySet());
-    validateBatchingRequest(masRequests, masRecords);
+    var machineAnnotationServices = repository.getMasRecords(masRequests.keySet());
+    validateBatchingRequest(masRequests, machineAnnotationServices);
     var scheduledJobs = new ArrayList<JsonApiData>();
     List<String> failedRecords = new ArrayList<>();
-    var availableRecords = filterAvailableRecords(masRecords, flattenObjectData, object);
+    var availableRecords = filterAvailableRecords(machineAnnotationServices, flattenObjectData, object);
     Map<String, MasJobRecord> masJobRecordIdMap = null;
     if (!availableRecords.isEmpty()) {
       masJobRecordIdMap = mjrService.createMasJobRecord(availableRecords, targetId, orcid,
           targetType, masRequests);
     }
-    for (var masRecord : availableRecords) {
-      var mjr = masJobRecordIdMap.get(masRecord.id());
+    for (var machineAnnotationService : availableRecords) {
+      var mjr = masJobRecordIdMap.get(machineAnnotationService.getId());
       try {
         var targetObject = new MasTarget(object, mjr.jobId(),
-            masRequests.get(masRecord.id()).batching());
-        kafkaPublisherService.sendObjectToQueue(masRecord.mas().topicName(), targetObject);
+            masRequests.get(machineAnnotationService.getId()).batching());
+        kafkaPublisherService.sendObjectToQueue(machineAnnotationService.getOdsTopicName(), targetObject);
         scheduledJobs.add(
             new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper));
       } catch (JsonProcessingException e) {
-        log.error("Failed to send masRecord: {}  to kafka", masRecord.id());
+        log.error("Failed to send masRecord: {}  to kafka", machineAnnotationService.getId());
         failedRecords.add(mjr.jobId());
       }
     }
@@ -117,29 +114,29 @@ public class MachineAnnotationServiceService {
   }
 
   private void validateBatchingRequest(Map<String, MasJobRequest> mass,
-      List<MachineAnnotationServiceRecord> masRecords) throws ConflictException {
+      List<MachineAnnotationService> masRecords) throws ConflictException {
     for (var masRecord : masRecords) {
-      var batchingRequested = mass.get(masRecord.id()).batching();
+      var batchingRequested = mass.get(masRecord.getId()).batching();
       if (Boolean.FALSE.equals(batchingRequested)) {
         return;
       }
-      if (Boolean.FALSE.equals(masRecord.mas().batchingRequested())) {
+      if (Boolean.FALSE.equals(masRecord.getOdsBatchingPermitted())) {
         log.error(
-            "User is attempting to schedule batch annotations with a mas that does not allow this. MAS id: {}",
-            masRecord.id());
+            "User is attempting to schedule batch annotationRequests with a mas that does not allow this. MAS id: {}",
+            masRecord.getId());
         throw new BatchingNotPermittedException();
       }
     }
   }
 
-  private Set<MachineAnnotationServiceRecord> filterAvailableRecords(
-      List<MachineAnnotationServiceRecord> masRecords, JsonNode flattenObjectData, Object object) {
-    var availableRecords = new HashSet<MachineAnnotationServiceRecord>();
+  private Set<MachineAnnotationService> filterAvailableRecords(
+      List<MachineAnnotationService> masRecords, JsonNode flattenObjectData, Object object) {
+    var availableRecords = new HashSet<MachineAnnotationService>();
     for (var masRecord : masRecords) {
       if (checkIfMasComplies(flattenObjectData, masRecord)) {
         availableRecords.add(masRecord);
       } else {
-        log.warn("Requested massRecords: {} are not available for the object: {}", masRecord.id(),
+        log.warn("Requested massRecords: {} are not available for the object: {}", masRecord.getId(),
             object);
       }
     }

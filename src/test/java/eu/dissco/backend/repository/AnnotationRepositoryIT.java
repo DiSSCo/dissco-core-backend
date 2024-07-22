@@ -4,15 +4,18 @@ import static eu.dissco.backend.TestUtils.BATCH_ID;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
+import eu.dissco.backend.schema.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -39,7 +42,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetAnnotation() throws JsonProcessingException {
     // Given
-    var expectedAnnotation = givenAnnotationResponse().setOdsBatchId(BATCH_ID);
+    var expectedAnnotation = givenAnnotationResponse().withOdsBatchID(BATCH_ID);
     postAnnotations(List.of(expectedAnnotation));
 
     // When
@@ -80,7 +83,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getAnnotationForUser(ID, USER_ID_TOKEN);
+    var receivedResponse = repository.getAnnotationForUser(ID, ORCID);
 
     // Then
     assertThat(receivedResponse).isEqualTo(1);
@@ -93,7 +96,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, ID_ALT);
     List<Annotation> annotations = List.of(expectedResponse,
         givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponse( PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
+        givenAnnotationResponse(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
     postAnnotations(annotations);
 
     // When
@@ -112,68 +115,53 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
           "field":"value"
         }
         """);
-    context.insertInto(ANNOTATION).set(ANNOTATION.ID, annotation.getOdsId())
+    context.insertInto(ANNOTATION)
+        .set(ANNOTATION.ID, annotation.getId())
         .set(ANNOTATION.VERSION, annotation.getOdsVersion())
         .set(ANNOTATION.TYPE, annotation.getRdfType())
-        .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
-        .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
-        .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
-        .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(badTarget)))
-        .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
-        .set(ANNOTATION.AGGREGATE_RATING,
-            JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
-        .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
-        .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
-        .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
-        .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
-        .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
-        .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
+        .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+        .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+        .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+        .set(ANNOTATION.CREATOR_ID, annotation.getDctermsCreator().getId())
+        .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+        .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+        .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+        .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+        .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(badTarget)))
         .execute();
 
-    // When
-    var result = repository.getAnnotation(ID);
-
-    // Then
-    assertThat(result).isNull();
+    // When / Then
+    assertThrows(DisscoJsonBMappingException.class, () -> repository.getAnnotation(ID));
   }
 
   private void postAnnotations(List<Annotation> annotations) throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {
-      var query = context.insertInto(ANNOTATION).set(ANNOTATION.ID, annotation.getOdsId())
+      var query = context.insertInto(ANNOTATION)
+          .set(ANNOTATION.ID, annotation.getId())
           .set(ANNOTATION.VERSION, annotation.getOdsVersion())
           .set(ANNOTATION.TYPE, annotation.getRdfType())
-          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
-          .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
-          .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
-          .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaTarget())))
-          .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
-          .set(ANNOTATION.AGGREGATE_RATING,
-              JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
-          .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
-          .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
-          .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
-          .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchId())
+          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+          .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+          .set(ANNOTATION.CREATOR_ID, annotation.getDctermsCreator().getId())
+          .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+          .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+          .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+          .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)))
           .onConflict(ANNOTATION.ID).doUpdate()
           .set(ANNOTATION.VERSION, annotation.getOdsVersion())
           .set(ANNOTATION.TYPE, annotation.getRdfType())
-          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().toString())
-          .set(ANNOTATION.MOTIVATED_BY, annotation.getOaMotivatedBy())
-          .set(ANNOTATION.TARGET_ID, annotation.getOaTarget().getOdsId())
-          .set(ANNOTATION.TARGET, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaTarget())))
-          .set(ANNOTATION.BODY, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaBody())))
-          .set(ANNOTATION.AGGREGATE_RATING,
-              JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOdsAggregateRating())))
-          .set(ANNOTATION.CREATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getOaCreator())))
-          .set(ANNOTATION.CREATOR_ID, annotation.getOaCreator().getOdsId())
-          .set(ANNOTATION.CREATED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.GENERATOR, JSONB.jsonb(MAPPER.writeValueAsString(annotation.getAsGenerator())))
-          .set(ANNOTATION.GENERATED, annotation.getOaGenerated())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDcTermsCreated())
-          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchId());
+          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+          .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+          .set(ANNOTATION.CREATOR_ID, annotation.getDctermsCreator().getId())
+          .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+          .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+          .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+          .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+          .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)));
       queryList.add(query);
     }
     context.batch(queryList).execute();

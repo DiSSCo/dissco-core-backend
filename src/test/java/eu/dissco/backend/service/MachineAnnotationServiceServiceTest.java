@@ -1,14 +1,16 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalSpecimen;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMas;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRecord;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenScheduledMasResponse;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
@@ -23,7 +25,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasTarget;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -32,6 +33,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.exceptions.BatchingNotPermittedException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
+import eu.dissco.backend.schema.OdsTargetDigitalObjectFilter;
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +87,7 @@ class MachineAnnotationServiceServiceTest {
   @Test
   void testGetMassForObject() throws JsonProcessingException {
     // Given
-    var masRecord = givenMasRecord(givenFiltersDigitalMedia(false));
+    var masRecord = givenMas(givenFiltersDigitalMedia(false));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
 
     // When
@@ -99,7 +102,7 @@ class MachineAnnotationServiceServiceTest {
   void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters)
       throws JsonProcessingException {
     // Given
-    var masRecord = givenMasRecord(givenFiltersDigitalMedia(filters));
+    var masRecord = givenMas(givenFiltersDigitalMedia(filters));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
 
     // When
@@ -112,17 +115,18 @@ class MachineAnnotationServiceServiceTest {
   @Test
   void testScheduleMass() throws JsonProcessingException, ConflictException {
     // Given
-    var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
-    var masRecord = givenMasRecord(givenFiltersDigitalSpecimen(), true);
-    given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
-    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest(true, null)))).willReturn(
-        givenMasJobRecordIdMap(masRecord.id(), true, TTL_DEFAULT));
+    var digitalSpecimen = givenDigitalSpecimenWrapper(HANDLE + ID);
+    var masRecord = MachineAnnotationServiceUtils.givenMas(givenFiltersDigitalSpecimen(), true);
+    given(repository.getMasRecords(Set.of(HANDLE + ID))).willReturn(List.of(masRecord));
+    given(masJobRecordService.createMasJobRecord(Set.of(masRecord), HANDLE + ID, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN,
+        Map.of(HANDLE + ID, givenMasJobRequest(true, null)))).willReturn(
+        givenMasJobRecordIdMap(masRecord.getId(), true, TTL_DEFAULT));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID, true);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(ID, givenMasJobRequest(true, null)),
+        Map.of(HANDLE + ID, givenMasJobRequest(true, null)),
         SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
@@ -136,8 +140,8 @@ class MachineAnnotationServiceServiceTest {
   void testScheduleMassEmpty() throws JsonProcessingException, ConflictException {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
-    var masRecord = givenMasRecord(givenFiltersDigitalMedia(true));
-    given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
+    var masRecord = givenMas(givenFiltersDigitalMedia(true));
+    given(repository.getMasRecords(Set.of(MAS_ID))).willReturn(List.of(masRecord));
     var expected = new JsonApiListResponseWrapper(
         Collections.emptyList(),
         new JsonApiLinksFull(SPECIMEN_PATH),
@@ -146,8 +150,7 @@ class MachineAnnotationServiceServiceTest {
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(ID, givenMasJobRequest()),
-        SPECIMEN_PATH,
+        Map.of(MAS_ID, givenMasJobRequest()), SPECIMEN_PATH,
         digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
@@ -161,13 +164,13 @@ class MachineAnnotationServiceServiceTest {
   void testScheduleMassInvalidBatchRequest() {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
-    var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
-    given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
+    var masRecord = givenMas(givenFiltersDigitalSpecimen());
+    given(repository.getMasRecords(Set.of(HANDLE + ID))).willReturn(List.of(masRecord));
 
     // Then
     assertThrowsExactly(BatchingNotPermittedException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
-            Map.of(ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
+            Map.of(HANDLE + ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
             digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN));
   }
@@ -176,18 +179,18 @@ class MachineAnnotationServiceServiceTest {
   void testScheduleMassKafkaFailed() throws JsonProcessingException, ConflictException {
     // Given
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
-    var masRecord = givenMasRecord(givenFiltersDigitalSpecimen());
-    given(repository.getMasRecords(Set.of(ID))).willReturn(List.of(masRecord));
+    var masRecord = givenMas(givenFiltersDigitalSpecimen());
+    given(repository.getMasRecords(Set.of(HANDLE + ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), ID, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(ID, givenMasJobRequest()))).willReturn(
-        givenMasJobRecordIdMap(masRecord.id()));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(HANDLE + ID, givenMasJobRequest()))).willReturn(
+        givenMasJobRecordIdMap(masRecord.getId()));
     var sendObject = new MasTarget(digitalSpecimenWrapper, JOB_ID, false);
     willThrow(JsonProcessingException.class).given(kafkaPublisherService)
         .sendObjectToQueue("fancy-topic-name", sendObject);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(ID, givenMasJobRequest()), SPECIMEN_PATH,
+        Map.of(HANDLE + ID, givenMasJobRequest()), SPECIMEN_PATH,
         digitalSpecimenWrapper, digitalSpecimenWrapper.getOdsID(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
@@ -196,43 +199,37 @@ class MachineAnnotationServiceServiceTest {
     assertThat(result.getData()).isEmpty();
   }
 
-  private JsonNode givenFiltersDigitalMedia(List<Pair<String, List<String>>> filters) {
-    var filterObject = MAPPER.createObjectNode();
+  private OdsTargetDigitalObjectFilter givenFiltersDigitalMedia(
+      List<Pair<String, List<String>>> filters) {
+    var targetFilter = new OdsTargetDigitalObjectFilter();
     for (var filter : filters) {
-      var arrayNode = MAPPER.createArrayNode();
-      for (var value : filter.getRight()) {
-        arrayNode.add(value);
-      }
-      filterObject.set(filter.getLeft(), arrayNode);
+      targetFilter.setAdditionalProperty(filter.getLeft(), filter.getRight());
     }
-    return filterObject;
+    return targetFilter;
   }
 
-  private JsonNode givenFiltersDigitalMedia(boolean unmatchedFilter) {
-    var filters = MAPPER.createObjectNode();
-    filters.set("$.ods:type",
-        MAPPER.createArrayNode().add("https://doi.org/21.T11148/bbad8c4e101e8af01115"));
-    filters.set("$.dwc:institutionName",
-        MAPPER.createArrayNode().add("Botanic Garden and Botanical Museum Berlin"));
-    filters.set("$.digitalSpecimen.occurrences[*].location.dwc:country",
-        MAPPER.createArrayNode().add("*"));
+  private OdsTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
+    var filters = new OdsTargetDigitalObjectFilter()
+        .withAdditionalProperty("$.ods:type",
+            List.of("https://doi.org/21.T11148/bbad8c4e101e8af01115"))
+        .withAdditionalProperty("$.dwc:organisationName",
+            List.of("Royal Botanic Garden Edinburgh Herbarium"))
+        .withAdditionalProperty("$.digitalSpecimen.ods:hasEvent[*].ods:Location.dwc:country",
+            List.of("*"));
     if (unmatchedFilter) {
-      filters.set("$.digitalSpecimen.occurrences[*].location.dwc:island",
-          MAPPER.createArrayNode().add("*"));
+      filters.withAdditionalProperty("$.digitalSpecimen.occurrences[*].location.dwc:island",
+          List.of("*"));
     }
     return filters;
   }
 
-  private JsonNode givenFiltersDigitalSpecimen() {
-    var filters = MAPPER.createObjectNode();
-    filters.set("$.dcterms:license",
-        MAPPER.createArrayNode().add("http://creativecommons.org/licenses/by/4.0/legalcode")
-            .add("http://creativecommons.org/licenses/by-nc/4.0/"));
-    filters.set("$.ods:topicDiscipline",
-        MAPPER.createArrayNode().add("Palaeontology"));
-    filters.set("$.ods:midsLevel",
-        MAPPER.createArrayNode().add(0).add(1));
-    return filters;
+  private OdsTargetDigitalObjectFilter givenFiltersDigitalSpecimen() {
+    return new OdsTargetDigitalObjectFilter()
+        .withAdditionalProperty("$.dcterms:license",
+            List.of("http://creativecommons.org/licenses/by/4.0/legalcode",
+                "http://creativecommons.org/licenses/by-nc/4.0/"))
+        .withAdditionalProperty("$.ods:topicDiscipline", List.of("Palaeontology"))
+        .withAdditionalProperty("$.ods:midsLevel", List.of(0, 1));
   }
 
 }

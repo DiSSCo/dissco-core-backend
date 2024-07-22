@@ -21,7 +21,8 @@ class FdoRecordComponentTest {
   @Test
   void testGetRequest() throws Exception {
     // Given
-    given(fdoProperties.getMjrType()).willReturn("https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6");
+    given(fdoProperties.getMjrType()).willReturn(
+        "https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6");
     given(fdoProperties.getAgent()).willReturn("https://ror.org/0566bfb96");
     var fdoComponent = new FdoRecordComponent(MAPPER, fdoProperties);
 

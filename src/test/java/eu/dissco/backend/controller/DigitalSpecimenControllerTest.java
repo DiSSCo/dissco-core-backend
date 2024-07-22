@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
@@ -254,7 +255,7 @@ class DigitalSpecimenControllerTest {
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), USER_ID_TOKEN,
+    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), USER_ID_TOKEN,
         SPECIMEN_PATH)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

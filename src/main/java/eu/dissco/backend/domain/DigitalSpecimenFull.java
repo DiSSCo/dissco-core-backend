@@ -1,6 +1,6 @@
 package eu.dissco.backend.domain;
 
-import eu.dissco.backend.domain.annotation.Annotation;
+import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.List;
 

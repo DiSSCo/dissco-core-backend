@@ -35,7 +35,7 @@ public class FeignConfiguration {
           .build();
       return sslContext.getSocketFactory();
     } catch (Exception e) {
-      log.error("An exception occurred when pushing annotations to annotations-processor", e);
+      log.error("An exception occurred when pushing annotationRequests to annotationRequests-processor", e);
     }
     return null;
   }

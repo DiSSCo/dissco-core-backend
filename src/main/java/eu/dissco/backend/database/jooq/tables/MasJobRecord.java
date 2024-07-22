@@ -10,10 +10,8 @@ import eu.dissco.backend.database.jooq.enums.ErrorCode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
-
 import java.time.Instant;
 import java.util.Collection;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.JSONB;

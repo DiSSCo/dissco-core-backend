@@ -127,18 +127,18 @@ public class DigitalSpecimenController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for annotations of specimen with id: {}", id);
+    log.info("Received get request for annotationRequests of specimen with id: {}", id);
     var annotations = service.getAnnotations(id, getPath(request));
     return ResponseEntity.ok(annotations);
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/digital-media", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
-    log.info("Received get request for digitalmedia of specimen with id: {}", id);
+    log.info("Received get request for digital media of specimen with id: {}", id);
     var digitalMedia = service.getDigitalMedia(id, getPath(request));
     return ResponseEntity.ok(digitalMedia);
   }

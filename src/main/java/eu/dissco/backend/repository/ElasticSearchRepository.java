@@ -1,6 +1,5 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
@@ -24,11 +23,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.MappingTerm;
-import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
+import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -105,8 +104,7 @@ public class ElasticSearchRepository {
 
   private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
     try {
-      var annotation = mapper.treeToValue(annotationNode, Annotation.class);
-      return annotation.setOdsId(HANDLE_STRING + annotation.getOdsId());
+      return mapper.treeToValue(annotationNode, Annotation.class);
     } catch (JsonProcessingException e) {
       throw new DiSSCoElasticMappingException(e);
     }
@@ -123,7 +121,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
-    var fieldName = "oa:creator.ods:id";
+    var fieldName = "dcterms:creator.@id";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 
