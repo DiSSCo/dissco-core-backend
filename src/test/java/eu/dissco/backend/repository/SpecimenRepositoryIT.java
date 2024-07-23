@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.TestUtils.DOI;
+import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
@@ -11,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
+import java.util.List;
 import org.jooq.JSONB;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,33 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
         givenDigitalSpecimenSourceSystem(DOI + "20.5000.1025/ABC-123-XY3", SOURCE_SYSTEM_ID_1));
   }
 
+  @Test
+  void testGetOriginalSpecimenData() throws JsonProcessingException{
+    // Given
+    var expected = MAPPER.createObjectNode()
+            .put("originalData", "yep");
+    insertIntoDatabase(List.of(givenDigitalSpecimenWrapper(ID)));
+    context.update(DIGITAL_SPECIMEN)
+        .set(DIGITAL_SPECIMEN.ORIGINAL_DATA, JSONB.jsonb(MAPPER.writeValueAsString(expected)))
+        .where(DIGITAL_SPECIMEN.ID.eq(ID))
+        .execute();
+
+    // When
+    var result = repository.getSpecimenOriginalData(ID);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetOriginalSpecimenDataNotFound() {
+    // When
+    var result = repository.getSpecimenOriginalData(ID);
+
+    // Then
+    assertThat(result).isNull();
+  }
+
   private void populateSpecimenTable() throws JsonProcessingException {
     var specimens = new ArrayList<DigitalSpecimen>();
     for (int i = 0; i < 22; i++) {
@@ -51,7 +80,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     insertIntoDatabase(specimens);
   }
 
-  private void insertIntoDatabase(ArrayList<DigitalSpecimen> specimens)
+  private void insertIntoDatabase(List<DigitalSpecimen> specimens)
       throws JsonProcessingException {
     for (var specimenWrapper : specimens) {
       context.insertInto(DIGITAL_SPECIMEN)

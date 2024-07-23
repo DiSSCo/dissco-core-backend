@@ -11,6 +11,7 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.OdsType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -127,9 +128,17 @@ public class DigitalMediaService {
 
   public JsonApiListResponseWrapper getMass(String id, String path) {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
+    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
+        getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.getMassForObject(flattenObjectData, path);
+  }
+
+  public JsonApiWrapper getOriginalDataForMedia(String targetId, String path) {
+    var originalData = repository.getMediaOriginalData(targetId);
+    return new JsonApiWrapper(
+        new JsonApiData(targetId, OdsType.DIGITAL_MEDIA.getPid(), originalData),
+        new JsonApiLinks(path));
   }
 
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
@@ -155,7 +164,8 @@ public class DigitalMediaService {
       throws ForbiddenException, PidCreationException, ConflictException {
     var orcid = userService.getOrcid(userId);
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
+    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
+        getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
         MjrTargetType.MEDIA_OBJECT);

@@ -123,6 +123,17 @@ public class DigitalMediaController extends BaseController {
         service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
   }
 
+  @GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getOriginalDataForMedia(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix,
+      HttpServletRequest request){
+    var path = getPath(request);
+    var id = prefix + '/' + suffix;
+    return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));
+  }
+
+
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,

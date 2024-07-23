@@ -127,6 +127,24 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
     assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
   }
 
+  @Test
+  void testGetOriginalMediaData() throws JsonProcessingException{
+    // Given
+    var expected = MAPPER.createObjectNode()
+        .put("originalData", "yep");
+    postMediaObjects(List.of(givenDigitalMediaObject(ID)));
+    context.update(DIGITAL_MEDIA_OBJECT)
+        .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.jsonb(MAPPER.writeValueAsString(expected)))
+        .where(DIGITAL_MEDIA_OBJECT.ID.eq(ID))
+        .execute();
+
+    // When
+    var result = repository.getMediaOriginalData(ID);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
   private void postMediaObjects(List<DigitalMedia> mediaObjects)
       throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
