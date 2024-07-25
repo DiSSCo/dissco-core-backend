@@ -15,6 +15,7 @@ import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.OdsType;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -114,6 +115,13 @@ public class DigitalSpecimenService {
   public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
       JobState state, String path, int pageNum, int pageSize) throws NotFoundException {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
+  }
+
+  public JsonApiWrapper getOriginalDataForSpecimen(String targetId, String path) {
+    var originalData = repository.getSpecimenOriginalData(targetId);
+    return new JsonApiWrapper(
+        new JsonApiData(targetId, OdsType.DIGITAL_SPECIMEN.getPid(), originalData),
+        new JsonApiLinks(path));
   }
 
   private JsonApiWrapper mapFullSpecimen(String id, String path, DigitalSpecimen specimen) {

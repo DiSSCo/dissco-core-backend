@@ -183,6 +183,15 @@ class DigitalMediaControllerTest {
             mockRequest));
   }
 
+  @Test
+  void testGetOriginalDataForMediaForSpecimenForMedia(){
+    // When
+    var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
   private void givenAuthentication() {
     given(authentication.getName()).willReturn(USER_ID_TOKEN);
   }

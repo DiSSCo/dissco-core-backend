@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
+import eu.dissco.backend.domain.OdsType;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -562,6 +564,20 @@ class DigitalSpecimenServiceTest {
     assertThat(result).isEqualTo(response);
   }
 
+  @Test
+  void testGetOriginalDataForSpecimen() throws JsonProcessingException {
+    // Given
+    var expectedJson = givenMongoDBResponse();
+    var expected = new JsonApiWrapper(new JsonApiData(ID, OdsType.DIGITAL_SPECIMEN.getPid(), expectedJson),
+        new JsonApiLinks(SANDBOX_URI));
+    given(repository.getSpecimenOriginalData(ID)).willReturn(expectedJson);
+
+    // When
+    var result = service.getOriginalDataForSpecimen(ID, SANDBOX_URI);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
 
   private JsonNode givenMongoDBResponse() throws JsonProcessingException {
     return MAPPER.readValue("""

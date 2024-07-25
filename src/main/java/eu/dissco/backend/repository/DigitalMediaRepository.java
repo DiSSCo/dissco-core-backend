@@ -4,8 +4,10 @@ import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
+import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.DigitalMedia;
@@ -53,6 +55,13 @@ public class DigitalMediaRepository {
         .from(DIGITAL_MEDIA_OBJECT)
         .where(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID.eq(id))
         .fetch(Record1::value1);
+  }
+
+  public JsonNode getMediaOriginalData(String id) {
+    return context.select(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA)
+        .from(DIGITAL_MEDIA_OBJECT)
+        .where(DIGITAL_MEDIA_OBJECT.ID.eq(id))
+        .fetchOne(data -> mapOriginalDataToJson(data, mapper));
   }
 
   private DigitalMedia mapToMultiMediaObject(Record dbRecord) {

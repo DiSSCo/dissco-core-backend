@@ -293,6 +293,15 @@ class DigitalSpecimenControllerTest {
             mockRequest));
   }
 
+  @Test
+  void testGetOriginalDataForSpecimenForSpecimen(){
+    // When
+    var result = controller.getOriginalDataForSpecimen(PREFIX, SUFFIX, mockRequest);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
   private void givenAuthentication() {
     given(authentication.getName()).willReturn(USER_ID_TOKEN);
   }

@@ -218,6 +218,16 @@ public class DigitalSpecimenController extends BaseController {
     return ResponseEntity.ok(mass);
   }
 
+  @GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> getOriginalDataForSpecimen(
+      @PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix,
+      HttpServletRequest request){
+    var path = getPath(request);
+    var id = prefix + '/' + suffix;
+    return ResponseEntity.ok(service.getOriginalDataForSpecimen(id, path));
+  }
+
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
