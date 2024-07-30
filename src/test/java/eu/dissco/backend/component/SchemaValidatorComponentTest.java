@@ -41,7 +41,7 @@ class SchemaValidatorComponentTest {
   void setup() throws IOException {
     var factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
     try (InputStream inputStream = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream("json-schema/annotation_request.json")) {
+        .getResourceAsStream("json-schema/annotation-event-for-front-end.json")) {
       var schema = factory.getSchema(inputStream);
       schemaValidator = new SchemaValidatorComponent(schema, MAPPER);
     }

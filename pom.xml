@@ -260,6 +260,7 @@
             <argument>https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.3.0/digital-media.json</argument>
             <argument>https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.3.0/machine-annotation-service.json</argument>
             <argument>https://schemas.dissco.tech/schemas/fdo-type/annotation/0.3.0/annotation.json</argument>
+            <argument>https://schemas.dissco.tech/schemas/developer-schema/annotation/0.3.0/annotation-event-for-front-end.json</argument>
           </arguments>
         </configuration>
       </plugin>
