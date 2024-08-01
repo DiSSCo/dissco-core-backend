@@ -133,7 +133,7 @@ public class DigitalSpecimenController extends BaseController {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/digitalmedia", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{prefix}/{suffix}/digital-media", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
