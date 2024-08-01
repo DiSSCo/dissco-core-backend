@@ -24,14 +24,16 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.Annotation;
-import eu.dissco.backend.schema.AnnotationRequest;
-import eu.dissco.backend.schema.AnnotationRequest.OaMotivation;
-import eu.dissco.backend.schema.OaHasBody;
-import eu.dissco.backend.schema.OaHasBody__1;
+import eu.dissco.backend.schema.AnnotationBody;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
+import eu.dissco.backend.schema.AnnotationProcessingRequest.OaMotivation;
+import eu.dissco.backend.schema.AnnotationBody;
+import eu.dissco.backend.schema.AnnotationBody;
 import eu.dissco.backend.schema.OaHasSelector;
-import eu.dissco.backend.schema.OaHasSelector__1;
-import eu.dissco.backend.schema.OaHasTarget;
-import eu.dissco.backend.schema.OaHasTarget__1;
+import eu.dissco.backend.schema.OaHasSelector;
+import eu.dissco.backend.schema.AnnotationTarget;
+import eu.dissco.backend.schema.AnnotationTarget;
 import eu.dissco.backend.schema.SchemaAggregateRating;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,19 +97,19 @@ public class AnnotationUtils {
     return annotation;
   }
 
-  public static AnnotationRequest givenAnnotationRequest(String targetId) {
-    return new AnnotationRequest()
+  public static AnnotationProcessingRequest givenAnnotationRequest(String targetId) {
+    return new AnnotationProcessingRequest()
         .withOaHasBody(givenOaBody())
         .withOaHasTarget(givenOaTarget(targetId))
         .withOaMotivation(OaMotivation.OA_COMMENTING);
   }
 
-  public static AnnotationRequest givenAnnotationRequest() {
+  public static AnnotationProcessingRequest givenAnnotationRequest() {
     return givenAnnotationRequest(TARGET_ID);
   }
 
-  public static OaHasBody givenOaBody() {
-    return new OaHasBody()
+  public static AnnotationBody givenOaBody() {
+    return new AnnotationBody()
         .withType("ods:DigitalSpecimen")
         .withOaValue(new ArrayList<>(List.of("a comment")))
         .withDctermsReferences(
@@ -115,8 +117,8 @@ public class AnnotationUtils {
         .withOdsScore(0.99);
   }
 
-  public static OaHasBody__1 givenOaBodyAnnotation() {
-    return new OaHasBody__1()
+  public static AnnotationBody givenOaBodyAnnotation() {
+    return new AnnotationBody()
         .withType("ods:DigitalSpecimen")
         .withOaValue(new ArrayList<>(List.of("a comment")))
         .withDctermsReferences(
@@ -124,8 +126,8 @@ public class AnnotationUtils {
         .withOdsScore(0.99);
   }
 
-  public static OaHasTarget givenOaTarget(String targetId) {
-    return new OaHasTarget()
+  public static AnnotationTarget givenOaTarget(String targetId) {
+    return new AnnotationTarget()
         .withId(targetId)
         .withOdsID(targetId)
         .withType("ods:DigitalSpecimen")
@@ -133,8 +135,8 @@ public class AnnotationUtils {
         .withOaHasSelector(givenSelector());
   }
 
-  public static OaHasTarget__1 givenOaTargetAnnotation(String targetId) {
-    return new OaHasTarget__1()
+  public static AnnotationTarget givenOaTargetAnnotation(String targetId) {
+    return new AnnotationTarget()
         .withId(targetId)
         .withOdsID(targetId)
         .withType("ods:DigitalSpecimen")
@@ -148,8 +150,8 @@ public class AnnotationUtils {
         .withAdditionalProperty("ods:field", "ods:specimenName");
   }
 
-  public static OaHasSelector__1 givenSelectorAnnotation() {
-    return new OaHasSelector__1()
+  public static OaHasSelector givenSelectorAnnotation() {
+    return new OaHasSelector()
         .withAdditionalProperty("@type", "ods:FieldSelector")
         .withAdditionalProperty("field", "ods:specimenName");
   }
