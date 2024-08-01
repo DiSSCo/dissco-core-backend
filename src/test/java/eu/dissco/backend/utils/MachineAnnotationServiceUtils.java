@@ -3,12 +3,11 @@ package eu.dissco.backend.utils;
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.MAS_ID;
+import static eu.dissco.backend.TestUtils.ORCID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.MachineAnnotationService;
-import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -17,7 +16,15 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
+import eu.dissco.backend.schema.Agent;
+import eu.dissco.backend.schema.Agent.Type;
+import eu.dissco.backend.schema.MachineAnnotationService;
+import eu.dissco.backend.schema.MachineAnnotationService.OdsStatus;
+import eu.dissco.backend.schema.OdsTargetDigitalObjectFilter;
+import eu.dissco.backend.schema.SchemaContactPoint;
+import eu.dissco.backend.schema.TombstoneMetadata;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -26,17 +33,17 @@ public class MachineAnnotationServiceUtils {
   public static JsonApiListResponseWrapper givenMasResponse(String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
-        new JsonApiData(givenMasRecord().id(), "MachineAnnotationService", givenMasRecord(),
+        new JsonApiData(givenMas().getId(), "MachineAnnotationService", givenMas(),
             MAPPER));
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
   public static JsonApiListResponseWrapper givenMasResponse(
-      MachineAnnotationServiceRecord masRecord,
+      MachineAnnotationService masRecord,
       String path) {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
-        new JsonApiData(masRecord.id(), "MachineAnnotationService", masRecord, MAPPER));
+        new JsonApiData(masRecord.getId(), "ods:MachineAnnotationService", masRecord, MAPPER));
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
@@ -65,105 +72,130 @@ public class MachineAnnotationServiceUtils {
 
   public static MasJobRequest givenMasJobRequest(boolean batching, Long ttl) {
     return new MasJobRequest(
-        ID,
+        MAS_ID,
         batching,
         ttl);
   }
 
-  public static MachineAnnotationServiceRecord givenMasRecord() {
-    return givenMasRecord(ID, null);
-  }
-
-  public static MachineAnnotationServiceRecord givenMasRecord(String id, Instant deleted) {
-    return new MachineAnnotationServiceRecord(
-        id,
-        1,
-        CREATED,
-        USER_ID_TOKEN,
-        givenMas(),
-        deleted
-    );
-  }
-
-  public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters) {
-    return givenMasRecord(filters, false);
-  }
-
-  public static MachineAnnotationServiceRecord givenMasRecord(JsonNode filters, boolean batching) {
-    return new MachineAnnotationServiceRecord(
-        ID,
-        1,
-        CREATED,
-        USER_ID_TOKEN,
-        givenMas(filters, batching),
-        null
-    );
-  }
-
   public static MachineAnnotationService givenMas() {
-    return givenMas(MAPPER.createObjectNode());
+    return givenMas(ID, null);
   }
 
-  public static MachineAnnotationService givenMas(JsonNode filters) {
-    return givenMas(filters, false);
-  }
-
-  public static MachineAnnotationService givenMas(JsonNode filters, boolean batching) {
-    return new MachineAnnotationService(
-        "A Machine Annotation Service",
-        "public.ecr.aws/dissco/fancy-mas",
-        "sha-54289",
-        filters,
-        "A fancy mas making all dreams come true",
-        "Definitely production ready",
-        "https://github.com/DiSSCo/fancy-mas",
-        "public",
-        "No one we know",
-        "https://www.apache.org/licenses/LICENSE-2.0",
-        List.of(),
-        "dontmail@dissco.eu",
-        "https://www.know.dissco.tech/no_sla",
-        "fancy-topic-name",
-        5,
-        batching
+  public static MachineAnnotationService givenMas(String id, Instant deleted) {
+    return givenMas(
+        id,
+        deleted,
+        new OdsTargetDigitalObjectFilter(),
+        false,
+        3600
     );
+  }
+
+  public static MachineAnnotationService givenMas(OdsTargetDigitalObjectFilter filters,
+      boolean batching) {
+    return givenMas(
+        MAS_ID,
+        null,
+        filters,
+        batching,
+        3600
+    );
+  }
+
+  public static MachineAnnotationService givenMas(OdsTargetDigitalObjectFilter filters) {
+    return givenMas(MAS_ID, null, filters, false, 3600);
+  }
+
+  public static MachineAnnotationService givenMas(String id, Instant deleted,
+      OdsTargetDigitalObjectFilter filters, boolean batching, int ttl) {
+    var mas = new MachineAnnotationService()
+        .withId(id)
+        .withOdsID(id)
+        .withType("ods:MachineAnnotationService")
+        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOdsStatus(OdsStatus.ODS_ACTIVE)
+        .withSchemaVersion(1)
+        .withSchemaName("A Machine Annotation Service")
+        .withSchemaDescription("A fancy mas making all dreams come true")
+        .withSchemaDateCreated(Date.from(CREATED))
+        .withSchemaDateModified(Date.from(CREATED))
+        .withSchemaCreator(new Agent().withType(Type.SCHEMA_PERSON).withId(ORCID))
+        .withOdsContainerImage("public.ecr.aws/dissco/fancy-mas")
+        .withOdsContainerTag("sha-54289")
+        .withOdsTargetDigitalObjectFilter(filters)
+        .withSchemaCreativeWorkStatus("Definitely production ready")
+        .withSchemaCodeRepository("https://github.com/DiSSCo/fancy-mas")
+        .withSchemaProgrammingLanguage("Java")
+        .withOdsServiceAvailability("public")
+        .withSchemaMaintainer(new Agent().withType(Type.SCHEMA_PERSON).withId(ORCID))
+        .withSchemaLicense("https://www.apache.org/licenses/LICENSE-2.0")
+        .withOdsDependency(List.of())
+        .withSchemaContactPoint(new SchemaContactPoint().withSchemaEmail("dontmail@dissco.eu"))
+        .withOdsSlaDocumentation("https://www.know.dissco.tech/no_sla")
+        .withOdsTopicName("fancy-topic-name")
+        .withOdsBatchingPermitted(batching)
+        .withOdsTimeToLive(ttl);
+    if (deleted != null) {
+      mas.setOdsStatus(OdsStatus.ODS_TOMBSTONE);
+      mas.setOdsTombstoneMetadata(
+          new TombstoneMetadata().withOdsTombstonedDate(Date.from(deleted)));
+    }
+    return mas;
   }
 
   public static JsonNode givenFlattenedDigitalMedia() throws JsonProcessingException {
     return MAPPER.readValue(
         """
                 {
-                  "ods:id": "https://doi.org/TEST/SDF-6Y6-DV7",
+                  "@id": "https://doi.org/TEST/SDF-6Y6-DV7",
+                  "@type": "ods:DigitalMedia",
+                  "ods:ID": "https://doi.org/TEST/SDF-6Y6-DV7",
                   "ods:version": 1,
                   "dcterms:created": "2023-10-16T11:47:18.773831Z",
                   "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
                   "ac:accessUri": "https://herbarium.bgbm.org/data/iiif/BW00746010/manifest.json",
-                  "dwc:institutionId": "https://ror.org/00bv4cx53",
-                  "dwc:institutionName": "Botanic Garden and Botanical Museum Berlin",
+                  "dwc:organisationID": "https://ror.org/0349vqz63",
+                  "dwc:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
                   "dcterms:format": "application/json",
                   "dcterms:license": "https://creativecommons.org/licenses/by-sa/3.0/",
                   "dcterms:source": "https://iiif.bgbm.org/?manifest=https://herbarium.bgbm.org/object/BW00746010/manifest.json",
-                  "digitalSpecimen": {
+                  "digitalSpecimen":                 {
+                    "@id": "20.5000.1025/ABC-123-XYZ",
+                    "@type": "ods:DigitalSpecimen",
+                    "ods:ID": "20.5000.1025/ABC-123-XYZ",
+                    "ods:version": 1,
+                    "dcterms:modified": "03/12/2012",
+                    "dcterms:created": "2022-11-01T09:59:24.000Z",
                     "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
-                    "occurrences": [
+                    "ods:midsLevel": 0,
+                    "ods:physicalSpecimenID": "global_id_123123",
+                    "ods:physicalSpecimenIDType": "Resolvable",
+                    "ods:isMarkedAsType": true,
+                    "ods:isKnownToContainMedia": true,
+                    "ods:specimenName": "Abyssothyris Thomson, 1927",
+                    "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+                    "ods:language": [],
+                    "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+                    "dwc:preparations": "",
+                    "ods:organisationID": "https://ror.org/0349vqz63",
+                    "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
+                    "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
+                    "ods:hasMaterialEntity": [],
+                    "ods:hasIdentification": [],
+                    "ods:hasAssertion": [],
+                    "ods:hasEvent": [
                       {
-                        "dwc:habitat": "Venezuela.",
-                        "assertions": [],
-                        "location": {
-                          "dwc:continent": "Middle and South America",
-                          "dwc:country": "Venezuela"
-                        }
-                      },
-                      {
-                        "dwc:habitat": "Argentina.",
-                        "assertions": [],
-                        "location": {
-                          "dwc:continent": "South America",
-                          "dwc:country": "Argentina"
+                        "ods:hasAssertion": [],
+                        "ods:Location": {
+                          "dwc:country": "Scotland"
                         }
                       }
                     ],
-                    "ods:hasMedia": "true"
+                    "ods:hasEntityRelationship": [],
+                    "ods:hasCitation": [],
+                    "ods:hasIdentifier": [],
+                    "ods:hasChronometricAge": [],
+                    "ods:hasAgent": []
                   }
                 }
             """, JsonNode.class
@@ -174,57 +206,43 @@ public class MachineAnnotationServiceUtils {
     return MAPPER.readValue(
         """
                 {
-                  "ods:id": "https://doi.org/TEST/JDS-HJL-SJD",
+                  "@id": "20.5000.1025/ABC-123-XYZ",
+                  "@type": "ods:DigitalSpecimen",
+                  "ods:ID": "20.5000.1025/ABC-123-XYZ",
                   "ods:version": 1,
-                  "dcterms:created": "2023-10-16T12:46:28.460956Z",
+                  "dcterms:modified": "03/12/2012",
+                  "dcterms:created": "2022-11-01T09:59:24.000Z",
                   "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                   "ods:midsLevel": 0,
+                  "ods:physicalSpecimenID": "global_id_123123",
+                  "ods:physicalSpecimenIDType": "Resolvable",
+                  "ods:isMarkedAsType": true,
                   "ods:topicDiscipline": "Palaeontology",
-                  "ods:hasMedia": false,
-                  "ods:specimenName": "Graptolithina",
-                  "ods:sourceSystem": "https://hdl.handle.net/TEST/6JE-97W-RDY",
-                  "ods:livingOrPreserved": "Preserved",
-                  "dcterms:license": "http://creativecommons.org/licenses/by-nc/4.0/",
-                  "dcterms:modified": "1220960707000",
-                  "dwc:basisOfRecord": "FossilSpecimen",
+                  "ods:isKnownToContainMedia": true,
+                  "ods:specimenName": "Abyssothyris Thomson, 1927",
+                  "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+                  "ods:language": [],
+                  "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
                   "dwc:preparations": "",
-                  "dwc:institutionId": "https://ror.org/0443cwa12",
-                  "dwc:institutionName": "Tallinn University of Technology",
-                  "dwc:datasetName": "TalTech geological collections",
-                  "materialEntity": [],
-                  "dwc:identification": [
+                  "ods:organisationID": "https://ror.org/0349vqz63",
+                  "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
+                  "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
+                  "ods:hasMaterialEntity": [],
+                  "ods:hasIdentification": [],
+                  "ods:hasAssertion": [],
+                  "ods:hasEvent": [
                     {
-                      "dwc:identificationVerificationStatus": true,
-                      "citations": [],
-                      "taxonIdentifications": [
-                        {
-                          "dwc:scientificName": "Graptolithina"
-                        }
-                      ]
-                    }
-                  ],
-                  "assertions": [],
-                  "occurrences": [
-                    {
-                      "assertions": [],
-                      "location": {
-                        "dwc:country": "Latvia",
-                        "dwc:locality": "Ventspils D-3 borehole",
-                        "dwc:minimumElevationInMeters": 2,
-                        "dwc:maximumElevationInMeters": 2,
-                        "dwc:minimumDepthInMeters": 607.5,
-                        "georeference": {
-                          "dwc:decimalLatitude": 57.411518,
-                          "dwc:decimalLongitude": 21.569814,
-                          "dwc:geodeticDatum": "WGS84"
-                        },
-                        "geologicalContext": {
-                          "dwc:earliestEpochOrLowestSeries": "Ludlow",
-                          "dwc:latestEpochOrHighestSeries": "Ludlow"
-                        }
+                      "ods:hasAssertion": [],
+                      "ods:Location": {
+                        "dwc:country": "Scotland"
                       }
                     }
-                  ]
+                  ],
+                  "ods:hasEntityRelationship": [],
+                  "ods:hasCitation": [],
+                  "ods:hasIdentifier": [],
+                  "ods:hasChronometricAge": [],
+                  "ods:hasAgent": []
                 }
             """, JsonNode.class
     );

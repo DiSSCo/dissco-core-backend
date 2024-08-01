@@ -4,20 +4,14 @@
 package eu.dissco.backend.database.jooq.tables;
 
 
-import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
-
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
-
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.PlainSQL;
@@ -72,75 +66,14 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     public final TableField<AnnotationRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
+     * The column <code>public.annotation.annotation_hash</code>.
+     */
+    public final TableField<AnnotationRecord, UUID> ANNOTATION_HASH = createField(DSL.name("annotation_hash"), SQLDataType.UUID, this, "");
+
+    /**
      * The column <code>public.annotation.motivation</code>.
      */
     public final TableField<AnnotationRecord, String> MOTIVATION = createField(DSL.name("motivation"), SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.motivated_by</code>.
-     */
-    public final TableField<AnnotationRecord, String> MOTIVATED_BY = createField(DSL.name("motivated_by"), SQLDataType.CLOB, this, "");
-
-    /**
-     * The column <code>public.annotation.target_id</code>.
-     */
-    public final TableField<AnnotationRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.target</code>.
-     */
-    public final TableField<AnnotationRecord, JSONB> TARGET = createField(DSL.name("target"), SQLDataType.JSONB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.body</code>.
-     */
-    public final TableField<AnnotationRecord, JSONB> BODY = createField(DSL.name("body"), SQLDataType.JSONB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.creator_id</code>.
-     */
-    public final TableField<AnnotationRecord, String> CREATOR_ID = createField(DSL.name("creator_id"), SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.creator</code>.
-     */
-    public final TableField<AnnotationRecord, JSONB> CREATOR = createField(DSL.name("creator"), SQLDataType.JSONB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.created</code>.
-     */
-    public final TableField<AnnotationRecord, Instant> CREATED = createField(DSL.name("created"), SQLDataType.INSTANT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.generator</code>.
-     */
-    public final TableField<AnnotationRecord, JSONB> GENERATOR = createField(DSL.name("generator"), SQLDataType.JSONB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.generated</code>.
-     */
-    public final TableField<AnnotationRecord, Instant> GENERATED = createField(DSL.name("generated"), SQLDataType.INSTANT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.last_checked</code>.
-     */
-    public final TableField<AnnotationRecord, Instant> LAST_CHECKED = createField(DSL.name("last_checked"), SQLDataType.INSTANT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.annotation.aggregate_rating</code>.
-     */
-    public final TableField<AnnotationRecord, JSONB> AGGREGATE_RATING = createField(DSL.name("aggregate_rating"), SQLDataType.JSONB, this, "");
-
-    /**
-     * The column <code>public.annotation.deleted_on</code>.
-     */
-    public final TableField<AnnotationRecord, Instant> DELETED_ON = createField(DSL.name("deleted_on"), SQLDataType.INSTANT, this, "");
-
-    /**
-     * The column <code>public.annotation.annotation_hash</code>. hashes
-     * motivation, target, and creator fields
-     */
-    public final TableField<AnnotationRecord, UUID> ANNOTATION_HASH = createField(DSL.name("annotation_hash"), SQLDataType.UUID, this, "hashes motivation, target, and creator fields");
 
     /**
      * The column <code>public.annotation.mjr_job_id</code>.
@@ -151,6 +84,41 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      * The column <code>public.annotation.batch_id</code>.
      */
     public final TableField<AnnotationRecord, UUID> BATCH_ID = createField(DSL.name("batch_id"), SQLDataType.UUID, this, "");
+
+    /**
+     * The column <code>public.annotation.creator_id</code>.
+     */
+    public final TableField<AnnotationRecord, String> CREATOR_ID = createField(DSL.name("creator_id"), SQLDataType.CLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.annotation.created</code>.
+     */
+    public final TableField<AnnotationRecord, Instant> CREATED = createField(DSL.name("created"), SQLDataType.INSTANT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.annotation.modified</code>.
+     */
+    public final TableField<AnnotationRecord, Instant> MODIFIED = createField(DSL.name("modified"), SQLDataType.INSTANT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.annotation.last_checked</code>.
+     */
+    public final TableField<AnnotationRecord, Instant> LAST_CHECKED = createField(DSL.name("last_checked"), SQLDataType.INSTANT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.annotation.tombstoned_on</code>.
+     */
+    public final TableField<AnnotationRecord, Instant> TOMBSTONED_ON = createField(DSL.name("tombstoned_on"), SQLDataType.INSTANT, this, "");
+
+    /**
+     * The column <code>public.annotation.target_id</code>.
+     */
+    public final TableField<AnnotationRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.annotation.data</code>.
+     */
+    public final TableField<AnnotationRecord, JSONB> DATA = createField(DSL.name("data"), SQLDataType.JSONB, this, "");
 
     private Annotation(Name alias, Table<AnnotationRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -184,11 +152,6 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     @Override
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
-    }
-
-    @Override
-    public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.ANNOTATION_ID_CREATOR_ID_INDEX, Indexes.ANNOTATION_ID_TARGET_ID_INDEX);
     }
 
     @Override

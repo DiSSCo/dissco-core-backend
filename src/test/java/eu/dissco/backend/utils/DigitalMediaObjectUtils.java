@@ -30,15 +30,17 @@ public class DigitalMediaObjectUtils {
   // Media Object
   public static DigitalMedia givenDigitalMediaObject(String id) {
     return givenDigitalMediaObjectData(id, 1, CREATED, DIGITAL_MEDIA_FDO_TYPE, DOI + ID_ALT,
-            "https://dissco.com", "image/jpeg");
+        "https://dissco.com", "image/jpeg");
   }
 
   public static DigitalMedia givenDigitalMediaObject(String mediaId, String specimenId) {
     return givenDigitalMediaObject(mediaId, specimenId, 1);
   }
 
-  public static DigitalMedia givenDigitalMediaObject(String mediaId, String specimenId, int version) {
-    return givenDigitalMediaObjectData(mediaId, version, CREATED, DIGITAL_MEDIA_FDO_TYPE, specimenId,
+  public static DigitalMedia givenDigitalMediaObject(String mediaId, String specimenId,
+      int version) {
+    return givenDigitalMediaObjectData(mediaId, version, CREATED, DIGITAL_MEDIA_FDO_TYPE,
+        specimenId,
         "https://dissco.com", "image/jpeg");
   }
 

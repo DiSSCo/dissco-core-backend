@@ -1,24 +1,17 @@
 package eu.dissco.backend.utils;
 
 import static eu.dissco.backend.TestUtils.CREATED;
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.annotation.AggregateRating;
-import eu.dissco.backend.domain.annotation.Annotation;
-import eu.dissco.backend.domain.annotation.Body;
-import eu.dissco.backend.domain.annotation.Creator;
-import eu.dissco.backend.domain.annotation.FieldSelector;
-import eu.dissco.backend.domain.annotation.Generator;
-import eu.dissco.backend.domain.annotation.Motivation;
-import eu.dissco.backend.domain.annotation.Target;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -28,13 +21,26 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.schema.Agent;
+import eu.dissco.backend.schema.Agent.Type;
+import eu.dissco.backend.schema.Annotation;
+import eu.dissco.backend.schema.AnnotationRequest;
+import eu.dissco.backend.schema.AnnotationRequest.OaMotivation;
+import eu.dissco.backend.schema.OaHasBody;
+import eu.dissco.backend.schema.OaHasBody__1;
+import eu.dissco.backend.schema.OaHasSelector;
+import eu.dissco.backend.schema.OaHasSelector__1;
+import eu.dissco.backend.schema.OaHasTarget;
+import eu.dissco.backend.schema.OaHasTarget__1;
+import eu.dissco.backend.schema.SchemaAggregateRating;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class AnnotationUtils {
 
-  public static final String ANNOTATION_URI = "/api/v1/annotations/";
+  public static final String ANNOTATION_URI = "/api/v1/annotationRequests/";
   public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
 
   private AnnotationUtils() {
@@ -45,11 +51,11 @@ public class AnnotationUtils {
   }
 
   public static Annotation givenAnnotationResponse() {
-    return givenAnnotationResponse(ID, USER_ID_TOKEN, TARGET_ID);
+    return givenAnnotationResponse(ID, ORCID, TARGET_ID);
   }
 
   public static Annotation givenAnnotationResponse(String annotationId) {
-    return givenAnnotationResponse(annotationId, USER_ID_TOKEN, TARGET_ID);
+    return givenAnnotationResponse(annotationId, ORCID, TARGET_ID);
   }
 
   public static Annotation givenAnnotationResponse(String annotationId, String userId) {
@@ -58,112 +64,140 @@ public class AnnotationUtils {
 
   public static Annotation givenAnnotationResponse(String annotationId, String userId,
       String targetId) {
-    return Annotation.builder()
-        .odsId(annotationId)
-        .odsVersion(1)
-        .oaBody(givenOaBody())
-        .oaMotivation(Motivation.COMMENTING)
-        .oaTarget(givenOaTarget(targetId))
-        .oaCreator(givenCreator(userId))
-        .dcTermsCreated(CREATED)
-        .oaGenerated(CREATED)
-        .asGenerator(givenGenerator())
-        .odsAggregateRating(givenAggregationRating())
-        .build();
+    return new Annotation()
+        .withId(annotationId)
+        .withOdsID(annotationId)
+        .withType("ods:Anotation")
+        .withOdsVersion(1)
+        .withOaHasBody(givenOaBodyAnnotation())
+        .withRdfType("ods:Annotation")
+        .withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
+        .withDctermsCreator(givenCreator(userId))
+        .withOaHasTarget(givenOaTargetAnnotation(targetId))
+        .withDctermsCreated(Date.from(CREATED))
+        .withDctermsModified(Date.from(CREATED))
+        .withDctermsIssued(Date.from(CREATED))
+        .withAsGenerator(givenGenerator())
+        .withSchemaAggregateRating(givenAggregationRating());
   }
 
-  public static Annotation givenAnnotationKafkaRequest(boolean isUpdate) {
-    var request = givenAnnotationRequest()
-        .setOaCreator(givenCreator(ORCID));
-    if (!isUpdate) {
-      return request;
+  public static Annotation givenAnnotationProcessingRequest(boolean isUpdate) {
+    var annotation = new Annotation()
+        .withOaHasBody(givenOaBodyAnnotation())
+        .withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
+        .withDctermsCreator(givenCreator(ORCID))
+        .withOaHasTarget(givenOaTargetAnnotation(TARGET_ID))
+        .withDctermsCreated(Date.from(CREATED));
+    if (isUpdate) {
+      annotation.withId(HANDLE + ID)
+          .withOdsID(HANDLE + ID);
     }
-    return request
-        .setDcTermsCreated(CREATED);
+    return annotation;
   }
 
-  public static Annotation givenAnnotationRequest(String targetId) {
-    return Annotation.builder()
-        .oaBody(givenOaBody())
-        .oaMotivation(Motivation.COMMENTING)
-        .oaTarget(givenOaTarget(targetId))
-        .build();
+  public static AnnotationRequest givenAnnotationRequest(String targetId) {
+    return new AnnotationRequest()
+        .withOaHasBody(givenOaBody())
+        .withOaHasTarget(givenOaTarget(targetId))
+        .withOaMotivation(OaMotivation.OA_COMMENTING);
   }
 
-  public static Annotation givenAnnotationRequest() {
+  public static AnnotationRequest givenAnnotationRequest() {
     return givenAnnotationRequest(TARGET_ID);
   }
 
-  public static Body givenOaBody() {
-    return Body.builder()
-        .odsType("ods:specimenName")
-        .oaValue(new ArrayList<>(List.of("a comment")))
-        .dcTermsReference("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
-        .odsScore(0.99)
-        .build();
+  public static OaHasBody givenOaBody() {
+    return new OaHasBody()
+        .withType("ods:DigitalSpecimen")
+        .withOaValue(new ArrayList<>(List.of("a comment")))
+        .withDctermsReferences(
+            "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+        .withOdsScore(0.99);
   }
 
-  public static Target givenOaTarget(String targetId) {
-    return Target.builder()
-        .odsId(targetId)
-        .oaSelector(givenSelector())
-        .odsType("digital_specimen")
-        .build();
+  public static OaHasBody__1 givenOaBodyAnnotation() {
+    return new OaHasBody__1()
+        .withType("ods:DigitalSpecimen")
+        .withOaValue(new ArrayList<>(List.of("a comment")))
+        .withDctermsReferences(
+            "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+        .withOdsScore(0.99);
   }
 
-  public static FieldSelector givenSelector() {
-    return new FieldSelector()
-        .withOdsField("ods:specimenName");
+  public static OaHasTarget givenOaTarget(String targetId) {
+    return new OaHasTarget()
+        .withId(targetId)
+        .withOdsID(targetId)
+        .withType("ods:DigitalSpecimen")
+        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOaHasSelector(givenSelector());
   }
 
-  public static Creator givenCreator(String userId) {
-    return Creator.builder()
-        .foafName("Test User")
-        .odsId(userId)
-        .odsType("ORCID")
-        .build();
+  public static OaHasTarget__1 givenOaTargetAnnotation(String targetId) {
+    return new OaHasTarget__1()
+        .withId(targetId)
+        .withOdsID(targetId)
+        .withType("ods:DigitalSpecimen")
+        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOaHasSelector(givenSelectorAnnotation());
   }
 
-  public static Generator givenGenerator() {
-    return Generator.builder()
-        .foafName("DiSSCo backend")
-        .odsId("https://sandbox.dissco.tech")
-        .odsType("Technical Backend")
-        .build();
+  public static OaHasSelector givenSelector() {
+    return new OaHasSelector()
+        .withAdditionalProperty("@type", "ods:FieldSelector")
+        .withAdditionalProperty("ods:field", "ods:specimenName");
   }
 
-  public static AggregateRating givenAggregationRating() {
-    return AggregateRating.builder()
-        .ratingValue(0.1)
-        .odsType("Score")
-        .ratingCount(0.2)
-        .build();
+  public static OaHasSelector__1 givenSelectorAnnotation() {
+    return new OaHasSelector__1()
+        .withAdditionalProperty("@type", "ods:FieldSelector")
+        .withAdditionalProperty("field", "ods:specimenName");
+  }
+
+  public static Agent givenCreator(String userId) {
+    return new Agent()
+        .withId(userId)
+        .withType(Type.SCHEMA_PERSON)
+        .withSchemaName("User");
+  }
+
+  public static Agent givenGenerator() {
+    return new Agent()
+        .withSchemaName("DiSSCo backend")
+        .withId("https://sandbox.dissco.tech")
+        .withType(Type.AS_APPLICATION);
+  }
+
+  public static SchemaAggregateRating givenAggregationRating() {
+    return new SchemaAggregateRating()
+        .withType("schema:AggregateRating")
+        .withSchemaRatingValue(0.1)
+        .withSchemaRatingCount(2);
   }
 
   public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Object request) {
     return new JsonApiRequestWrapper(
         new JsonApiRequest(
-            "annotations",
+            "ods:Annotation",
             MAPPER.valueToTree(request)
         )
     );
   }
 
   // JsonApiWrapper
-
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
-    return givenAnnotationResponseSingleDataNode(path, USER_ID_TOKEN);
+    return givenAnnotationResponseSingleDataNode(path, ORCID);
   }
 
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
     var annotation = givenAnnotationResponse(ID, userId);
-    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
+    var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public static JsonApiWrapper givenAnnotationResponseBatch(String path, String userId) {
-    var annotation = givenAnnotationResponse(ID, userId).setPlaceInBatch(1);
-    var dataNode = new JsonApiData(ID, "annotations", MAPPER.valueToTree(annotation));
+    var annotation = givenAnnotationResponse(ID, userId).withOdsPlaceInBatch(1);
+    var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -177,7 +211,7 @@ public class AnnotationUtils {
 
   public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
       String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "annotations",
+    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "ods:Annotation",
         MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
   }
 
@@ -186,21 +220,18 @@ public class AnnotationUtils {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
     List<JsonApiData> dataNodes = new ArrayList<>();
 
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "annotations",
+    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "ods:Annotation",
         MAPPER.valueToTree(givenAnnotationResponse(id)))));
     return new JsonApiListResponseWrapper(dataNodes, linksNode);
   }
 
-  public static AnnotationEvent givenAnnotationEventRequest() {
-    return new AnnotationEvent(List.of(givenAnnotationRequest()),
+  public static AnnotationEventRequest givenAnnotationEventRequest() {
+    return new AnnotationEventRequest(List.of(givenAnnotationRequest()),
         List.of(new BatchMetadata(List.of(givenSearchParam()))));
   }
 
   public static AnnotationEvent givenAnnotationEventProcessed() {
-    return new AnnotationEvent(List.of(givenAnnotationRequest()
-        .setOaCreator(givenCreator(ORCID))
-        .setPlaceInBatch(1)
-        .setDcTermsCreated(CREATED)),
+    return new AnnotationEvent(List.of(givenAnnotationProcessingRequest(false)),
         List.of(new BatchMetadata(List.of(givenSearchParam()))));
   }
 
@@ -242,7 +273,6 @@ public class AnnotationUtils {
         }
         """);
   }
-
 
 
 }

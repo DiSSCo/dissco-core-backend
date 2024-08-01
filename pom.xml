@@ -325,7 +325,7 @@
           <generateBuilders>true</generateBuilders>
           <includeConstructors>true</includeConstructors>
           <includeDynamicBuilders>true</includeDynamicBuilders>
-          <includeAdditionalProperties>false</includeAdditionalProperties>
+          <includeAdditionalProperties>true</includeAdditionalProperties>
         </configuration>
         <executions>
           <execution>

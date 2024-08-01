@@ -26,11 +26,11 @@ public class MasJobRecordUtils {
   public static Long TTL_DEFAULT = 86400L;
 
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId){
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId) {
     return givenMasJobRecordIdMap(masId, false, TTL_DEFAULT);
   }
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, long ttl){
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, long ttl) {
     return givenMasJobRecordIdMap(masId, false, ttl);
   }
 
@@ -84,11 +84,11 @@ public class MasJobRecordUtils {
     );
   }
 
-  public static MasJobRecord givenMasJobRecord(){
+  public static MasJobRecord givenMasJobRecord() {
     return givenMasJobRecord(false, TTL_DEFAULT);
   }
 
-  public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl){
+  public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl) {
     return new MasJobRecord(
         JOB_ID,
         JobState.SCHEDULED,

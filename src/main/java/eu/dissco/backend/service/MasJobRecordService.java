@@ -3,7 +3,6 @@ package eu.dissco.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.MasJobRequest;
@@ -14,6 +13,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
+import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
 import java.util.Map;
@@ -92,19 +92,20 @@ public class MasJobRecordService {
   }
 
   public Map<String, MasJobRecord> createMasJobRecord(
-      Set<MachineAnnotationServiceRecord> masRecords,
-      String targetId, String orcid, MjrTargetType targetType, Map<String, MasJobRequest> masRequests) {
+      Set<MachineAnnotationService> masRecords,
+      String targetId, String orcid, MjrTargetType targetType,
+      Map<String, MasJobRequest> masRequests) {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = handleComponent.postHandle(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
-          var request = masRequests.get(masRecord.id());
+          var request = masRequests.get(masRecord.getId());
           Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
               JobState.SCHEDULED,
-              masRecord.id(),
+              masRecord.getId(),
               targetId,
               targetType,
               orcid,

@@ -5,10 +5,8 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.Annotation;
-
 import java.time.Instant;
 import java.util.UUID;
-
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -65,229 +63,157 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     }
 
     /**
+     * Setter for <code>public.annotation.annotation_hash</code>.
+     */
+    public void setAnnotationHash(UUID value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.annotation_hash</code>.
+     */
+    public UUID getAnnotationHash() {
+        return (UUID) get(3);
+    }
+
+    /**
      * Setter for <code>public.annotation.motivation</code>.
      */
     public void setMotivation(String value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.annotation.motivation</code>.
      */
     public String getMotivation() {
-        return (String) get(3);
-    }
-
-    /**
-     * Setter for <code>public.annotation.motivated_by</code>.
-     */
-    public void setMotivatedBy(String value) {
-        set(4, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.motivated_by</code>.
-     */
-    public String getMotivatedBy() {
         return (String) get(4);
-    }
-
-    /**
-     * Setter for <code>public.annotation.target_id</code>.
-     */
-    public void setTargetId(String value) {
-        set(5, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.target_id</code>.
-     */
-    public String getTargetId() {
-        return (String) get(5);
-    }
-
-    /**
-     * Setter for <code>public.annotation.target</code>.
-     */
-    public void setTarget(JSONB value) {
-        set(6, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.target</code>.
-     */
-    public JSONB getTarget() {
-        return (JSONB) get(6);
-    }
-
-    /**
-     * Setter for <code>public.annotation.body</code>.
-     */
-    public void setBody(JSONB value) {
-        set(7, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.body</code>.
-     */
-    public JSONB getBody() {
-        return (JSONB) get(7);
-    }
-
-    /**
-     * Setter for <code>public.annotation.creator_id</code>.
-     */
-    public void setCreatorId(String value) {
-        set(8, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.creator_id</code>.
-     */
-    public String getCreatorId() {
-        return (String) get(8);
-    }
-
-    /**
-     * Setter for <code>public.annotation.creator</code>.
-     */
-    public void setCreator(JSONB value) {
-        set(9, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.creator</code>.
-     */
-    public JSONB getCreator() {
-        return (JSONB) get(9);
-    }
-
-    /**
-     * Setter for <code>public.annotation.created</code>.
-     */
-    public void setCreated(Instant value) {
-        set(10, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.created</code>.
-     */
-    public Instant getCreated() {
-        return (Instant) get(10);
-    }
-
-    /**
-     * Setter for <code>public.annotation.generator</code>.
-     */
-    public void setGenerator(JSONB value) {
-        set(11, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.generator</code>.
-     */
-    public JSONB getGenerator() {
-        return (JSONB) get(11);
-    }
-
-    /**
-     * Setter for <code>public.annotation.generated</code>.
-     */
-    public void setGenerated(Instant value) {
-        set(12, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.generated</code>.
-     */
-    public Instant getGenerated() {
-        return (Instant) get(12);
-    }
-
-    /**
-     * Setter for <code>public.annotation.last_checked</code>.
-     */
-    public void setLastChecked(Instant value) {
-        set(13, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.last_checked</code>.
-     */
-    public Instant getLastChecked() {
-        return (Instant) get(13);
-    }
-
-    /**
-     * Setter for <code>public.annotation.aggregate_rating</code>.
-     */
-    public void setAggregateRating(JSONB value) {
-        set(14, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.aggregate_rating</code>.
-     */
-    public JSONB getAggregateRating() {
-        return (JSONB) get(14);
-    }
-
-    /**
-     * Setter for <code>public.annotation.deleted_on</code>.
-     */
-    public void setDeletedOn(Instant value) {
-        set(15, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.deleted_on</code>.
-     */
-    public Instant getDeletedOn() {
-        return (Instant) get(15);
-    }
-
-    /**
-     * Setter for <code>public.annotation.annotation_hash</code>. hashes
-     * motivation, target, and creator fields
-     */
-    public void setAnnotationHash(UUID value) {
-        set(16, value);
-    }
-
-    /**
-     * Getter for <code>public.annotation.annotation_hash</code>. hashes
-     * motivation, target, and creator fields
-     */
-    public UUID getAnnotationHash() {
-        return (UUID) get(16);
     }
 
     /**
      * Setter for <code>public.annotation.mjr_job_id</code>.
      */
     public void setMjrJobId(String value) {
-        set(17, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.annotation.mjr_job_id</code>.
      */
     public String getMjrJobId() {
-        return (String) get(17);
+        return (String) get(5);
     }
 
     /**
      * Setter for <code>public.annotation.batch_id</code>.
      */
     public void setBatchId(UUID value) {
-        set(18, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>public.annotation.batch_id</code>.
      */
     public UUID getBatchId() {
-        return (UUID) get(18);
+        return (UUID) get(6);
+    }
+
+    /**
+     * Setter for <code>public.annotation.creator_id</code>.
+     */
+    public void setCreatorId(String value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.creator_id</code>.
+     */
+    public String getCreatorId() {
+        return (String) get(7);
+    }
+
+    /**
+     * Setter for <code>public.annotation.created</code>.
+     */
+    public void setCreated(Instant value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.created</code>.
+     */
+    public Instant getCreated() {
+        return (Instant) get(8);
+    }
+
+    /**
+     * Setter for <code>public.annotation.modified</code>.
+     */
+    public void setModified(Instant value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.modified</code>.
+     */
+    public Instant getModified() {
+        return (Instant) get(9);
+    }
+
+    /**
+     * Setter for <code>public.annotation.last_checked</code>.
+     */
+    public void setLastChecked(Instant value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.last_checked</code>.
+     */
+    public Instant getLastChecked() {
+        return (Instant) get(10);
+    }
+
+    /**
+     * Setter for <code>public.annotation.tombstoned_on</code>.
+     */
+    public void setTombstonedOn(Instant value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.tombstoned_on</code>.
+     */
+    public Instant getTombstonedOn() {
+        return (Instant) get(11);
+    }
+
+    /**
+     * Setter for <code>public.annotation.target_id</code>.
+     */
+    public void setTargetId(String value) {
+        set(12, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.target_id</code>.
+     */
+    public String getTargetId() {
+        return (String) get(12);
+    }
+
+    /**
+     * Setter for <code>public.annotation.data</code>.
+     */
+    public void setData(JSONB value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.annotation.data</code>.
+     */
+    public JSONB getData() {
+        return (JSONB) get(13);
     }
 
     // -------------------------------------------------------------------------
@@ -313,28 +239,23 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     /**
      * Create a detached, initialised AnnotationRecord
      */
-    public AnnotationRecord(String id, Integer version, String type, String motivation, String motivatedBy, String targetId, JSONB target, JSONB body, String creatorId, JSONB creator, Instant created, JSONB generator, Instant generated, Instant lastChecked, JSONB aggregateRating, Instant deletedOn, UUID annotationHash, String mjrJobId, UUID batchId) {
+    public AnnotationRecord(String id, Integer version, String type, UUID annotationHash, String motivation, String mjrJobId, UUID batchId, String creatorId, Instant created, Instant modified, Instant lastChecked, Instant tombstonedOn, String targetId, JSONB data) {
         super(Annotation.ANNOTATION);
 
         setId(id);
         setVersion(version);
         setType(type);
-        setMotivation(motivation);
-        setMotivatedBy(motivatedBy);
-        setTargetId(targetId);
-        setTarget(target);
-        setBody(body);
-        setCreatorId(creatorId);
-        setCreator(creator);
-        setCreated(created);
-        setGenerator(generator);
-        setGenerated(generated);
-        setLastChecked(lastChecked);
-        setAggregateRating(aggregateRating);
-        setDeletedOn(deletedOn);
         setAnnotationHash(annotationHash);
+        setMotivation(motivation);
         setMjrJobId(mjrJobId);
         setBatchId(batchId);
+        setCreatorId(creatorId);
+        setCreated(created);
+        setModified(modified);
+        setLastChecked(lastChecked);
+        setTombstonedOn(tombstonedOn);
+        setTargetId(targetId);
+        setData(data);
         resetChangedOnNotNull();
     }
 }

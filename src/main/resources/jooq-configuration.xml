@@ -17,7 +17,7 @@
         digital_media_object |
         annotation |
         user |
-        machine_annotation_services |
+        machine_annotation_service |
         mas_job_record |
         job_state |
         mjr_target_type |

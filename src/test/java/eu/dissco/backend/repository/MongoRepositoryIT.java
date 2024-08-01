@@ -54,7 +54,7 @@ class MongoRepositoryIT {
     var expected = givenExpectedSpecimen(4);
 
     // When
-    var result = repository.getByVersion(DOI + ID, 4, "digital_specimen_provenance");
+    var result = repository.getByVersion(ID, 4, "digital_specimen_provenance");
 
     // Then
     assertThat(result).isEqualTo(expected.get("prov:Entity").get("prov:value"));

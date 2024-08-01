@@ -1,20 +1,17 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICES;
+import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServicesRecord;
-import eu.dissco.backend.domain.MachineAnnotationService;
-import eu.dissco.backend.domain.MachineAnnotationServiceRecord;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
-import java.util.Arrays;
+import eu.dissco.backend.schema.MachineAnnotationService;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
+import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -24,58 +21,33 @@ public class MachineAnnotationServiceRepository {
   private final DSLContext context;
   private final ObjectMapper mapper;
 
-  public List<MachineAnnotationServiceRecord> getAllMas() {
-    return context.selectFrom(MACHINE_ANNOTATION_SERVICES)
-        .where(MACHINE_ANNOTATION_SERVICES.DELETED_ON.isNull())
-        .fetch(this::mapToMasRecord);
+  public List<MachineAnnotationService> getAllMas() {
+    return context.select(MACHINE_ANNOTATION_SERVICE.DATA)
+        .from(MACHINE_ANNOTATION_SERVICE)
+        .where(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED.isNull())
+        .fetch(this::mapToMas);
   }
 
-  private MachineAnnotationServiceRecord mapToMasRecord(
-      MachineAnnotationServicesRecord machineAnnotationServicesRecord) {
-    return new MachineAnnotationServiceRecord(
-        machineAnnotationServicesRecord.getId(),
-        machineAnnotationServicesRecord.getVersion(),
-        machineAnnotationServicesRecord.getCreated(),
-        machineAnnotationServicesRecord.getAdministrator(),
-        new MachineAnnotationService(
-            machineAnnotationServicesRecord.getName(),
-            machineAnnotationServicesRecord.getContainerImage(),
-            machineAnnotationServicesRecord.getContainerImageTag(),
-            mapToJson(machineAnnotationServicesRecord.getTargetDigitalObjectFilters()),
-            machineAnnotationServicesRecord.getServiceDescription(),
-            machineAnnotationServicesRecord.getServiceState(),
-            machineAnnotationServicesRecord.getSourceCodeRepository(),
-            machineAnnotationServicesRecord.getServiceAvailability(),
-            machineAnnotationServicesRecord.getCodeMaintainer(),
-            machineAnnotationServicesRecord.getCodeLicense(),
-            machineAnnotationServicesRecord.getDependencies() != null ? Arrays.stream(
-                machineAnnotationServicesRecord.getDependencies()).toList() : null,
-            machineAnnotationServicesRecord.getSupportContact(),
-            machineAnnotationServicesRecord.getSlaDocumentation(),
-            machineAnnotationServicesRecord.getTopicname(),
-            machineAnnotationServicesRecord.getMaxreplicas(),
-            machineAnnotationServicesRecord.getBatchingPermitted()
-        ),
-        machineAnnotationServicesRecord.getDeletedOn()
-    );
-  }
-
-  private JsonNode mapToJson(JSONB jsonb) {
+  private MachineAnnotationService mapToMas(Record1<JSONB> record1) {
     try {
-      if (jsonb != null) {
-        return mapper.readTree(jsonb.data());
-      }
+      return mapper.readValue(record1.get(MACHINE_ANNOTATION_SERVICE.DATA).data(),
+          MachineAnnotationService.class);
     } catch (JsonProcessingException e) {
-      throw new DisscoJsonBMappingException("Failed to parse jsonb field to json: " + jsonb.data(),
+      throw new DisscoJsonBMappingException("Unable to convert jsonb to machine annotation service",
           e);
     }
-    return mapper.createObjectNode();
   }
 
-  public List<MachineAnnotationServiceRecord> getMasRecords(Set<String> mass) {
-    return context.selectFrom(MACHINE_ANNOTATION_SERVICES)
-        .where(MACHINE_ANNOTATION_SERVICES.ID.in(mass))
-        .and(MACHINE_ANNOTATION_SERVICES.DELETED_ON.isNull())
-        .fetch(this::mapToMasRecord);
+  public List<MachineAnnotationService> getMasRecords(Set<String> mass) {
+    var massIds = mass.stream().map(this::removeProxy).toList();
+    return context.select(MACHINE_ANNOTATION_SERVICE.DATA)
+        .from(MACHINE_ANNOTATION_SERVICE)
+        .where(MACHINE_ANNOTATION_SERVICE.ID.in(massIds))
+        .and(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED.isNull())
+        .fetch(this::mapToMas);
+  }
+
+  private String removeProxy(String id) {
+    return id.replace("urn:uuid:", "");
   }
 }

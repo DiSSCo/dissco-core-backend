@@ -7,13 +7,11 @@ package eu.dissco.backend.database.jooq;
 import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
-import eu.dissco.backend.database.jooq.tables.MachineAnnotationServices;
+import eu.dissco.backend.database.jooq.tables.MachineAnnotationService;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.User;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -48,9 +46,9 @@ public class Public extends SchemaImpl {
     public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
 
     /**
-     * The table <code>public.machine_annotation_services</code>.
+     * The table <code>public.machine_annotation_service</code>.
      */
-    public final MachineAnnotationServices MACHINE_ANNOTATION_SERVICES = MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES;
+    public final MachineAnnotationService MACHINE_ANNOTATION_SERVICE = MachineAnnotationService.MACHINE_ANNOTATION_SERVICE;
 
     /**
      * The table <code>public.mas_job_record</code>.
@@ -81,7 +79,7 @@ public class Public extends SchemaImpl {
             Annotation.ANNOTATION,
             DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
             DigitalSpecimen.DIGITAL_SPECIMEN,
-            MachineAnnotationServices.MACHINE_ANNOTATION_SERVICES,
+            MachineAnnotationService.MACHINE_ANNOTATION_SERVICE,
             MasJobRecord.MAS_JOB_RECORD,
             User.USER
         );

@@ -18,10 +18,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
-import eu.dissco.backend.domain.annotation.Annotation;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
+import eu.dissco.backend.schema.AnnotationRequest;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +51,8 @@ class AnnotationControllerTest {
 
   @BeforeEach
   void setup() {
-    controller = new AnnotationController(applicationProperties, MAPPER, service, validatorComponent);
+    controller = new AnnotationController(applicationProperties, MAPPER, service,
+        validatorComponent);
     mockRequest = new MockHttpServletRequest();
     mockRequest.setRequestURI(ANNOTATION_URI);
   }
@@ -181,7 +182,7 @@ class AnnotationControllerTest {
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
-    given(service.persistAnnotation(any(Annotation.class), any(), any())).willReturn(null);
+    given(service.persistAnnotation(any(AnnotationRequest.class), any(), any())).willReturn(null);
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
@@ -214,7 +215,8 @@ class AnnotationControllerTest {
     var annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX, SUFFIX)).willReturn(
+    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX,
+        SUFFIX)).willReturn(
         expected);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

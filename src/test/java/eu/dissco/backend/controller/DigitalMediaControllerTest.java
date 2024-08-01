@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
@@ -158,7 +159,7 @@ class DigitalMediaControllerTest {
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
+    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
         USER_ID_TOKEN)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
