@@ -138,7 +138,7 @@ public class MachineAnnotationServiceUtils {
     if (deleted != null) {
       mas.setOdsStatus(OdsStatus.ODS_TOMBSTONE);
       mas.setOdsTombstoneMetadata(
-          new TombstoneMetadata().withOdsTombstonedDate(Date.from(deleted)));
+          new TombstoneMetadata().withOdsTombstoneDate(Date.from(deleted)));
     }
     return mas;
   }

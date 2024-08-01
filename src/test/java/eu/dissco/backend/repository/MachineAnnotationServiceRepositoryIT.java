@@ -94,7 +94,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICE.TIME_TO_LIVE, mas.getOdsTimeToLive())
         .set(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED,
             mas.getOdsTombstoneMetadata() != null ? mas.getOdsTombstoneMetadata()
-                .getOdsTombstonedDate().toInstant() : null)
+                .getOdsTombstoneDate().toInstant() : null)
         .set(MACHINE_ANNOTATION_SERVICE.DATA, mapToJSONB(mas))
         .execute();
   }
