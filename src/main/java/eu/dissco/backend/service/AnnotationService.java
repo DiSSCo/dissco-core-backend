@@ -27,12 +27,7 @@ import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
-import eu.dissco.backend.schema.AnnotationRequest;
-import eu.dissco.backend.schema.OaHasBody;
-import eu.dissco.backend.schema.OaHasBody__1;
-import eu.dissco.backend.schema.OaHasSelector__1;
-import eu.dissco.backend.schema.OaHasTarget;
-import eu.dissco.backend.schema.OaHasTarget__1;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,15 +56,6 @@ public class AnnotationService {
   private final UserService userService;
   private final ObjectMapper mapper;
 
-  private static OaHasSelector__1 buildSelector(OaHasTarget oaHasTarget) {
-    var selector = new OaHasSelector__1();
-    for (var entry : oaHasTarget.getOaHasSelector()
-        .getAdditionalProperties().entrySet()) {
-      selector.setAdditionalProperty(entry.getKey(), entry.getValue());
-    }
-    return selector;
-  }
-
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
     var dataNode = new JsonApiData(id, ANNOTATION, mapper.valueToTree(annotation));
@@ -97,10 +83,10 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationRequest annotationRequest, String userId,
+  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, String userId,
       String path) throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
-    var annotation = buildAnnotation(annotationRequest, user, false);
+    var annotation = buildAnnotation(annotationProcessingRequest, user, false);
     var response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }
@@ -166,55 +152,38 @@ public class AnnotationService {
     return user;
   }
 
-  private Annotation buildAnnotation(AnnotationRequest annotationRequest, User user,
+  private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest, User user,
       boolean isUpdate) {
     var annotation = new Annotation()
-        .withOaMotivation(OaMotivation.fromValue(annotationRequest.getOaMotivation().value()))
-        .withOaMotivatedBy(annotationRequest.getOaMotivatedBy())
-        .withOaHasBody(buildBody(annotationRequest.getOaHasBody()))
-        .withOaHasTarget(buildTarget(annotationRequest.getOaHasTarget()))
+        .withOaMotivation(OaMotivation.fromValue(annotationProcessingRequest.getOaMotivation().value()))
+        .withOaMotivatedBy(annotationProcessingRequest.getOaMotivatedBy())
+        .withOaHasBody(annotationProcessingRequest.getOaHasBody())
+        .withOaHasTarget(annotationProcessingRequest.getOaHasTarget())
         .withDctermsCreated(Date.from(Instant.now()))
         .withDctermsCreator(new Agent().withType(Type.SCHEMA_PERSON).withId(user.orcid())
             .withSchemaName(user.lastName()));
     if (isUpdate) {
-      annotation.setId(annotationRequest.getOdsID());
-      annotation.setOdsID(annotationRequest.getOdsID());
+      annotation.setId(annotationProcessingRequest.getOdsID());
+      annotation.setOdsID(annotationProcessingRequest.getOdsID());
     }
     return annotation;
-  }
-
-  private OaHasTarget__1 buildTarget(OaHasTarget oaHasTarget) {
-    return new OaHasTarget__1()
-        .withId(oaHasTarget.getId())
-        .withOdsID(oaHasTarget.getOdsID())
-        .withType(oaHasTarget.getType())
-        .withOdsType(oaHasTarget.getOdsType())
-        .withOaHasSelector(buildSelector(oaHasTarget));
-  }
-
-  private OaHasBody__1 buildBody(OaHasBody annotationRequestBody) {
-    return new OaHasBody__1()
-        .withType(annotationRequestBody.getType())
-        .withOaValue(annotationRequestBody.getOaValue())
-        .withDctermsReferences(annotationRequestBody.getDctermsReferences())
-        .withOdsScore(annotationRequestBody.getOdsScore());
   }
 
   private Annotation parseToAnnotation(JsonNode response) throws JsonProcessingException {
     return mapper.treeToValue(response, Annotation.class);
   }
 
-  public JsonApiWrapper updateAnnotation(String id, AnnotationRequest annotationRequest,
+  public JsonApiWrapper updateAnnotation(String id, AnnotationProcessingRequest annotationProcessingRequest,
       String userId,
       String path, String prefix, String suffix)
       throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
     var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
-      if (annotationRequest.getOdsID() == null) {
-        annotationRequest.setOdsID(id);
+      if (annotationProcessingRequest.getOdsID() == null) {
+        annotationProcessingRequest.setOdsID(id);
       }
-      var annotation = buildAnnotation(annotationRequest, user, true);
+      var annotation = buildAnnotation(annotationProcessingRequest, user, true);
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {

@@ -21,7 +21,7 @@ import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.schema.AnnotationRequest;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,7 +182,7 @@ class AnnotationControllerTest {
     givenAuthentication(USER_ID_TOKEN);
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
-    given(service.persistAnnotation(any(AnnotationRequest.class), any(), any())).willReturn(null);
+    given(service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(null);
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);

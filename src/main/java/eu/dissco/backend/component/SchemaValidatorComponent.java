@@ -2,9 +2,10 @@ package eu.dissco.backend.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
+import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
-import eu.dissco.backend.schema.AnnotationRequest;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,21 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SchemaValidatorComponent {
-
-  private final JsonSchema annotationSchema;
-  private final ObjectMapper mapper;
-
-  public void validateAnnotationRequest(AnnotationRequest annotationRequest, Boolean isNew)
-      throws InvalidAnnotationRequestException {
-    validateId(annotationRequest, isNew);
-    var annotationRequestNode = mapper.valueToTree(annotationRequest);
-    var errors = annotationSchema.validate(annotationRequestNode);
-    if (errors.isEmpty()) {
-      return;
-    }
-    log.error("Invalid annotationRequests request. Errors {}", errors);
-    throw new InvalidAnnotationRequestException(errors.toString());
-  }
 
   public void validateAnnotationEventRequest(AnnotationEventRequest event, boolean isNew)
       throws InvalidAnnotationRequestException {
@@ -42,20 +28,21 @@ public class SchemaValidatorComponent {
       throw new InvalidAnnotationRequestException(
           "Event can only contain: 1 annotationRequests, 1 batch metadata, and minimum 1 search param");
     }
-    validateAnnotationRequest(event.annotationRequests().get(0), isNew);
+    validateId(event, isNew);
   }
 
 
-  void validateId(AnnotationRequest annotation, Boolean isNew)
+  private void validateId(AnnotationEventRequest eventRequest, Boolean isNew)
       throws InvalidAnnotationRequestException {
-    if (Boolean.TRUE.equals(isNew) && annotation.getOdsID() != null) {
-      throw new InvalidAnnotationRequestException(
-          "Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getOdsID());
+    for (var annotation : eventRequest.annotationRequests() ){
+      if (Boolean.TRUE.equals(isNew) && annotation.getOdsID() != null) {
+        throw new InvalidAnnotationRequestException(
+            "Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getOdsID());
+      }
+      if (Boolean.FALSE.equals(isNew) && annotation.getOdsID() == null) {
+        throw new InvalidAnnotationRequestException(
+            "\"ods:id\" not provided for annotationRequests update");
+      }
     }
-    if (Boolean.FALSE.equals(isNew) && annotation.getOdsID() == null) {
-      throw new InvalidAnnotationRequestException(
-          "\"ods:id\" not provided for annotationRequests update");
     }
-  }
-
 }

@@ -13,7 +13,7 @@ import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
-import eu.dissco.backend.schema.AnnotationRequest;
+import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -103,7 +103,6 @@ public class AnnotationController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
-    schemaValidator.validateAnnotationRequest(annotation, true);
     var userId = authentication.getName();
     log.info("Received new annotationRequests from user: {}", userId);
     var annotationResponse = service.persistAnnotation(annotation, userId, getPath(request));
@@ -200,13 +199,13 @@ public class AnnotationController extends BaseController {
     }
   }
 
-  private AnnotationRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
+  private AnnotationProcessingRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
       throws JsonProcessingException {
     if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
       throw new IllegalArgumentException(
           "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data().type());
     }
-    return mapper.treeToValue(requestBody.data().attributes(), AnnotationRequest.class);
+    return mapper.treeToValue(requestBody.data().attributes(), AnnotationProcessingRequest.class);
   }
 
   private AnnotationEventRequest getAnnotationFromRequestEvent(JsonApiRequestWrapper requestBody)
