@@ -47,14 +47,13 @@ public class AnnotationService {
   private static final String ANNOTATION = "ods:Annotation";
   private static final String ATTRIBUTES = "attributes";
   private static final String DATA = "data";
-  private static final String VERSION = "ods:version";
-
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final UserService userService;
   private final ObjectMapper mapper;
+  private final MasJobRecordService masJobRecordService;
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
@@ -97,8 +96,12 @@ public class AnnotationService {
     var user = getUserInformation(userId);
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), user, false)
         .withOdsPlaceInBatch(1);
+    String jobId = null;
+    if (eventRequest.batchMetadata() != null){
+      jobId = masJobRecordService.createJobRecordForDisscover(processedAnnotation, user.orcid());
+    }
     var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
-        eventRequest.batchMetadata());
+        eventRequest.batchMetadata(), jobId);
     var response = annotationClient.postAnnotationBatch(processedEvent);
     return formatResponse(response, path);
   }

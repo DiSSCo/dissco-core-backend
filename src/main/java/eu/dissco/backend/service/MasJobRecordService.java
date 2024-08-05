@@ -6,6 +6,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -13,6 +14,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
+import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
@@ -32,6 +34,7 @@ public class MasJobRecordService {
   private final MasJobRecordRepository masJobRecordRepository;
   private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
+  private final static Long TTL = 86400L; // todo make property
 
   public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {
@@ -101,7 +104,7 @@ public class MasJobRecordService {
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
           var request = masRequests.get(masRecord.getId());
-          Long ttl = request.timeToLive() == null ? 86400 : request.timeToLive();
+          Long ttl = request.timeToLive() == null ? TTL : request.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
               JobState.SCHEDULED,
@@ -119,6 +122,22 @@ public class MasJobRecordService {
         .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
+  public String createJobRecordForDisscover(Annotation annotation, String orcid) {
+    var handle = handleComponent.postHandle(1).get(0);
+    var mjr = new MasJobRecord(
+        handle,
+        JobState.RUNNING,
+        "DISSCOVER",
+        annotation.getOaHasTarget().getId(),
+        getMjrTargetType(annotation),
+        orcid,
+        true,
+        TTL
+    );
+    masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
+    return handle;
+  }
+
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
     if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
       throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
@@ -127,6 +146,14 @@ public class MasJobRecordService {
 
   public void markMasJobRecordAsFailed(List<String> failedJobIds) {
     masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
+  }
+
+  private MjrTargetType getMjrTargetType(Annotation annotation){
+    var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsType());
+    if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)){
+      return MjrTargetType.DIGITAL_SPECIMEN;
+    }
+    return MjrTargetType.MEDIA_OBJECT;
   }
 
 }
