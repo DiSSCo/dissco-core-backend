@@ -82,6 +82,9 @@ class AnnotationServiceTest {
   private MongoRepository mongoRepository;
   @Mock
   private UserService userService;
+  @Mock
+  private MasJobRecordService masJobRecordService;
+
 
   private MockedStatic<Instant> mockedInstant;
   private MockedStatic<Clock> mockedClock;
@@ -130,7 +133,7 @@ class AnnotationServiceTest {
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER);
+        mongoRepository, userService, MAPPER, masJobRecordService);
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     mockedInstant = mockStatic(Instant.class);
@@ -286,7 +289,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotation() throws Exception {
+  void testPersistAnnotationBatch() throws Exception {
     // Given
     var annotationRequest = givenAnnotationRequest();
     var processingResponse = MAPPER.valueToTree(givenAnnotationResponse());
@@ -339,7 +342,8 @@ class AnnotationServiceTest {
                     "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
-                ]
+                ],
+                "placeInBatch":1
               }
             }
           }
@@ -363,7 +367,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationBatch() throws Exception {
+  void testPersistAnnotationBatchBatch() throws Exception {
     // Given
     var event = givenAnnotationEventRequest();
     var processingResponse = MAPPER.valueToTree(givenAnnotationResponse().withOdsPlaceInBatch(1));
@@ -373,7 +377,7 @@ class AnnotationServiceTest {
     given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
     //When
-    var responseReceived = service.persistAnnotation(event, USER_ID_TOKEN,
+    var responseReceived = service.persistAnnotationBatch(event, USER_ID_TOKEN,
         ANNOTATION_PATH);
 
     // Then
@@ -382,7 +386,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testPersistAnnotationIsNull() throws Exception {
+  void testPersistAnnotationBatchIsNull() throws Exception {
     // Given
     var annotationRequest = givenAnnotationRequest();
     given(annotationClient.postAnnotation(any()))

@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -87,7 +88,7 @@ public class MachineAnnotationServiceUtils {
         deleted,
         new OdsTargetDigitalObjectFilter(),
         false,
-        3600
+        TTL_DEFAULT
     );
   }
 
@@ -98,7 +99,7 @@ public class MachineAnnotationServiceUtils {
         null,
         filters,
         batching,
-        3600
+        TTL_DEFAULT
     );
   }
 

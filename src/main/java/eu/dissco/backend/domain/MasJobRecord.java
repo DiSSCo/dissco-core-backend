@@ -11,6 +11,6 @@ public record MasJobRecord(
     MjrTargetType targetType,
     String orcid,
     boolean batchingRequested,
-    Long timeToLive) {
+    Integer timeToLive) {
 
 }

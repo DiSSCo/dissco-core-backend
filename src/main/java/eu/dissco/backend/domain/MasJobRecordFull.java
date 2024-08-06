@@ -17,7 +17,7 @@ public record MasJobRecordFull(
     Instant timeCompleted,
     JsonNode annotations,
     boolean batchingRequested,
-    Long timeToLive,
+    Integer timeToLive,
     ErrorCode errorCode) {
 
 }
