@@ -193,7 +193,7 @@ class MasJobRecordServiceTest {
     // Given
     var ttl = 3600L;
     var masRecord = MachineAnnotationServiceUtils.givenMas();
-    var expected = givenMasJobRecordIdMap(masRecord.getId(), ttl);
+    var expected = givenMasJobRecordIdMap(masRecord.getId());
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When

@@ -34,7 +34,7 @@ public class MasJobRecordService {
   private final MasJobRecordRepository masJobRecordRepository;
   private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
-  private final static Long TTL = 86400L; // todo make property
+  private static final Integer TTL = 86400;
 
   public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {
@@ -104,7 +104,6 @@ public class MasJobRecordService {
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
           var request = masRequests.get(masRecord.getId());
-          Long ttl = request.timeToLive() == null ? TTL : request.timeToLive();
           return new MasJobRecord(
               handleItr.next(),
               JobState.SCHEDULED,
@@ -113,7 +112,7 @@ public class MasJobRecordService {
               targetType,
               orcid,
               request.batching(),
-              ttl
+              masRecord.getOdsTimeToLive()
           );
         })
         .toList();

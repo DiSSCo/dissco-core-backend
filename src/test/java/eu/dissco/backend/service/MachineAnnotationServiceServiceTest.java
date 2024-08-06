@@ -14,7 +14,6 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobR
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenScheduledMasResponse;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
-import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecord;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
@@ -121,7 +120,7 @@ class MachineAnnotationServiceServiceTest {
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), HANDLE + ID, ORCID,
         MjrTargetType.DIGITAL_SPECIMEN,
         Map.of(HANDLE + ID, givenMasJobRequest(true, null)))).willReturn(
-        givenMasJobRecordIdMap(masRecord.getId(), true, TTL_DEFAULT));
+        givenMasJobRecordIdMap(masRecord.getId(), true));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID, true);
 
     // When
@@ -132,7 +131,7 @@ class MachineAnnotationServiceServiceTest {
 
     // Then
     assertThat(result).isEqualTo(
-        givenScheduledMasResponse(givenMasJobRecord(true, TTL_DEFAULT), SPECIMEN_PATH));
+        givenScheduledMasResponse(givenMasJobRecord(true), SPECIMEN_PATH));
     then(kafkaPublisherService).should().sendObjectToQueue("fancy-topic-name", sendObject);
   }
 

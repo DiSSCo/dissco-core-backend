@@ -82,6 +82,9 @@ class AnnotationServiceTest {
   private MongoRepository mongoRepository;
   @Mock
   private UserService userService;
+  @Mock
+  private MasJobRecordService masJobRecordService;
+
 
   private MockedStatic<Instant> mockedInstant;
   private MockedStatic<Clock> mockedClock;
@@ -130,7 +133,7 @@ class AnnotationServiceTest {
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER);
+        mongoRepository, userService, MAPPER, masJobRecordService);
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     mockedInstant = mockStatic(Instant.class);
@@ -339,7 +342,8 @@ class AnnotationServiceTest {
                     "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
-                ]
+                ],
+                "placeInBatch":1
               }
             }
           }
