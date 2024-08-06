@@ -4,10 +4,14 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenOaTarget;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
+import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMjrListResponse;
@@ -18,6 +22,8 @@ import static org.mockito.BDDMockito.then;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.MasJobRecord;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -186,6 +192,55 @@ class MasJobRecordServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testCreateMasJobRecordForDissco() {
+    // Given
+    var masRecord = new MasJobRecord(
+        JOB_ID,
+        JobState.RUNNING,
+        "DISSCOVER",
+        TARGET_ID,
+        MjrTargetType.DIGITAL_SPECIMEN,
+        ORCID,
+        true,
+        TTL_DEFAULT
+    );
+    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+
+    // When
+    var result = masJobRecordService.createJobRecordForDisscover(givenAnnotationResponse(), ORCID);
+
+    // Then
+    assertThat(result).isEqualTo(JOB_ID);
+    then(masJobRecordRepository).should().createNewMasJobRecord(List.of(masRecord));
+  }
+
+  @Test
+  void testCreateMasJobRecordForDisscoMedia() {
+    // Given
+    var masRecord = new MasJobRecord(
+        JOB_ID,
+        JobState.RUNNING,
+        "DISSCOVER",
+        TARGET_ID,
+        MjrTargetType.MEDIA_OBJECT,
+        ORCID,
+        true,
+        TTL_DEFAULT
+    );
+    var annotation = givenAnnotationResponse()
+        .withOaHasTarget(givenOaTarget(TARGET_ID)
+            .withOdsType(AnnotationTargetType.DIGITAL_MEDIA.getName()));
+    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+
+    // When
+    var result = masJobRecordService.createJobRecordForDisscover(annotation, ORCID);
+
+    // Then
+    assertThat(result).isEqualTo(JOB_ID);
+    then(masJobRecordRepository).should().createNewMasJobRecord(List.of(masRecord));
   }
 
   @Test
