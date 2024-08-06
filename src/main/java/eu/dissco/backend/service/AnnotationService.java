@@ -90,7 +90,7 @@ public class AnnotationService {
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationEventRequest eventRequest, String userId,
+  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, String userId,
       String path)
       throws ForbiddenException, JsonProcessingException {
     var user = getUserInformation(userId);
