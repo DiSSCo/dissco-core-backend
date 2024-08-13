@@ -164,7 +164,7 @@ class AnnotationControllerTest {
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(event, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, USER_ID_TOKEN, ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -197,7 +197,7 @@ class AnnotationControllerTest {
     givenAuthentication(USER_ID_TOKEN);
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
-    given(service.persistAnnotation(event, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, USER_ID_TOKEN, ANNOTATION_PATH))
         .willReturn(null);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

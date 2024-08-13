@@ -229,7 +229,7 @@ public class AnnotationUtils {
 
   public static AnnotationEvent givenAnnotationEventProcessed() {
     return new AnnotationEvent(List.of(givenAnnotationProcessingRequest(false)),
-        List.of(new BatchMetadata(List.of(givenSearchParam()))));
+        List.of(new BatchMetadata(List.of(givenSearchParam()))), null);
   }
 
   public static BatchMetadata givenBatchMetadata() {

@@ -138,7 +138,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),
           dataNode,
           dbRecord.get(MAS_JOB_RECORD.BATCHING_REQUESTED),
-          ttl,
+          Math.toIntExact(ttl),
           dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
     } catch (JsonProcessingException e) {

@@ -23,21 +23,16 @@ public class MasJobRecordUtils {
   public static final String JOB_SUFFIX = "TR9-6D6-Z4A";
   public static final String JOB_ID_ALT = "20.5000.1025/P3D-22A-MRY";
   public static final String MJR_URI = "/api/v1/mjr/";
-  public static Long TTL_DEFAULT = 86400L;
+  public static final Integer TTL_DEFAULT = 86400;
 
 
   public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId) {
-    return givenMasJobRecordIdMap(masId, false, TTL_DEFAULT);
+    return givenMasJobRecordIdMap(masId, false);
   }
 
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, long ttl) {
-    return givenMasJobRecordIdMap(masId, false, ttl);
-  }
-
-  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching,
-      Long ttl) {
+  public static Map<String, MasJobRecord> givenMasJobRecordIdMap(String masId, boolean batching) {
     var jobIdMap = new HashMap<String, MasJobRecord>();
-    jobIdMap.put(masId, givenMasJobRecord(batching, ttl));
+    jobIdMap.put(masId, givenMasJobRecord(batching));
     return jobIdMap;
   }
 
@@ -85,10 +80,10 @@ public class MasJobRecordUtils {
   }
 
   public static MasJobRecord givenMasJobRecord() {
-    return givenMasJobRecord(false, TTL_DEFAULT);
+    return givenMasJobRecord(false);
   }
 
-  public static MasJobRecord givenMasJobRecord(boolean batching, Long ttl) {
+  public static MasJobRecord givenMasJobRecord(boolean batching) {
     return new MasJobRecord(
         JOB_ID,
         JobState.SCHEDULED,
@@ -97,7 +92,7 @@ public class MasJobRecordUtils {
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
         batching,
-        ttl
+        TTL_DEFAULT
     );
   }
 

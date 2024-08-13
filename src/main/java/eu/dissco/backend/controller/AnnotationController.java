@@ -116,7 +116,7 @@ public class AnnotationController extends BaseController {
   @PreAuthorize("hasRole('dissco-web-batch-annotations')")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getCountForBatchAnnotations(JsonNode request) throws IOException {
+  public ResponseEntity<JsonNode> getCountForBatchAnnotations(@RequestBody JsonNode request) throws IOException {
     log.info("Received request for batch annotation count");
     var result = service.getCountForBatchAnnotations(request);
     return ResponseEntity.ok(result);
@@ -132,7 +132,7 @@ public class AnnotationController extends BaseController {
     schemaValidator.validateAnnotationEventRequest(event, true);
     var userId = authentication.getName();
     log.info("Received new batch annotation from user: {}", userId);
-    var annotationResponse = service.persistAnnotation(event, userId, getPath(request));
+    var annotationResponse = service.persistAnnotationBatch(event, userId, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {

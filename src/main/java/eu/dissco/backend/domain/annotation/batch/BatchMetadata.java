@@ -7,7 +7,7 @@ import lombok.Value;
 
 @Value
 public class BatchMetadata {
-  static Integer placeInBatch = 1;
+  Integer placeInBatch = 1;
   @JsonProperty("searchParams")
   List<SearchParam> searchParams;
 
