@@ -1,5 +1,5 @@
 {
-  "$id": "https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.3.0/mas.json",
+  "$id": "https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.3.0/machine-annotation-service.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$comment": "Machine Annotation Service Version 0.3.0",
   "title": "MachineAnnotationService",
@@ -198,6 +198,10 @@
     "ods:topicName": {
       "type": "string",
       "description": "Kafka topic through which the MAS receives messages. Defaults to PID of MAS"
+    },
+    "ods:maxReplicas": {
+      "type": "integer",
+      "description": "The maximum amount of this MAS that can simultaneously run without causing issues"
     },
     "ods:batchingPermitted": {
       "type": "boolean",
