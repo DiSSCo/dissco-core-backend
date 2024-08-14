@@ -48,6 +48,7 @@ public class MachineAnnotationServiceRepository {
   }
 
   private String removeProxy(String id) {
-    return id.replace("urn:uuid:", "");
+    return id.replace("urn:uuid:", "")
+        .replace("https://hdl.handle.net/", "");
   }
 }

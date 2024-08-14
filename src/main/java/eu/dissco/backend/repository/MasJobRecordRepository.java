@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.database.jooq.Tables.USER;
+import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -113,7 +114,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.JOB_STATE, masJobRecord.state())
         .set(MAS_JOB_RECORD.MAS_ID, masJobRecord.masId())
         .set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid())
-        .set(MAS_JOB_RECORD.TARGET_ID, masJobRecord.targetId())
+        .set(MAS_JOB_RECORD.TARGET_ID, DOI_STRING + masJobRecord.targetId())
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD.TIME_STARTED, now)
         .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested())
