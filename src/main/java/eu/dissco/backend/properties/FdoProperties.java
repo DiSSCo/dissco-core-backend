@@ -14,9 +14,6 @@ import org.springframework.validation.annotation.Validated;
 public class FdoProperties {
 
   @NotBlank
-  private final String mjrType = "https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6";
-
-  @NotBlank
   private final String agent;
 
 }
