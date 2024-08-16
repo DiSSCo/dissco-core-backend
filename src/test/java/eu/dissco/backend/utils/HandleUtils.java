@@ -11,7 +11,7 @@ public class HandleUtils {
     return MAPPER.readTree("""
         {
           "data" : {
-            "type" : "https://hdl.handle.net/21.T11148/532ce6796e2828dd2be6",
+            "type" : "https://doi.org/21.T11148/532ce6796e2828dd2be6",
             "attributes" : {
               "issuedForAgent" : "https://ror.org/0566bfb96"
             }
@@ -27,9 +27,9 @@ public class HandleUtils {
                     "type": "handle",
                     "attributes": {
                         "10320/loc": "<locations/>",
-                        "fdoProfile": "https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
+                        "fdoProfile": "https://doi.org/21.T11148/64396cf36b976ad08267",
                         "fdoRecordLicense": "https://creativecommons.org/publicdomain/zero/1.0/",
-                        "digitalObjectType": "https://hdl.handle.net/21.T11148/64396cf36b976ad08267",
+                        "digitalObjectType": "https://doi.org/21.T11148/64396cf36b976ad08267",
                         "digitalObjectName": "FDO-test-basic-type",
                         "pid": "https://hdl.handle.net/TEST/Q4B-Y1C-DSR",
                         "pidIssuer": "https://ror.org/04wxnsj81",
