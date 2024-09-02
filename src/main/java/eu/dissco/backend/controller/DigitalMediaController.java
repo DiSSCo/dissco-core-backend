@@ -140,13 +140,14 @@ public class DigitalMediaController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws ConflictException, ForbiddenException, PidCreationException {
-    var userId = authentication.getName();
+    var orcid = getUser(authentication).orcid();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
         masRequests,
         id);
-    var massResponse = service.scheduleMass(id, masRequests, getPath(request), userId);
+
+    var massResponse = service.scheduleMass(id, masRequests, getPath(request), orcid);
     return ResponseEntity.accepted().body(massResponse);
   }
 

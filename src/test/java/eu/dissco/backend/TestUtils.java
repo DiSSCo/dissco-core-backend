@@ -3,15 +3,13 @@ package eu.dissco.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.User;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
-import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIDType;
 import eu.dissco.backend.schema.Event;
 import eu.dissco.backend.schema.Location;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,35 +45,43 @@ public class TestUtils {
   public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 
   // Users
-  public static JsonApiWrapper givenUserResponse() {
-    return new JsonApiWrapper(givenJsonApiData(),
-        new JsonApiLinks("https://sandbox.dissco.tech/api/v1/users/" + USER_ID_TOKEN));
-  }
-
-  public static JsonApiWrapper givenUserRequest() {
-    return givenUserRequest(USER_ID_TOKEN);
-  }
-
-  public static JsonApiWrapper givenUserRequestInvalidType() {
-    return new JsonApiWrapper(
-        new JsonApiData(USER_ID_TOKEN, "annotations", MAPPER.valueToTree(givenUser())), null);
-  }
-
-  public static JsonApiWrapper givenUserRequest(String id) {
-    return new JsonApiWrapper(givenJsonApiData(id), null);
-  }
-
-  public static JsonApiData givenJsonApiData() {
-    return givenJsonApiData(USER_ID_TOKEN);
-  }
-
-  public static JsonApiData givenJsonApiData(String id) {
-    return new JsonApiData(id, TYPE, MAPPER.valueToTree(givenUser()));
-  }
-
   public static User givenUser() {
-    return new User("Test", "User", "test@gmail.com", ORCID,
-        "https://ror.org/XXXXXXXXX");
+    return new User("Sam Leeflang", ORCID
+    );
+  }
+
+  // Token
+  public static String givenEncodedToken() throws Exception {
+    var header = MAPPER.readTree("""
+        {
+          "alg": "RS256",
+          "typ": "JWT",
+          "kid": "jfesdKL10dvckml"
+        }
+        """);
+    var body = MAPPER.readTree("""
+        {
+          "account": {
+            "roles": [
+              "view-applications",
+              "manage-account-2fa",
+              "view-consent",
+              "view-groups",
+              "manage-account-links",
+              "manage-consent",
+              "view-profile"
+            ]
+          },
+          "orcid": "https://orcid.org/0000-0002-XXXX-XXXX",
+          "given_name": "Sam",
+          "family_name": "Leeflang",
+          "client_id": "demo-api-client"
+        }
+        """);
+    var encoder = Base64.getUrlEncoder();
+    return new String(encoder.encode(MAPPER.writeValueAsBytes(header)))
+        + "."
+        + new String(encoder.encode(MAPPER.writeValueAsBytes(body)));
   }
 
   // General

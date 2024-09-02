@@ -1,14 +1,10 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
-import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCompleted;
@@ -40,7 +36,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   @AfterEach
   void destroy() {
     context.truncate(MAS_JOB_RECORD).execute();
-    context.truncate(USER).execute();
   }
 
   @Test
@@ -126,35 +121,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(resultStatusFailed).isEmpty();
     assertThat(resultStatusScheduled).isEqualTo(List.of(expected));
-  }
-
-  @Test
-  void testGetMasJobRecordByUserId() throws JsonProcessingException {
-    // Given
-    var expected = List.of(givenMasJobRecordFullScheduled());
-    postMasJobRecordFull(expected);
-    postUser();
-
-    // When
-    var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, null, 1, 1);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetMasJobRecordByUserIdAndState() throws JsonProcessingException {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
-    postUser();
-
-    // When
-    var result = masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
-        JobState.SCHEDULED, 1, 1);
-
-    // Then
-    assertThat(result).isEqualTo(List.of(expected));
   }
 
   @Test
@@ -247,19 +213,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.EXPIRES_ON, ttl));
     }
     context.batch(queryList).execute();
-  }
-
-  private void postUser() {
-    var user = givenUser();
-    context.insertInto(USER)
-        .set(USER.ID, USER_ID_TOKEN)
-        .set(USER.ORCID, user.orcid())
-        .set(USER.FIRST_NAME, user.firstName())
-        .set(USER.LAST_NAME, user.lastName())
-        .set(USER.ORGANIZATION, user.organisation())
-        .set(USER.CREATED, CREATED)
-        .set(USER.UPDATED, CREATED)
-        .execute();
   }
 
 }

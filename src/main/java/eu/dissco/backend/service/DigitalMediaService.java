@@ -18,7 +18,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
@@ -45,7 +44,6 @@ public class DigitalMediaService {
   private final MongoRepository mongoRepository;
   private final ObjectMapper mapper;
   private final MasJobRecordService masJobRecordService;
-  private final UserService userService;
 
   // Controller Functions
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
@@ -160,9 +158,8 @@ public class DigitalMediaService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
-      String path, String userId)
-      throws ForbiddenException, PidCreationException, ConflictException {
-    var orcid = userService.getOrcid(userId);
+      String path, String orcid)
+      throws PidCreationException, ConflictException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));

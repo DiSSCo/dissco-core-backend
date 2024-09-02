@@ -62,7 +62,6 @@ public class DigitalSpecimenService {
   private final AnnotationService annotationService;
   private final MongoRepository mongoRepository;
   private final MasJobRecordService masJobRecordService;
-  private final UserService userService;
 
   private static Set<MappingTerm> retrieveTaxRanks(
       Map<TaxonMappingTerms, List<String>> mappedParams) {
@@ -302,9 +301,8 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
-      String userId, String path)
+      String orcid, String path)
       throws ForbiddenException, ConflictException {
-    var orcid = userService.getOrcid(userId);
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
     return masService.scheduleMass(flattenAttributes, masRequests, path, digitalSpecimen, id, orcid,

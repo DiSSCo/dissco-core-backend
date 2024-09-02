@@ -9,7 +9,6 @@ import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationService;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.User;
 
 
 /**
@@ -42,9 +41,4 @@ public class Tables {
      * The table <code>public.mas_job_record</code>.
      */
     public static final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
-
-    /**
-     * The table <code>public.user</code>.
-     */
-    public static final User USER = User.USER;
 }

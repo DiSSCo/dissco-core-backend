@@ -9,13 +9,11 @@ import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationService;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-import eu.dissco.backend.database.jooq.tables.User;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
 import eu.dissco.backend.database.jooq.tables.records.DigitalMediaObjectRecord;
 import eu.dissco.backend.database.jooq.tables.records.DigitalSpecimenRecord;
 import eu.dissco.backend.database.jooq.tables.records.MachineAnnotationServiceRecord;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
-import eu.dissco.backend.database.jooq.tables.records.UserRecord;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -38,5 +36,4 @@ public class Keys {
     public static final UniqueKey<DigitalSpecimenRecord> DIGITAL_SPECIMEN_PK = Internal.createUniqueKey(DigitalSpecimen.DIGITAL_SPECIMEN, DSL.name("digital_specimen_pk"), new TableField[] { DigitalSpecimen.DIGITAL_SPECIMEN.ID }, true);
     public static final UniqueKey<MachineAnnotationServiceRecord> MACHINE_ANNOTATION_SERVICES_PKEY = Internal.createUniqueKey(MachineAnnotationService.MACHINE_ANNOTATION_SERVICE, DSL.name("machine_annotation_services_pkey"), new TableField[] { MachineAnnotationService.MACHINE_ANNOTATION_SERVICE.ID }, true);
     public static final UniqueKey<MasJobRecordRecord> MAS_JOB_RECORD_PK = Internal.createUniqueKey(MasJobRecord.MAS_JOB_RECORD, DSL.name("mas_job_record_pk"), new TableField[] { MasJobRecord.MAS_JOB_RECORD.JOB_ID }, true);
-    public static final UniqueKey<UserRecord> USER_PKEY = Internal.createUniqueKey(User.USER, DSL.name("user_pkey"), new TableField[] { User.USER.ID }, true);
 }

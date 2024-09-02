@@ -2,9 +2,12 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenEncodedToken;
+import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
@@ -16,9 +19,9 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequ
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
-import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
@@ -33,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @ExtendWith(MockitoExtension.class)
 class AnnotationControllerTest {
@@ -131,12 +135,12 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotation() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
     var annotation = givenAnnotationRequest();
 
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(annotation, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotation(annotation, givenUser(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -160,11 +164,11 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatch() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotationBatch(event, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, givenUser(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -179,7 +183,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationNullResponse() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
     given(service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(null);
@@ -194,10 +198,10 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatchNullResponse() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
-    given(service.persistAnnotationBatch(event, USER_ID_TOKEN, ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, givenUser(), ANNOTATION_PATH))
         .willReturn(null);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -211,11 +215,11 @@ class AnnotationControllerTest {
   @Test
   void testUpdateAnnotation() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
     var annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, USER_ID_TOKEN, ANNOTATION_PATH, PREFIX,
+    given(service.updateAnnotation(ID, annotation, givenUser(), ANNOTATION_PATH, PREFIX,
         SUFFIX)).willReturn(
         expected);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
@@ -232,7 +236,7 @@ class AnnotationControllerTest {
   @Test
   void testGetAnnotationsForUserJsonResponse() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
+    givenAuthentication();
 
     // When
     var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest,
@@ -254,10 +258,10 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testDeleteAnnotationSuccess() throws NoAnnotationFoundException {
+  void testDeleteAnnotationSuccess() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
-    given(service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN)).willReturn(true);
+    givenAuthentication();
+    given(service.deleteAnnotation(PREFIX, SUFFIX, ORCID)).willReturn(true);
 
     // When
     var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
@@ -267,10 +271,10 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testDeleteAnnotationFailure() throws NoAnnotationFoundException {
+  void testDeleteAnnotationFailure() throws Exception {
     // Given
-    givenAuthentication(USER_ID_TOKEN);
-    given(service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN)).willReturn(false);
+    givenAuthentication();
+    given(service.deleteAnnotation(PREFIX, SUFFIX, ORCID)).willReturn(false);
 
     // When
     var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
@@ -279,7 +283,9 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
-  private void givenAuthentication(String userId) {
-    given(authentication.getName()).willReturn(userId);
+  private void givenAuthentication() throws Exception {
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getTokenValue()).willReturn(givenEncodedToken());
   }
 }

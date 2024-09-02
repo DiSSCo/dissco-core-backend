@@ -65,7 +65,7 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     /**
      * The column <code>public.mas_job_record.mas_id</code>.
      */
-    public final TableField<MasJobRecordRecord, String> MAS_ID = createField(DSL.name("mas_id"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<MasJobRecordRecord, String> MAS_ID = createField(DSL.name("mas_id"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.mas_job_record.time_started</code>.
