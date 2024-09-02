@@ -302,7 +302,7 @@ public class DigitalSpecimenService {
 
   public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
       String orcid, String path)
-      throws ForbiddenException, ConflictException {
+      throws ConflictException {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
     var flattenAttributes = flattenAttributes(digitalSpecimen);
     return masService.scheduleMass(flattenAttributes, masRequests, path, digitalSpecimen, id, orcid,

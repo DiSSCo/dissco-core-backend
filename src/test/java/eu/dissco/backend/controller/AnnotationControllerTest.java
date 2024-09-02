@@ -17,16 +17,19 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
+import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -153,6 +156,40 @@ class AnnotationControllerTest {
   }
 
   @Test
+  void testPersistAnnotationMissingOrcid() throws Exception {
+    // given
+    var tokenBody = MAPPER.readTree("""
+        {
+          "account": {
+            "roles": [
+              "view-applications",
+              "manage-account-2fa",
+              "view-consent",
+              "view-groups",
+              "manage-account-links",
+              "manage-consent",
+              "view-profile"
+            ]
+          }
+        }
+        """);
+    var encoder = Base64.getUrlEncoder();
+    var token = new String(encoder.encode(MAPPER.writeValueAsBytes("{}")))
+        + "."
+        + new String(encoder.encode(MAPPER.writeValueAsBytes(tokenBody)));
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getTokenValue()).willReturn(token);
+    var request = givenJsonApiAnnotationRequest(givenAnnotationRequest());
+
+    // When / Then
+    assertThrowsExactly(ForbiddenException.class,
+        () -> controller.createAnnotation(authentication, request, mockRequest));
+
+
+  }
+
+  @Test
   void testGetBatchConfirmation() throws Exception {
     // When
     var result = controller.getCountForBatchAnnotations(givenAnnotationCountRequest());
@@ -186,7 +223,9 @@ class AnnotationControllerTest {
     givenAuthentication();
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
-    given(service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(null);
+    given(
+        service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(
+        null);
 
     // When
     var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
