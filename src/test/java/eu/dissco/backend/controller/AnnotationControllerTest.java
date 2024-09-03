@@ -6,7 +6,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenEncodedToken;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
@@ -29,7 +29,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
-import java.util.Base64;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -156,37 +156,18 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testPersistAnnotationMissingOrcid() throws Exception {
+  void testPersistAnnotationMissingOrcid() {
     // given
-    var tokenBody = MAPPER.readTree("""
-        {
-          "account": {
-            "roles": [
-              "view-applications",
-              "manage-account-2fa",
-              "view-consent",
-              "view-groups",
-              "manage-account-links",
-              "manage-consent",
-              "view-profile"
-            ]
-          }
-        }
-        """);
-    var encoder = Base64.getUrlEncoder();
-    var token = new String(encoder.encode(MAPPER.writeValueAsBytes("{}")))
-        + "."
-        + new String(encoder.encode(MAPPER.writeValueAsBytes(tokenBody)));
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getTokenValue()).willReturn(token);
+    given(principal.getClaims()).willReturn(Map.of(
+        "client-id", "demo-api-client"
+    ));
     var request = givenJsonApiAnnotationRequest(givenAnnotationRequest());
 
     // When / Then
     assertThrowsExactly(ForbiddenException.class,
         () -> controller.createAnnotation(authentication, request, mockRequest));
-
-
   }
 
   @Test
@@ -322,9 +303,9 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
-  private void givenAuthentication() throws Exception {
+  private void givenAuthentication() {
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getTokenValue()).willReturn(givenEncodedToken());
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 }

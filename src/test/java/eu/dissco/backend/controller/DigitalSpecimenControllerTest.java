@@ -8,7 +8,7 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.TestUtils.givenEncodedToken;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
@@ -271,7 +271,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMasInvalidType() throws Exception {
+  void testScheduleMasInvalidType() {
     // Given
     var request = givenMasRequest("Invalid Type");
     givenAuthentication();
@@ -305,10 +305,10 @@ class DigitalSpecimenControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
-  private void givenAuthentication() throws Exception {
+  private void givenAuthentication() {
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getTokenValue()).willReturn(givenEncodedToken());
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 
 }

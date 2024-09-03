@@ -7,7 +7,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
-import static eu.dissco.backend.TestUtils.givenEncodedToken;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
@@ -177,7 +177,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testScheduleMasInvalidType() throws Exception {
+  void testScheduleMasInvalidType() {
     // Given
     var request = givenMasRequest("Invalid Type");
     givenAuthentication();
@@ -197,10 +197,10 @@ class DigitalMediaControllerTest {
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
-  private void givenAuthentication() throws Exception {
+  private void givenAuthentication() {
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getTokenValue()).willReturn(givenEncodedToken());
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 
 }

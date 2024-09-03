@@ -36,29 +36,23 @@ public abstract class BaseController {
   private final ApplicationProperties applicationProperties;
 
   protected User getUser(Authentication authentication) throws ForbiddenException {
-    var tokenEncoded = ((Jwt) authentication.getPrincipal()).getTokenValue();
-    var tokenBody = tokenEncoded.split("\\.")[1];
-    var tokenString = Base64.getUrlDecoder().decode(tokenBody);
-    JsonNode token;
-    try {
-      token = mapper.readTree(tokenString);
-    } catch (IOException e) {
-      log.error("Unable to read authentication token");
-      throw new ForbiddenException("Unable to read authentication token");
-    }
-    if (token.get("orcid") != null) {
+    var claims = ((Jwt) authentication.getPrincipal()).getClaims();
+
+    if (claims.containsKey("orcid")) {
       StringBuilder fullName = new StringBuilder();
-      if (token.get("given_name") != null){
-        fullName.append(token.get("given_name").asText())
-            .append(" ");
+      if (claims.containsKey("given_name")){
+        fullName.append(claims.get("given_name"));
       }
-      if (token.get("family_name") != null){
-        fullName.append(token.get("family_name").asText());
+      if (claims.containsKey("family_name")){
+        if (!fullName.isEmpty()) {
+          fullName.append(" ");
+        }
+        fullName.append(claims.get("family_name"));
       }
-      return new User(fullName.toString(), token.get("orcid").asText());
+      return new User(fullName.toString(), (String) claims.get("orcid"));
     } else {
-      log.error("Missing ORCID from token");
-      throw new ForbiddenException("Missing ORCID from token");
+      log.error("Missing ORCID in token");
+      throw new ForbiddenException("Missing ORCID in token");
     }
   }
 

@@ -9,7 +9,6 @@ import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIDType;
 import eu.dissco.backend.schema.Event;
 import eu.dissco.backend.schema.Location;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,37 +50,12 @@ public class TestUtils {
   }
 
   // Token
-  public static String givenEncodedToken() throws Exception {
-    var header = MAPPER.readTree("""
-        {
-          "alg": "RS256",
-          "typ": "JWT",
-          "kid": "jfesdKL10dvckml"
-        }
-        """);
-    var body = MAPPER.readTree("""
-        {
-          "account": {
-            "roles": [
-              "view-applications",
-              "manage-account-2fa",
-              "view-consent",
-              "view-groups",
-              "manage-account-links",
-              "manage-consent",
-              "view-profile"
-            ]
-          },
-          "orcid": "https://orcid.org/0000-0002-XXXX-XXXX",
-          "given_name": "Sam",
-          "family_name": "Leeflang",
-          "client_id": "demo-api-client"
-        }
-        """);
-    var encoder = Base64.getUrlEncoder();
-    return new String(encoder.encode(MAPPER.writeValueAsBytes(header)))
-        + "."
-        + new String(encoder.encode(MAPPER.writeValueAsBytes(body)));
+  public static Map<String, Object> givenClaims() {
+    return Map.of(
+        "orcid", ORCID,
+        "given_name", "Sam",
+        "family_name", "Leeflang"
+    );
   }
 
   // General
