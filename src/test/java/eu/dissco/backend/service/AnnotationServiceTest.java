@@ -8,7 +8,6 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenUser;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -32,14 +31,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.client.AnnotationClient;
-import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -80,8 +77,6 @@ class AnnotationServiceTest {
   private ElasticSearchRepository elasticRepository;
   @Mock
   private MongoRepository mongoRepository;
-  @Mock
-  private UserService userService;
   @Mock
   private MasJobRecordService masJobRecordService;
 
@@ -133,7 +128,7 @@ class AnnotationServiceTest {
   @BeforeEach
   void setup() {
     service = new AnnotationService(repository, annotationClient, elasticRepository,
-        mongoRepository, userService, MAPPER, masJobRecordService);
+        mongoRepository, MAPPER, masJobRecordService);
     Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
     Instant instant = Instant.now(clock);
     mockedInstant = mockStatic(Instant.class);
@@ -162,13 +157,11 @@ class AnnotationServiceTest {
         ORCID, annotationId, true);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
-
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
 
     // When
-    var received = service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
 
     // Then
     assertThat(received).isEqualTo(expected);
@@ -186,12 +179,11 @@ class AnnotationServiceTest {
         ORCID, annotationId, false);
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
         .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
 
     // When
-    var received = service.getAnnotationsForUser(USER_ID_TOKEN, pageNumber, pageSize, path);
+    var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
 
     // Then
     assertThat(received).isEqualTo(expected);
@@ -296,10 +288,9 @@ class AnnotationServiceTest {
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
     given(annotationClient.postAnnotation(any())).willReturn(
         processingResponse);
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
     //When
-    var responseReceived = service.persistAnnotation(annotationRequest, USER_ID_TOKEN,
+    var responseReceived = service.persistAnnotation(annotationRequest, givenUser(),
         ANNOTATION_PATH);
 
     // Then
@@ -374,10 +365,9 @@ class AnnotationServiceTest {
     var expected = givenAnnotationResponseBatch(ANNOTATION_PATH, ORCID);
     given(annotationClient.postAnnotationBatch(any())).willReturn(
         processingResponse);
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
     //When
-    var responseReceived = service.persistAnnotationBatch(event, USER_ID_TOKEN,
+    var responseReceived = service.persistAnnotationBatch(event, givenUser(),
         ANNOTATION_PATH);
 
     // Then
@@ -391,10 +381,9 @@ class AnnotationServiceTest {
     var annotationRequest = givenAnnotationRequest();
     given(annotationClient.postAnnotation(any()))
         .willReturn(null);
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
 
     // When
-    var result = service.persistAnnotation(annotationRequest, USER_ID_TOKEN, ANNOTATION_PATH
+    var result = service.persistAnnotation(annotationRequest, givenUser(), ANNOTATION_PATH
     );
 
     // Then
@@ -418,13 +407,12 @@ class AnnotationServiceTest {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
     given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
     given(annotationClient.updateAnnotation(any(), any(), any()))
         .willReturn(kafkaResponse);
 
     // When
-    var result = service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN,
+    var result = service.updateAnnotation(ID, givenAnnotationRequest(), givenUser(),
         ANNOTATION_PATH,
         PREFIX, SUFFIX);
 
@@ -433,25 +421,13 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testUserHasNoOrcid() {
-    // Given
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(new User(null, null, null, null, null));
-
-    // Then
-    assertThrowsExactly(ForbiddenException.class,
-        () -> service.persistAnnotation(givenAnnotationRequest(), USER_ID_TOKEN, ANNOTATION_PATH
-        ));
-  }
-
-  @Test
   void testUpdateAnnotationDoesNotExist() {
     // Given
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () -> service.updateAnnotation(ID, givenAnnotationRequest(), USER_ID_TOKEN,
+        () -> service.updateAnnotation(ID, givenAnnotationRequest(), givenUser(),
             ANNOTATION_PATH, PREFIX, SUFFIX));
   }
 
@@ -498,11 +474,10 @@ class AnnotationServiceTest {
   @Test
   void testDeleteAnnotation() throws Exception {
     // Given
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
 
     // When
-    var result = service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN);
+    var result = service.deleteAnnotation(PREFIX, SUFFIX, ORCID);
 
     // Then
     assertThat(result).isTrue();
@@ -511,12 +486,11 @@ class AnnotationServiceTest {
   @Test
   void testDeleteAnnotationDoesNotExist() {
     // Given
-    given(userService.getUser(USER_ID_TOKEN)).willReturn(givenUser());
     given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () -> service.deleteAnnotation(PREFIX, SUFFIX, USER_ID_TOKEN));
+        () -> service.deleteAnnotation(PREFIX, SUFFIX, ORCID));
   }
 
 }

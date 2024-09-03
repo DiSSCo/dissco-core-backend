@@ -17,7 +17,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -51,7 +50,6 @@ public class AnnotationService {
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
-  private final UserService userService;
   private final ObjectMapper mapper;
   private final MasJobRecordService masJobRecordService;
 
@@ -82,18 +80,15 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, String userId,
-      String path) throws ForbiddenException, JsonProcessingException {
-    var user = getUserInformation(userId);
+  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, User user,
+      String path) throws JsonProcessingException {
     var annotation = buildAnnotation(annotationProcessingRequest, user, false);
     var response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, String userId,
-      String path)
-      throws ForbiddenException, JsonProcessingException {
-    var user = getUserInformation(userId);
+  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, User user,
+      String path) throws JsonProcessingException {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), user, false)
         .withOdsPlaceInBatch(1);
     String jobId = null;
@@ -147,14 +142,6 @@ public class AnnotationService {
     }
   }
 
-  private User getUserInformation(String userId) throws ForbiddenException {
-    var user = userService.getUser(userId);
-    if (user.orcid() == null) {
-      throw new ForbiddenException("No ORCID is provided");
-    }
-    return user;
-  }
-
   private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest, User user,
       boolean isUpdate) {
     var annotation = new Annotation()
@@ -163,8 +150,10 @@ public class AnnotationService {
         .withOaHasBody(annotationProcessingRequest.getOaHasBody())
         .withOaHasTarget(annotationProcessingRequest.getOaHasTarget())
         .withDctermsCreated(Date.from(Instant.now()))
-        .withDctermsCreator(new Agent().withType(Type.SCHEMA_PERSON).withId(user.orcid())
-            .withSchemaName(user.lastName()));
+        .withDctermsCreator(new Agent()
+            .withType(Type.SCHEMA_PERSON)
+            .withId(user.orcid())
+            .withSchemaName(user.fullName()));
     if (isUpdate) {
       annotation.setId(annotationProcessingRequest.getOdsID());
       annotation.setOdsID(annotationProcessingRequest.getOdsID());
@@ -177,10 +166,9 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, AnnotationProcessingRequest annotationProcessingRequest,
-      String userId,
+      User user,
       String path, String prefix, String suffix)
-      throws NoAnnotationFoundException, ForbiddenException, JsonProcessingException {
-    var user = getUserInformation(userId);
+      throws NoAnnotationFoundException, JsonProcessingException {
     var result = repository.getAnnotationForUser(id, user.orcid());
     if (result > 0) {
       if (annotationProcessingRequest.getOdsID() == null) {
@@ -190,18 +178,16 @@ public class AnnotationService {
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
-      log.info("No active annotationRequests with id: {} found for user {} with orcid {}", id,
-          userId,
+      log.info("No active annotationRequests with id: {} found for user {}", id,
           user.orcid());
       throw new NoAnnotationFoundException(
           "No active annotationRequests with id: " + id + " was found for user");
     }
   }
 
-  public JsonApiListResponseWrapper getAnnotationsForUser(String userToken, int pageNumber,
-      int pageSize, String path) throws IOException, ForbiddenException {
-    var user = getUserInformation(userToken);
-    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(user.orcid(), pageNumber,
+  public JsonApiListResponseWrapper getAnnotationsForUser(String orcid, int pageNumber,
+      int pageSize, String path) throws IOException {
+    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(orcid, pageNumber,
         pageSize);
     return wrapListResponseElasticSearchResults(elasticSearchResults, pageNumber, pageSize, path);
   }
@@ -213,16 +199,15 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public boolean deleteAnnotation(String prefix, String suffix, String userId)
+  public boolean deleteAnnotation(String prefix, String suffix, String orcid)
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
-    var orcid = userService.getUser(userId).orcid();
     var result = repository.getAnnotationForUser(id, orcid);
     if (result > 0) {
       annotationClient.deleteAnnotation(prefix, suffix);
       return true;
     } else {
-      log.info("No active annotationRequests with id: {} found for user: {}", id, userId);
+      log.info("No active annotationRequests with id: {} found for user: {}", id, orcid);
       throw new NoAnnotationFoundException(
           "No active annotationRequests with id: " + id + " was found for user");
     }

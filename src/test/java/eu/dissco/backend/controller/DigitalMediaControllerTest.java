@@ -3,9 +3,11 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_URI;
@@ -16,6 +18,7 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResp
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.JobState;
@@ -34,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaControllerTest {
@@ -160,7 +164,7 @@ class DigitalMediaControllerTest {
     var request = givenMasRequest();
     givenAuthentication();
     given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-        USER_ID_TOKEN)).willReturn(expectedResponse);
+        ORCID)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
@@ -185,7 +189,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetOriginalDataForMediaForSpecimenForMedia(){
+  void testGetOriginalDataForMediaForSpecimenForMedia() {
     // When
     var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
 
@@ -194,7 +198,9 @@ class DigitalMediaControllerTest {
   }
 
   private void givenAuthentication() {
-    given(authentication.getName()).willReturn(USER_ID_TOKEN);
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 
 }

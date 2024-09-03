@@ -1,21 +1,30 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public abstract class BaseController {
 
   public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
@@ -25,6 +34,28 @@ public abstract class BaseController {
   };
   protected final ObjectMapper mapper;
   private final ApplicationProperties applicationProperties;
+
+  protected User getUser(Authentication authentication) throws ForbiddenException {
+    var claims = ((Jwt) authentication.getPrincipal()).getClaims();
+
+    if (claims.containsKey("orcid")) {
+      StringBuilder fullName = new StringBuilder();
+      if (claims.containsKey("given_name")){
+        fullName.append(claims.get("given_name"));
+      }
+      if (claims.containsKey("family_name")){
+        if (!fullName.isEmpty()) {
+          fullName.append(" ");
+        }
+        fullName.append(claims.get("family_name"));
+      }
+      return new User(fullName.toString(), (String) claims.get("orcid"));
+    } else {
+      log.error("Missing ORCID in token");
+      throw new ForbiddenException("Missing ORCID in token");
+    }
+  }
+
 
   protected String getPath(HttpServletRequest request) {
     var path = applicationProperties.getBaseUrl() + request.getRequestURI();

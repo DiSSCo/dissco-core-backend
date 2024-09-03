@@ -47,8 +47,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
@@ -86,15 +84,14 @@ class DigitalSpecimenServiceTest {
   private MongoRepository mongoRepository;
   @Mock
   private MasJobRecordService masJobRecordService;
-  @Mock
-  private UserService userService;
+
 
   private DigitalSpecimenService service;
 
   @BeforeEach
   void setup() {
     service = new DigitalSpecimenService(MAPPER, repository, elasticRepository, digitalMediaService,
-        masService, annotationService, mongoRepository, masJobRecordService, userService);
+        masService, annotationService, mongoRepository, masJobRecordService);
   }
 
   @Test
@@ -544,7 +541,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testScheduleMas() throws ForbiddenException, ConflictException {
+  void testScheduleMas() throws Exception {
     // Given
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
@@ -554,10 +551,9 @@ class DigitalSpecimenServiceTest {
         eq(digitalSpecimenWrapper),
         eq(digitalSpecimenWrapper.getOdsID()), eq(ORCID),
         eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
-    given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
-    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), USER_ID_TOKEN,
+    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), ORCID,
         SPECIMEN_PATH);
 
     // Then

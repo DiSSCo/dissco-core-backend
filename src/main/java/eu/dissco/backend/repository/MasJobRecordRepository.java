@@ -1,7 +1,6 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
-import static eu.dissco.backend.database.jooq.Tables.USER;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
@@ -61,23 +60,6 @@ public class MasJobRecordRepository {
     }
     return context.select(MAS_JOB_RECORD.asterisk())
         .from(MAS_JOB_RECORD)
-        .where(condition)
-        .limit(pageSize)
-        .offset(offset)
-        .fetch(this::recordToMasJobRecord);
-  }
-
-  public List<MasJobRecordFull> getMasJobRecordsByUserId(String userId, JobState state,
-      int pageNum, int pageSize) {
-    var offset = getOffset(pageNum, pageSize);
-    var condition = USER.ID.eq((userId));
-    if (state != null) {
-      condition = condition.and(MAS_JOB_RECORD.JOB_STATE.eq(state));
-    }
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .join(USER)
-        .on(USER.ORCID.eq(MAS_JOB_RECORD.USER_ID))
         .where(condition)
         .limit(pageSize)
         .offset(offset)

@@ -16,7 +16,6 @@
       <includes>digital_specimen |
         digital_media_object |
         annotation |
-        user |
         machine_annotation_service |
         mas_job_record |
         job_state |

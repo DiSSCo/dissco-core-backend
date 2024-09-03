@@ -3,11 +3,12 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -29,7 +31,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.MultiValueMapAdapter;
 
 @ExtendWith(MockitoExtension.class)
@@ -250,12 +252,12 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMas() throws ConflictException, ForbiddenException {
+  void testScheduleMas() throws Exception {
     // Given
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), USER_ID_TOKEN,
+    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), ORCID,
         SPECIMEN_PATH)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -281,7 +283,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMasNoAttribute() {
+  void testScheduleMasNoAttribute() throws Exception{
     // Given
     var mass = Map.of("somethingElse", Map.of(ID, false));
     var apiRequest = new JsonApiRequest("MasRequest", MAPPER.valueToTree(mass));
@@ -304,7 +306,9 @@ class DigitalSpecimenControllerTest {
   }
 
   private void givenAuthentication() {
-    given(authentication.getName()).willReturn(USER_ID_TOKEN);
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 
 }

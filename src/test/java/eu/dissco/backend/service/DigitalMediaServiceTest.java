@@ -8,7 +8,6 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -69,8 +68,6 @@ class DigitalMediaServiceTest {
   private DigitalSpecimenRepository digitalSpecimenRepository;
   @Mock
   private MasJobRecordService masJobRecordService;
-  @Mock
-  private UserService userService;
 
   private DigitalMediaService service;
 
@@ -83,7 +80,7 @@ class DigitalMediaServiceTest {
   @BeforeEach
   void setup() {
     service = new DigitalMediaService(repository, annotationService, digitalSpecimenRepository,
-        masService, mongoRepository, MAPPER, masJobRecordService, userService);
+        masService, mongoRepository, MAPPER, masJobRecordService);
   }
 
   @ParameterizedTest
@@ -304,11 +301,10 @@ class DigitalMediaServiceTest {
         eq(DIGITAL_MEDIA_PATH),
         eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT))).willReturn(
         response);
-    given(userService.getOrcid(USER_ID_TOKEN)).willReturn(ORCID);
 
     // When
     var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-        USER_ID_TOKEN);
+        ORCID);
 
     // Then
     assertThat(result).isEqualTo(response);

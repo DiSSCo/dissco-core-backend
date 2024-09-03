@@ -5,7 +5,6 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenOaTarget;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
@@ -26,8 +25,6 @@ import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
-import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
@@ -133,47 +130,6 @@ class MasJobRecordServiceTest {
     // When
     var result = masJobRecordService.getMasJobRecordsByMasId(ID_ALT, MJR_URI, pageNum, pageSize,
         null);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetMasJobRecordsByUserIdHasNext() {
-    // Given
-    var pageSize = 2;
-    var pageNum = 1;
-    var expected = givenMjrListResponse(pageSize, pageNum, true);
-
-    given(
-        masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN, null, pageNum,
-            pageSize + 1)).willReturn(
-        Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
-
-    // When
-    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
-        pageSize,
-        null);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetMasJobRecordsByUserIdAndState() {
-    // Given
-    var pageSize = 2;
-    var pageNum = 1;
-    var expected = new JsonApiListResponseWrapper(Collections.emptyList(),
-        new JsonApiLinksFull(MJR_URI));
-    given(masJobRecordRepository.getMasJobRecordsByUserId(USER_ID_TOKEN,
-        JobState.FAILED, pageNum, pageSize + 1)).willReturn(
-        Collections.emptyList());
-
-    // When
-    var result = masJobRecordService.getMasJobRecordsByUserId(USER_ID_TOKEN, MJR_URI, pageNum,
-        pageSize,
-        JobState.FAILED);
 
     // Then
     assertThat(result).isEqualTo(expected);
