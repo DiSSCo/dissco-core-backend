@@ -18,6 +18,7 @@ public enum DefaultMappingTerms implements MappingTerm {
   ORGANISATION_ID("organisationID", "ods:organisationID.keyword"),
   ORGANISATION_NAME("organisationName", "ods:organisationName.keyword"),
   SOURCE_SYSTEM_ID("sourceSystemID", "ods:sourceSystemID.keyword"),
+  SOURCE_SYSTEM_NAME("sourceSystemName", "ods:sourceSystemName.keyword"),
   SPECIMEN_NAME("specimenName", "ods:specimenName.keyword"),
   DATASET_NAME("datasetName", "dwc:datasetName.keyword"),
   COLLECTION_CODE("collectionCode", "dwc:collectionCode.keyword"),
@@ -57,7 +58,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     aggregationTerms.add(HAS_MEDIA);
     aggregationTerms.add(ORGANISATION_NAME);
     aggregationTerms.add(ORGANISATION_ID);
-    aggregationTerms.add(SOURCE_SYSTEM_ID);
+    aggregationTerms.add(SOURCE_SYSTEM_NAME);
     aggregationTerms.add(DATASET_NAME);
     aggregationTerms.add(KINGDOM);
     aggregationTerms.add(LIVING_OR_PRESERVED);
@@ -80,6 +81,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     paramMap.put(ORGANISATION_ID.requestName, ORGANISATION_ID);
     paramMap.put(ORGANISATION_NAME.requestName, ORGANISATION_NAME);
     paramMap.put(SOURCE_SYSTEM_ID.requestName, SOURCE_SYSTEM_ID);
+    paramMap.put(SOURCE_SYSTEM_NAME.requestName, SOURCE_SYSTEM_NAME);
     paramMap.put(SPECIMEN_NAME.requestName, SPECIMEN_NAME);
     paramMap.put(DATASET_NAME.requestName, DATASET_NAME);
     paramMap.put(BASIS_OF_RECORD.requestName, BASIS_OF_RECORD);
