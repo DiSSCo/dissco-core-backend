@@ -17,6 +17,7 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_ID;
+import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
 import static eu.dissco.backend.domain.DefaultMappingTerms.getAggregationSet;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
@@ -205,6 +206,7 @@ class ElasticSearchRepositoryIT {
   @Test
   void testAggregations() throws IOException {
     // Given
+    var anotherSourceSystemName = "Another source system";
     List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       DigitalSpecimen specimen;
@@ -214,6 +216,7 @@ class ElasticSearchRepositoryIT {
       } else {
         specimen = givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i,
             SOURCE_SYSTEM_ID_2);
+        specimen.setOdsSourceSystemName(anotherSourceSystemName);
       }
       specimenTestRecords.add(specimen);
     }
@@ -222,13 +225,13 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_ID.fullName(), List.of(SOURCE_SYSTEM_ID_2)), getAggregationSet(),
+        Map.of(SOURCE_SYSTEM_NAME.fullName(), List.of(anotherSourceSystemName)), getAggregationSet(),
         false);
 
     // Then
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
-    assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
-    assertThat(responseReceived.get("sourceSystemID").get(SOURCE_SYSTEM_ID_1)).isNull();
+    assertThat(responseReceived.get("sourceSystemName")).containsEntry(anotherSourceSystemName, 5L);
+    assertThat(responseReceived.get("sourceSystemName").get(SOURCE_SYSTEM_NAME)).isNull();
   }
 
   @Test
