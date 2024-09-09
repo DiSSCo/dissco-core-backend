@@ -18,6 +18,7 @@ import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import org.jooq.JSONB;
 import org.jooq.Query;
@@ -86,7 +87,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var receivedResponse = repository.getAnnotationForUser(ID, ORCID);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(1);
+    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
   }
 
   @Test

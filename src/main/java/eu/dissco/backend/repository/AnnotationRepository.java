@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.Annotation;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -39,13 +40,13 @@ public class AnnotationRepository {
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public int getAnnotationForUser(String id, String userId) {
-    return context.select(ANNOTATION.ID)
+  public Optional<Annotation> getAnnotationForUser(String id, String userId) {
+    return context.select(ANNOTATION.asterisk())
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
         .and(ANNOTATION.CREATOR_ID.eq(userId))
         .and(ANNOTATION.TOMBSTONED_ON.isNull())
-        .fetch().size();
+        .fetchOptional(this::mapToAnnotation);
   }
 
   public List<Annotation> getForTarget(String id) {

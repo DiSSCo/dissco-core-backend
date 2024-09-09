@@ -2,12 +2,11 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenClaims;
-import static eu.dissco.backend.TestUtils.givenUser;
+import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
@@ -143,7 +142,7 @@ class AnnotationControllerTest {
 
     var request = givenJsonApiAnnotationRequest(annotation);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(annotation, givenUser(), ANNOTATION_PATH))
+    given(service.persistAnnotation(annotation, givenAgent(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -186,7 +185,7 @@ class AnnotationControllerTest {
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotationBatch(event, givenUser(), ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -221,7 +220,7 @@ class AnnotationControllerTest {
     givenAuthentication();
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
-    given(service.persistAnnotationBatch(event, givenUser(), ANNOTATION_PATH))
+    given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
         .willReturn(null);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -239,7 +238,7 @@ class AnnotationControllerTest {
     var annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, givenUser(), ANNOTATION_PATH, PREFIX,
+    given(service.updateAnnotation(ID, annotation, givenAgent(), ANNOTATION_PATH, PREFIX,
         SUFFIX)).willReturn(
         expected);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
@@ -278,26 +277,26 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testDeleteAnnotationSuccess() throws Exception {
+  void testTombstoneAnnotationSuccess() throws Exception {
     // Given
     givenAuthentication();
-    given(service.deleteAnnotation(PREFIX, SUFFIX, ORCID)).willReturn(true);
+    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent())).willReturn(true);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
+    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
   @Test
-  void testDeleteAnnotationFailure() throws Exception {
+  void testTombstoneAnnotationFailure() throws Exception {
     // Given
     givenAuthentication();
-    given(service.deleteAnnotation(PREFIX, SUFFIX, ORCID)).willReturn(false);
+    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent())).willReturn(false);
 
     // When
-    var receivedResponse = controller.deleteAnnotation(authentication, PREFIX, SUFFIX);
+    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
