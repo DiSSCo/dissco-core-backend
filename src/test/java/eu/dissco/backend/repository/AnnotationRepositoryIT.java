@@ -76,7 +76,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationForUser() throws JsonProcessingException {
+  void testGetActiveAnnotationForUser() throws JsonProcessingException {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
         givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
@@ -84,7 +84,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getAnnotationForUser(ID, ORCID);
+    var receivedResponse = repository.getActiveAnnotationForUser(ID, ORCID);
 
     // Then
     assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));

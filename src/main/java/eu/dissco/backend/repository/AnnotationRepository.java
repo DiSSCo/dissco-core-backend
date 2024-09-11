@@ -40,7 +40,7 @@ public class AnnotationRepository {
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public Optional<Annotation> getAnnotationForUser(String id, String userId) {
+  public Optional<Annotation> getActiveAnnotationForUser(String id, String userId) {
     return context.select(ANNOTATION.asterisk())
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))

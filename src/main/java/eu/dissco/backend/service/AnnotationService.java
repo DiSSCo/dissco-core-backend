@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
@@ -164,7 +165,7 @@ public class AnnotationService {
       Agent agent,
       String path, String prefix, String suffix)
       throws NoAnnotationFoundException, JsonProcessingException {
-    var result = repository.getAnnotationForUser(id, agent.getId());
+    var result = repository.getActiveAnnotationForUser(id, agent.getId());
     if (result.isPresent()) {
       if (annotationProcessingRequest.getOdsID() == null) {
         annotationProcessingRequest.setOdsID(id);
@@ -197,9 +198,9 @@ public class AnnotationService {
   public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent)
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
-    var result = repository.getAnnotationForUser(id, agent.getId());
+    var result = repository.getActiveAnnotationForUser(id, agent.getId());
     if (result.isPresent()) {
-      annotationClient.tombstoneAnnotation(prefix, suffix, result.get(), agent);
+      annotationClient.tombstoneAnnotation(prefix, suffix, new AnnotationTombstoneWrapper(result.get(), agent));
       return true;
     } else {
       log.info("No active annotationRequests with id: {} found for user: {}", id, agent.getId());

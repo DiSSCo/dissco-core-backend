@@ -407,7 +407,7 @@ class AnnotationServiceTest {
   void testUpdateAnnotation() throws Exception {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
     var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
     given(annotationClient.updateAnnotation(any(), any(), any()))
         .willReturn(kafkaResponse);
@@ -424,7 +424,7 @@ class AnnotationServiceTest {
   @Test
   void testUpdateAnnotationDoesNotExist() {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
@@ -475,7 +475,7 @@ class AnnotationServiceTest {
   @Test
   void testTombstoneAnnotation() throws Exception {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
 
     // When
     var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent());
@@ -487,7 +487,7 @@ class AnnotationServiceTest {
   @Test
   void testTombstoneAnnotationDoesNotExist() {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,

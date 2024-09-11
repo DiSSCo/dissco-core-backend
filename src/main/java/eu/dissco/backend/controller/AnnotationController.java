@@ -183,7 +183,6 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(versions);
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{prefix}/{suffix}")
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
