@@ -8,7 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.givenUser;
+import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
@@ -49,6 +49,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.common.errors.InvalidRequestException;
@@ -290,7 +291,7 @@ class AnnotationServiceTest {
         processingResponse);
 
     //When
-    var responseReceived = service.persistAnnotation(annotationRequest, givenUser(),
+    var responseReceived = service.persistAnnotation(annotationRequest, givenAgent(),
         ANNOTATION_PATH);
 
     // Then
@@ -367,7 +368,7 @@ class AnnotationServiceTest {
         processingResponse);
 
     //When
-    var responseReceived = service.persistAnnotationBatch(event, givenUser(),
+    var responseReceived = service.persistAnnotationBatch(event, givenAgent(),
         ANNOTATION_PATH);
 
     // Then
@@ -383,7 +384,7 @@ class AnnotationServiceTest {
         .willReturn(null);
 
     // When
-    var result = service.persistAnnotation(annotationRequest, givenUser(), ANNOTATION_PATH
+    var result = service.persistAnnotation(annotationRequest, givenAgent(), ANNOTATION_PATH
     );
 
     // Then
@@ -406,13 +407,13 @@ class AnnotationServiceTest {
   void testUpdateAnnotation() throws Exception {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
     var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
     given(annotationClient.updateAnnotation(any(), any(), any()))
         .willReturn(kafkaResponse);
 
     // When
-    var result = service.updateAnnotation(ID, givenAnnotationRequest(), givenUser(),
+    var result = service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(),
         ANNOTATION_PATH,
         PREFIX, SUFFIX);
 
@@ -423,11 +424,11 @@ class AnnotationServiceTest {
   @Test
   void testUpdateAnnotationDoesNotExist() {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () -> service.updateAnnotation(ID, givenAnnotationRequest(), givenUser(),
+        () -> service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(),
             ANNOTATION_PATH, PREFIX, SUFFIX));
   }
 
@@ -472,25 +473,25 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testDeleteAnnotation() throws Exception {
+  void testTombstoneAnnotation() throws Exception {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(1);
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
 
     // When
-    var result = service.deleteAnnotation(PREFIX, SUFFIX, ORCID);
+    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent());
 
     // Then
     assertThat(result).isTrue();
   }
 
   @Test
-  void testDeleteAnnotationDoesNotExist() {
+  void testTombstoneAnnotationDoesNotExist() {
     // Given
-    given(repository.getAnnotationForUser(ID, ORCID)).willReturn(0);
+    given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () -> service.deleteAnnotation(PREFIX, SUFFIX, ORCID));
+        () -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent()));
   }
 
 }

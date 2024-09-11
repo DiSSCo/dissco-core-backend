@@ -18,6 +18,7 @@ import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import org.jooq.JSONB;
 import org.jooq.Query;
@@ -75,7 +76,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationForUser() throws JsonProcessingException {
+  void testGetActiveAnnotationForUser() throws JsonProcessingException {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
         givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
@@ -83,10 +84,10 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getAnnotationForUser(ID, ORCID);
+    var receivedResponse = repository.getActiveAnnotationForUser(ID, ORCID);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(1);
+    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
   }
 
   @Test

@@ -2,8 +2,9 @@ package eu.dissco.backend;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
+import eu.dissco.backend.schema.Agent;
+import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIDType;
 import eu.dissco.backend.schema.Event;
@@ -44,9 +45,11 @@ public class TestUtils {
   public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 
   // Users
-  public static User givenUser() {
-    return new User("Sam Leeflang", ORCID
-    );
+  public static Agent givenAgent() {
+    return new Agent()
+        .withType(Type.SCHEMA_PERSON)
+        .withSchemaName("Sam Leeflang")
+        .withId(ORCID);
   }
 
   // Token

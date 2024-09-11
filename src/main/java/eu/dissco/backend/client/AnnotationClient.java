@@ -2,6 +2,7 @@ package eu.dissco.backend.client;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.schema.Annotation;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -25,6 +26,6 @@ public interface AnnotationClient {
       @PathVariable("suffix") String suffix, @RequestBody Annotation annotation);
 
   @DeleteMapping(value = "/{prefix}/{suffix}")
-  void deleteAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix);
+  void tombstoneAnnotation(@PathVariable("prefix") String prefix,
+      @PathVariable("suffix") String suffix, @RequestBody AnnotationTombstoneWrapper annotationTombstoneWrapper);
 }

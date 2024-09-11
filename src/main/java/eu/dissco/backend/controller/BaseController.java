@@ -1,17 +1,15 @@
 package eu.dissco.backend.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.MasJobRequest;
-import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
+import eu.dissco.backend.schema.Agent;
+import eu.dissco.backend.schema.Agent.Type;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -35,9 +33,9 @@ public abstract class BaseController {
   protected final ObjectMapper mapper;
   private final ApplicationProperties applicationProperties;
 
-  protected User getUser(Authentication authentication) throws ForbiddenException {
-    var claims = ((Jwt) authentication.getPrincipal()).getClaims();
 
+  protected Agent getAgent(Authentication authentication) throws ForbiddenException {
+    var claims = ((Jwt) authentication.getPrincipal()).getClaims();
     if (claims.containsKey("orcid")) {
       StringBuilder fullName = new StringBuilder();
       if (claims.containsKey("given_name")){
@@ -49,7 +47,10 @@ public abstract class BaseController {
         }
         fullName.append(claims.get("family_name"));
       }
-      return new User(fullName.toString(), (String) claims.get("orcid"));
+      return new Agent()
+          .withType(Type.SCHEMA_PERSON)
+          .withSchemaName(fullName.toString())
+          .withId((String) claims.get("orcid"));
     } else {
       log.error("Missing ORCID in token");
       throw new ForbiddenException("Missing ORCID in token");

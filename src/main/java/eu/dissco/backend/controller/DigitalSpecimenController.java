@@ -234,7 +234,7 @@ public class DigitalSpecimenController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws ConflictException, ForbiddenException, PidCreationException {
-    var orcid = getUser(authentication).orcid();
+    var orcid = getAgent(authentication).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",

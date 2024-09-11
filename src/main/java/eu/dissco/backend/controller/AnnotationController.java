@@ -103,9 +103,9 @@ public class AnnotationController extends BaseController {
       @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException {
     var annotation = getAnnotationFromRequest(requestBody);
-    var user = getUser(authentication);
-    log.info("Received new annotationRequests from user: {}", user.orcid());
-    var annotationResponse = service.persistAnnotation(annotation, user, getPath(request));
+    var agent = getAgent(authentication);
+    log.info("Received new annotationRequests from agent: {}", agent.getId());
+    var annotationResponse = service.persistAnnotation(annotation, agent, getPath(request));
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
     } else {
@@ -130,7 +130,7 @@ public class AnnotationController extends BaseController {
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
-    var user = getUser(authentication);
+    var user = getAgent(authentication);
     log.info("Received new batch annotation from user: {}", user);
     var annotationResponse = service.persistAnnotationBatch(event, user, getPath(request));
     if (annotationResponse != null) {
@@ -147,10 +147,10 @@ public class AnnotationController extends BaseController {
       @PathVariable("suffix") String suffix, HttpServletRequest request)
       throws NoAnnotationFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
-    var user = getUser(authentication);
+    var agent = getAgent(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
-    log.info("Received update for annotationRequests: {} from user: {}", id, user.orcid());
-    var annotationResponse = service.updateAnnotation(id, annotation, user, getPath(request),
+    log.info("Received update for annotationRequests: {} from user: {}", id, agent.getId());
+    var annotationResponse = service.updateAnnotation(id, annotation, agent, getPath(request),
         prefix, suffix);
     if (annotationResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
@@ -166,7 +166,7 @@ public class AnnotationController extends BaseController {
       @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize, HttpServletRequest request,
       Authentication authentication) throws IOException, ForbiddenException {
-    var orcid = getUser(authentication).orcid();
+    var orcid = getAgent(authentication).getId();
     log.info("Received get request to show all annotationRequests for user: {}", orcid);
     var annotations = service.getAnnotationsForUser(orcid, pageNumber, pageSize,
         getPath(request));
@@ -183,15 +183,14 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(versions);
   }
 
-  @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{prefix}/{suffix}")
-  public ResponseEntity<Void> deleteAnnotation(Authentication authentication,
+  public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException, ForbiddenException {
-    var orcid = getUser(authentication).orcid();
-    log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix), orcid);
-    var success = service.deleteAnnotation(prefix, suffix, orcid);
+    var agent = getAgent(authentication);
+    log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix), agent.getId());
+    var success = service.tombstoneAnnotation(prefix, suffix, agent);
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } else {

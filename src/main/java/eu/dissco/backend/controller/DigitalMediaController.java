@@ -133,14 +133,13 @@ public class DigitalMediaController extends BaseController {
     return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));
   }
 
-
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
       throws ConflictException, ForbiddenException, PidCreationException {
-    var orcid = getUser(authentication).orcid();
+    var orcid = getAgent(authentication).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",

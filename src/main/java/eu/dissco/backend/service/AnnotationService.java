@@ -6,8 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
-import eu.dissco.backend.domain.User;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
@@ -23,7 +23,6 @@ import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.Agent;
-import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
@@ -80,20 +79,20 @@ public class AnnotationService {
     return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, User user,
+  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, Agent agent,
       String path) throws JsonProcessingException {
-    var annotation = buildAnnotation(annotationProcessingRequest, user, false);
+    var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
     var response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, User user,
+  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
       String path) throws JsonProcessingException {
-    var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), user, false)
+    var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), agent, false)
         .withOdsPlaceInBatch(1);
     String jobId = null;
     if (eventRequest.batchMetadata() != null){
-      jobId = masJobRecordService.createJobRecordForDisscover(processedAnnotation, user.orcid());
+      jobId = masJobRecordService.createJobRecordForDisscover(processedAnnotation, agent.getId());
     }
     var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
         eventRequest.batchMetadata(), jobId);
@@ -142,7 +141,7 @@ public class AnnotationService {
     }
   }
 
-  private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest, User user,
+  private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest, Agent agent,
       boolean isUpdate) {
     var annotation = new Annotation()
         .withOaMotivation(OaMotivation.fromValue(annotationProcessingRequest.getOaMotivation().value()))
@@ -150,10 +149,7 @@ public class AnnotationService {
         .withOaHasBody(annotationProcessingRequest.getOaHasBody())
         .withOaHasTarget(annotationProcessingRequest.getOaHasTarget())
         .withDctermsCreated(Date.from(Instant.now()))
-        .withDctermsCreator(new Agent()
-            .withType(Type.SCHEMA_PERSON)
-            .withId(user.orcid())
-            .withSchemaName(user.fullName()));
+        .withDctermsCreator(agent);
     if (isUpdate) {
       annotation.setId(annotationProcessingRequest.getOdsID());
       annotation.setOdsID(annotationProcessingRequest.getOdsID());
@@ -166,20 +162,20 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper updateAnnotation(String id, AnnotationProcessingRequest annotationProcessingRequest,
-      User user,
+      Agent agent,
       String path, String prefix, String suffix)
       throws NoAnnotationFoundException, JsonProcessingException {
-    var result = repository.getAnnotationForUser(id, user.orcid());
-    if (result > 0) {
+    var result = repository.getActiveAnnotationForUser(id, agent.getId());
+    if (result.isPresent()) {
       if (annotationProcessingRequest.getOdsID() == null) {
         annotationProcessingRequest.setOdsID(id);
       }
-      var annotation = buildAnnotation(annotationProcessingRequest, user, true);
+      var annotation = buildAnnotation(annotationProcessingRequest, agent, true);
       var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
       return formatResponse(response, path);
     } else {
       log.info("No active annotationRequests with id: {} found for user {}", id,
-          user.orcid());
+          agent.getId());
       throw new NoAnnotationFoundException(
           "No active annotationRequests with id: " + id + " was found for user");
     }
@@ -199,15 +195,15 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public boolean deleteAnnotation(String prefix, String suffix, String orcid)
+  public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent)
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
-    var result = repository.getAnnotationForUser(id, orcid);
-    if (result > 0) {
-      annotationClient.deleteAnnotation(prefix, suffix);
+    var result = repository.getActiveAnnotationForUser(id, agent.getId());
+    if (result.isPresent()) {
+      annotationClient.tombstoneAnnotation(prefix, suffix, new AnnotationTombstoneWrapper(result.get(), agent));
       return true;
     } else {
-      log.info("No active annotationRequests with id: {} found for user: {}", id, orcid);
+      log.info("No active annotationRequests with id: {} found for user: {}", id, agent.getId());
       throw new NoAnnotationFoundException(
           "No active annotationRequests with id: " + id + " was found for user");
     }
