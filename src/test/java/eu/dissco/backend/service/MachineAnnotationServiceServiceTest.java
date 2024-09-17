@@ -64,16 +64,16 @@ class MachineAnnotationServiceServiceTest {
   private static Stream<Arguments> provideFilters() {
     return Stream.of(
         Arguments.of(List.of(
-            Pair.of("$.ods:type", List.of("Some Test value")))),
+            Pair.of("$['ods:type']", List.of("Some Test value")))),
         Arguments.of(List.of(
-            Pair.of("$.ods:format", List.of("application/json")),
-            Pair.of("$.digitalSpecimen.occurrences[*].location.dwc:country",
+            Pair.of("$['ods:format']", List.of("application/json")),
+            Pair.of("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:country']",
                 List.of("The Netherlands", "Belgium")))),
         Arguments.of(List.of(
-            Pair.of("$.ods:format", List.of("application/json")),
-            Pair.of("$.digitalSpecimen.occurrences[*].dwc:city",
+            Pair.of("$['ods:format']", List.of("application/json")),
+            Pair.of("$['digitalSpecimen']['ods:hasEvent'][*]['dwc:city']",
                 List.of("Rotterdam", "Amsterdam")))),
-        Arguments.of(List.of(Pair.of("$.omg:someRandomNonExistingKey", List.of("whyKnows"))))
+        Arguments.of(List.of(Pair.of("$['omg:someRandomNonExistingKey']", List.of("whyKnows"))))
     );
   }
 
@@ -209,14 +209,14 @@ class MachineAnnotationServiceServiceTest {
 
   private OdsTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
     var filters = new OdsTargetDigitalObjectFilter()
-        .withAdditionalProperty("$.ods:type",
+        .withAdditionalProperty("$['ods:type']",
             List.of("https://doi.org/21.T11148/bbad8c4e101e8af01115"))
-        .withAdditionalProperty("$.dwc:organisationName",
+        .withAdditionalProperty("$['dwc:organisationName']",
             List.of("Royal Botanic Garden Edinburgh Herbarium"))
-        .withAdditionalProperty("$.digitalSpecimen.ods:hasEvent[*].ods:Location.dwc:country",
+        .withAdditionalProperty("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:country']",
             List.of("*"));
     if (unmatchedFilter) {
-      filters.withAdditionalProperty("$.digitalSpecimen.occurrences[*].location.dwc:island",
+      filters.withAdditionalProperty("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:island']",
           List.of("*"));
     }
     return filters;
@@ -224,11 +224,11 @@ class MachineAnnotationServiceServiceTest {
 
   private OdsTargetDigitalObjectFilter givenFiltersDigitalSpecimen() {
     return new OdsTargetDigitalObjectFilter()
-        .withAdditionalProperty("$.dcterms:license",
+        .withAdditionalProperty("$['dcterms:license']",
             List.of("http://creativecommons.org/licenses/by/4.0/legalcode",
                 "http://creativecommons.org/licenses/by-nc/4.0/"))
-        .withAdditionalProperty("$.ods:topicDiscipline", List.of("Palaeontology"))
-        .withAdditionalProperty("$.ods:midsLevel", List.of(0, 1));
+        .withAdditionalProperty("$['ods:topicDiscipline']", List.of("Palaeontology"))
+        .withAdditionalProperty("$['ods:midsLevel']", List.of(0, 1));
   }
 
 }
