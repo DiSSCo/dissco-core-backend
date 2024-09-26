@@ -1,5 +1,7 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
@@ -93,7 +95,7 @@ public class DigitalSpecimenController extends BaseController {
       @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, @PathVariable("version") int version,
       HttpServletRequest request) throws NotFoundException, JsonProcessingException {
-    var id = prefix + '/' + suffix;
+    var id = DOI_STRING + prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {} and version: {}", id, version);
     var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -105,7 +107,7 @@ public class DigitalSpecimenController extends BaseController {
       @PathVariable("suffix") String suffix, @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = DOI_STRING + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var specimen = service.getSpecimenByVersion(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -115,7 +117,7 @@ public class DigitalSpecimenController extends BaseController {
   @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getSpecimenVersions(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = DOI_STRING + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var versions = service.getSpecimenVersions(id, getPath(request));
     return ResponseEntity.ok(versions);

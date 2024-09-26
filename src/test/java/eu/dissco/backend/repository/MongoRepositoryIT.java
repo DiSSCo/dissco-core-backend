@@ -54,7 +54,7 @@ class MongoRepositoryIT {
     var expected = givenExpectedSpecimen(4);
 
     // When
-    var result = repository.getByVersion(ID, 4, "digital_specimen_provenance");
+    var result = repository.getByVersion(DOI + ID, 4, "digital_specimen_provenance");
 
     // Then
     assertThat(result).isEqualTo(expected.get("prov:Entity").get("prov:value"));
@@ -66,7 +66,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getByVersion(ID, 2, "digital_specimen_provenance"));
+        () -> repository.getByVersion(DOI + ID, 2, "digital_specimen_provenance"));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);
@@ -93,7 +93,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getVersions(ID, "digital_specimen_provenance"));
+        () -> repository.getVersions(DOI + ID, "digital_specimen_provenance"));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);
