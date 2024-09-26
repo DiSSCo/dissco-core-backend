@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
@@ -107,6 +109,7 @@ class DigitalSpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    then(service).should().getSpecimenByVersion(eq(DOI + ID), eq(1), anyString());
   }
 
   @Test
@@ -116,6 +119,8 @@ class DigitalSpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    then(service).should().getSpecimenVersions(eq(DOI + ID), anyString());
+
   }
 
   @Test
@@ -219,6 +224,7 @@ class DigitalSpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    then(service).should().getSpecimenByVersionFull(eq(DOI + ID), eq(1), anyString());
   }
 
   @Test

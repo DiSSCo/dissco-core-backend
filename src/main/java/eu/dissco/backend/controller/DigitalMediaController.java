@@ -1,6 +1,8 @@
 package eu.dissco.backend.controller;
 
 
+import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
@@ -81,7 +83,7 @@ public class DigitalMediaController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       HttpServletRequest request)
       throws NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = DOI_STRING + prefix + '/' + suffix;
     log.info("Received get request for versions of digital media with id: {}", id);
     var versions = service.getDigitalMediaVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
@@ -92,7 +94,7 @@ public class DigitalMediaController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @PathVariable("version") int version, HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = DOI_STRING + prefix + '/' + suffix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
     var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));
     return ResponseEntity.ok(digitalMedia);

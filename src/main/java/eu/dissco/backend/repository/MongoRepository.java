@@ -27,7 +27,7 @@ public class MongoRepository {
   public JsonNode getByVersion(String id, int version, String collectionName)
       throws JsonProcessingException, NotFoundException {
     var collection = database.getCollection(collectionName);
-    var versionId = "https://doi.org/" + id + '/' + version;
+    var versionId = id + '/' + version;
     var result = collection.find(eq("_id", versionId));
     if (result.first() == null) {
       throw new NotFoundException(

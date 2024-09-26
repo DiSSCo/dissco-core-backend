@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PREFIX;
@@ -18,7 +19,10 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequ
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
@@ -104,7 +108,7 @@ class AnnotationControllerTest {
     int version = 1;
     var expectedResponse = ResponseEntity.ok(
         givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
-    given(service.getAnnotationByVersion(ID, version, ANNOTATION_PATH)).willReturn(
+    given(service.getAnnotationByVersion(HANDLE + ID, version, ANNOTATION_PATH)).willReturn(
         expectedResponse.getBody());
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -274,6 +278,7 @@ class AnnotationControllerTest {
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    then(service).should().getAnnotationVersions(eq(HANDLE + ID), anyString());
   }
 
   @Test

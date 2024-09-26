@@ -1,5 +1,7 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +82,7 @@ public class AnnotationController extends BaseController {
       @PathVariable("suffix") String suffix, @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = HANDLE_STRING + prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, getPath(request));
     return ResponseEntity.ok(annotation);
@@ -177,7 +179,7 @@ public class AnnotationController extends BaseController {
   @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
+    var id = HANDLE_STRING + prefix + '/' + suffix;
     log.info("Received get request for versions of annotationRequests with id: {}", id);
     var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
