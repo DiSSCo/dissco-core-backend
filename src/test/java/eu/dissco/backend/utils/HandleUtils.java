@@ -13,7 +13,6 @@ public class HandleUtils {
           "data" : {
             "type" : "https://doi.org/21.T11148/532ce6796e2828dd2be6",
             "attributes" : {
-              "issuedForAgent" : "https://ror.org/0566bfb96"
             }
           }
         }

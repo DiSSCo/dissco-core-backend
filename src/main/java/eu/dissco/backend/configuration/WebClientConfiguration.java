@@ -2,7 +2,6 @@ package eu.dissco.backend.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.component.FdoRecordComponent;
-import eu.dissco.backend.properties.FdoProperties;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +18,6 @@ public class WebClientConfiguration {
 
   private final WebConnectionProperties properties;
   private final ObjectMapper mapper;
-  private final FdoProperties fdoProperties;
 
   @Bean(name = "tokenClient")
   public WebClient tokenClient() {
@@ -41,7 +39,7 @@ public class WebClientConfiguration {
 
   @Bean(name = "fdoRecordBuilder")
   public FdoRecordComponent fdoRecordBuilder() {
-    return new FdoRecordComponent(mapper, fdoProperties);
+    return new FdoRecordComponent(mapper);
   }
 
 }
