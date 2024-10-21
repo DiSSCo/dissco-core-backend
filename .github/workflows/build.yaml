@@ -54,10 +54,13 @@ jobs:
           format: 'table'
           ignore-unfixed: true
           vuln-type: 'os,library'
+        env:
+          TRIVY_SKIP_DB_UPDATE: true
+          TRIVY_SKIP_JAVA_DB_UPDATE: true
       - name: Trivy - Stop on Severe Vulnerabilities
         uses: aquasecurity/trivy-action@master
+        if: github.event_name == 'pull_request'
         with:
-          if: github.event_name == 'pull_request'
           image-ref: '${{ github.event.repository.name }}'
           format: 'table'
           ignore-unfixed: true
@@ -65,6 +68,9 @@ jobs:
           exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+        env:
+          TRIVY_SKIP_DB_UPDATE: true
+          TRIVY_SKIP_JAVA_DB_UPDATE: true
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
