@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoDatabase;
 import eu.dissco.backend.exceptions.NotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -47,6 +48,7 @@ public class MongoRepository {
     var versions = new ArrayList<Integer>();
     result.forEach(document -> versions.add(
         document.getEmbedded(List.of(PROV_ENTITY, PROV_VALUE, ODS_VERSION), Integer.class)));
+    Collections.sort(versions);
     return versions;
   }
 }
