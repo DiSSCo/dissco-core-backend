@@ -118,7 +118,7 @@ public class MasJobRecordService {
         handle,
         JobState.RUNNING,
         "DISSCOVER",
-        annotation.getOaHasTarget().getId(),
+        annotation.getOaHasTarget().getId().replaceAll("https://(doi\\.org|hdl\\.handle\\.net)/", ""),
         getMjrTargetType(annotation),
         orcid,
         true,
