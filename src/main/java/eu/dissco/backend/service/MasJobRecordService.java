@@ -99,7 +99,7 @@ public class MasJobRecordService {
               handleItr.next(),
               JobState.SCHEDULED,
               masRecord.getId(),
-              targetId,
+              targetId.replaceAll("https://(doi\\.org|hdl\\.handle\\.net)/", ""),
               targetType,
               orcid,
               request.batching(),
