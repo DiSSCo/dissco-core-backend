@@ -52,7 +52,7 @@ public class MachineAnnotationServiceService {
               valueList))) {
             complies = false;
           }
-        } else if (values instanceof Object && !allowedValues.contains(values)) {
+        } else if (values instanceof Object && (!allowedValues.contains(values) && !allowedValues.contains("*"))) {
           complies = false;
         }
       } catch (PathNotFoundException e) {
