@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -158,7 +157,7 @@ class MasJobRecordServiceTest {
         JOB_ID,
         JobState.RUNNING,
         "DISSCOVER",
-        TARGET_ID.replace(HANDLE,""),
+        TARGET_ID,
         MjrTargetType.DIGITAL_SPECIMEN,
         ORCID,
         true,
@@ -181,7 +180,7 @@ class MasJobRecordServiceTest {
         JOB_ID,
         JobState.RUNNING,
         "DISSCOVER",
-        TARGET_ID.replace(HANDLE,""),
+        TARGET_ID,
         MjrTargetType.MEDIA_OBJECT,
         ORCID,
         true,

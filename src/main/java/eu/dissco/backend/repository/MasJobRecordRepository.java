@@ -38,7 +38,7 @@ public class MasJobRecordRepository {
   public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, JobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = MAS_JOB_RECORD.TARGET_ID.eq(targetId);
+    var condition = MAS_JOB_RECORD.TARGET_ID.eq(DOI_STRING + targetId);
     if (state != null) {
       condition = condition.and(MAS_JOB_RECORD.JOB_STATE.eq(state));
     }
