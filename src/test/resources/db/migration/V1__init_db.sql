@@ -22,11 +22,11 @@ create table annotation
     motivation      text                     not null,
     mjr_job_id      text,
     batch_id        uuid,
-    creator_id      text                     not null,
+    creator      text                     not null,
     created         timestamp with time zone not null,
     modified        timestamp with time zone not null,
     last_checked    timestamp with time zone not null,
-    tombstoned_on   timestamp with time zone,
+    tombstoned   timestamp with time zone,
     target_id       text                     not null,
     data            jsonb
 );

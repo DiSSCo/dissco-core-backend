@@ -5,8 +5,10 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.Annotation;
+
 import java.time.Instant;
 import java.util.UUID;
+
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -119,16 +121,16 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     }
 
     /**
-     * Setter for <code>public.annotation.creator_id</code>.
+     * Setter for <code>public.annotation.creator</code>.
      */
-    public void setCreatorId(String value) {
+    public void setCreator(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>public.annotation.creator_id</code>.
+     * Getter for <code>public.annotation.creator</code>.
      */
-    public String getCreatorId() {
+    public String getCreator() {
         return (String) get(7);
     }
 
@@ -175,16 +177,16 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     }
 
     /**
-     * Setter for <code>public.annotation.tombstoned_on</code>.
+     * Setter for <code>public.annotation.tombstoned</code>.
      */
-    public void setTombstonedOn(Instant value) {
+    public void setTombstoned(Instant value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>public.annotation.tombstoned_on</code>.
+     * Getter for <code>public.annotation.tombstoned</code>.
      */
-    public Instant getTombstonedOn() {
+    public Instant getTombstoned() {
         return (Instant) get(11);
     }
 
@@ -239,7 +241,7 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     /**
      * Create a detached, initialised AnnotationRecord
      */
-    public AnnotationRecord(String id, Integer version, String type, UUID annotationHash, String motivation, String mjrJobId, UUID batchId, String creatorId, Instant created, Instant modified, Instant lastChecked, Instant tombstonedOn, String targetId, JSONB data) {
+    public AnnotationRecord(String id, Integer version, String type, UUID annotationHash, String motivation, String mjrJobId, UUID batchId, String creator, Instant created, Instant modified, Instant lastChecked, Instant tombstoned, String targetId, JSONB data) {
         super(Annotation.ANNOTATION);
 
         setId(id);
@@ -249,11 +251,11 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
         setMotivation(motivation);
         setMjrJobId(mjrJobId);
         setBatchId(batchId);
-        setCreatorId(creatorId);
+        setCreator(creator);
         setCreated(created);
         setModified(modified);
         setLastChecked(lastChecked);
-        setTombstonedOn(tombstonedOn);
+        setTombstoned(tombstoned);
         setTargetId(targetId);
         setData(data);
         resetChangedOnNotNull();
