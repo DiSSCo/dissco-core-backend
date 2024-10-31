@@ -77,8 +77,8 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICE.ID, mas.getId().replace(HANDLE, ""))
         .set(MACHINE_ANNOTATION_SERVICE.VERSION, mas.getSchemaVersion())
         .set(MACHINE_ANNOTATION_SERVICE.NAME, mas.getSchemaName())
-        .set(MACHINE_ANNOTATION_SERVICE.DATE_CREATED, mas.getSchemaDateCreated().toInstant())
-        .set(MACHINE_ANNOTATION_SERVICE.DATE_MODIFIED, mas.getSchemaDateModified().toInstant())
+        .set(MACHINE_ANNOTATION_SERVICE.CREATED, mas.getSchemaDateCreated().toInstant())
+        .set(MACHINE_ANNOTATION_SERVICE.MODIFIED, mas.getSchemaDateModified().toInstant())
         .set(MACHINE_ANNOTATION_SERVICE.CREATOR, mas.getSchemaCreator().getId())
         .set(MACHINE_ANNOTATION_SERVICE.CONTAINER_IMAGE, mas.getOdsContainerImage())
         .set(MACHINE_ANNOTATION_SERVICE.CONTAINER_IMAGE_TAG, mas.getOdsContainerTag())
@@ -92,7 +92,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICE.CODE_LICENSE, mas.getSchemaLicense())
         .set(MACHINE_ANNOTATION_SERVICE.BATCHING_PERMITTED, mas.getOdsBatchingPermitted())
         .set(MACHINE_ANNOTATION_SERVICE.TIME_TO_LIVE, mas.getOdsTimeToLive())
-        .set(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED,
+        .set(MACHINE_ANNOTATION_SERVICE.TOMBSTONED,
             mas.getOdsTombstoneMetadata() != null ? mas.getOdsTombstoneMetadata()
                 .getOdsTombstoneDate().toInstant() : null)
         .set(MACHINE_ANNOTATION_SERVICE.DATA, mapToJSONB(mas))

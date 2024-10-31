@@ -25,7 +25,7 @@ public class MachineAnnotationServiceRepository {
   public List<MachineAnnotationService> getAllMas() {
     return context.select(MACHINE_ANNOTATION_SERVICE.DATA)
         .from(MACHINE_ANNOTATION_SERVICE)
-        .where(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED.isNull())
+        .where(MACHINE_ANNOTATION_SERVICE.TOMBSTONED.isNull())
         .fetch(this::mapToMas);
   }
 
@@ -44,7 +44,7 @@ public class MachineAnnotationServiceRepository {
     return context.select(MACHINE_ANNOTATION_SERVICE.DATA)
         .from(MACHINE_ANNOTATION_SERVICE)
         .where(MACHINE_ANNOTATION_SERVICE.ID.in(massIds))
-        .and(MACHINE_ANNOTATION_SERVICE.DATE_TOMBSTONED.isNull())
+        .and(MACHINE_ANNOTATION_SERVICE.TOMBSTONED.isNull())
         .fetch(this::mapToMas);
   }
 

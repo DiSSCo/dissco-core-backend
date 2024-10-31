@@ -64,46 +64,44 @@ public class MachineAnnotationServiceRecord extends UpdatableRecordImpl<MachineA
     }
 
     /**
-     * Setter for <code>public.machine_annotation_service.date_created</code>.
+     * Setter for <code>public.machine_annotation_service.created</code>.
      */
-    public void setDateCreated(Instant value) {
+    public void setCreated(Instant value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>public.machine_annotation_service.date_created</code>.
+     * Getter for <code>public.machine_annotation_service.created</code>.
      */
-    public Instant getDateCreated() {
+    public Instant getCreated() {
         return (Instant) get(3);
     }
 
     /**
-     * Setter for <code>public.machine_annotation_service.date_modified</code>.
+     * Setter for <code>public.machine_annotation_service.modified</code>.
      */
-    public void setDateModified(Instant value) {
+    public void setModified(Instant value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>public.machine_annotation_service.date_modified</code>.
+     * Getter for <code>public.machine_annotation_service.modified</code>.
      */
-    public Instant getDateModified() {
+    public Instant getModified() {
         return (Instant) get(4);
     }
 
     /**
-     * Setter for
-     * <code>public.machine_annotation_service.date_tombstoned</code>.
+     * Setter for <code>public.machine_annotation_service.tombstoned</code>.
      */
-    public void setDateTombstoned(Instant value) {
+    public void setTombstoned(Instant value) {
         set(5, value);
     }
 
     /**
-     * Getter for
-     * <code>public.machine_annotation_service.date_tombstoned</code>.
+     * Getter for <code>public.machine_annotation_service.tombstoned</code>.
      */
-    public Instant getDateTombstoned() {
+    public Instant getTombstoned() {
         return (Instant) get(5);
     }
 
@@ -314,15 +312,15 @@ public class MachineAnnotationServiceRecord extends UpdatableRecordImpl<MachineA
     /**
      * Create a detached, initialised MachineAnnotationServiceRecord
      */
-    public MachineAnnotationServiceRecord(String id, Integer version, String name, Instant dateCreated, Instant dateModified, Instant dateTombstoned, String creator, String containerImage, String containerImageTag, String creativeWorkState, String sourceCodeRepository, String serviceAvailability, String codeMaintainer, String codeLicense, String supportContact, Boolean batchingPermitted, Integer timeToLive, JSONB data) {
+    public MachineAnnotationServiceRecord(String id, Integer version, String name, Instant created, Instant modified, Instant tombstoned, String creator, String containerImage, String containerImageTag, String creativeWorkState, String sourceCodeRepository, String serviceAvailability, String codeMaintainer, String codeLicense, String supportContact, Boolean batchingPermitted, Integer timeToLive, JSONB data) {
         super(MachineAnnotationService.MACHINE_ANNOTATION_SERVICE);
 
         setId(id);
         setVersion(version);
         setName(name);
-        setDateCreated(dateCreated);
-        setDateModified(dateModified);
-        setDateTombstoned(dateTombstoned);
+        setCreated(created);
+        setModified(modified);
+        setTombstoned(tombstoned);
         setCreator(creator);
         setContainerImage(containerImage);
         setContainerImageTag(containerImageTag);
