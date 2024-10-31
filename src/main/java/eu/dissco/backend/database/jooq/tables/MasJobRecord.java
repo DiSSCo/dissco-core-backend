@@ -90,9 +90,9 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
     public final TableField<MasJobRecordRecord, String> TARGET_ID = createField(DSL.name("target_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>public.mas_job_record.user_id</code>.
+     * The column <code>public.mas_job_record.creator</code>.
      */
-    public final TableField<MasJobRecordRecord, String> USER_ID = createField(DSL.name("user_id"), SQLDataType.CLOB, this, "");
+    public final TableField<MasJobRecordRecord, String> CREATOR = createField(DSL.name("creator"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.mas_job_record.target_type</code>.

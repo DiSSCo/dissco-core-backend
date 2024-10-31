@@ -208,7 +208,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
           .set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
           .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
           .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
-          .set(MAS_JOB_RECORD.USER_ID, mjr.orcid())
+          .set(MAS_JOB_RECORD.CREATOR, mjr.orcid())
           .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
           .set(MAS_JOB_RECORD.EXPIRES_ON, ttl));
     }

@@ -95,7 +95,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.JOB_ID, masJobRecord.jobId())
         .set(MAS_JOB_RECORD.JOB_STATE, masJobRecord.state())
         .set(MAS_JOB_RECORD.MAS_ID, masJobRecord.masId())
-        .set(MAS_JOB_RECORD.USER_ID, masJobRecord.orcid())
+        .set(MAS_JOB_RECORD.CREATOR, masJobRecord.orcid())
         .set(MAS_JOB_RECORD.TARGET_ID, DOI_STRING + masJobRecord.targetId())
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD.TIME_STARTED, now)
@@ -115,7 +115,7 @@ public class MasJobRecordRepository {
           dbRecord.get(MAS_JOB_RECORD.MAS_ID),
           dbRecord.get(MAS_JOB_RECORD.TARGET_ID),
           dbRecord.get(MAS_JOB_RECORD.TARGET_TYPE),
-          dbRecord.get(MAS_JOB_RECORD.USER_ID),
+          dbRecord.get(MAS_JOB_RECORD.CREATOR),
           dbRecord.get(MAS_JOB_RECORD.JOB_ID),
           dbRecord.get(MAS_JOB_RECORD.TIME_STARTED),
           dbRecord.get(MAS_JOB_RECORD.TIME_COMPLETED),

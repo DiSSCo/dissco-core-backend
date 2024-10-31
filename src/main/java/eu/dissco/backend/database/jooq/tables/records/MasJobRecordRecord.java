@@ -123,16 +123,16 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     }
 
     /**
-     * Setter for <code>public.mas_job_record.user_id</code>.
+     * Setter for <code>public.mas_job_record.creator</code>.
      */
-    public void setUserId(String value) {
+    public void setCreator(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>public.mas_job_record.user_id</code>.
+     * Getter for <code>public.mas_job_record.creator</code>.
      */
-    public String getUserId() {
+    public String getCreator() {
         return (String) get(7);
     }
 
@@ -215,7 +215,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     /**
      * Create a detached, initialised MasJobRecordRecord
      */
-    public MasJobRecordRecord(String jobId, JobState jobState, String masId, Instant timeStarted, Instant timeCompleted, JSONB annotations, String targetId, String userId, MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant expiresOn) {
+    public MasJobRecordRecord(String jobId, JobState jobState, String masId, Instant timeStarted, Instant timeCompleted, JSONB annotations, String targetId, String creator, MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant expiresOn) {
         super(MasJobRecord.MAS_JOB_RECORD);
 
         setJobId(jobId);
@@ -225,7 +225,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
         setTimeCompleted(timeCompleted);
         setAnnotations(annotations);
         setTargetId(targetId);
-        setUserId(userId);
+        setCreator(creator);
         setTargetType(targetType);
         setBatchingRequested(batchingRequested);
         setError(error);
