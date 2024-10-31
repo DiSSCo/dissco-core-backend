@@ -122,7 +122,7 @@ create table mas_job_record
     time_completed     timestamp with time zone,
     annotations        jsonb,
     target_id          text                     not null,
-    user_id            text,
+    creator            text,
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
