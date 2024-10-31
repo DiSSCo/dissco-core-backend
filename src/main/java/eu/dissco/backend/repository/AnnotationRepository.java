@@ -44,8 +44,8 @@ public class AnnotationRepository {
     return context.select(ANNOTATION.asterisk())
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
-        .and(ANNOTATION.CREATOR_ID.eq(userId))
-        .and(ANNOTATION.TOMBSTONED_ON.isNull())
+        .and(ANNOTATION.CREATOR.eq(userId))
+        .and(ANNOTATION.TOMBSTONED.isNull())
         .fetchOptional(this::mapToAnnotation);
   }
 
@@ -53,7 +53,7 @@ public class AnnotationRepository {
     return context.select(ANNOTATION.DATA)
         .from(ANNOTATION)
         .where(ANNOTATION.TARGET_ID.eq(id))
-        .and(ANNOTATION.TOMBSTONED_ON.isNull())
+        .and(ANNOTATION.TOMBSTONED.isNull())
         .fetch(this::mapToAnnotation);
   }
 

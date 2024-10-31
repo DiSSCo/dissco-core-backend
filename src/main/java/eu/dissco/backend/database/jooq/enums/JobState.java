@@ -5,6 +5,7 @@ package eu.dissco.backend.database.jooq.enums;
 
 
 import eu.dissco.backend.database.jooq.Public;
+
 import org.jooq.Catalog;
 import org.jooq.EnumType;
 import org.jooq.Schema;
@@ -22,7 +23,9 @@ public enum JobState implements EnumType {
 
     FAILED("FAILED"),
 
-    COMPLETED("COMPLETED");
+    COMPLETED("COMPLETED"),
+
+    NOTIFICATION_FAILED("NOTIFICATION_FAILED");
 
     private final String literal;
 

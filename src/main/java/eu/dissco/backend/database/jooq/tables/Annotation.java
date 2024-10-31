@@ -7,9 +7,11 @@ package eu.dissco.backend.database.jooq.tables;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
+
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.JSONB;
@@ -86,9 +88,9 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     public final TableField<AnnotationRecord, UUID> BATCH_ID = createField(DSL.name("batch_id"), SQLDataType.UUID, this, "");
 
     /**
-     * The column <code>public.annotation.creator_id</code>.
+     * The column <code>public.annotation.creator</code>.
      */
-    public final TableField<AnnotationRecord, String> CREATOR_ID = createField(DSL.name("creator_id"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<AnnotationRecord, String> CREATOR = createField(DSL.name("creator"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>public.annotation.created</code>.
@@ -106,9 +108,9 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     public final TableField<AnnotationRecord, Instant> LAST_CHECKED = createField(DSL.name("last_checked"), SQLDataType.INSTANT.nullable(false), this, "");
 
     /**
-     * The column <code>public.annotation.tombstoned_on</code>.
+     * The column <code>public.annotation.tombstoned</code>.
      */
-    public final TableField<AnnotationRecord, Instant> TOMBSTONED_ON = createField(DSL.name("tombstoned_on"), SQLDataType.INSTANT, this, "");
+    public final TableField<AnnotationRecord, Instant> TOMBSTONED = createField(DSL.name("tombstoned"), SQLDataType.INSTANT, this, "");
 
     /**
      * The column <code>public.annotation.target_id</code>.
