@@ -140,7 +140,7 @@ public class DigitalMediaController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody JsonApiRequestWrapper requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, PidCreationException {
+      throws ConflictException, ForbiddenException, PidCreationException, NotFoundException {
     var orcid = getAgent(authentication).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -159,10 +160,18 @@ public class DigitalMediaService {
 
   public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
       String path, String orcid)
-      throws PidCreationException, ConflictException {
+      throws PidCreationException, ConflictException, NotFoundException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
+    if (digitalMedia == null){
+      log.error("Unable to find media with id {}", id);
+      throw new NotFoundException("Specimen " + id + " not found");
+    }
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));
+    if (digitalSpecimen == null){
+      log.error("Unable to find specimen for media with id {}", id);
+      throw new NotFoundException("Unable to find related specimen for media with id " + id);
+    }
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
         MjrTargetType.MEDIA_OBJECT);
