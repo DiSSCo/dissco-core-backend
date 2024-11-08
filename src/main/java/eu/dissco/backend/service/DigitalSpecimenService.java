@@ -302,8 +302,12 @@ public class DigitalSpecimenService {
 
   public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
       String orcid, String path)
-      throws ConflictException {
+      throws ConflictException, NotFoundException {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
+    if (digitalSpecimen == null) {
+      log.error("Unable to find specimen with id {}", id);
+      throw new NotFoundException("Specimen " + id + " not found");
+    }
     var flattenAttributes = flattenAttributes(digitalSpecimen);
     return masService.scheduleMass(flattenAttributes, masRequests, path, digitalSpecimen, id, orcid,
         MjrTargetType.DIGITAL_SPECIMEN);

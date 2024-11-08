@@ -26,6 +26,7 @@ import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiD
 import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -561,10 +562,21 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
+  void testScheduleMasNotFound() {
+    // Given
+    given(repository.getLatestSpecimenById(ID)).willReturn(null);
+
+    // When / Then
+    assertThrows(NotFoundException.class,
+        () -> service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), ORCID, SPECIMEN_PATH));
+  }
+
+  @Test
   void testGetOriginalDataForSpecimen() throws JsonProcessingException {
     // Given
     var expectedJson = givenMongoDBResponse();
-    var expected = new JsonApiWrapper(new JsonApiData(ID, OdsType.DIGITAL_SPECIMEN.getPid(), expectedJson),
+    var expected = new JsonApiWrapper(
+        new JsonApiData(ID, OdsType.DIGITAL_SPECIMEN.getPid(), expectedJson),
         new JsonApiLinks(SANDBOX_URI));
     given(repository.getSpecimenOriginalData(ID)).willReturn(expectedJson);
 
