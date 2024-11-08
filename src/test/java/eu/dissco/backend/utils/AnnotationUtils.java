@@ -27,9 +27,9 @@ import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.AnnotationBody;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.schema.AnnotationProcessingRequest.OaMotivation;
-import eu.dissco.backend.schema.OaHasSelector;
 import eu.dissco.backend.schema.AnnotationTarget;
-import eu.dissco.backend.schema.SchemaAggregateRating;
+import eu.dissco.backend.schema.OaHasSelector;
+import eu.dissco.backend.schema.OdsHasAggregateRating;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -63,11 +63,11 @@ public class AnnotationUtils {
       String targetId) {
     return new Annotation()
         .withId(annotationId)
-        .withOdsID(annotationId)
-        .withType("ods:Anotation")
+        .withDctermsIdentifier(annotationId)
+        .withType("ods:Annotation")
         .withOdsVersion(1)
         .withOaHasBody(givenOaBodyAnnotation())
-        .withRdfType("ods:Annotation")
+        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57g151764e")
         .withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
         .withDctermsCreator(givenCreator(userId))
         .withOaHasTarget(givenOaTargetAnnotation(targetId))
@@ -75,7 +75,7 @@ public class AnnotationUtils {
         .withDctermsModified(Date.from(CREATED))
         .withDctermsIssued(Date.from(CREATED))
         .withAsGenerator(givenGenerator())
-        .withSchemaAggregateRating(givenAggregationRating());
+        .withOdsHasAggregateRating(givenAggregationRating());
   }
 
   public static Annotation givenAnnotationProcessingRequest(boolean isUpdate) {
@@ -87,7 +87,7 @@ public class AnnotationUtils {
         .withDctermsCreated(Date.from(CREATED));
     if (isUpdate) {
       annotation.withId(HANDLE + ID)
-          .withOdsID(HANDLE + ID);
+          .withDctermsIdentifier(HANDLE + ID);
     }
     return annotation;
   }
@@ -124,18 +124,18 @@ public class AnnotationUtils {
   public static AnnotationTarget givenOaTarget(String targetId) {
     return new AnnotationTarget()
         .withId(targetId)
-        .withOdsID(targetId)
+        .withDctermsIdentifier(targetId)
         .withType("ods:DigitalSpecimen")
-        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
         .withOaHasSelector(givenSelector());
   }
 
   public static AnnotationTarget givenOaTargetAnnotation(String targetId) {
     return new AnnotationTarget()
         .withId(targetId)
-        .withOdsID(targetId)
+        .withDctermsIdentifier(targetId)
         .withType("ods:DigitalSpecimen")
-        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
         .withOaHasSelector(givenSelectorAnnotation());
   }
 
@@ -162,11 +162,11 @@ public class AnnotationUtils {
     return new Agent()
         .withSchemaName("DiSSCo backend")
         .withId("https://sandbox.dissco.tech")
-        .withType(Type.AS_APPLICATION);
+        .withType(Type.SCHEMA_SOFTWARE_APPLICATION);
   }
 
-  public static SchemaAggregateRating givenAggregationRating() {
-    return new SchemaAggregateRating()
+  public static OdsHasAggregateRating givenAggregationRating() {
+    return new OdsHasAggregateRating()
         .withType("schema:AggregateRating")
         .withSchemaRatingValue(0.1)
         .withSchemaRatingCount(2);
@@ -238,14 +238,14 @@ public class AnnotationUtils {
 
   public static SearchParam givenSearchParam() {
     return new SearchParam(
-        "ods:hasEvent.ods:Location.dwc:country.keyword",
+        "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
         "Netherlands"
     );
   }
 
   public static SearchParam givenSearchParam(String country) {
     return new SearchParam(
-        "ods:hasEvent[*].ods:Location.dwc:country",
+        "ods:hasEvents[*].ods:hasLocation.dwc:country",
         country
     );
   }
@@ -260,7 +260,7 @@ public class AnnotationUtils {
               "batchMetadata": {
                 "searchParams": [
                   {
-                    "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
+                    "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
                 ]

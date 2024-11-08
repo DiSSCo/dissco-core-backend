@@ -84,9 +84,9 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
       throws JsonProcessingException {
     for (var specimenWrapper : specimens) {
       context.insertInto(DIGITAL_SPECIMEN)
-          .set(DIGITAL_SPECIMEN.ID, specimenWrapper.getOdsID())
+          .set(DIGITAL_SPECIMEN.ID, specimenWrapper.getDctermsIdentifier())
           .set(DIGITAL_SPECIMEN.VERSION, specimenWrapper.getOdsVersion())
-          .set(DIGITAL_SPECIMEN.TYPE, specimenWrapper.getOdsType())
+          .set(DIGITAL_SPECIMEN.TYPE, specimenWrapper.getOdsFdoType())
           .set(DIGITAL_SPECIMEN.MIDSLEVEL,
               specimenWrapper.getOdsMidsLevel().shortValue())
           .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,

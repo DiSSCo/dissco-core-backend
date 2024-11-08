@@ -42,8 +42,8 @@ public class DigitalSpecimenRepository {
       return mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
           .withId("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
           .withType("ods:DigitalSpecimen")
-          .withOdsID("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
-          .withOdsType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
+          .withDctermsIdentifier("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
+          .withOdsFdoType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
           .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));

@@ -130,7 +130,7 @@ class DigitalMediaServiceTest {
     var mediaObject = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
     var expected = new JsonApiWrapper(
-        new JsonApiData(mediaObject.getOdsID(), mediaObject.getOdsType(),
+        new JsonApiData(mediaObject.getDctermsIdentifier(), mediaObject.getOdsFdoType(),
             MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
@@ -183,7 +183,7 @@ class DigitalMediaServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         mongoResponse);
 
-    var type = mongoResponse.get("ods:type").asText();
+    var type = mongoResponse.get("ods:fdoType").asText();
 
     var expectedResponse = new JsonApiWrapper(
         new JsonApiData(DOI + ID, type, MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
@@ -225,8 +225,8 @@ class DigitalMediaServiceTest {
     // Given
     var mediaObject = givenDigitalMediaObject(ID);
     var responseExpected = List.of(new JsonApiData(
-        mediaObject.getOdsID(),
-        mediaObject.getOdsType(),
+        mediaObject.getDctermsIdentifier(),
+        mediaObject.getOdsFdoType(),
         MAPPER.valueToTree(mediaObject)));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
 
@@ -274,7 +274,7 @@ class DigitalMediaServiceTest {
   void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships) {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
-    digitalMedia.setOdsHasEntityRelationship(entityRelationships);
+    digitalMedia.setOdsHasEntityRelationships(entityRelationships);
     var response = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
     given(digitalSpecimenRepository.getLatestSpecimenById(null)).willReturn(null);
@@ -331,23 +331,23 @@ class DigitalMediaServiceTest {
             {
                    "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
                    "@type": "ods:DigitalMedia",
-                   "ods:ID": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+                   "dcterms:identifier": "https://doi.org/20.5000.1025/ABC-123-XYZ",
                    "ods:version": 1,
-                   "ods:status": "ods:Active",
+                   "ods:status": "Active",
                    "dcterms:created": "2022-11-01T09:59:24.000Z",
-                   "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+                   "ods:fdoType": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
                    "dcterms:type": "StillImage",
                    "ac:accessURI": "https://dissco.com",
                    "dcterms:format":"image/jpeg",
                    "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
-                   "ods:hasEntityRelationship": [
+                   "ods:hasEntityRelationships": [
                      {
                        "@type": "ods:EntityRelationship",
                        "dwc:relationshipOfResource": "hasDigitalSpecimen",
                        "dwc:relatedResourceID": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
                      }
                    ],
-                   "ods:hasAgent": []
+                   "ods:hasAgents": []
                  }
             """, JsonNode.class
     );

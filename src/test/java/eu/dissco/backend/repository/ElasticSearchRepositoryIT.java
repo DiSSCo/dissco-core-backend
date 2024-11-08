@@ -411,8 +411,8 @@ class ElasticSearchRepositoryIT {
     for (int i = 0; i < pageSize + 1; i++) {
       String id = HANDLE + PREFIX + "/" + i;
       var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(id).withSchemaAggregateRating(null));
-      givenAnnotations.add(annotation.withSchemaAggregateRating(null));
+      expected.add(givenAnnotationResponse(id).withOdsHasAggregateRating(null));
+      givenAnnotations.add(annotation.withOdsHasAggregateRating(null));
     }
     for (int i = 11; i < pageSize * 2; i++) {
       var annotation = givenAnnotationResponse(HANDLE + PREFIX + "/" + i);
@@ -552,7 +552,7 @@ class ElasticSearchRepositoryIT {
     for (var annotation : annotations) {
       bulkRequest.operations(
           op -> op.index(
-              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("ods:ID").asText())
+              idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("dcterms:identifier").asText())
                   .document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());

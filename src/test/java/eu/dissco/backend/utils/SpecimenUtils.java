@@ -20,14 +20,14 @@ public class SpecimenUtils {
       List<DigitalSpecimen> digitalSpecimenList) {
     List<JsonApiData> dataNode = new ArrayList<>();
     digitalSpecimenList.forEach(specimenWrapper -> dataNode.add(
-        new JsonApiData(specimenWrapper.getOdsID(),
-            specimenWrapper.getOdsType(), MAPPER.valueToTree(specimenWrapper))));
+        new JsonApiData(specimenWrapper.getDctermsIdentifier(),
+            specimenWrapper.getOdsFdoType(), MAPPER.valueToTree(specimenWrapper))));
     return dataNode;
   }
 
   public static JsonApiData givenDigitalSpecimenJsonApiData(
       DigitalSpecimen specimenWrapper) {
-    return new JsonApiData(specimenWrapper.getOdsID(), specimenWrapper.getOdsType(),
+    return new JsonApiData(specimenWrapper.getDctermsIdentifier(), specimenWrapper.getOdsFdoType(),
         MAPPER.valueToTree(specimenWrapper));
   }
 
@@ -43,7 +43,7 @@ public class SpecimenUtils {
     List<DigitalSpecimen> digitalSpecimen = givenDigitalSpecimenList(qty);
     List<JsonApiData> dataNode = new ArrayList<>();
     digitalSpecimen.forEach(
-        s -> dataNode.add(new JsonApiData(s.getOdsID(), s.getOdsType(), MAPPER.valueToTree(s))));
+        s -> dataNode.add(new JsonApiData(s.getDctermsIdentifier(), s.getOdsFdoType(), MAPPER.valueToTree(s))));
     return dataNode;
   }
 

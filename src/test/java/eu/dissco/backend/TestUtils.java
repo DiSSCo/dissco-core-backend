@@ -8,7 +8,11 @@ import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.DigitalSpecimen.OdsPhysicalSpecimenIDType;
 import eu.dissco.backend.schema.Event;
+import eu.dissco.backend.schema.Identifier.DctermsType;
+import eu.dissco.backend.schema.Identifier.OdsGupriLevel;
+import eu.dissco.backend.schema.Identifier.OdsIdentifierStatus;
 import eu.dissco.backend.schema.Location;
+import eu.dissco.backend.schema.OdsHasRole;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -49,7 +53,21 @@ public class TestUtils {
     return new Agent()
         .withType(Type.SCHEMA_PERSON)
         .withSchemaName("Sam Leeflang")
-        .withId(ORCID);
+        .withSchemaIdentifier(ORCID)
+        .withId(ORCID)
+        .withOdsHasRoles(List.of(new OdsHasRole().withType("schema:Role")
+            .withSchemaRoleName("annotator")))
+        .withOdsHasIdentifiers(List.of(
+            new eu.dissco.backend.schema.Identifier()
+                .withType("ods:Identifier")
+                .withId(ORCID)
+                .withDctermsIdentifier(ORCID)
+                .withOdsIsPartOfLabel(false)
+                .withOdsIdentifierStatus(OdsIdentifierStatus.PREFERRED)
+                .withOdsGupriLevel(OdsGupriLevel.GLOBALLY_UNIQUE_STABLE_PERSISTENT_RESOLVABLE)
+                .withDctermsType(DctermsType.URL)
+                .withDctermsTitle("orcid")
+        ));
   }
 
   // Token
@@ -100,12 +118,12 @@ public class TestUtils {
     return new eu.dissco.backend.schema.DigitalSpecimen()
         .withId(id)
         .withType("ods:DigitalSpecimen")
-        .withOdsID(id)
+        .withDctermsIdentifier(id)
         .withOdsPhysicalSpecimenID(physicalId)
         .withOdsVersion(version)
         .withOdsMidsLevel(0)
         .withDctermsCreated(Date.from(CREATED))
-        .withOdsType(DIGITAL_SPECIMEN_TYPE)
+        .withOdsFdoType(DIGITAL_SPECIMEN_TYPE)
         .withDctermsModified("03/12/2012")
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
         .withDwcPreparations("")
@@ -117,8 +135,8 @@ public class TestUtils {
         .withOdsPhysicalSpecimenIDType(OdsPhysicalSpecimenIDType.RESOLVABLE)
         .withOdsIsMarkedAsType(Boolean.TRUE)
         .withOdsIsKnownToContainMedia(Boolean.TRUE)
-        .withOdsHasEvent(
-            List.of(new Event().withOdsLocation(new Location().withDwcCountry(country))));
+        .withOdsHasEvents(
+            List.of(new Event().withOdsHasLocation(new Location().withDwcCountry(country))));
   }
 
   private static DigitalSpecimen givenDigitalSpecimen(String id, String physicalId, Integer version,

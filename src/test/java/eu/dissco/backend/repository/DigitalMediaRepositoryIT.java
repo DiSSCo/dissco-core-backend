@@ -66,7 +66,7 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
     assertThat(pageOne).hasSize(pageSize + 1);
     assertThat(pageTwo).hasSize(pageSize);
     assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
-        media -> givenDigitalMediaObject(DOI + media.getOdsID(), specimenId)).toList());
+        media -> givenDigitalMediaObject(DOI + media.getDctermsIdentifier(), specimenId)).toList());
   }
 
   @Test
@@ -149,12 +149,12 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
       throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (DigitalMedia mediaObject : mediaObjects) {
-      var specimenId = mediaObject.getOdsHasEntityRelationship().get(0)
+      var specimenId = mediaObject.getOdsHasEntityRelationships().get(0)
           .getDwcRelatedResourceID();
       var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
           .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
           .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
@@ -164,9 +164,9 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
           .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
               mediaObject.getDctermsCreated().toInstant())
           .onConflict(DIGITAL_SPECIMEN.ID).doUpdate()
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getOdsID())
+          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
           .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsType())
+          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED,
               mediaObject.getDctermsCreated().toInstant())
           .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
@@ -184,9 +184,9 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen)
       throws JsonProcessingException {
     context.insertInto(DIGITAL_SPECIMEN)
-        .set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getOdsID())
+        .set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getDctermsIdentifier())
         .set(DIGITAL_SPECIMEN.VERSION, digitalSpecimen.getOdsVersion())
-        .set(DIGITAL_SPECIMEN.TYPE, digitalSpecimen.getOdsType())
+        .set(DIGITAL_SPECIMEN.TYPE, digitalSpecimen.getOdsFdoType())
         .set(DIGITAL_SPECIMEN.MIDSLEVEL,
             digitalSpecimen.getOdsMidsLevel().shortValue())
         .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,

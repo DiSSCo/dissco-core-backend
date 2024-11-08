@@ -47,13 +47,13 @@ public class DigitalMediaObjectUtils {
   // JsonApiData
   public static JsonApiData givenDigitalMediaJsonApiData(String id) {
     var mediaObject = givenDigitalMediaObject(id);
-    return new JsonApiData(mediaObject.getOdsID(), mediaObject.getOdsType(), mediaObject, MAPPER);
+    return new JsonApiData(mediaObject.getDctermsIdentifier(), mediaObject.getOdsFdoType(), mediaObject, MAPPER);
   }
 
   public static JsonApiWrapper givenDigitalMediaJsonResponse(String path, String mediaId) {
     JsonApiLinks linksNode = new JsonApiLinks(path);
     var mediaObject = givenDigitalMediaObject(mediaId);
-    JsonApiData dataNode = new JsonApiData(mediaId, mediaObject.getOdsType(), mediaObject, MAPPER);
+    JsonApiData dataNode = new JsonApiData(mediaId, mediaObject.getOdsFdoType(), mediaObject, MAPPER);
     return new JsonApiWrapper(dataNode, linksNode);
   }
 
@@ -76,16 +76,16 @@ public class DigitalMediaObjectUtils {
     return new DigitalMedia()
         .withId(mediaId)
         .withType("ods:DigitalMedia")
-        .withOdsID(mediaId)
+        .withDctermsIdentifier(mediaId)
         .withOdsVersion(version)
-        .withOdsStatus(OdsStatus.ODS_ACTIVE)
+        .withOdsStatus(OdsStatus.ACTIVE)
         .withDctermsCreated(Date.from(created))
-        .withOdsType(type)
+        .withOdsFdoType(type)
         .withAcAccessURI(url)
         .withDctermsType(DctermsType.STILL_IMAGE)
         .withDctermsFormat(contentType)
         .withOdsSourceSystemID(SOURCE_SYSTEM_ID_1)
-        .withOdsHasEntityRelationship(List.of(
+        .withOdsHasEntityRelationships(List.of(
             new EntityRelationship().withType("ods:EntityRelationship")
                 .withDwcRelationshipOfResource("hasDigitalSpecimen")
                 .withDwcRelatedResourceID(specimenId)));

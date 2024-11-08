@@ -188,7 +188,7 @@ class MasJobRecordServiceTest {
     );
     var annotation = givenAnnotationResponse()
         .withOaHasTarget(givenOaTarget(TARGET_ID)
-            .withOdsType(AnnotationTargetType.DIGITAL_MEDIA.getName()));
+            .withOdsFdoType(AnnotationTargetType.DIGITAL_MEDIA.getName()));
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
