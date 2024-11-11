@@ -51,15 +51,15 @@ public class DigitalMediaService {
       String path) {
     var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
     var dataNodePlusOne = mediaPlusOne.stream().map(media ->
-        new JsonApiData(media.getOdsID(), media.getOdsType(),
+        new JsonApiData(media.getDctermsIdentifier(), media.getOdsFdoType(),
             mapper.valueToTree(media))).toList();
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
   public JsonApiWrapper getDigitalMediaById(String id, String path) {
     var mediaObject = repository.getLatestDigitalMediaObjectById(id);
-    var dataNode = new JsonApiData(mediaObject.getOdsID(),
-        mediaObject.getOdsType(), mediaObject, mapper);
+    var dataNode = new JsonApiData(mediaObject.getDctermsIdentifier(),
+        mediaObject.getOdsFdoType(), mediaObject, mapper);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
@@ -79,7 +79,7 @@ public class DigitalMediaService {
       throws JsonProcessingException, NotFoundException {
     var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
-    var dataNode = new JsonApiData(digitalMedia.getOdsID(), digitalMedia.getOdsType(), digitalMedia,
+    var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(), digitalMedia.getOdsFdoType(), digitalMedia,
         mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -98,7 +98,7 @@ public class DigitalMediaService {
     var digitalMediaFull = new ArrayList<DigitalMediaFull>();
     var digitalMedias = repository.getDigitalMediaForSpecimen(id);
     for (var digitalMedia : digitalMedias) {
-      var annotation = annotationService.getAnnotationForTargetObject(digitalMedia.getOdsID());
+      var annotation = annotationService.getAnnotationForTargetObject(digitalMedia.getDctermsIdentifier());
       digitalMediaFull.add(new DigitalMediaFull(digitalMedia, annotation));
     }
     return digitalMediaFull;
@@ -112,7 +112,7 @@ public class DigitalMediaService {
     var mediaList = repository.getDigitalMediaForSpecimen(id);
     List<JsonApiData> dataNode = new ArrayList<>();
     mediaList.forEach(media -> dataNode.add(
-        new JsonApiData(media.getOdsID(), media.getOdsType(), mapper.valueToTree(media))));
+        new JsonApiData(media.getDctermsIdentifier(), media.getOdsFdoType(), mapper.valueToTree(media))));
     return dataNode;
   }
 
@@ -141,13 +141,13 @@ public class DigitalMediaService {
   }
 
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
-    for (var entityRelationship : digitalMedia.getOdsHasEntityRelationship()) {
+    for (var entityRelationship : digitalMedia.getOdsHasEntityRelationships()) {
       if (entityRelationship.getDwcRelationshipOfResource().equals("hasDigitalSpecimen")) {
         return entityRelationship.getDwcRelatedResourceID().replace(DOI_STRING, "");
       }
     }
     log.warn("Digital Media Object with doi: {} is not attached to a specimen",
-        digitalMedia.getOdsID());
+        digitalMedia.getDctermsIdentifier());
     return null;
   }
 

@@ -1,11 +1,7 @@
 package eu.dissco.backend.component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
-import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,11 +31,11 @@ public class SchemaValidatorComponent {
   private void validateId(AnnotationEventRequest eventRequest, Boolean isNew)
       throws InvalidAnnotationRequestException {
     for (var annotation : eventRequest.annotationRequests() ){
-      if (Boolean.TRUE.equals(isNew) && annotation.getOdsID() != null) {
+      if (Boolean.TRUE.equals(isNew) && annotation.getDctermsIdentifier() != null) {
         throw new InvalidAnnotationRequestException(
-            "Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getOdsID());
+            "Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getDctermsIdentifier());
       }
-      if (Boolean.FALSE.equals(isNew) && annotation.getOdsID() == null) {
+      if (Boolean.FALSE.equals(isNew) && annotation.getDctermsIdentifier() == null) {
         throw new InvalidAnnotationRequestException(
             "\"ods:id\" not provided for annotationRequests update");
       }

@@ -7,18 +7,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public enum TaxonMappingTerms implements MappingTerm {
   KINGDOM("kingdom",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:kingdom.keyword"),
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:kingdom.keyword"),
   PHYLUM("phylum",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:phylum.keyword"),
+      "ods:hasIdentification.ods:hasTaxonIdentifications.dwc:phylum.keyword"),
   CLASS("class",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:class.keyword"),
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:class.keyword"),
   ORDER("order",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:order.keyword"),
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:order.keyword"),
   FAMILY("family",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:family.keyword"),
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:family.keyword"),
   GENUS("genus",
-      "ods:hasIdentification.ods:hasTaxonIdentification.dwc:genus.keyword"),
-  SPECIES("species", "ods:hasIdentification.ods:hasTaxonIdentification.dwc:scientificName.keyword");
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:genus.keyword"),
+  SPECIES("species", "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:scientificName.keyword");
 
   private static final Map<String, TaxonMappingTerms> taxonMapping = fillTaxonMapping();
   private final String requestName;

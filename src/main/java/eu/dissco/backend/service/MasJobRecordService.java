@@ -139,7 +139,7 @@ public class MasJobRecordService {
   }
 
   private MjrTargetType getMjrTargetType(Annotation annotation){
-    var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsType());
+    var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsFdoType());
     if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)){
       return MjrTargetType.DIGITAL_SPECIMEN;
     }

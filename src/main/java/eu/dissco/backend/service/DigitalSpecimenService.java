@@ -24,7 +24,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
@@ -93,8 +92,8 @@ public class DigitalSpecimenService {
 
   public JsonApiWrapper getSpecimenById(String id, String path) {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    var dataNode = new JsonApiData(digitalSpecimen.getOdsID(),
-        digitalSpecimen.getOdsType(), digitalSpecimen,
+    var dataNode = new JsonApiData(digitalSpecimen.getDctermsIdentifier(),
+        digitalSpecimen.getOdsFdoType(), digitalSpecimen,
         mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -129,7 +128,7 @@ public class DigitalSpecimenService {
     var attributeNode = mapper.valueToTree(
         new DigitalSpecimenFull(specimen, digitalMedia, annotation));
     return new JsonApiWrapper(
-        new JsonApiData(specimen.getOdsID(), specimen.getOdsType(), attributeNode),
+        new JsonApiData(specimen.getDctermsIdentifier(), specimen.getOdsFdoType(), attributeNode),
         new JsonApiLinks(path));
   }
 
@@ -137,7 +136,7 @@ public class DigitalSpecimenService {
       throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
-    var dataNode = new JsonApiData(specimen.getOdsID(), specimen.getOdsType(), specimen, mapper);
+    var dataNode = new JsonApiData(specimen.getDctermsIdentifier(), specimen.getOdsFdoType(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -167,8 +166,8 @@ public class DigitalSpecimenService {
       int pageSize, int pageNumber, String path) {
     var digitalSpecimenList = elasticSearchResults.getRight();
     var dataNodePlusOne = digitalSpecimenList.stream()
-        .map(specimen -> new JsonApiData(specimen.getOdsID(),
-            specimen.getOdsType(), specimen, mapper))
+        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
+            specimen.getOdsFdoType(), specimen, mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
     var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
@@ -181,7 +180,7 @@ public class DigitalSpecimenService {
       Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
-        .map(specimen -> new JsonApiData(specimen.getOdsID(), specimen.getOdsType(), specimen,
+        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(), specimen.getOdsFdoType(), specimen,
             mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;

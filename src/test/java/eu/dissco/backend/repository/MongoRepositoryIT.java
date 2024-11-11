@@ -107,8 +107,8 @@ class MongoRepositoryIT {
             """
                 "@id": "https://doi.org/20.5000.1025/4AF-E6L-9VQ//1",
                 "@type": "ods:CreateUpdateTombstoneEvent",
-                "ods:ID": "https://doi.org/20.5000.1025/4AF-E6L-9VQ//1",
-                "ods:type": "https://doi.org/10.15468/1a2b3c",
+                "dcterms:identifier": "https://doi.org/20.5000.1025/4AF-E6L-9VQ//1",
+                "ods:fdoType": "https://doi.org/10.15468/1a2b3c",
                 "prov:Activity": {
                   "@id": "7ba628d4-2e28-4ce4-ad1e-e99c97c20507",
                   "@type": "ods:Create",
@@ -137,8 +137,8 @@ class MongoRepositoryIT {
                   "prov:value": {
                     "@id": "https://doi.org/20.5000.1025/4AF-E6L-9VQ",
                     "@type": "ods:DigitalSpecimen",
-                    "ods:ID": "https://doi.org/20.5000.1025/4AF-E6L-9VQ",
-                    "ods:type": "https://doi.org/10.15468/1a2b3c",
+                    "dcterms:identifier": "https://doi.org/20.5000.1025/4AF-E6L-9VQ",
+                    "ods:fdoType": "https://doi.org/10.15468/1a2b3c",
                     "ods:version": """ + version + " \n" +
             """
                      },

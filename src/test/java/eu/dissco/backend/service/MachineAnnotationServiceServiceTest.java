@@ -32,7 +32,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.exceptions.BatchingNotPermittedException;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
-import eu.dissco.backend.schema.OdsTargetDigitalObjectFilter;
+import eu.dissco.backend.schema.OdsHasTargetDigitalObjectFilter;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import java.util.Collections;
 import java.util.List;
@@ -64,14 +64,14 @@ class MachineAnnotationServiceServiceTest {
   private static Stream<Arguments> provideFilters() {
     return Stream.of(
         Arguments.of(List.of(
-            Pair.of("$['ods:type']", List.of("Some Test value")))),
+            Pair.of("$['ods:fdoType']", List.of("Some Test value")))),
         Arguments.of(List.of(
             Pair.of("$['ods:format']", List.of("application/json")),
-            Pair.of("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:country']",
+            Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
                 List.of("The Netherlands", "Belgium")))),
         Arguments.of(List.of(
             Pair.of("$['ods:format']", List.of("application/json")),
-            Pair.of("$['digitalSpecimen']['ods:hasEvent'][*]['dwc:city']",
+            Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['dwc:city']",
                 List.of("Rotterdam", "Amsterdam")))),
         Arguments.of(List.of(Pair.of("$['omg:someRandomNonExistingKey']", List.of("whyKnows"))))
     );
@@ -126,7 +126,7 @@ class MachineAnnotationServiceServiceTest {
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(HANDLE + ID, givenMasJobRequest(true, null)),
-        SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
+        SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.getDctermsIdentifier(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
@@ -150,7 +150,7 @@ class MachineAnnotationServiceServiceTest {
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(MAS_ID, givenMasJobRequest()), SPECIMEN_PATH,
-        digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
+        digitalSpecimen, digitalSpecimen.getDctermsIdentifier(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
@@ -170,7 +170,7 @@ class MachineAnnotationServiceServiceTest {
     assertThrowsExactly(BatchingNotPermittedException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
             Map.of(HANDLE + ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
-            digitalSpecimen, digitalSpecimen.getOdsID(), ORCID,
+            digitalSpecimen, digitalSpecimen.getDctermsIdentifier(), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN));
   }
 
@@ -190,7 +190,7 @@ class MachineAnnotationServiceServiceTest {
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
         Map.of(HANDLE + ID, givenMasJobRequest()), SPECIMEN_PATH,
-        digitalSpecimenWrapper, digitalSpecimenWrapper.getOdsID(), ORCID,
+        digitalSpecimenWrapper, digitalSpecimenWrapper.getDctermsIdentifier(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
     // Then
@@ -198,32 +198,32 @@ class MachineAnnotationServiceServiceTest {
     assertThat(result.getData()).isEmpty();
   }
 
-  private OdsTargetDigitalObjectFilter givenFiltersDigitalMedia(
+  private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(
       List<Pair<String, List<String>>> filters) {
-    var targetFilter = new OdsTargetDigitalObjectFilter();
+    var targetFilter = new OdsHasTargetDigitalObjectFilter();
     for (var filter : filters) {
       targetFilter.setAdditionalProperty(filter.getLeft(), filter.getRight());
     }
     return targetFilter;
   }
 
-  private OdsTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
-    var filters = new OdsTargetDigitalObjectFilter()
-        .withAdditionalProperty("$['ods:type']",
+  private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
+    var filters = new OdsHasTargetDigitalObjectFilter()
+        .withAdditionalProperty("$['ods:fdoType']",
             List.of("https://doi.org/21.T11148/bbad8c4e101e8af01115"))
         .withAdditionalProperty("$['dwc:organisationName']",
             List.of("Royal Botanic Garden Edinburgh Herbarium"))
-        .withAdditionalProperty("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:country']",
+        .withAdditionalProperty("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
             List.of("*"));
     if (unmatchedFilter) {
-      filters.withAdditionalProperty("$['digitalSpecimen']['ods:hasEvent'][*]['ods:Location']['dwc:island']",
+      filters.withAdditionalProperty("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:island']",
           List.of("*"));
     }
     return filters;
   }
 
-  private OdsTargetDigitalObjectFilter givenFiltersDigitalSpecimen() {
-    return new OdsTargetDigitalObjectFilter()
+  private OdsHasTargetDigitalObjectFilter givenFiltersDigitalSpecimen() {
+    return new OdsHasTargetDigitalObjectFilter()
         .withAdditionalProperty("$['dcterms:license']",
             List.of("http://creativecommons.org/licenses/by/4.0/legalcode",
                 "http://creativecommons.org/licenses/by-nc/4.0/"))

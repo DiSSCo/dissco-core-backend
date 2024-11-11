@@ -331,7 +331,7 @@ class AnnotationServiceTest {
               "batchMetadata": {
                 "searchParams": [
                   {
-                    "inputField": "ods:hasEvent.ods:Location.dwc:country.keyword",
+                    "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
                     "inputValue": "Netherlands"
                   }
                 ],

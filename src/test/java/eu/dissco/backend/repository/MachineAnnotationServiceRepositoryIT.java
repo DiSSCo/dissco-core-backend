@@ -93,7 +93,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .set(MACHINE_ANNOTATION_SERVICE.BATCHING_PERMITTED, mas.getOdsBatchingPermitted())
         .set(MACHINE_ANNOTATION_SERVICE.TIME_TO_LIVE, mas.getOdsTimeToLive())
         .set(MACHINE_ANNOTATION_SERVICE.TOMBSTONED,
-            mas.getOdsTombstoneMetadata() != null ? mas.getOdsTombstoneMetadata()
+            mas.getOdsHasTombstoneMetadata() != null ? mas.getOdsHasTombstoneMetadata()
                 .getOdsTombstoneDate().toInstant() : null)
         .set(MACHINE_ANNOTATION_SERVICE.DATA, mapToJSONB(mas))
         .execute();

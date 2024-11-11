@@ -207,7 +207,7 @@ class DigitalSpecimenServiceTest {
             digitalMedia,
             annotations));
     var expected = new JsonApiWrapper(
-        new JsonApiData(ID, digitalSpecimen.getOdsType(), attributeNode),
+        new JsonApiData(ID, digitalSpecimen.getOdsFdoType(), attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -402,9 +402,9 @@ class DigitalSpecimenServiceTest {
     params.put("typeStatus", List.of("holotype"));
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of(
-        "ods:hasEvent.ods:Location.dwc:country.keyword",
+        "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
         List.of("France", "Albania"),
-        "ods:hasIdentification.dwc:typeStatus.keyword",
+        "ods:hasIdentifications.dwc:typeStatus.keyword",
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
@@ -465,7 +465,7 @@ class DigitalSpecimenServiceTest {
     var aggregationMap = givenTaxonAggregationMap();
     given(elasticRepository.getAggregations(
         Map.of(
-            "ods:hasIdentification.ods:hasTaxonIdentification.dwc:kingdom.keyword",
+            "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:kingdom.keyword",
             List.of("animalia")),
         Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true)).willReturn(
         aggregationMap);
@@ -550,7 +550,7 @@ class DigitalSpecimenServiceTest {
     given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
         eq(SPECIMEN_PATH),
         eq(digitalSpecimenWrapper),
-        eq(digitalSpecimenWrapper.getOdsID()), eq(ORCID),
+        eq(digitalSpecimenWrapper.getDctermsIdentifier()), eq(ORCID),
         eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
 
     // When
@@ -592,8 +592,8 @@ class DigitalSpecimenServiceTest {
         {
                "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
                "@type": "ods:DigitalSpecimen",
-               "ods:ID": "https://doi.org/20.5000.1025/ABC-123-XYZ",
-               "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+               "dcterms:identifier": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+               "ods:fdoType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                "ods:midsLevel": 0,
                "ods:version": 4,
                "dcterms:created": "2022-11-01T09:59:24.000Z",
@@ -609,10 +609,10 @@ class DigitalSpecimenServiceTest {
                "ods:organisationID": "https://ror.org/0349vqz63",
                "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
                "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
-               "ods:hasEvent": [
+               "ods:hasEvents": [
                        {
-                          "ods:hasAssertion": [],
-                          "ods:Location": {
+                          "ods:hasAssertions": [],
+                          "ods:hasLocation": {
                              "dwc:country": "Scotland"
                                }
                            }

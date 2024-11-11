@@ -69,8 +69,8 @@ public class DigitalMediaRepository {
       return mapper.readValue(dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
               DigitalMedia.class)
           .withId(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
-          .withOdsID(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
-          .withOdsType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
+          .withDctermsIdentifier(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
+          .withOdsFdoType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));
     } catch (JsonProcessingException e) {

@@ -38,7 +38,7 @@ public class MachineAnnotationServiceService {
 
   private boolean checkIfMasComplies(JsonNode jsonNode,
       MachineAnnotationService machineAnnotationService) {
-    var filters = machineAnnotationService.getOdsTargetDigitalObjectFilter();
+    var filters = machineAnnotationService.getOdsHasTargetDigitalObjectFilter();
     var fields = filters.getAdditionalProperties();
     var complies = true;
     for (var stringObjectEntry : fields.entrySet()) {

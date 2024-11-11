@@ -21,7 +21,7 @@ import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.schema.MachineAnnotationService.OdsStatus;
-import eu.dissco.backend.schema.OdsTargetDigitalObjectFilter;
+import eu.dissco.backend.schema.OdsHasTargetDigitalObjectFilter;
 import eu.dissco.backend.schema.SchemaContactPoint;
 import eu.dissco.backend.schema.TombstoneMetadata;
 import java.time.Instant;
@@ -86,13 +86,13 @@ public class MachineAnnotationServiceUtils {
     return givenMas(
         id,
         deleted,
-        new OdsTargetDigitalObjectFilter(),
+        new OdsHasTargetDigitalObjectFilter(),
         false,
         TTL_DEFAULT
     );
   }
 
-  public static MachineAnnotationService givenMas(OdsTargetDigitalObjectFilter filters,
+  public static MachineAnnotationService givenMas(OdsHasTargetDigitalObjectFilter filters,
       boolean batching) {
     return givenMas(
         MAS_ID,
@@ -103,18 +103,18 @@ public class MachineAnnotationServiceUtils {
     );
   }
 
-  public static MachineAnnotationService givenMas(OdsTargetDigitalObjectFilter filters) {
+  public static MachineAnnotationService givenMas(OdsHasTargetDigitalObjectFilter filters) {
     return givenMas(MAS_ID, null, filters, false, 3600);
   }
 
   public static MachineAnnotationService givenMas(String id, Instant deleted,
-      OdsTargetDigitalObjectFilter filters, boolean batching, int ttl) {
+      OdsHasTargetDigitalObjectFilter filters, boolean batching, int ttl) {
     var mas = new MachineAnnotationService()
         .withId(id)
-        .withOdsID(id)
+        .withSchemaIdentifier(id)
         .withType("ods:MachineAnnotationService")
-        .withOdsType("https://doi.org/21.T11148/894b1e6cad57e921764e")
-        .withOdsStatus(OdsStatus.ODS_ACTIVE)
+        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+        .withOdsStatus(OdsStatus.ACTIVE)
         .withSchemaVersion(1)
         .withSchemaName("A Machine Annotation Service")
         .withSchemaDescription("A fancy mas making all dreams come true")
@@ -123,22 +123,21 @@ public class MachineAnnotationServiceUtils {
         .withSchemaCreator(new Agent().withType(Type.SCHEMA_PERSON).withId(ORCID))
         .withOdsContainerImage("public.ecr.aws/dissco/fancy-mas")
         .withOdsContainerTag("sha-54289")
-        .withOdsTargetDigitalObjectFilter(filters)
+        .withOdsHasTargetDigitalObjectFilter(filters)
         .withSchemaCreativeWorkStatus("Definitely production ready")
         .withSchemaCodeRepository("https://github.com/DiSSCo/fancy-mas")
         .withSchemaProgrammingLanguage("Java")
         .withOdsServiceAvailability("public")
         .withSchemaMaintainer(new Agent().withType(Type.SCHEMA_PERSON).withId(ORCID))
         .withSchemaLicense("https://www.apache.org/licenses/LICENSE-2.0")
-        .withOdsDependency(List.of())
         .withSchemaContactPoint(new SchemaContactPoint().withSchemaEmail("dontmail@dissco.eu"))
         .withOdsSlaDocumentation("https://www.know.dissco.tech/no_sla")
         .withOdsTopicName("fancy-topic-name")
         .withOdsBatchingPermitted(batching)
         .withOdsTimeToLive(ttl);
     if (deleted != null) {
-      mas.setOdsStatus(OdsStatus.ODS_TOMBSTONE);
-      mas.setOdsTombstoneMetadata(
+      mas.setOdsStatus(OdsStatus.TOMBSTONE);
+      mas.setOdsHasTombstoneMetadata(
           new TombstoneMetadata().withOdsTombstoneDate(Date.from(deleted)));
     }
     return mas;
@@ -150,10 +149,10 @@ public class MachineAnnotationServiceUtils {
                 {
                   "@id": "https://doi.org/TEST/SDF-6Y6-DV7",
                   "@type": "ods:DigitalMedia",
-                  "ods:ID": "https://doi.org/TEST/SDF-6Y6-DV7",
+                  "dcterms:identifier": "https://doi.org/TEST/SDF-6Y6-DV7",
                   "ods:version": 1,
                   "dcterms:created": "2023-10-16T11:47:18.773831Z",
-                  "ods:type": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+                  "ods:fdoType": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
                   "ac:accessUri": "https://herbarium.bgbm.org/data/iiif/BW00746010/manifest.json",
                   "dwc:organisationID": "https://ror.org/0349vqz63",
                   "dwc:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
@@ -163,11 +162,11 @@ public class MachineAnnotationServiceUtils {
                   "digitalSpecimen":                 {
                     "@id": "20.5000.1025/ABC-123-XYZ",
                     "@type": "ods:DigitalSpecimen",
-                    "ods:ID": "20.5000.1025/ABC-123-XYZ",
+                    "dcterms:identifier": "20.5000.1025/ABC-123-XYZ",
                     "ods:version": 1,
                     "dcterms:modified": "03/12/2012",
                     "dcterms:created": "2022-11-01T09:59:24.000Z",
-                    "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+                    "ods:fdoType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                     "ods:midsLevel": 0,
                     "ods:physicalSpecimenID": "global_id_123123",
                     "ods:physicalSpecimenIDType": "Resolvable",
@@ -181,22 +180,21 @@ public class MachineAnnotationServiceUtils {
                     "ods:organisationID": "https://ror.org/0349vqz63",
                     "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
                     "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
-                    "ods:hasMaterialEntity": [],
-                    "ods:hasIdentification": [],
-                    "ods:hasAssertion": [],
-                    "ods:hasEvent": [
+                    "ods:hasSpecimenParts": [],
+                    "ods:hasIdentifications": [],
+                    "ods:hasAssertions": [],
+                    "ods:hasEvents": [
                       {
-                        "ods:hasAssertion": [],
-                        "ods:Location": {
+                        "ods:hasAssertions": [],
+                        "ods:hasLocation": {
                           "dwc:country": "Scotland"
                         }
                       }
                     ],
-                    "ods:hasEntityRelationship": [],
-                    "ods:hasCitation": [],
-                    "ods:hasIdentifier": [],
-                    "ods:hasChronometricAge": [],
-                    "ods:hasAgent": []
+                    "ods:hasEntityRelationships": [],
+                    "ods:hasCitations": [],
+                    "ods:hasIdentifiers": [],
+                    "ods:hasAgents": []
                   }
                 }
             """, JsonNode.class
@@ -209,11 +207,11 @@ public class MachineAnnotationServiceUtils {
                 {
                   "@id": "20.5000.1025/ABC-123-XYZ",
                   "@type": "ods:DigitalSpecimen",
-                  "ods:ID": "20.5000.1025/ABC-123-XYZ",
+                  "dcterms:identifier": "20.5000.1025/ABC-123-XYZ",
                   "ods:version": 1,
                   "dcterms:modified": "03/12/2012",
                   "dcterms:created": "2022-11-01T09:59:24.000Z",
-                  "ods:type": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+                  "ods:fdoType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
                   "ods:midsLevel": 0,
                   "ods:physicalSpecimenID": "global_id_123123",
                   "ods:physicalSpecimenIDType": "Resolvable",
@@ -228,22 +226,21 @@ public class MachineAnnotationServiceUtils {
                   "ods:organisationID": "https://ror.org/0349vqz63",
                   "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
                   "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
-                  "ods:hasMaterialEntity": [],
-                  "ods:hasIdentification": [],
-                  "ods:hasAssertion": [],
-                  "ods:hasEvent": [
+                  "ods:hasSpecimenParts": [],
+                  "ods:hasIdentifications": [],
+                  "ods:hasAssertions": [],
+                  "ods:hasEvents": [
                     {
-                      "ods:hasAssertion": [],
-                      "ods:Location": {
+                      "ods:hasAssertions": [],
+                      "ods:hasLocation": {
                         "dwc:country": "Scotland"
                       }
                     }
                   ],
-                  "ods:hasEntityRelationship": [],
-                  "ods:hasCitation": [],
-                  "ods:hasIdentifier": [],
-                  "ods:hasChronometricAge": [],
-                  "ods:hasAgent": []
+                  "ods:hasEntityRelationships": [],
+                  "ods:hasCitations": [],
+                  "ods:hasIdentifiers": [],
+                  "ods:hasAgents": []
                 }
             """, JsonNode.class
     );
