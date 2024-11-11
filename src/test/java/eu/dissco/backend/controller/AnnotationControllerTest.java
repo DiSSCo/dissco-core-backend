@@ -289,8 +289,8 @@ class AnnotationControllerTest {
   }
 
   @ParameterizedTest
-  @MethodSource("nonAdminClaims")
-  void testTombstoneAnnotationSuccessNonAdmin(Map<String, Object> claims) throws Exception {
+  @MethodSource("nonValidAdminClaims")
+  void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims) throws Exception {
     // Given
     givenAuthentication(claims);
     given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
@@ -302,7 +302,7 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
-  private static Stream<Arguments> nonAdminClaims(){
+  private static Stream<Arguments> nonValidAdminClaims(){
     return Stream.of(
         Arguments.of(givenClaims()),
         Arguments.of(Map.of(
