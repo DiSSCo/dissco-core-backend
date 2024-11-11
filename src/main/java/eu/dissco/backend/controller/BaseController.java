@@ -41,7 +41,7 @@ public abstract class BaseController {
   private final ApplicationProperties applicationProperties;
 
 
-  protected Agent getAgent(Authentication authentication) throws ForbiddenException {
+  protected static Agent getAgent(Authentication authentication) throws ForbiddenException {
     var claims = ((Jwt) authentication.getPrincipal()).getClaims();
     if (claims.containsKey(ORCID)) {
       StringBuilder fullName = new StringBuilder();
@@ -77,6 +77,19 @@ public abstract class BaseController {
     } else {
       log.error("Missing ORCID in token");
       throw new ForbiddenException("Missing ORCID in token");
+    }
+  }
+
+  protected static boolean isAdmin(Authentication authentication) {
+    try {
+      var claims = ((Jwt) authentication.getPrincipal()).getClaims();
+      var roles = ((Map<String, List<String>>) claims.get("realm_access")).get("roles");
+      return (roles.contains("dissco-admin"));
+    } catch (NullPointerException e) {
+      return false;
+    } catch (ClassCastException e){
+      log.warn("Unable to read claims", e);
+      return false;
     }
   }
 

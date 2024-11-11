@@ -79,6 +79,14 @@ public class TestUtils {
     );
   }
 
+  public static Map<String, Object> givenAdminClaims() {
+    return Map.of(
+        "orcid", ORCID,
+        "given_name", "Sam",
+        "family_name", "Leeflang",
+        "realm_access", Map.of("roles", List.of("dissco-admin")));
+  }
+
   // General
   public static JsonApiLinksFull givenJsonApiLinksFull(String path, int pageNumber, int pageSize,
       boolean hasNextPage) {

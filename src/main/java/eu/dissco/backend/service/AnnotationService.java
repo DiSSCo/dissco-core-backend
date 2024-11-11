@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -198,18 +199,29 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent)
+  public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent, boolean isAdmin)
       throws NoAnnotationFoundException {
     var id = prefix + "/" + suffix;
-    var result = repository.getActiveAnnotationForUser(id, agent.getId());
+    Optional<Annotation> result;
+    if (isAdmin) {
+      log.info("Admin tombstoning annotation {}", id);
+      result = repository.getActiveAnnotation(id);
+    } else {
+      log.info("Creator tombstoning annotation {}", id);
+      result = repository.getActiveAnnotationForUser(id, agent.getId());
+    }
     if (result.isPresent()) {
       annotationClient.tombstoneAnnotation(prefix, suffix,
           new AnnotationTombstoneWrapper(result.get(), agent));
       return true;
     } else {
-      log.info("No active annotationRequests with id: {} found for user: {}", id, agent.getId());
+      if (isAdmin) {
+        log.info("No active annotations with id: {}", id);
+      } else {
+        log.info("No active annotations with id: {} found for user: {}", id, agent.getId());
+      }
       throw new NoAnnotationFoundException(
-          "No active annotationRequests with id: " + id + " was found for user");
+          "No active annotationRequests with id: " + id + " was found");
     }
   }
 

@@ -3,9 +3,11 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
+import static eu.dissco.backend.TestUtils.givenAdminClaims;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -32,10 +34,15 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -141,7 +148,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotation() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
     var annotation = givenAnnotationRequest();
 
     var request = givenJsonApiAnnotationRequest(annotation);
@@ -185,7 +192,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatch() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
@@ -204,7 +211,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationNullResponse() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
     var annotation = givenAnnotationRequest();
     var request = givenJsonApiAnnotationRequest(annotation);
     given(
@@ -221,7 +228,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatchNullResponse() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
     var event = givenAnnotationEventRequest();
     var request = givenJsonApiAnnotationRequest(event);
     given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
@@ -238,7 +245,7 @@ class AnnotationControllerTest {
   @Test
   void testUpdateAnnotation() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
     var annotation = givenAnnotationRequest();
     var requestBody = givenJsonApiAnnotationRequest(annotation);
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
@@ -259,7 +266,7 @@ class AnnotationControllerTest {
   @Test
   void testGetAnnotationsForUserJsonResponse() throws Exception {
     // Given
-    givenAuthentication();
+    givenAuthentication(givenClaims());
 
     // When
     var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest,
@@ -281,11 +288,40 @@ class AnnotationControllerTest {
     then(service).should().getAnnotationVersions(eq(HANDLE + ID), anyString());
   }
 
-  @Test
-  void testTombstoneAnnotationSuccess() throws Exception {
+  @ParameterizedTest
+  @MethodSource("nonAdminClaims")
+  void testTombstoneAnnotationSuccessNonAdmin(Map<String, Object> claims) throws Exception {
     // Given
-    givenAuthentication();
-    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent())).willReturn(true);
+    givenAuthentication(claims);
+    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
+
+    // When
+    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
+
+    // Then
+    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+  }
+
+  private static Stream<Arguments> nonAdminClaims(){
+    return Stream.of(
+        Arguments.of(givenClaims()),
+        Arguments.of(Map.of(
+            "orcid", ORCID,
+            "given_name", "Sam",
+            "family_name", "Leeflang",
+            "realm_access", Map.of("roles", List.of("dissco-user")))),
+        Arguments.of(Map.of(
+            "orcid", ORCID,
+            "given_name", "Sam",
+            "family_name", "Leeflang",
+            "realm_access", Map.of("roles", "dissco-admin"))));
+  }
+
+  @Test
+  void testTombstoneAnnotationSuccessAdmin() throws Exception {
+    // Given
+    givenAuthentication(givenAdminClaims());
+    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true)).willReturn(true);
 
     // When
     var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
@@ -297,8 +333,8 @@ class AnnotationControllerTest {
   @Test
   void testTombstoneAnnotationFailure() throws Exception {
     // Given
-    givenAuthentication();
-    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent())).willReturn(false);
+    givenAuthentication(givenClaims());
+    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(false);
 
     // When
     var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
@@ -307,9 +343,9 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
-  private void givenAuthentication() {
+  private void givenAuthentication(Map<String, Object> claims) {
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(givenClaims());
+    given(principal.getClaims()).willReturn(claims);
   }
 }

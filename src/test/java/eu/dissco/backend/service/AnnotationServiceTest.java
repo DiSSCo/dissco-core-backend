@@ -478,7 +478,19 @@ class AnnotationServiceTest {
     given(repository.getActiveAnnotationForUser(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
 
     // When
-    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent());
+    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false);
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testTombstoneAnnotationAmin() throws Exception {
+    // Given
+    given(repository.getActiveAnnotation(ID)).willReturn(Optional.of(givenAnnotationResponse()));
+
+    // When
+    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true);
 
     // Then
     assertThat(result).isTrue();
@@ -491,7 +503,7 @@ class AnnotationServiceTest {
 
     // Then
     assertThrowsExactly(NoAnnotationFoundException.class,
-        () -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent()));
+        () -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false));
   }
 
 }

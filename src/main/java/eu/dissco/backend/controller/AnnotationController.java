@@ -191,8 +191,9 @@ public class AnnotationController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException, ForbiddenException {
     var agent = getAgent(authentication);
+    var isAdmin = isAdmin(authentication);
     log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix), agent.getId());
-    var success = service.tombstoneAnnotation(prefix, suffix, agent);
+    var success = service.tombstoneAnnotation(prefix, suffix, agent, isAdmin);
     if (success) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } else {

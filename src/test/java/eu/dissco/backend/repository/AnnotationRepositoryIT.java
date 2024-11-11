@@ -91,6 +91,21 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
+  void testGetActiveAnnotation() throws JsonProcessingException {
+    // Given
+    var annotations = List.of(givenAnnotationResponse(ID),
+        givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
+        givenAnnotationResponse(USER_ID_TOKEN, "JamesBond", PREFIX + "/TAR-GET-007"));
+    postAnnotations(annotations);
+
+    // When
+    var receivedResponse = repository.getActiveAnnotation(ID);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
+  }
+
+  @Test
   void testGetForTarget() throws JsonProcessingException {
     // Given
     MAPPER.setSerializationInclusion(Include.ALWAYS);

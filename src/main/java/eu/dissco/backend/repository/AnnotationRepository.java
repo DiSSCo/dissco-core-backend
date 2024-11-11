@@ -49,6 +49,14 @@ public class AnnotationRepository {
         .fetchOptional(this::mapToAnnotation);
   }
 
+  public Optional<Annotation> getActiveAnnotation(String id) {
+    return context.select(ANNOTATION.asterisk())
+        .from(ANNOTATION)
+        .where(ANNOTATION.ID.eq(id))
+        .and(ANNOTATION.TOMBSTONED.isNull())
+        .fetchOptional(this::mapToAnnotation);
+  }
+
   public List<Annotation> getForTarget(String id) {
     return context.select(ANNOTATION.DATA)
         .from(ANNOTATION)
