@@ -169,7 +169,7 @@ public class AnnotationService {
       Agent agent,
       String path, String prefix, String suffix)
       throws NoAnnotationFoundException, JsonProcessingException {
-    var result = repository.getActiveAnnotationForUser(id, agent.getId());
+    var result = repository.getActiveAnnotation(id, agent.getId());
     if (result.isPresent()) {
       if (annotationProcessingRequest.getDctermsIdentifier() == null) {
         annotationProcessingRequest.setDctermsIdentifier(id);
@@ -205,10 +205,10 @@ public class AnnotationService {
     Optional<Annotation> result;
     if (isAdmin) {
       log.info("Admin tombstoning annotation {}", id);
-      result = repository.getActiveAnnotation(id);
+      result = repository.getActiveAnnotation(id, null);
     } else {
       log.info("Creator tombstoning annotation {}", id);
-      result = repository.getActiveAnnotationForUser(id, agent.getId());
+      result = repository.getActiveAnnotation(id, agent.getId());
     }
     if (result.isPresent()) {
       annotationClient.tombstoneAnnotation(prefix, suffix,

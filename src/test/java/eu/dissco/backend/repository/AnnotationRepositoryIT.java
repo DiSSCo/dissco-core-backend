@@ -84,7 +84,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getActiveAnnotationForUser(ID, ORCID);
+    var receivedResponse = repository.getActiveAnnotation(ID, ORCID);
 
     // Then
     assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
@@ -99,7 +99,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     postAnnotations(annotations);
 
     // When
-    var receivedResponse = repository.getActiveAnnotation(ID);
+    var receivedResponse = repository.getActiveAnnotation(ID, null);
 
     // Then
     assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
