@@ -40,13 +40,15 @@ public class AnnotationRepository {
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
 
-  public Optional<Annotation> getActiveAnnotationForUser(String id, String userId) {
-    return context.select(ANNOTATION.asterisk())
+  public Optional<Annotation> getActiveAnnotation(String id, String userId) {
+    var query = context.select(ANNOTATION.asterisk())
         .from(ANNOTATION)
         .where(ANNOTATION.ID.eq(id))
-        .and(ANNOTATION.CREATOR.eq(userId))
-        .and(ANNOTATION.TOMBSTONED.isNull())
-        .fetchOptional(this::mapToAnnotation);
+        .and(ANNOTATION.TOMBSTONED.isNull());
+    if (userId != null) {
+      query = query.and(ANNOTATION.CREATOR.eq(userId));
+    }
+    return query.fetchOptional(this::mapToAnnotation);
   }
 
   public List<Annotation> getForTarget(String id) {
