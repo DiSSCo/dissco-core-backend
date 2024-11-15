@@ -9,7 +9,7 @@ public enum TaxonMappingTerms implements MappingTerm {
   KINGDOM("kingdom",
       "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:kingdom.keyword"),
   PHYLUM("phylum",
-      "ods:hasIdentification.ods:hasTaxonIdentifications.dwc:phylum.keyword"),
+      "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:phylum.keyword"),
   CLASS("class",
       "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:class.keyword"),
   ORDER("order",
