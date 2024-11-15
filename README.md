@@ -32,9 +32,6 @@ The APIs are documented through code-generated OpenAPI v3 and Swagger.
 - The swagger endpoint is: https://sandbox.dissco.tech/api/swagger-ui/index.html#/
 - The OpenAPI endpoint is: https://sandbox.dissco.tech/api/v3/api-docs
 
-As we use generic objects, the API documentation is not as detailed as we would like.
-We are looking at additional options for more detailed documentation.
-
 ### Digital Specimens
 For Digital Specimen, we only provide search and read functionality through the APIs.
 It follows a generic structure.
@@ -73,24 +70,10 @@ The create, update and tombstone endpoints are protected through authentication.
 The actions posted to these endpoints are forwarded to the annotation processor.
 This processor manages all the annotations and is the only application authorized to create or change annotations.
 
-### User
-For users, we provide a set of read, create, update and delete functionality through the APIs.
-When a new user is registered it will be created in the database.
-A user can update his or her information through the profile page.
-The backend will then update the user information in the database.
-
-### Organisation
-The organisation endpoints provide read functionality for the organisations.
-These organisations are inserted in the database and need to be updated manually.
-The organisation endpoints can be used by forms.
-
-### Organisation document
-The organisation documents can be used to insert documents for a particular organisation.
-These endpoints can be used to insert the result of forms.
-
 ## Run locally
 To run the system locally, it can be run from an IDEA.
 Clone the code and fill in the application properties (see below).
+The application requires a connection to an elastic search instance and a mongodb instance.
 The application needs a connection to a Postgres database, MongoDB and Elasticsearch.
 For creation and modification of annotations it needs a reachable annotation processor service.
 
@@ -115,6 +98,12 @@ elasticsearch.port=# The port of the Elasticsearch cluster
 #Oauth properties
 spring.security.oauth2.resourceserver.jwt.issuer-uri=# The URI to the JWT issuer
 spring.security.oauth2.authorizationserver.endpoint.jwk-set-uri=# The URI to the JWT OpenId certifications 
+token.secret=# Keycloak secret
+token.id=# Keycloak client id
+token.grant-type= # Keycloak grant type
+
+#Kafka properties
+kafka.publisher.host=# Endpoint for kafka publisher
 
 #MongoDB properties
 mongo.connection-string=# Connection string to MongoDB
@@ -122,3 +111,10 @@ mongo.database=# Database name of MongoDB
 
 #Feign clients
 feign.annotations=# Path to annotation proccessor endpoint
+
+#Endpoints
+endpoint.handle-endpoint=# Endpoint to handle API
+endpoint.token-endpoint=# Endpoint to keycloak authenticator
+
+#Application Properties
+application.base-url=# The url of the application (used to build JsonApiLinks objects)
