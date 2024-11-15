@@ -2,10 +2,8 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.schema.Identifier.OdsGupriLevel.GLOBALLY_UNIQUE_STABLE_PERSISTENT_RESOLVABLE;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.MasJobRequest;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
@@ -47,6 +45,7 @@ public abstract class BaseController {
   protected static final String SUFFIX_OAS = "Suffix of target ID";
 
   protected static final String VERSION_OAS = "Desired version";
+  protected static final String JOB_STATUS_OAS ="Optional filter on job status";
 
 
   protected static Agent getAgent(Authentication authentication) throws ForbiddenException {

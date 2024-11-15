@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
 import eu.dissco.backend.domain.openapi.media.DigitalMediaResponseList;
@@ -247,7 +246,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForSpecimen(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = "Optional filter on job status") @RequestParam(required = false) JobState state,
+      @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) throws NotFoundException {
