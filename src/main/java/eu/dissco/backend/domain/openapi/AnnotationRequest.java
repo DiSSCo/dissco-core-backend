@@ -8,12 +8,14 @@ import lombok.Value;
 @Value
 public class AnnotationRequest {
 
+  @Schema(description = "data!")
   Data data;
 
+  @Schema
   public record Data(
+      @Schema(description = "Type of request. For annotations, must be \"ods:Annotation\"")
       String type,
       AnnotationProcessingRequest attributes) {
-
   }
 
 }
