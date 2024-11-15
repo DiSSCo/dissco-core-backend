@@ -152,7 +152,7 @@ public class AnnotationController extends BaseController {
       @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Annotation adhering to JSON:API standard",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationRequest.class)))
       Authentication authentication,
-      @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
+      @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException {
     var annotation = getAnnotationFromRequest(requestBody);
     var agent = getAgent(authentication);
@@ -210,7 +210,7 @@ public class AnnotationController extends BaseController {
           (description = "Annotation adhering to JSON:API standard",
               content = {
                   @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationRequest.class))})
-      Authentication authentication, @RequestBody JsonApiRequestWrapper requestBody,
+      Authentication authentication, @RequestBody AnnotationRequest requestBody,
       @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
       @Parameter(description = "Suffix of target ID") @PathVariable("suffix") String suffix,
       HttpServletRequest request)
@@ -275,14 +275,13 @@ public class AnnotationController extends BaseController {
     }
   }
 
-  private AnnotationProcessingRequest getAnnotationFromRequest(JsonApiRequestWrapper requestBody)
-      throws JsonProcessingException {
-    if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
+  private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
+    if (!requestBody.getData().type().equals(ANNOTATION_TYPE)) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data()
+          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.getData()
               .type());
     }
-    return mapper.treeToValue(requestBody.data().attributes(), AnnotationProcessingRequest.class);
+    return requestBody.getData().attributes();
   }
 
   private AnnotationEventRequest getAnnotationFromRequestEvent(JsonApiRequestWrapper requestBody)

@@ -8,12 +8,12 @@ import lombok.Value;
 @Value
 public class AnnotationRequest {
 
-  String type;
   Data data;
 
-  @Value
-  private class Data {
-    AnnotationProcessingRequest attributes;
+  public record Data(
+      String type,
+      AnnotationProcessingRequest attributes) {
+
   }
 
 }
