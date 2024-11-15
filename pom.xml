@@ -91,6 +91,11 @@
       <version>${springdoc.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
@@ -249,6 +254,24 @@
           <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <outputFileName>openapi.yaml</outputFileName>
+              <outputDir>${project.build.directory}</outputDir>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>

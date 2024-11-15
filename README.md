@@ -7,30 +7,24 @@ In general, the find/search APIs are open, and APIs for create, update and delet
 
 All endpoints are based on the [JSON:API](https://jsonapi.org/) specification.
 It follows the guidelines and best practices described in [BiCIKL Deliverable 1.3](https://docs.google.com/document/d/1RgngKSPabEs-Pir6vA25iFDgVorbEZe7duT7L7vQ7QI)
-The organisation endpoints are an exception.
 
 The backend provides APIs for the following objects:
 - Digital Specimens
 - Digital Media Objects
 - Annotations
-- Users
-- Organisations
 
 ## Storage solutions
 In general, there are three places where data is stored:
-- Postgres database
-The Postgres database stores the latest active version of the object.
+- **Postgres database**: The Postgres database stores the latest active version of the object.
 It is used in retrieving a specific object based on the id.
 It can also be used to combine objects based on their relationships.
 
-- Elasticsearch
-This data storage is used for searching and aggregating.
+- **Elasticsearch**: This data storage is used for searching and aggregating.
 It is used for data discovery and provides endpoints for the filters and search fields.
 In general, it does not return a single object, but a paginated list of objects.
 Additionally, it can provide aggregations showing how many items comply to the search criteria.
 
-- MongoDB
-MongoDB is used for provenance storage and stores the historical data.
+- **MongoDB**: MongoDB is used for provenance storage and stores the historical data.
 This data storage is used for displaying previous versions of the data.
 
 ## API documentation
