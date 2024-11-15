@@ -12,7 +12,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
-import eu.dissco.backend.domain.openapi.annotation.AnnotationVersionResponse;
+import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest;
@@ -76,8 +76,8 @@ public class AnnotationController extends BaseController {
   })
   @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotation(
-      @Parameter(description = "Prefix of ID") @PathVariable("prefix") String prefix,
-      @Parameter(description = "Unique suffix of ID") @PathVariable("suffix") String suffix,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {}", id);
@@ -93,8 +93,8 @@ public class AnnotationController extends BaseController {
   })
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotations(
-      @Parameter(description = "Page number") @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = "Page size") @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request)
       throws IOException {
     log.info(
@@ -104,16 +104,17 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(annotations);
   }
 
-  @Operation(summary = "Get annotation by id and desired version")
+  @Operation(summary = "Get annotation by ID and desired version")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation retrieved", content = {
+      @ApiResponse(responseCode = "200", description = "Annotation successfully retrieved", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
       })
   })
   @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, @PathVariable("version") int version,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+      @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
     var id = HANDLE_STRING + prefix + '/' + suffix;
@@ -130,8 +131,8 @@ public class AnnotationController extends BaseController {
   })
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
-      @Parameter(description = "Page number") @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = "Page size") @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) {
     log.info(
         "Received get request for json paginated annotationRequests. Page number: {}, page size {}",
@@ -240,8 +241,8 @@ public class AnnotationController extends BaseController {
               content = {
                   @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationRequest.class))})
       Authentication authentication, @RequestBody AnnotationRequest requestBody,
-      @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
-      @Parameter(description = "Suffix of target ID") @PathVariable("suffix") String suffix,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
       throws NoAnnotationFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
@@ -266,8 +267,8 @@ public class AnnotationController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
-      @Parameter(description = "Page number") @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = "Page size") @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request,
       Authentication authentication) throws IOException, ForbiddenException {
     var orcid = getAgent(authentication).getId();
@@ -280,14 +281,14 @@ public class AnnotationController extends BaseController {
   @Operation(summary = "Get all versions for a given annotation")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Annotation versions successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationVersionResponse.class))
+          @Content(mediaType = "application/json", schema = @Schema(implementation = VersionResponse.class))
       })
   })
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> getAnnotationVersions(
-      @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
-      @Parameter(description = "Prefix of target ID") @PathVariable("suffix") String suffix,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request) throws NotFoundException {
     var id = HANDLE_STRING + prefix + '/' + suffix;
     log.info("Received get request for versions of annotationRequests with id: {}", id);
@@ -305,8 +306,8 @@ public class AnnotationController extends BaseController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{prefix}/{suffix}")
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
-      @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
-      @Parameter(description = "Suffix of target ID") @PathVariable("suffix") String suffix)
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException, ForbiddenException {
     var agent = getAgent(authentication);
     var isAdmin = isAdmin(authentication);
