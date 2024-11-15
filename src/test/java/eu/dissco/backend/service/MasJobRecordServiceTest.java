@@ -202,14 +202,13 @@ class MasJobRecordServiceTest {
   @Test
   void testCreateMasJobRecordCustomTTL() {
     // Given
-    var ttl = 3600L;
     var masRecord = MachineAnnotationServiceUtils.givenMas();
     var expected = givenMasJobRecordIdMap(masRecord.getId());
     given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest(false, ttl)));
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest(false)));
 
     // Then
     assertThat(result).isEqualTo(expected);

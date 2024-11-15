@@ -7,13 +7,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
-import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
 import eu.dissco.backend.domain.openapi.media.DigitalMediaResponseList;
 import eu.dissco.backend.domain.openapi.media.DigitalMediaResponseSingle;
-import eu.dissco.backend.domain.openapi.shared.MasResponseList;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
@@ -59,7 +56,7 @@ public class DigitalMediaController extends BaseController {
     this.service = service;
   }
 
-  @Operation(summary = "Get paginated digital medias")
+  @Operation(summary = "Get paginated digital media")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalMediaResponseList.class))
@@ -94,7 +91,7 @@ public class DigitalMediaController extends BaseController {
     return ResponseEntity.ok(multiMedia);
   }
 
-  @Operation(summary = "Get annotations for a given media object")
+  @Operation(summary = "Get annotations for a given digital media")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Digital media annotations successfully retrieved", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
@@ -210,7 +207,7 @@ public class DigitalMediaController extends BaseController {
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Original Data successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
+          @Content(mediaType = "application/json", schema = @Schema(implementation = JsonApiWrapper.class))
       })
   })
   @GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
