@@ -9,7 +9,6 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
@@ -18,9 +17,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.Annotation;
@@ -172,15 +170,6 @@ public class AnnotationUtils {
         .withSchemaRatingCount(2);
   }
 
-  public static JsonApiRequestWrapper givenJsonApiAnnotationRequest(Object request) {
-    return new JsonApiRequestWrapper(
-        new JsonApiRequest(
-            "ods:Annotation",
-            MAPPER.valueToTree(request)
-        )
-    );
-  }
-
   // JsonApiWrapper
   public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
     return givenAnnotationResponseSingleDataNode(path, ORCID);
@@ -250,8 +239,8 @@ public class AnnotationUtils {
     );
   }
 
-  public static JsonNode givenAnnotationCountRequest() throws JsonProcessingException {
-    return MAPPER.readTree("""
+  public static BatchAnnotationCountRequest givenAnnotationCountRequest() throws JsonProcessingException {
+    return MAPPER.readValue("""
         {
           "data": {
             "type": "batchAnnotationCount",
@@ -268,7 +257,7 @@ public class AnnotationUtils {
             }
           }
         }
-        """);
+        """, BatchAnnotationCountRequest.class);
   }
 
 

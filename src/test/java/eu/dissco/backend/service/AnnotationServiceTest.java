@@ -27,9 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -50,16 +48,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.common.errors.InvalidRequestException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -85,46 +79,6 @@ class AnnotationServiceTest {
   private MockedStatic<Instant> mockedInstant;
   private MockedStatic<Clock> mockedClock;
   private AnnotationService service;
-
-  private static Stream<Arguments> badAnnotationCountRequest() throws JsonProcessingException {
-    return Stream.of(
-        Arguments.of(MAPPER.readTree("""
-            {
-              "data": {
-                "type": "annotationRequests",
-                "attributes": {
-                  "batchMetadata": {
-                    "searchParams": [
-                      {
-                        "inputField": "digitalSpecimenWrapper.occurrences[*].location.dwc:country",
-                        "inputValue": "Canada"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-            """)),
-        Arguments.of(MAPPER.readTree("""
-            {
-              "data": {
-                "type": "annotationRequests",
-                "attributes": {
-                  "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e"
-                }
-              }
-            }
-            """)),
-        Arguments.of(MAPPER.readTree("""
-            {
-              "data": {
-                "type": "annotationRequests"
-              }
-            }
-            """)),
-        Arguments.of(MAPPER.createObjectNode())
-    );
-  }
 
   @BeforeEach
   void setup() {
@@ -350,14 +304,6 @@ class AnnotationServiceTest {
     MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, false);
   }
 
-  @ParameterizedTest
-  @MethodSource("badAnnotationCountRequest")
-  void testGetAnnotationBatchCountBadRequest(JsonNode badRequest) {
-    // When / Then
-    assertThrowsExactly(InvalidRequestException.class,
-        () -> service.getCountForBatchAnnotations(badRequest));
-  }
-
   @Test
   void testPersistAnnotationBatchBatch() throws Exception {
     // Given
@@ -390,17 +336,6 @@ class AnnotationServiceTest {
     // Then
     assertThat(result).isNull();
 
-  }
-
-  @Test
-  void testGetAnnotationBatchCountNpe() {
-    // Given
-    var badRequest = MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode());
-
-    // When / Then
-    assertThrowsExactly(InvalidRequestException.class,
-        () -> service.getCountForBatchAnnotations(badRequest));
   }
 
   @Test

@@ -8,12 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.domain.openapi.AnnotationRequest;
-import eu.dissco.backend.domain.openapi.AnnotationResponseList;
-import eu.dissco.backend.domain.openapi.AnnotationResponseSingle;
-import eu.dissco.backend.domain.openapi.BatchAnnotationCountRequest;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationVersionResponse;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountResponse;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
@@ -120,8 +122,6 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(annotation);
   }
 
-
-  // Todo do we need this AND /latest ?
   @Operation(summary = "Get annotations, paginated")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Annotations retrieved", content = {
@@ -149,8 +149,10 @@ public class AnnotationController extends BaseController {
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotation(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Annotation adhering to JSON:API standard",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationRequest.class)))
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Annotation adhering to JSON:API standard",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AnnotationRequest.class)))
       Authentication authentication,
       @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException {
@@ -165,25 +167,52 @@ public class AnnotationController extends BaseController {
     }
   }
 
-  // Todo
-  @Operation(summary = "Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event")
+  @Operation(summary = "Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event",
+  description = """
+      Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event.
+      This is a prerequisite for applying batch annotations. This can only be requested by users with the "batch annotations" permission.
+      """)
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Projected Annotation count calculated", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = BatchAnnotationCountResponse.class))
+      })
+  })
   @PreAuthorize("hasRole('dissco-web-batch-annotations')")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonNode> getCountForBatchAnnotations(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Annotation adhering to JSON:API standard")
-      @RequestBody JsonNode request)
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Annotation adhering to JSON:API standard",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = BatchAnnotationCountRequest.class)))
+      @RequestBody BatchAnnotationCountRequest request)
       throws IOException {
     log.info("Received request for batch annotation count");
     var result = service.getCountForBatchAnnotations(request);
     return ResponseEntity.ok(result);
   }
 
+  @Operation(summary = "Apply an annotation to all objects that match a given criteria",
+  description = """
+      Given a set of search parameters, applies an annotation to all objects that match this criteria.
+      The first annotation created, which is the annotation on the provided target, is returned.
+      Subsequent annotations are scheduled. This is only possible for users with the "batch annotations" permission.
+      """
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "201", description = "Batching scheduled; initial annotation returned", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
+      })
+  })
   @PreAuthorize("hasRole('dissco-web-batch-annotations')")
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createAnnotationBatch(Authentication authentication,
-      @RequestBody JsonApiRequestWrapper requestBody, HttpServletRequest request)
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Annotation batch request",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = BatchAnnotationRequest.class)))
+      @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
@@ -248,20 +277,36 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(annotations);
   }
 
+  @Operation(summary = "Get all versions for a given annotation")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Annotation versions successfully retrieved", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationVersionResponse.class))
+      })
+  })
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getAnnotationVersions(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
+  public ResponseEntity<JsonApiWrapper> getAnnotationVersions(
+      @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
+      @Parameter(description = "Prefix of target ID") @PathVariable("suffix") String suffix,
+      HttpServletRequest request) throws NotFoundException {
     var id = HANDLE_STRING + prefix + '/' + suffix;
     log.info("Received get request for versions of annotationRequests with id: {}", id);
     var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
   }
 
+  @Operation(summary = "Tombstone a given annotation",
+  description = """
+      Tombstone a given annotation. Regular users may only tombstone annotations they created.
+      Administrators may tombstone any annotation.
+      """)
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Annotation successfully tombstoned")})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = "/{prefix}/{suffix}")
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix)
+      @Parameter(description = "Prefix of target ID") @PathVariable("prefix") String prefix,
+      @Parameter(description = "Suffix of target ID") @PathVariable("suffix") String suffix)
       throws NoAnnotationFoundException, ForbiddenException {
     var agent = getAgent(authentication);
     var isAdmin = isAdmin(authentication);
@@ -276,22 +321,21 @@ public class AnnotationController extends BaseController {
   }
 
   private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
-    if (!requestBody.getData().type().equals(ANNOTATION_TYPE)) {
-      throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.getData()
-              .type());
-    }
-    return requestBody.getData().attributes();
-  }
-
-  private AnnotationEventRequest getAnnotationFromRequestEvent(JsonApiRequestWrapper requestBody)
-      throws JsonProcessingException {
     if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
       throw new IllegalArgumentException(
           "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data()
               .type());
     }
-    return mapper.treeToValue(requestBody.data().attributes(), AnnotationEventRequest.class);
+    return requestBody.data().attributes();
+  }
+
+  private AnnotationEventRequest getAnnotationFromRequestEvent(BatchAnnotationRequest requestBody) {
+    if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
+      throw new IllegalArgumentException(
+          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data()
+              .type());
+    }
+    return requestBody.data().attributes();
   }
 
   @ExceptionHandler(NoAnnotationFoundException.class)
