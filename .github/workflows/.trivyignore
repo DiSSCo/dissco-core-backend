@@ -1,3 +1,7 @@
 # October 14 2024
 # Issue in Spring OpenFeign, Need to upgrade commons-io to version 2.14.0
 CVE-2024-47554
+
+# October 19 2024
+# Issue with netty, need for Spring web to update
+CVE-2024-47535
