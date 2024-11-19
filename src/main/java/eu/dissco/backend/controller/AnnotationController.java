@@ -141,9 +141,14 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(annotations);
   }
 
-  @Operation(summary = "Post annotation")
+  @Operation(
+      summary = "Create annotation",
+      description = """
+          Create an annotation on a digital specimen or digital media. Only users who have 
+          registered their ORCID may create annotations.
+          """)
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation retrieved", content = {
+      @ApiResponse(responseCode = "201", description = "Annotation successfully created", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
       })
   })
@@ -169,10 +174,10 @@ public class AnnotationController extends BaseController {
   }
 
   @Operation(summary = "Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event",
-  description = """
-      Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event.
-      This is a prerequisite for applying batch annotations. This can only be requested by users with the "batch annotations" permission.
-      """)
+      description = """
+          Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event.
+          This is a prerequisite for applying batch annotations. This can only be requested by users with the "batch annotations" permission.
+          """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Projected Annotation count calculated", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = BatchAnnotationCountResponse.class))
@@ -194,11 +199,11 @@ public class AnnotationController extends BaseController {
   }
 
   @Operation(summary = "Apply an annotation to all objects that match a given criteria",
-  description = """
-      Given a set of search parameters, applies an annotation to all objects that match this criteria.
-      The first annotation created, which is the annotation on the provided target, is returned.
-      Subsequent annotations are scheduled. This is only possible for users with the "batch annotations" permission.
-      """
+      description = """
+          Given a set of search parameters, applies an annotation to all objects that match this criteria.
+          The first annotation created, which is the annotation on the provided target, is returned.
+          Subsequent annotations are scheduled. This is only possible for users with the "batch annotations" permission.
+          """
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Batching scheduled; initial annotation returned", content = {
@@ -227,7 +232,11 @@ public class AnnotationController extends BaseController {
     }
   }
 
-  @Operation(summary = "Update existing annotation")
+  @Operation(
+      summary = "Update existing annotation",
+      description = """
+          Update an existing annotation. Users may only update annotations they have created.
+          """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Annotation successfully updated", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
@@ -297,10 +306,9 @@ public class AnnotationController extends BaseController {
   }
 
   @Operation(summary = "Tombstone a given annotation",
-  description = """
-      Tombstone a given annotation. Regular users may only tombstone annotations they created.
-      Administrators may tombstone any annotation.
-      """)
+      description = """
+          Tombstone a given annotation. Users may only tombstone annotations they created.
+          """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Annotation successfully tombstoned")})
   @ResponseStatus(HttpStatus.NO_CONTENT)
