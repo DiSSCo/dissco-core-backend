@@ -1,6 +1,5 @@
 package eu.dissco.backend;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.schema.Agent;
@@ -22,7 +21,6 @@ import java.util.UUID;
 public class TestUtils {
 
   public static final String USER_ID_TOKEN = "e2befba6-9324-4bb4-9f41-d7dfae4a44b0";
-  public static final String TYPE = "users";
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
   public static final String HANDLE = "https://hdl.handle.net/";

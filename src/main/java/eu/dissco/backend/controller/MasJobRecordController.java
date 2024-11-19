@@ -6,6 +6,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.MjrResponseSingle;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.MasJobRecordService;
@@ -16,9 +17,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.Authenticator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,13 +74,13 @@ public class MasJobRecordController extends BaseController {
           @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
       })
   })
-  @GetMapping(value = "/creator/{creatorId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForCreator(
-      @Parameter(description = "ID of Scheduler") @PathVariable("creatorId") String creatorId,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
-      HttpServletRequest request) {
+      HttpServletRequest request, Authentication authentication) throws ForbiddenException {
+    var creatorId = getAgent(authentication).getSchemaIdentifier();
     return ResponseEntity.ok().body(
         service.getMasJobRecordsByMasId(creatorId, getPath(request), pageNumber, pageSize,
             state));
