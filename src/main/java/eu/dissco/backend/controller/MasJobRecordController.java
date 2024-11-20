@@ -6,6 +6,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.MjrResponseSingle;
+import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
+import eu.dissco.backend.domain.openapi.shared.MjrResponseSingle;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
