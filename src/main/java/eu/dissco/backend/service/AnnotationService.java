@@ -6,17 +6,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
-import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
-import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -35,7 +34,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.common.errors.InvalidRequestException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -113,34 +111,17 @@ public class AnnotationService {
     return null;
   }
 
-  public JsonNode getCountForBatchAnnotations(JsonNode annotationCountJson) throws IOException {
-    var annotationCountRequest = getAnnotationBatchCount(annotationCountJson);
-    var count = elasticRepository.getCountForBatchAnnotations(annotationCountRequest.getLeft(),
-        annotationCountRequest.getRight());
+  public JsonNode getCountForBatchAnnotations(BatchAnnotationCountRequest annotationCountRequest) throws IOException {
+    var count = elasticRepository.getCountForBatchAnnotations(annotationCountRequest.data().attributes()
+            .batchMetadata(),
+        annotationCountRequest.data().attributes().annotationTargetType());
     return mapper.createObjectNode()
         .set(DATA, mapper.createObjectNode()
             .put("type", "batchAnnotationCount")
             .set(ATTRIBUTES, mapper.createObjectNode()
                 .put("objectAffected", count)
-                .set("batchMetadata", mapper.valueToTree(annotationCountRequest.getLeft()))));
-  }
-
-  private Pair<BatchMetadata, AnnotationTargetType> getAnnotationBatchCount(
-      JsonNode annotationCountRequest) {
-    try {
-      var batchMetadata = mapper.treeToValue(
-          annotationCountRequest.get(DATA).get(ATTRIBUTES).get("batchMetadata"),
-          BatchMetadata.class);
-      var targetType = mapper.treeToValue(
-          annotationCountRequest.get(DATA).get(ATTRIBUTES).get("annotationTargetType"),
-          AnnotationTargetType.class);
-      assert (batchMetadata != null);
-      assert (targetType != null);
-      return Pair.of(batchMetadata, targetType);
-    } catch (JsonProcessingException | NullPointerException | AssertionError e) {
-      log.info("Unable to read request body for batch annotation count", e);
-      throw new InvalidRequestException("Invalid request for batch annotation request");
-    }
+                .set("batchMetadata", mapper.valueToTree(annotationCountRequest.data().attributes()
+                    .batchMetadata()))));
   }
 
   private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest,

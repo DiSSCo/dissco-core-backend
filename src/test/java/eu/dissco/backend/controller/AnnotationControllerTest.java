@@ -12,12 +12,11 @@ import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
-import static eu.dissco.backend.utils.AnnotationUtils.givenJsonApiAnnotationRequest;
+import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +27,14 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
+import eu.dissco.backend.domain.annotation.AnnotationTargetType;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
+import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest.AnnotationRequestData;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest.BatchAnnotationCountRequestData;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest.BatchAnnotationCountRequestData.BatchAnnotationCountRequestAttributes;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest;
+import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest.BatchAnnotationRequestData;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -151,7 +158,7 @@ class AnnotationControllerTest {
     givenAuthentication(givenClaims());
     var annotation = givenAnnotationRequest();
 
-    var request = givenJsonApiAnnotationRequest(annotation);
+    var request = givenAnnotationRequestObject();
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.persistAnnotation(annotation, givenAgent(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
@@ -173,7 +180,7 @@ class AnnotationControllerTest {
     given(principal.getClaims()).willReturn(Map.of(
         "client-id", "demo-api-client"
     ));
-    var request = givenJsonApiAnnotationRequest(givenAnnotationRequest());
+    var request = givenAnnotationRequestObject();
 
     // When / Then
     assertThrowsExactly(ForbiddenException.class,
@@ -183,7 +190,12 @@ class AnnotationControllerTest {
   @Test
   void testGetBatchConfirmation() throws Exception {
     // When
-    var result = controller.getCountForBatchAnnotations(givenAnnotationCountRequest());
+    var result = controller.getCountForBatchAnnotations(new BatchAnnotationCountRequest(
+        new BatchAnnotationCountRequestData(
+            "atchAnnotationCountRequest",
+            new BatchAnnotationCountRequestAttributes(
+                givenBatchMetadata(), AnnotationTargetType.DIGITAL_SPECIMEN
+            ))));
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -194,14 +206,14 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(givenClaims());
     var event = givenAnnotationEventRequest();
-    var request = givenJsonApiAnnotationRequest(event);
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var receivedResponse = controller.createAnnotationBatch(authentication, request, mockRequest);
+    var receivedResponse = controller.createAnnotationBatch(authentication,
+        givenBatchAnnotationRequestObject(), mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -212,8 +224,7 @@ class AnnotationControllerTest {
   void testCreateAnnotationNullResponse() throws Exception {
     // Given
     givenAuthentication(givenClaims());
-    var annotation = givenAnnotationRequest();
-    var request = givenJsonApiAnnotationRequest(annotation);
+    var request = givenAnnotationRequestObject();
     given(
         service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(
         null);
@@ -230,13 +241,13 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(givenClaims());
     var event = givenAnnotationEventRequest();
-    var request = givenJsonApiAnnotationRequest(event);
     given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
         .willReturn(null);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var receivedResponse = controller.createAnnotationBatch(authentication, request, mockRequest);
+    var receivedResponse = controller.createAnnotationBatch(authentication,
+        givenBatchAnnotationRequestObject(), mockRequest);
 
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -247,7 +258,7 @@ class AnnotationControllerTest {
     // Given
     givenAuthentication(givenClaims());
     var annotation = givenAnnotationRequest();
-    var requestBody = givenJsonApiAnnotationRequest(annotation);
+    var requestBody = givenAnnotationRequestObject();
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.updateAnnotation(ID, annotation, givenAgent(), ANNOTATION_PATH, PREFIX,
         SUFFIX)).willReturn(
@@ -290,7 +301,8 @@ class AnnotationControllerTest {
 
   @ParameterizedTest
   @MethodSource("nonValidAdminClaims")
-  void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims) throws Exception {
+  void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims)
+      throws Exception {
     // Given
     givenAuthentication(claims);
     given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
@@ -302,7 +314,7 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
-  private static Stream<Arguments> nonValidAdminClaims(){
+  private static Stream<Arguments> nonValidAdminClaims() {
     return Stream.of(
         Arguments.of(givenClaims()),
         Arguments.of(Map.of(
@@ -348,4 +360,15 @@ class AnnotationControllerTest {
     given(authentication.getPrincipal()).willReturn(principal);
     given(principal.getClaims()).willReturn(claims);
   }
+
+  public static AnnotationRequest givenAnnotationRequestObject() {
+    return new AnnotationRequest(
+        new AnnotationRequestData("ods:Annotation", givenAnnotationRequest()));
+  }
+
+  public static BatchAnnotationRequest givenBatchAnnotationRequestObject() {
+    return new BatchAnnotationRequest(new BatchAnnotationRequestData(
+        "ods:Annotation", givenAnnotationEventRequest()));
+  }
+
 }

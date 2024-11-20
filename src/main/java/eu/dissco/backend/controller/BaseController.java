@@ -2,10 +2,9 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.schema.Identifier.OdsGupriLevel.GLOBALLY_UNIQUE_STABLE_PERSISTENT_RESOLVABLE;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.MasJobRequest;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -34,11 +33,19 @@ public abstract class BaseController {
   public static final String DATE_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
   protected static final String DEFAULT_PAGE_NUM = "1";
   protected static final String DEFAULT_PAGE_SIZE = "10";
-  private static final TypeReference<List<MasJobRequest>> LIST_TYPE = new TypeReference<>() {
-  };
   private static final String ORCID = "orcid";
   protected final ObjectMapper mapper;
   private final ApplicationProperties applicationProperties;
+
+  // OpenAPI Messages
+  protected static final String PAGE_NUM_OAS = "Desired page number";
+  protected static final String PAGE_SIZE_OAS = "Desired page size";
+
+  protected static final String PREFIX_OAS = "Prefix of target ID";
+  protected static final String SUFFIX_OAS = "Suffix of target ID";
+
+  protected static final String VERSION_OAS = "Desired version";
+  protected static final String JOB_STATUS_OAS ="Optional filter on job status";
 
 
   protected static Agent getAgent(Authentication authentication) throws ForbiddenException {
@@ -87,7 +94,7 @@ public abstract class BaseController {
       return (roles.contains("dissco-admin"));
     } catch (NullPointerException e) {
       return false;
-    } catch (ClassCastException e){
+    } catch (ClassCastException e) {
       log.warn("Unable to read claims", e);
       return false;
     }
@@ -103,16 +110,16 @@ public abstract class BaseController {
     return path;
   }
 
-  protected Map<String, MasJobRequest> getMassRequestFromRequest(JsonApiRequestWrapper requestBody)
+  protected Map<String, MasJobRequest> getMassRequestFromRequest(MasSchedulingRequest requestBody)
       throws ConflictException {
     if (!requestBody.data().type().equals("MasRequest")) {
       throw new ConflictException();
     }
-    if (requestBody.data().attributes().get("mass") == null) {
+    if (requestBody.data().attributes().mass() == null) {
       throw new IllegalArgumentException();
     }
-    var list = mapper.convertValue(requestBody.data().attributes().get("mass"), LIST_TYPE);
-    return list.stream().collect(Collectors.toMap(MasJobRequest::masId, Function.identity()));
+    return requestBody.data().attributes().mass().stream()
+        .collect(Collectors.toMap(MasJobRequest::masId, Function.identity()));
   }
 
 }

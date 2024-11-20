@@ -26,6 +26,9 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.JobState;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData.MasSchedulingAttributes;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -184,7 +187,8 @@ class DigitalMediaControllerTest {
   @Test
   void testScheduleMasInvalidType() {
     // Given
-    var request = givenMasRequest("Invalid Type");
+    var request = new MasSchedulingRequest(new MasSchedulingData("Invalid type",
+        new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
     givenAuthentication();
 
     // When / Then

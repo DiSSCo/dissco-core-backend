@@ -119,13 +119,13 @@ class MachineAnnotationServiceServiceTest {
     given(repository.getMasRecords(Set.of(HANDLE + ID))).willReturn(List.of(masRecord));
     given(masJobRecordService.createMasJobRecord(Set.of(masRecord), HANDLE + ID, ORCID,
         MjrTargetType.DIGITAL_SPECIMEN,
-        Map.of(HANDLE + ID, givenMasJobRequest(true, null)))).willReturn(
+        Map.of(HANDLE + ID, givenMasJobRequest(true)))).willReturn(
         givenMasJobRecordIdMap(masRecord.getId(), true));
     var sendObject = new MasTarget(digitalSpecimen, JOB_ID, true);
 
     // When
     var result = service.scheduleMass(givenFlattenedDigitalSpecimen(),
-        Map.of(HANDLE + ID, givenMasJobRequest(true, null)),
+        Map.of(HANDLE + ID, givenMasJobRequest(true)),
         SPECIMEN_PATH, digitalSpecimen, digitalSpecimen.getDctermsIdentifier(), ORCID,
         MjrTargetType.DIGITAL_SPECIMEN);
 
@@ -169,7 +169,7 @@ class MachineAnnotationServiceServiceTest {
     // Then
     assertThrowsExactly(BatchingNotPermittedException.class,
         () -> service.scheduleMass(givenFlattenedDigitalSpecimen(),
-            Map.of(HANDLE + ID, givenMasJobRequest(true, null)), SPECIMEN_PATH,
+            Map.of(HANDLE + ID, givenMasJobRequest(true)), SPECIMEN_PATH,
             digitalSpecimen, digitalSpecimen.getDctermsIdentifier(), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN));
   }

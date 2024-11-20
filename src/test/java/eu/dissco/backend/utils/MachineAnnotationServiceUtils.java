@@ -15,8 +15,9 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData.MasSchedulingAttributes;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.MachineAnnotationService;
@@ -27,7 +28,6 @@ import eu.dissco.backend.schema.TombstoneMetadata;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class MachineAnnotationServiceUtils {
 
@@ -57,25 +57,20 @@ public class MachineAnnotationServiceUtils {
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 
-  public static JsonApiRequestWrapper givenMasRequest() {
-    return givenMasRequest("MasRequest");
-  }
-
-  public static JsonApiRequestWrapper givenMasRequest(String type) {
-    var mass = Map.of("mass", List.of(givenMasJobRequest()));
-    var apiRequest = new JsonApiRequest(type, MAPPER.valueToTree(mass));
-    return new JsonApiRequestWrapper(apiRequest);
+  public static MasSchedulingRequest givenMasRequest() {
+    return new MasSchedulingRequest(new MasSchedulingData("MasRequest",
+        new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
   }
 
   public static MasJobRequest givenMasJobRequest() {
-    return givenMasJobRequest(false, null);
+    return givenMasJobRequest(false);
   }
 
-  public static MasJobRequest givenMasJobRequest(boolean batching, Long ttl) {
+  public static MasJobRequest givenMasJobRequest(boolean batching) {
     return new MasJobRequest(
         MAS_ID,
-        batching,
-        ttl);
+        batching
+    );
   }
 
   public static MachineAnnotationService givenMas() {

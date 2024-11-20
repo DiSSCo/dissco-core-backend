@@ -29,9 +29,10 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequest;
-import eu.dissco.backend.domain.jsonapi.JsonApiRequestWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
+import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData.MasSchedulingAttributes;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
@@ -279,7 +280,8 @@ class DigitalSpecimenControllerTest {
   @Test
   void testScheduleMasInvalidType() {
     // Given
-    var request = givenMasRequest("Invalid Type");
+    var request = new MasSchedulingRequest(new MasSchedulingData("Invalid type",
+        new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
     givenAuthentication();
 
     // When / Then
@@ -289,11 +291,10 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testScheduleMasNoAttribute() throws Exception{
+  void testScheduleMasNoAttribute() {
     // Given
-    var mass = Map.of("somethingElse", Map.of(ID, false));
-    var apiRequest = new JsonApiRequest("MasRequest", MAPPER.valueToTree(mass));
-    var request = new JsonApiRequestWrapper(apiRequest);
+    var request = new MasSchedulingRequest(new MasSchedulingData("MasRequest",
+        new MasSchedulingAttributes(null)));
     givenAuthentication();
 
     // When / Then
