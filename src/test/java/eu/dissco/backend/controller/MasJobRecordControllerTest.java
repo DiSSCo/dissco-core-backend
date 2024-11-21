@@ -4,11 +4,13 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
+import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_SUFFIX;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -22,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @ExtendWith(MockitoExtension.class)
 class MasJobRecordControllerTest {
@@ -33,6 +37,8 @@ class MasJobRecordControllerTest {
   private MasJobRecordService masJobRecordService;
   private MockHttpServletRequest mockRequest;
   private MasJobRecordController controller;
+  @Mock
+  private Authentication authentication;
 
   @BeforeEach
   void setup() {
@@ -56,17 +62,18 @@ class MasJobRecordControllerTest {
   }
 
   @Test
-  void testGetMasJobRecordByCreatorId() {
+  void testGetMasJobRecordByCreatorId() throws Exception {
     // Given
     int pageNum = 1;
     int pageSize = 1;
     given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize,
         JobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+    givenAuthentication();
 
     // When
-    var result = controller.getMasJobRecordsForCreator(ORCID, pageNum, pageSize, JobState.FAILED,
-        mockRequest);
+    var result = controller.getMasJobRecordsForCreator(pageNum, pageSize, JobState.FAILED,
+        mockRequest, authentication);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,5 +86,11 @@ class MasJobRecordControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  private void givenAuthentication() {
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getClaims()).willReturn(givenClaims());
   }
 }
