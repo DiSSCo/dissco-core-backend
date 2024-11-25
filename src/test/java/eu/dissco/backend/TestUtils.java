@@ -132,7 +132,6 @@ public class TestUtils {
         .withOdsFdoType(DIGITAL_SPECIMEN_TYPE)
         .withDctermsModified("03/12/2012")
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
-        .withDwcPreparations("")
         .withDctermsLicense("http://creativecommons.org/licenses/by/4.0/legalcode")
         .withOdsSpecimenName(specimenName)
         .withOdsOrganisationID("https://ror.org/0349vqz63")
