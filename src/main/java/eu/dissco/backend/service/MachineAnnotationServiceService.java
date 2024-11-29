@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.MasTarget;
@@ -71,7 +72,7 @@ public class MachineAnnotationServiceService {
       boolean complies = checkIfMasComplies(jsonNode, masRecord);
       if (complies) {
         availableMass.add(
-            new JsonApiData(masRecord.getId(), "ods:MachineAnnotationService", masRecord, mapper));
+            new JsonApiData(masRecord.getId(), FdoType.MAS.getName(), masRecord, mapper));
       }
     }
     var links = new JsonApiLinksFull(path);
@@ -99,7 +100,7 @@ public class MachineAnnotationServiceService {
             masRequests.get(machineAnnotationService.getId()).batching());
         kafkaPublisherService.sendObjectToQueue(machineAnnotationService.getOdsTopicName(), targetObject);
         scheduledJobs.add(
-            new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper));
+            new JsonApiData(mjr.jobId(), FdoType.MJR.getName(), mjr, mapper));
       } catch (JsonProcessingException e) {
         log.error("Failed to send masRecord: {}  to kafka", machineAnnotationService.getId());
         failedRecords.add(mjr.jobId());

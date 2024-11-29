@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.MasJobRequest;
@@ -44,7 +45,7 @@ public class MasJobRecordService {
           "Unable to find MAS Job Record for job " + masJobRecordHandle);
     }
     var masJobRecord = masJobRecordOptional.get();
-    var dataNode = new JsonApiData(masJobRecordHandle, "masJobRecord",
+    var dataNode = new JsonApiData(masJobRecordHandle, FdoType.MJR.getName(),
         mapper.valueToTree(masJobRecord));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -74,7 +75,7 @@ public class MasJobRecordService {
     boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
     var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
     List<JsonApiData> dataList = sublist.stream().map(
-            mjr -> new JsonApiData(mjr.jobHandle(), "masJobRecord", mapper.valueToTree(mjr)))
+            mjr -> new JsonApiData(mjr.jobHandle(), FdoType.MJR.getName(), mapper.valueToTree(mjr)))
         .toList();
     JsonApiLinksFull linksNode;
     if (masJobRecordListPlusOne.isEmpty()) {

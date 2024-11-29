@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
@@ -21,13 +22,13 @@ public class SpecimenUtils {
     List<JsonApiData> dataNode = new ArrayList<>();
     digitalSpecimenList.forEach(specimenWrapper -> dataNode.add(
         new JsonApiData(specimenWrapper.getDctermsIdentifier(),
-            specimenWrapper.getOdsFdoType(), MAPPER.valueToTree(specimenWrapper))));
+            FdoType.DIGITAL_SPECIMEN.getName(), MAPPER.valueToTree(specimenWrapper))));
     return dataNode;
   }
 
   public static JsonApiData givenDigitalSpecimenJsonApiData(
       DigitalSpecimen specimenWrapper) {
-    return new JsonApiData(specimenWrapper.getDctermsIdentifier(), specimenWrapper.getOdsFdoType(),
+    return new JsonApiData(specimenWrapper.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(),
         MAPPER.valueToTree(specimenWrapper));
   }
 
@@ -43,7 +44,7 @@ public class SpecimenUtils {
     List<DigitalSpecimen> digitalSpecimen = givenDigitalSpecimenList(qty);
     List<JsonApiData> dataNode = new ArrayList<>();
     digitalSpecimen.forEach(
-        s -> dataNode.add(new JsonApiData(s.getDctermsIdentifier(), s.getOdsFdoType(), MAPPER.valueToTree(s))));
+        s -> dataNode.add(new JsonApiData(s.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(), MAPPER.valueToTree(s))));
     return dataNode;
   }
 

@@ -27,6 +27,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import eu.dissco.backend.component.SchemaValidatorComponent;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest.AnnotationRequestData;
@@ -363,12 +364,12 @@ class AnnotationControllerTest {
 
   public static AnnotationRequest givenAnnotationRequestObject() {
     return new AnnotationRequest(
-        new AnnotationRequestData("ods:Annotation", givenAnnotationRequest()));
+        new AnnotationRequestData(FdoType.ANNOTATION, givenAnnotationRequest()));
   }
 
   public static BatchAnnotationRequest givenBatchAnnotationRequestObject() {
     return new BatchAnnotationRequest(new BatchAnnotationRequestData(
-        "ods:Annotation", givenAnnotationEventRequest()));
+        FdoType.ANNOTATION, givenAnnotationEventRequest()));
   }
 
 }

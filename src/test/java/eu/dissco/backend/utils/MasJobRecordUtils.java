@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -101,7 +102,7 @@ public class MasJobRecordUtils {
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, MJR_URI);
     var mjr = givenMasJobRecordFullScheduled();
     var dataList = Collections.nCopies(pageSize,
-        new JsonApiData(JOB_ID, "masJobRecord", MAPPER.valueToTree(mjr)));
+        new JsonApiData(JOB_ID, FdoType.MJR.getName(), MAPPER.valueToTree(mjr)));
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 }

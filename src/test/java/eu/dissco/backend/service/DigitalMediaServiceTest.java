@@ -29,7 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
-import eu.dissco.backend.domain.OdsType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -131,7 +131,7 @@ class DigitalMediaServiceTest {
     var mediaObject = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
     var expected = new JsonApiWrapper(
-        new JsonApiData(mediaObject.getDctermsIdentifier(), mediaObject.getOdsFdoType(),
+        new JsonApiData(mediaObject.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(),
             MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
@@ -184,10 +184,8 @@ class DigitalMediaServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
         mongoResponse);
 
-    var type = mongoResponse.get("ods:fdoType").asText();
-
     var expectedResponse = new JsonApiWrapper(
-        new JsonApiData(DOI + ID, type, MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
+        new JsonApiData(DOI + ID, FdoType.DIGITAL_MEDIA.getName(), MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
         new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
@@ -227,7 +225,7 @@ class DigitalMediaServiceTest {
     var mediaObject = givenDigitalMediaObject(ID);
     var responseExpected = List.of(new JsonApiData(
         mediaObject.getDctermsIdentifier(),
-        mediaObject.getOdsFdoType(),
+        FdoType.DIGITAL_MEDIA.getName(),
         MAPPER.valueToTree(mediaObject)));
     given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
 
@@ -341,7 +339,7 @@ class DigitalMediaServiceTest {
     // Given
     var expectedJson = givenMongoDBMediaResponse();
     var expected = new JsonApiWrapper(
-        new JsonApiData(ID, OdsType.DIGITAL_MEDIA.getPid(), expectedJson),
+        new JsonApiData(ID, FdoType.DIGITAL_MEDIA.getName(), expectedJson),
         new JsonApiLinks(SANDBOX_URI));
     given(repository.getMediaOriginalData(ID)).willReturn(expectedJson);
 

@@ -6,6 +6,7 @@ import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.Date;
@@ -41,7 +42,7 @@ public class DigitalSpecimenRepository {
     try {
       return mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
           .withId("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
-          .withType("ods:DigitalSpecimen")
+          .withType(FdoType.DIGITAL_SPECIMEN.getName())
           .withDctermsIdentifier("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
           .withOdsFdoType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
           .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
