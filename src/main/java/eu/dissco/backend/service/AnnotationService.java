@@ -1,11 +1,13 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
@@ -41,7 +43,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnnotationService {
 
-  private static final String ANNOTATION = "ods:Annotation";
   private static final String ATTRIBUTES = "attributes";
   private static final String DATA = "data";
   private final AnnotationRepository repository;
@@ -53,7 +54,7 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
-    var dataNode = new JsonApiData(id, ANNOTATION, mapper.valueToTree(annotation));
+    var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(), mapper.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -67,8 +68,7 @@ public class AnnotationService {
       throws NotFoundException, JsonProcessingException {
     var eventNode = mongoRepository.getByVersion(id, version, "annotation_provenance");
     validateAnnotationNode(eventNode);
-    var type = eventNode.get("@type").asText();
-    var dataNode = new JsonApiData(id, type, eventNode);
+    var dataNode = new JsonApiData(id, ANNOTATION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -104,7 +104,7 @@ public class AnnotationService {
       throws JsonProcessingException {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response);
-      var dataNode = new JsonApiData(annotationResponse.getId(), ANNOTATION,
+      var dataNode = new JsonApiData(annotationResponse.getId(), ANNOTATION.getName(),
           response);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
     }
@@ -224,14 +224,14 @@ public class AnnotationService {
 
   // Response Constructors
   private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
-    mapper.treeToValue(annotationNode.get(ANNOTATION), Annotation.class);
+    mapper.treeToValue(annotationNode.get(ANNOTATION.getName()), Annotation.class);
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne,
       int pageNumber, int pageSize, String path) {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.getId(), ANNOTATION,
+        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
             mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
   }
@@ -242,7 +242,7 @@ public class AnnotationService {
     List<JsonApiData> dataNodePlusOne = new ArrayList<>();
     var annotationsPlusOne = elasticSearchResults.getRight();
     annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.getId(), ANNOTATION,
+        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
             mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path,
         new JsonApiMeta(elasticSearchResults.getLeft()));
@@ -252,7 +252,7 @@ public class AnnotationService {
       String path) {
     List<JsonApiData> dataNode = new ArrayList<>();
     annotations.forEach(annotation -> dataNode.add(
-        new JsonApiData(annotation.getId(), ANNOTATION,
+        new JsonApiData(annotation.getId(), ANNOTATION.getName(),
             mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }

@@ -21,6 +21,7 @@ import static org.mockito.BDDMockito.then;
 
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -59,7 +60,7 @@ class MasJobRecordServiceTest {
   void testGetMasJobRecordById() throws Exception {
     // Given
     var expected = new JsonApiWrapper(
-        new JsonApiData(JOB_ID, "masJobRecord", givenMasJobRecordFullScheduled(),
+        new JsonApiData(JOB_ID, FdoType.MJR.getName(), givenMasJobRecordFullScheduled(),
             MAPPER),
         new JsonApiLinks(MJR_URI)
     );

@@ -11,7 +11,7 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.MasJobRequest;
-import eu.dissco.backend.domain.OdsType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -51,7 +50,7 @@ public class DigitalMediaService {
       String path) {
     var mediaPlusOne = repository.getDigitalMediaObjects(pageNumber, pageSize);
     var dataNodePlusOne = mediaPlusOne.stream().map(media ->
-        new JsonApiData(media.getDctermsIdentifier(), media.getOdsFdoType(),
+        new JsonApiData(media.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(),
             mapper.valueToTree(media))).toList();
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
@@ -59,7 +58,7 @@ public class DigitalMediaService {
   public JsonApiWrapper getDigitalMediaById(String id, String path) {
     var mediaObject = repository.getLatestDigitalMediaObjectById(id);
     var dataNode = new JsonApiData(mediaObject.getDctermsIdentifier(),
-        mediaObject.getOdsFdoType(), mediaObject, mapper);
+        FdoType.DIGITAL_MEDIA.getName(), mediaObject, mapper);
     var linksNode = new JsonApiLinks(path);
     return new JsonApiWrapper(dataNode, linksNode);
   }
@@ -79,7 +78,7 @@ public class DigitalMediaService {
       throws JsonProcessingException, NotFoundException {
     var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
-    var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(), digitalMedia.getOdsFdoType(), digitalMedia,
+    var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(), digitalMedia,
         mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -112,7 +111,7 @@ public class DigitalMediaService {
     var mediaList = repository.getDigitalMediaForSpecimen(id);
     List<JsonApiData> dataNode = new ArrayList<>();
     mediaList.forEach(media -> dataNode.add(
-        new JsonApiData(media.getDctermsIdentifier(), media.getOdsFdoType(), mapper.valueToTree(media))));
+        new JsonApiData(media.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(), mapper.valueToTree(media))));
     return dataNode;
   }
 
@@ -136,7 +135,7 @@ public class DigitalMediaService {
   public JsonApiWrapper getOriginalDataForMedia(String targetId, String path) {
     var originalData = repository.getMediaOriginalData(targetId);
     return new JsonApiWrapper(
-        new JsonApiData(targetId, OdsType.DIGITAL_MEDIA.getPid(), originalData),
+        new JsonApiData(targetId, FdoType.DIGITAL_MEDIA.getName(), originalData),
         new JsonApiLinks(path));
   }
 

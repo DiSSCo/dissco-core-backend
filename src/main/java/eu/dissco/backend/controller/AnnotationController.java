@@ -1,5 +1,6 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,7 +57,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequestMapping("/api/v1/annotation")
 public class AnnotationController extends BaseController {
 
-  public static final String ANNOTATION_TYPE = "ods:Annotation";
   private final AnnotationService service;
   private final SchemaValidatorComponent schemaValidator;
 
@@ -330,19 +330,19 @@ public class AnnotationController extends BaseController {
   }
 
   private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
-    if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
+    if (!requestBody.data().type().equals(ANNOTATION)) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data()
-              .type());
+          "Invalid type. Type must be " + ANNOTATION.getPid() + " or " + ANNOTATION.getName()
+              + " but was " + requestBody.data().type());
     }
     return requestBody.data().attributes();
   }
 
   private AnnotationEventRequest getAnnotationFromRequestEvent(BatchAnnotationRequest requestBody) {
-    if (!requestBody.data().type().equals(ANNOTATION_TYPE)) {
+    if (!requestBody.data().type().equals(ANNOTATION)) {
       throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION_TYPE + " but was " + requestBody.data()
-              .type());
+          "Invalid type. Type must be " + ANNOTATION.getPid() + " or " + ANNOTATION.getName()
+              + " but was " + requestBody.data().type());
     }
     return requestBody.data().attributes();
   }

@@ -1,5 +1,6 @@
 package eu.dissco.backend.domain.openapi.annotation;
 
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -9,7 +10,7 @@ public record BatchAnnotationRequest(
 
   @Schema
   public record BatchAnnotationRequestData(
-      @Schema(description = "Type of request, in this case \"ods:Annotation\"") String type,
+      @Schema(description = "Type of request, in this case \"ods:Annotation\"") FdoType type,
       AnnotationEventRequest attributes) {
 
   }

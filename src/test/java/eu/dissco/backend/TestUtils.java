@@ -1,6 +1,7 @@
 package eu.dissco.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
@@ -44,7 +45,6 @@ public class TestUtils {
   public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
   public static final UUID BATCH_ID = UUID.fromString("f43e4ec6-ca1c-4a88-9aac-08f6da4b0b1c");
 
-  public static final String DIGITAL_SPECIMEN_TYPE = "https://doi.org/21.T11148/894b1e6cad57e921764e";
 
   // Users
   public static Agent givenAgent() {
@@ -123,13 +123,13 @@ public class TestUtils {
       String sourceSystemId, String specimenName, String country) {
     return new eu.dissco.backend.schema.DigitalSpecimen()
         .withId(id)
-        .withType("ods:DigitalSpecimen")
+        .withType(FdoType.DIGITAL_SPECIMEN.getName())
         .withDctermsIdentifier(id)
         .withOdsPhysicalSpecimenID(physicalId)
         .withOdsVersion(version)
         .withOdsMidsLevel(0)
         .withDctermsCreated(Date.from(CREATED))
-        .withOdsFdoType(DIGITAL_SPECIMEN_TYPE)
+        .withOdsFdoType(FdoType.DIGITAL_SPECIMEN.getPid())
         .withDctermsModified("03/12/2012")
         .withDwcDatasetName("Royal Botanic Garden Edinburgh Herbarium")
         .withDctermsLicense("http://creativecommons.org/licenses/by/4.0/legalcode")

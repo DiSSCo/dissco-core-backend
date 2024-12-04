@@ -2,7 +2,7 @@ package eu.dissco.backend.component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.dissco.backend.domain.OdsType;
+import eu.dissco.backend.domain.FdoType;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ public class FdoRecordComponent {
   public FdoRecordComponent(ObjectMapper mapper) {
     this.postRequest = mapper.createObjectNode()
         .set("data", mapper.createObjectNode()
-            .put("type", OdsType.MJR.getPid())
+            .put("type", FdoType.MJR.getPid())
             .set("attributes", mapper.createObjectNode()));
   }
 }

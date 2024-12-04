@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.DIGITAL_SPECIMEN_TYPE;
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -40,7 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
-import eu.dissco.backend.domain.OdsType;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -207,7 +206,7 @@ class DigitalSpecimenServiceTest {
             digitalMedia,
             annotations));
     var expected = new JsonApiWrapper(
-        new JsonApiData(ID, digitalSpecimen.getOdsFdoType(), attributeNode),
+        new JsonApiData(ID, FdoType.DIGITAL_SPECIMEN.getName(), attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -234,7 +233,7 @@ class DigitalSpecimenServiceTest {
     var attributeNode = MAPPER.valueToTree(
         new DigitalSpecimenFull(digitalSpecimenWrapper, digitalMedia, annotations));
     var expected = new JsonApiWrapper(
-        new JsonApiData(DOI + ID, DIGITAL_SPECIMEN_TYPE, attributeNode),
+        new JsonApiData(DOI + ID, FdoType.DIGITAL_SPECIMEN.getName(), attributeNode),
         new JsonApiLinks(ANNOTATION_PATH));
 
     // When
@@ -254,7 +253,7 @@ class DigitalSpecimenServiceTest {
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
-        new JsonApiData(DOI + ID, DIGITAL_SPECIMEN_TYPE,
+        new JsonApiData(DOI + ID, FdoType.DIGITAL_SPECIMEN.getName(),
             givenSpecimenWrapper,
             MAPPER),
         new JsonApiLinks(SPECIMEN_PATH)
@@ -576,7 +575,7 @@ class DigitalSpecimenServiceTest {
     // Given
     var expectedJson = givenMongoDBResponse();
     var expected = new JsonApiWrapper(
-        new JsonApiData(ID, OdsType.DIGITAL_SPECIMEN.getPid(), expectedJson),
+        new JsonApiData(ID, FdoType.DIGITAL_SPECIMEN.getName(), expectedJson),
         new JsonApiLinks(SANDBOX_URI));
     given(repository.getSpecimenOriginalData(ID)).willReturn(expectedJson);
 
@@ -605,7 +604,6 @@ class DigitalSpecimenServiceTest {
                "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
                "dcterms:license": "http://creativecommons.org/licenses/by/4.0/legalcode",
                "dcterms:modified": "03/12/2012",
-               "dwc:preparations": "",
                "ods:organisationID": "https://ror.org/0349vqz63",
                "ods:organisationName": "Royal Botanic Garden Edinburgh Herbarium",
                "dwc:datasetName": "Royal Botanic Garden Edinburgh Herbarium",
