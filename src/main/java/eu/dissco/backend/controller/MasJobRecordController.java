@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/api/v1/mjr")
+@RequestMapping("/v1/mjr")
 public class MasJobRecordController extends BaseController {
 
   private final MasJobRecordService service;
