@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/v1/annotation")
+@RequestMapping("/annotation/v1")
 public class AnnotationController extends BaseController {
 
   private final AnnotationService service;

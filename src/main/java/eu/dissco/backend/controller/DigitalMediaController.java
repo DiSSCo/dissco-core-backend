@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/v1/digital-media")
+@RequestMapping("/digital-media/v1")
 public class DigitalMediaController extends BaseController {
 
   private final DigitalMediaService service;
