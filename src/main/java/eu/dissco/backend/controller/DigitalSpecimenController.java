@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/v1/digital-specimen")
+@RequestMapping("/digital-specimen/v1")
 public class DigitalSpecimenController extends BaseController {
 
   private final DigitalSpecimenService service;
