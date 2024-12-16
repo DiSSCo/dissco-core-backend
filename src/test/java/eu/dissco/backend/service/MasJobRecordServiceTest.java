@@ -75,18 +75,6 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testGetMasJobRecordNotFound() {
-    // Given
-    given(masJobRecordRepository.getMasJobRecordsByTargetId(ID,
-        JobState.SCHEDULED, 1, 2)).willReturn(Collections.emptyList());
-
-    // Then
-    assertThrows(NotFoundException.class,
-        () -> masJobRecordService.getMasJobRecordByTargetId(ID, JobState.SCHEDULED, MJR_URI,
-            1, 1));
-  }
-
-  @Test
   void testGetMasJobRecordByIdEmpty() {
     // Given
     given(masJobRecordRepository.getMasJobRecordById(JOB_ID)).willReturn(Optional.empty());

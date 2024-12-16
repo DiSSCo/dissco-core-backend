@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class TestUtils {
 
-  public static final String USER_ID_TOKEN = "e2befba6-9324-4bb4-9f41-d7dfae4a44b0";
+  public static final String USER_ID_TOKEN = "https://orcid.org/0000-0002-5669-2769";
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
   public static final String HANDLE = "https://hdl.handle.net/";

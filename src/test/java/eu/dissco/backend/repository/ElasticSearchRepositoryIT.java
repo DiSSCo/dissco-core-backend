@@ -68,7 +68,7 @@ import org.testcontainers.utility.DockerImageName;
 class ElasticSearchRepositoryIT {
 
   private static final DockerImageName ELASTIC_IMAGE = DockerImageName.parse(
-      "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.7.1");
+      "docker.elastic.co/elasticsearch/elasticsearch").withTag("8.15.0");
   private static final String DIGITAL_SPECIMEN_INDEX = "digital-specimen";
   private static final String ANNOTATION_INDEX = "annotation";
   private static final String ELASTICSEARCH_USERNAME = "elastic";
@@ -441,7 +441,8 @@ class ElasticSearchRepositoryIT {
         expected.add(givenAnnotationResponse(id, USER_ID_TOKEN));
       }
       givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
-      givenAnnotations.add(givenAnnotationResponse(id + "1", "A different User"));
+      givenAnnotations.add(
+          givenAnnotationResponse(id + "1", "https://orcid.org/0000-1112-5669-2769"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
