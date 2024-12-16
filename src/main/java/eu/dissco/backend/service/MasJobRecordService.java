@@ -51,13 +51,10 @@ public class MasJobRecordService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      JobState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      JobState state, String path, int pageNum, int pageSize) {
     var pageSizePlusOne = pageSize + 1;
     var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
         pageNum, pageSizePlusOne);
-    if (masJobRecordListPlusOne.isEmpty()) {
-      throw new NotFoundException("No MAS Jobs for " + targetId + " found");
-    }
     return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
   }
 

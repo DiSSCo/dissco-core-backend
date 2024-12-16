@@ -121,7 +121,7 @@ public class ElasticSearchRepository {
 
   public Pair<Long, List<Annotation>> getAnnotationsForCreator(String userId,
       int pageNumber, int pageSize) throws IOException {
-    var fieldName = "dcterms:creator.@id";
+    var fieldName = "dcterms:creator.@id.keyword";
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
 
