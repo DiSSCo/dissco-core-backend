@@ -376,58 +376,6 @@ class ElasticSearchRepositoryIT {
   }
 
   @Test
-  void testGetLatestAnnotations() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    List<Annotation> givenAnnotations = new ArrayList<>();
-    List<Annotation> expected = new ArrayList<>();
-    for (int i = 0; i < pageSize + 1; i++) {
-      String id = HANDLE + PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(id));
-      givenAnnotations.add(annotation);
-    }
-    for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(HANDLE + PREFIX + "/" + i);
-      givenAnnotations.add(annotation);
-    }
-    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
-
-    // When
-    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
-  }
-
-  @Test
-  void testGetLatestAnnotationsNullAggregate() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    List<Annotation> givenAnnotations = new ArrayList<>();
-    List<Annotation> expected = new ArrayList<>();
-    for (int i = 0; i < pageSize + 1; i++) {
-      String id = HANDLE + PREFIX + "/" + i;
-      var annotation = givenAnnotationResponse(id);
-      expected.add(givenAnnotationResponse(id).withOdsHasAggregateRating(null));
-      givenAnnotations.add(annotation.withOdsHasAggregateRating(null));
-    }
-    for (int i = 11; i < pageSize * 2; i++) {
-      var annotation = givenAnnotationResponse(HANDLE + PREFIX + "/" + i);
-      givenAnnotations.add(annotation);
-    }
-    postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
-
-    // When
-    var responseReceived = repository.getLatestAnnotations(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived).hasSize(11).hasSameElementsAs(expected);
-  }
-
-  @Test
   void testGetAnnotationsForCreator() throws IOException {
     // Given
     int pageNumber = 1;

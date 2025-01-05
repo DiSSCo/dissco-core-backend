@@ -58,12 +58,6 @@ public class AnnotationService {
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
-  public JsonApiListResponseWrapper getLatestAnnotations(int pageNumber, int pageSize,
-      String path) throws IOException {
-    var annotationsPlusOne = elasticRepository.getLatestAnnotations(pageNumber, pageSize);
-    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
-  }
-
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
     var eventNode = mongoRepository.getByVersion(id, version, "annotation_provenance");

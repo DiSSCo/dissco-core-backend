@@ -85,25 +85,6 @@ public class AnnotationController extends BaseController {
     return ResponseEntity.ok(annotation);
   }
 
-  @Operation(summary = "Get latest annotations, paginated")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotations retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getLatestAnnotations(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request)
-      throws IOException {
-    log.info(
-        "Received get request for latest paginated annotationRequests. Page number: {}, page size {}",
-        pageNumber, pageSize);
-    var annotations = service.getLatestAnnotations(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(annotations);
-  }
-
   @Operation(summary = "Get annotation by ID and desired version")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Annotation successfully retrieved", content = {

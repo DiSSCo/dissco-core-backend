@@ -89,19 +89,6 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public List<Annotation> getLatestAnnotations(int pageNumber, int pageSize)
-      throws IOException {
-    var offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    var searchRequest = new SearchRequest.Builder()
-        .index(properties.getAnnotationIndex())
-        .sort(s -> s.field(f -> f.field(FIELD_CREATED).order(SortOrder.Desc)))
-        .from(offset)
-        .size(pageSizePlusOne).build();
-    return client.search(searchRequest, ObjectNode.class).hits().hits().stream().map(Hit::source)
-        .map(this::mapToAnnotationResponse).toList();
-  }
-
   private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
     try {
       return mapper.treeToValue(annotationNode, Annotation.class);
