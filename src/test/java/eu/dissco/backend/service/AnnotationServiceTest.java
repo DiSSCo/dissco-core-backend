@@ -40,12 +40,10 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
@@ -219,23 +217,6 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetLatestAnnotations() throws IOException {
-    int pageSize = 15;
-    int pageNumber = 1;
-    String path = SANDBOX_URI + "api/v1/annotationRequests/latest/json";
-    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, ID, true);
-    var elasticResponse = Collections.nCopies(pageSize + 1, givenAnnotationResponse(ID));
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
-
-    // When
-    var received = service.getLatestAnnotations(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
-
-  @Test
   void testPersistAnnotationBatch() throws Exception {
     // Given
     var annotationRequest = givenAnnotationRequest();
@@ -250,23 +231,6 @@ class AnnotationServiceTest {
 
     // Then
     assertThat(responseReceived).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetLatestAnnotationsLastPage() throws IOException {
-    int pageSize = 15;
-    int pageNumber = 1;
-    String path = SANDBOX_URI + "api/v1/annotationRequests/latest/json";
-    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, ID, false);
-    var elasticResponse = Collections.nCopies(pageSize, givenAnnotationResponse(ID));
-    given(elasticRepository.getLatestAnnotations(pageNumber, pageSize)).willReturn(elasticResponse);
-
-    // When
-    var received = service.getLatestAnnotations(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
   }
 
   @Test

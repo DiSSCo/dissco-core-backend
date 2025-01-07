@@ -41,7 +41,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -94,27 +93,6 @@ class AnnotationControllerTest {
     // Then
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
-
-  @Test
-  void testGetLatestAnnotations() throws IOException {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 11;
-    String annotationId = "123";
-    var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
-        USER_ID_TOKEN, annotationId, true);
-    var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getLatestAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(
-        expectedJson);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
-
-    // When
-    var receivedResponse = controller.getLatestAnnotations(pageNumber, pageSize,
-        mockRequest);
-
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
   @Test
