@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 @RestController
-@RequestMapping("/elvis/v1")
+@RequestMapping("/elvis")
 @RequiredArgsConstructor
 public class ElvisController {
 
@@ -44,7 +44,7 @@ public class ElvisController {
           @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimen.class))
       })
   })
-  @GetMapping(value = "/specimen/inventory", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/inventory", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonNode> getSpecimenByInventoryNumber(
       @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
@@ -60,7 +60,7 @@ public class ElvisController {
           @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimen.class))
       })
   })
-  @GetMapping(value = "/specimen/doi/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/doi/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<ElvisSpecimen> getSpecimenByDoi(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) {
@@ -74,7 +74,7 @@ public class ElvisController {
           @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimen.class))
       })
   })
-  @GetMapping(value = "/specimen/suggest", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/suggest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonNode> suggestInventoryNumber(
       @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
