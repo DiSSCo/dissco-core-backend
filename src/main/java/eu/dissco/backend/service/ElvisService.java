@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestion;
+import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -42,16 +43,14 @@ public class ElvisService {
         .set("specimens", mapper.valueToTree(elvisSpecimens));
   }
 
-  public JsonNode suggestInventoryNumber(String inventoryNumber, int pageNumber, int pageSize)
+  public InventoryNumberSuggestionResponse suggestInventoryNumber(String inventoryNumber, int pageNumber, int pageSize)
       throws IOException {
     var results = searchElastic(inventoryNumber, pageNumber, pageSize);
     var specimenList = results.getRight();
-    var inventoryNumbers = specimenList.stream().map(
+    return new InventoryNumberSuggestionResponse(results.getLeft(), specimenList.stream().map(
         specimen -> new InventoryNumberSuggestion(specimen.getDwcCollectionID(),
-            specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier())).toList();
-    return mapper.createObjectNode()
-        .put("total", results.getLeft())
-        .set("inventoryNumbers", mapper.valueToTree(inventoryNumbers));
+            specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier())).toList());
+
   }
 
   private Pair<Long, List<DigitalSpecimen>> searchElastic(String inventoryNumber, int pageNumber,
@@ -64,7 +63,6 @@ public class ElvisService {
 
   private static ElvisSpecimen buildElvisSpecimen(DigitalSpecimen digitalSpecimen, String url) {
     var inventoryNumber = digitalSpecimen.getOdsPhysicalSpecimenID();
-    var title = digitalSpecimen.getOdsSpecimenName();
     var identifier = digitalSpecimen.getDctermsIdentifier();
     var collectionCode = digitalSpecimen.getDwcCollectionCode();
     var catalogNumber = digitalSpecimen.getDwcCollectionID();
@@ -87,9 +85,22 @@ public class ElvisService {
       genus = taxonId.get().getDwcVernacularName();
       vernacularName = taxonId.get().getDwcVernacularName();
     }
-    return new ElvisSpecimen(inventoryNumber, title, identifier, collectionCode, catalogNumber, institutionId,
+    var title = buildElvisTitle(digitalSpecimen, taxonId);
+    return new ElvisSpecimen(inventoryNumber, title, identifier, collectionCode, catalogNumber,
+        institutionId,
         institutionCode, basisOfRecord, uri, scientificName, scientificNameAuthorship,
         specificEpithet, family, genus, vernacularName);
+  }
+
+  private static String buildElvisTitle(DigitalSpecimen digitalSpecimen,
+      Optional<TaxonIdentification> taxonId) {
+    String scientificName = "";
+    if (taxonId.isPresent()) {
+      scientificName = taxonId.get().getDwcScientificName();
+    }
+    // Todo - how to return blanks?
+    return scientificName + " " + digitalSpecimen.getOdsOrganisationCode() + "-"
+        + digitalSpecimen.getDwcCollectionCode() + "-" + digitalSpecimen.getDwcCollectionID();
   }
 
   private static Optional<TaxonIdentification> getBestTaxonIdentification(

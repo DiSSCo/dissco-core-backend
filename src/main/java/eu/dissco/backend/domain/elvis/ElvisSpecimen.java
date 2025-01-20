@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Schema for ELViS specimen. Note: where possible, taxonomic terms come from the accepted identification. If there is no accepted identification, the first identification is used.")
 public record ElvisSpecimen(
     @Schema(description = "ods:physicalSpecimenId") String inventoryNumber,
-    @Schema(description = "ods:specimenName") String title,
+    @Schema(description = "dwc:scientificName ods:organisationCode-dwc:collectionCode-dwc:collectionId") String title,
     @Schema(description = "dcterms:identifier") String identifier,
     @Schema(description = "dwc:collectionCode") String collectionCode,
     @Schema(description = "dwc:collectionID") String catalogNumber,
