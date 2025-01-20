@@ -7,8 +7,8 @@ import static eu.dissco.backend.controller.BaseController.PAGE_SIZE_OAS;
 import static eu.dissco.backend.controller.BaseController.PREFIX_OAS;
 import static eu.dissco.backend.controller.BaseController.SUFFIX_OAS;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
+import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
 import eu.dissco.backend.service.ElvisService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,11 +43,11 @@ public class ElvisController {
   @Operation(summary = "Searches DiSSCo specimens by inventory number (also known as physical specimen ID)")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ElvisSpecimen.class)))
+          @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimenBatchResponse.class))
       })
   })
   @GetMapping(value = "/inventory", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getSpecimenByInventoryNumber(
+  public ResponseEntity<ElvisSpecimenBatchResponse> getSpecimenByInventoryNumber(
       @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize

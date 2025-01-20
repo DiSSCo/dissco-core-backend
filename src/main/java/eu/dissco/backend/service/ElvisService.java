@@ -1,9 +1,9 @@
 package eu.dissco.backend.service;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
+import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestion;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -33,14 +33,12 @@ public class ElvisService {
     return buildElvisSpecimen(specimen, applicationProperties.getBaseUrl());
   }
 
-  public JsonNode searchBySpecimenId(String inventoryNumber, int pageNumber, int pageSize)
+  public ElvisSpecimenBatchResponse searchBySpecimenId(String inventoryNumber, int pageNumber, int pageSize)
       throws IOException {
     var results = searchElastic(inventoryNumber, pageNumber, pageSize);
-    var elvisSpecimens = results.getRight().stream()
-        .map(specimen -> buildElvisSpecimen(specimen, applicationProperties.getBaseUrl())).toList();
-    return mapper.createObjectNode()
-        .put("total", results.getLeft())
-        .set("specimens", mapper.valueToTree(elvisSpecimens));
+    return new ElvisSpecimenBatchResponse(results.getLeft(), results.getRight().stream()
+        .map(specimen -> buildElvisSpecimen(specimen, applicationProperties.getBaseUrl())).toList());
+
   }
 
   public InventoryNumberSuggestionResponse suggestInventoryNumber(String inventoryNumber, int pageNumber, int pageSize)

@@ -4,7 +4,6 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PHYSICAL_ID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -12,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
+import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -66,12 +66,11 @@ class ElvisServiceTest {
   @MethodSource("specimenWithTaxonomy")
   void searchBySpecimenId(DigitalSpecimen specimen, boolean hasTaxonomy) throws Exception {
     // Given
-    given(elasticSearchRepository.search(anyMap(), anyInt(), anyInt())).willReturn(Pair.of(1L, List.of(specimen)));
+    given(elasticSearchRepository.search(anyMap(), anyInt(), anyInt())).willReturn(
+        Pair.of(1L, List.of(specimen)));
     given(applicationProperties.getBaseUrl()).willReturn(SANDBOX_URI);
     var elvisSpecimens = List.of(givenElvisSpecimen(hasTaxonomy));
-    var expected = MAPPER.createObjectNode()
-        .put("total", 1)
-        .set("specimens", MAPPER.valueToTree(elvisSpecimens));
+    var expected = new ElvisSpecimenBatchResponse(1L, elvisSpecimens);
 
     // When
     var result = elvisService.searchBySpecimenId(PHYSICAL_ID, 1, 1);
@@ -96,7 +95,8 @@ class ElvisServiceTest {
         }
         """
     );
-    given(elasticSearchRepository.search(anyMap(), anyInt(), anyInt())).willReturn(Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));
+    given(elasticSearchRepository.search(anyMap(), anyInt(), anyInt())).willReturn(
+        Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));
 
     // When
     var result = elvisService.suggestInventoryNumber(PHYSICAL_ID, 1, 1);
@@ -106,7 +106,7 @@ class ElvisServiceTest {
 
   }
 
-  private static Stream<Arguments> specimenWithTaxonomy(){
+  private static Stream<Arguments> specimenWithTaxonomy() {
     return Stream.of(
         Arguments.of(
             givenDigitalSpecimenWrapper(ID)
@@ -135,13 +135,15 @@ class ElvisServiceTest {
 
   private static ElvisSpecimen givenElvisSpecimen(boolean hasTaxonomy) {
     if (hasTaxonomy) {
+      var title = null + " " + null + "-" + null + "-" + null;
       return new ElvisSpecimen(
-          PHYSICAL_ID, SPECIMEN_NAME, ID, null, null, "https://ror.org/0349vqz63", null,
+          PHYSICAL_ID, title, ID, null, null, "https://ror.org/0349vqz63", null,
           null, SANDBOX_URI + "/ds/" + ID, null, null, null, "family", null, null
       );
     }
+    var title = " " + null + "-" + null + "-" + null;
     return new ElvisSpecimen(
-        PHYSICAL_ID, SPECIMEN_NAME, ID, null, null, "https://ror.org/0349vqz63", null,
+        PHYSICAL_ID, title, ID, null, null, "https://ror.org/0349vqz63", null,
         null, SANDBOX_URI + "/ds/" + ID, null, null, null, null, null, null);
   }
 
