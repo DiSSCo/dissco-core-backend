@@ -148,7 +148,6 @@ public class ElasticSearchRepository {
   public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     var queries = new ArrayList<Query>();
     for (var entry : params.entrySet()) {
       entry.getValue().forEach(value ->
@@ -162,7 +161,7 @@ public class ElasticSearchRepository {
             q -> q.bool(b -> b.should(queries).minimumShouldMatch("1")))
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
-        .size(pageSizePlusOne).build();
+        .size(pageSize).build();
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
