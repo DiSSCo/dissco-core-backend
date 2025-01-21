@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     """)
 public record ElvisSpecimen(
     @Schema(description = "ods:physicalSpecimenId") String inventoryNumber,
-    @Schema(description = "dwc:scientificName ods:organisationCode-dwc:collectionCode-dwc:collectionId") String title,
+    @Schema(description = "Concatenation of ods:specimenName physicalSpecimenID, ods:OrganisationName") String title,
     @Schema(description = "dwc:collectionCode") String collectionCode,
     @Schema(description = "dwc:physicalSpecimenID") String catalogNumber,
     @Schema(description = "ods:organisationCode") String institutionCode,

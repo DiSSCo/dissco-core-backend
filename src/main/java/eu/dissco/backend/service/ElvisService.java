@@ -100,17 +100,11 @@ public class ElvisService {
     if (digitalSpecimen.getOdsSpecimenName() != null) {
       title.append(digitalSpecimen.getOdsSpecimenName()).append(" ");
     }
-    if (digitalSpecimen.getOdsOrganisationCode() != null) {
-      title.append(digitalSpecimen.getOdsOrganisationCode()).append("-");
-    }
-    if (digitalSpecimen.getDwcCollectionCode() != null) {
-      title.append(digitalSpecimen.getDwcCollectionCode()).append("-");
-    }
     title
         .append(digitalSpecimen.getOdsPhysicalSpecimenID())
         .append(", ")
         .append(digitalSpecimen.getOdsOrganisationName());
-    return title.toString().replace("--", "");
+    return title.toString();
   }
 
   private static List<TaxonIdentification> getBestTaxonIdentification(
