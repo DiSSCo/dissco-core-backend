@@ -8,8 +8,8 @@ import static eu.dissco.backend.controller.BaseController.PREFIX_OAS;
 import static eu.dissco.backend.controller.BaseController.SUFFIX_OAS;
 
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
-import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.ElvisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,23 +39,6 @@ public class ElvisController {
 
   private final ElvisService elvisService;
 
-
-  @Operation(summary = "Searches DiSSCo specimens by inventory number (also known as physical specimen ID)")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimenBatchResponse.class))
-      })
-  })
-  @GetMapping(value = "/inventory", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<ElvisSpecimenBatchResponse> getSpecimenByInventoryNumber(
-      @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize
-  ) throws IOException {
-    return ResponseEntity.ok()
-        .body(elvisService.searchBySpecimenId(inventoryNumber, pageNumber, pageSize));
-  }
-
   @Operation(summary = "Get specimen from DiSSCo DOI")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
@@ -65,7 +48,7 @@ public class ElvisController {
   @GetMapping(value = "/doi/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<ElvisSpecimen> getSpecimenByDoi(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) {
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) throws NotFoundException  {
     var id = prefix + "/" + suffix;
     return ResponseEntity.ok().body(elvisService.searchByDoi(id));
   }
@@ -82,7 +65,7 @@ public class ElvisController {
       @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize
-  ) throws IOException {
+  ) throws IOException, NotFoundException {
     return ResponseEntity.ok()
         .body(elvisService.suggestInventoryNumber(inventoryNumber, pageNumber, pageSize));
   }

@@ -28,16 +28,7 @@ class ElvisControllerTest {
   }
 
   @Test
-  void testGetSpecimenByInventoryNumber() throws Exception {
-    // When
-    var result = elvisController.getSpecimenByInventoryNumber(PHYSICAL_ID, 1,1);
-
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  void testGetSpecimenByDoi() {
+  void testGetSpecimenByDoi() throws Exception {
     // When
     var result = elvisController.getSpecimenByDoi(PREFIX, SUFFIX);
 

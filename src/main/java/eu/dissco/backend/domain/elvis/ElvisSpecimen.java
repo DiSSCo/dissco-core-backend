@@ -20,7 +20,7 @@ public record ElvisSpecimen(
     @JsonProperty(value = "URI") @Schema(description = "DOI that resolves to human-readable specimen landing page on DiSSCo") String uri,
     @Schema(description = "dwc:scientificName") String scientificName,
     @Schema(description = "dwc:scientificNameAuthorship") String scientificNameAuthorship,
-    @Schema(description = "dwc:specificEptitet") String specificEpithet,
+    @Schema(description = "dwc:specificEpithet") String specificEpithet,
     @Schema(description = "dwc:family") String family,
     @Schema(description = "dwc:genus") String genus,
     @Schema(description = "dwc:vernacularName") String vernacularName) {

@@ -145,6 +145,27 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
+  public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
+      int pageNumber, int pageSize) throws IOException {
+    var offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+    var queries = new ArrayList<Query>();
+    for (var entry : params.entrySet()) {
+      entry.getValue().forEach(value ->
+          queries.add(new Query.Builder().wildcard(
+              w -> w.field(entry.getKey()).value(value).caseInsensitive(true)
+          ).build()
+      ));
+    }
+    var searchRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
+        .query(
+            q -> q.bool(b -> b.should(queries).minimumShouldMatch("1")))
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+        .from(offset)
+        .size(pageSizePlusOne).build();
+    return getDigitalSpecimenSearchResults(searchRequest);
+  }
+
   public Pair<Long, List<DigitalSpecimen>> getSpecimens(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);

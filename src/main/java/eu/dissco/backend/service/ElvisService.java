@@ -4,9 +4,9 @@ package eu.dissco.backend.service;
 import static java.lang.Math.min;
 
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
-import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestion;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -26,34 +26,33 @@ public class ElvisService {
   private final DigitalSpecimenRepository repository;
   private final ElasticSearchRepository elasticSearchRepository;
 
-  public ElvisSpecimen searchByDoi(String id) {
+  public ElvisSpecimen searchByDoi(String id) throws NotFoundException {
     var specimen = repository.getLatestSpecimenById(id);
+    if (specimen ==  null) {
+      throw new NotFoundException();
+    }
     return buildElvisSpecimen(specimen);
   }
 
-  public ElvisSpecimenBatchResponse searchBySpecimenId(String inventoryNumber, int pageNumber,
-      int pageSize)
-      throws IOException {
-    var results = searchElastic(inventoryNumber, pageNumber, pageSize);
-    return new ElvisSpecimenBatchResponse(results.getLeft(), results.getRight().stream()
-        .map(ElvisService::buildElvisSpecimen).toList());
-  }
-
   public InventoryNumberSuggestionResponse suggestInventoryNumber(String inventoryNumber,
-      int pageNumber, int pageSize)
-      throws IOException {
+      int pageNumber, int pageSize) throws IOException, NotFoundException {
     var results = searchElastic(inventoryNumber, pageNumber, pageSize);
+    if (results.getLeft().equals(0L)){
+      throw new NotFoundException();
+    }
     var specimenList = results.getRight();
     return new InventoryNumberSuggestionResponse(results.getLeft(), specimenList.stream().map(
-        specimen -> new InventoryNumberSuggestion(specimen.getDwcCollectionID(),
+        specimen -> new InventoryNumberSuggestion(
             specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier())).toList());
   }
 
   private Pair<Long, List<DigitalSpecimen>> searchElastic(String inventoryNumber, int pageNumber,
       int pageSize)
       throws IOException {
-    var map = Map.of("ods:physicalSpecimenID.keyword", List.of(inventoryNumber));
-    return elasticSearchRepository.search(map, pageNumber, pageSize);
+    var map = Map.of(
+        "ods:physicalSpecimenID.keyword", List.of("*" + inventoryNumber + "*"),
+        "dcterms:identifier.keyword", List.of("https://doi.org/" + inventoryNumber + "*"));
+    return elasticSearchRepository.elvisSearch(map, pageNumber, pageSize);
   }
 
 
@@ -71,26 +70,28 @@ public class ElvisService {
         taxonIds.stream().map(TaxonIdentification::getDwcVernacularName));
 
     return new ElvisSpecimen(
-        digitalSpecimen.getDctermsIdentifier() == null ? "" : digitalSpecimen.getDctermsIdentifier(), // inventory number
+        digitalSpecimen.getDctermsIdentifier(), // inventory number
         buildElvisTitle(digitalSpecimen), // title
-        digitalSpecimen.getDwcCollectionCode() == null ? "": digitalSpecimen.getDwcCollectionCode(), // collection code
+        digitalSpecimen.getDwcCollectionCode() == null ? ""
+            : digitalSpecimen.getDwcCollectionCode(), // collection code
         digitalSpecimen.getOdsPhysicalSpecimenID(), // catalog number
-        digitalSpecimen.getOdsOrganisationCode() == null ? "" : digitalSpecimen.getOdsOrganisationCode(), // institution code
-        digitalSpecimen.getDwcBasisOfRecord() == null ? "": digitalSpecimen.getDwcBasisOfRecord(),
+        digitalSpecimen.getOdsOrganisationCode() == null ? ""
+            : digitalSpecimen.getOdsOrganisationCode(), // institution code
+        digitalSpecimen.getDwcBasisOfRecord() == null ? "" : digitalSpecimen.getDwcBasisOfRecord(),
         digitalSpecimen.getDctermsIdentifier(), // uri
         scientificName, scientificNameAuthorship, specificEpithet, family, genus, vernacularName);
   }
 
   private static String getTaxonField(Stream<String> taxonFields) {
     var taxonList = taxonFields
-        .map(a -> a == null ? "": a)
+        .map(a -> a == null ? "" : a)
         .toList();
-    if (taxonList.isEmpty()){
+    if (taxonList.isEmpty()) {
       return "";
     }
     var listAsString = String.join(", ", taxonList.subList(0, min(taxonList.size(), 2)));
     if (taxonList.size() > 2) {
-      listAsString = listAsString + ", and " + (taxonList.size()-2) + " more";
+      listAsString = listAsString + ", and " + (taxonList.size() - 2) + " more";
     }
     return listAsString;
   }
