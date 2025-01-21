@@ -1,7 +1,6 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.controller.BaseController.DEFAULT_PAGE_NUM;
-import static eu.dissco.backend.controller.BaseController.DEFAULT_PAGE_SIZE;
 import static eu.dissco.backend.controller.BaseController.PAGE_NUM_OAS;
 import static eu.dissco.backend.controller.BaseController.PAGE_SIZE_OAS;
 import static eu.dissco.backend.controller.BaseController.PREFIX_OAS;
@@ -39,13 +38,15 @@ public class ElvisController {
 
   private final ElvisService elvisService;
 
-  @Operation(summary = "Get specimen from DiSSCo DOI")
+  @Operation(summary = "Get specimen from DiSSCo DOI", description = """
+      Given a DOI, retrieves specimen information according to ELViS parameters.  
+      """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimen.class))
       })
   })
-  @GetMapping(value = "/doi/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/specimen/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<ElvisSpecimen> getSpecimenByDoi(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) throws NotFoundException  {
@@ -53,21 +54,28 @@ public class ElvisController {
     return ResponseEntity.ok().body(elvisService.searchByDoi(id));
   }
 
-  @Operation(summary = "Searches DiSSCo specimens by inventory number (also known as physical specimen ID)")
+  @Operation(summary = "Searches DiSSCo specimens for relevant identifiers", description = """
+      Searches DiSSCo specimens for relevant identifiers. The inputted searchValue is checked against the following ODS terms:
+      - ods:physicalSpecimenId, the local collection number, which is mapped to catalogNumber in the response
+      - dcterms:identifier, the DiSSCo DOI, which is mapped to inventoryNumber in the response
+      
+      This endpoint searches both above fields for desired inputted value. It accepts partial matches, implementing a wildcard search.
+      Note: When searching, do not include the DOI proxy (i.e. "https://doi.org/") in the input
+      """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
           @Content(mediaType = "application/json",
               array = @ArraySchema(schema = @Schema(implementation = InventoryNumberSuggestionResponse.class)))
       })
   })
-  @GetMapping(value = "/suggest", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/specimen/suggest/inventoryNumber", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<InventoryNumberSuggestionResponse> suggestInventoryNumber(
-      @Parameter(description = "Inventory number (physical specimen id}") @RequestParam("inventoryNumber") String inventoryNumber,
+      @Parameter(description = "searchValue") @RequestParam("searchValue") String searchValue,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize
+      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = "20") int pageSize
   ) throws IOException, NotFoundException {
     return ResponseEntity.ok()
-        .body(elvisService.suggestInventoryNumber(inventoryNumber, pageNumber, pageSize));
+        .body(elvisService.suggestInventoryNumber(searchValue, pageNumber, pageSize));
   }
 
 }

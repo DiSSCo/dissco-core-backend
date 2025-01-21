@@ -28,16 +28,16 @@ public class ElvisService {
 
   public ElvisSpecimen searchByDoi(String id) throws NotFoundException {
     var specimen = repository.getLatestSpecimenById(id);
-    if (specimen ==  null) {
+    if (specimen == null) {
       throw new NotFoundException();
     }
     return buildElvisSpecimen(specimen);
   }
 
-  public InventoryNumberSuggestionResponse suggestInventoryNumber(String inventoryNumber,
+  public InventoryNumberSuggestionResponse suggestInventoryNumber(String searchValue,
       int pageNumber, int pageSize) throws IOException, NotFoundException {
-    var results = searchElastic(inventoryNumber, pageNumber, pageSize);
-    if (results.getLeft().equals(0L)){
+    var results = searchElastic(searchValue, pageNumber, pageSize);
+    if (results.getLeft().equals(0L)) {
       throw new NotFoundException();
     }
     var specimenList = results.getRight();

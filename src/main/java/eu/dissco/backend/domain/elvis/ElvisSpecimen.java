@@ -5,13 +5,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
     Schema for ELViS specimen.
+    
     If no value for a given term is present, an empty string is returned.
-    Where possible, taxonomic terms come from the accepted identification. If there is no accepted identification, the first identification is used.
-    Some identifications may have multiple taxonomic identifications. This occurs when a specimen contains multiple subjects (e.g. a rock with multiple fossils). 
-    In this case, the first two taxonomies are presented, and the string "and x more" is appended. 
+    
+    Where possible, taxonomic terms come from the "accepted Identification". If there is no accepted Identification, the first Identification is used.
+    Some Identifications contain have multiple taxonomies. This occurs when a specimen contains multiple subjects (e.g. a rock with multiple fossils).
+    In this case, the response includes the first two taxonomies then "and x more" is appended.
     """)
 public record ElvisSpecimen(
-    @Schema(description = "ods:physicalSpecimenId") String inventoryNumber,
+    @Schema(description = "dcterms:identifier, the DOI of the specimen") String inventoryNumber,
     @Schema(description = "Concatenation of ods:specimenName physicalSpecimenID, ods:OrganisationName") String title,
     @Schema(description = "dwc:collectionCode") String collectionCode,
     @Schema(description = "dwc:physicalSpecimenID") String catalogNumber,
@@ -24,5 +26,4 @@ public record ElvisSpecimen(
     @Schema(description = "dwc:family") String family,
     @Schema(description = "dwc:genus") String genus,
     @Schema(description = "dwc:vernacularName") String vernacularName) {
-
 }
