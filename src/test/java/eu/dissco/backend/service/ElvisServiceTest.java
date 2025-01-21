@@ -3,7 +3,6 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.PHYSICAL_ID;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -12,7 +11,6 @@ import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
 import eu.dissco.backend.domain.elvis.ElvisSpecimenBatchResponse;
-import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -37,23 +35,19 @@ class ElvisServiceTest {
   private DigitalSpecimenRepository repository;
   @Mock
   private ElasticSearchRepository elasticSearchRepository;
-  @Mock
-  private ApplicationProperties applicationProperties;
 
   private ElvisService elvisService;
 
   @BeforeEach
   void setup() {
-    elvisService = new ElvisService(repository, elasticSearchRepository, applicationProperties,
-        MAPPER);
+    elvisService = new ElvisService(repository, elasticSearchRepository);
   }
 
   @Test
   void testSearchByDoi() {
     // Given
     given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
-    given(applicationProperties.getBaseUrl()).willReturn(SANDBOX_URI);
-    var expected = givenElvisSpecimen(false);
+    var expected = givenElvisSpecimen(0);
 
     // When
     var result = elvisService.searchByDoi(ID);
@@ -64,11 +58,10 @@ class ElvisServiceTest {
 
   @ParameterizedTest
   @MethodSource("specimenWithTaxonomy")
-  void searchBySpecimenId(DigitalSpecimen specimen, boolean hasTaxonomy) throws Exception {
+  void searchBySpecimenId(DigitalSpecimen specimen, Integer hasTaxonomy) throws Exception {
     // Given
     given(elasticSearchRepository.search(anyMap(), anyInt(), anyInt())).willReturn(
         Pair.of(1L, List.of(specimen)));
-    given(applicationProperties.getBaseUrl()).willReturn(SANDBOX_URI);
     var elvisSpecimens = List.of(givenElvisSpecimen(hasTaxonomy));
     var expected = new ElvisSpecimenBatchResponse(1L, elvisSpecimens);
 
@@ -114,7 +107,7 @@ class ElvisServiceTest {
                     new Identification()
                         .withOdsIsVerifiedIdentification(true)
                         .withOdsHasTaxonIdentifications(List.of(new TaxonIdentification()
-                            .withDwcFamily("family"))))), true
+                            .withDwcFamily("family"))))), 1
         ),
         Arguments.of(
             givenDigitalSpecimenWrapper(ID)
@@ -122,30 +115,48 @@ class ElvisServiceTest {
                     new Identification()
                         .withOdsIsVerifiedIdentification(false)
                         .withOdsHasTaxonIdentifications(List.of(new TaxonIdentification()
-                            .withDwcFamily("family"))))), true
+                            .withDwcFamily("family"))))), 1
         ),
         Arguments.of(
             givenDigitalSpecimenWrapper(ID)
                 .withOdsHasIdentifications(List.of(
                     new Identification()
-                        .withOdsHasTaxonIdentifications(List.of()))), false)
+                        .withOdsIsVerifiedIdentification(true)
+                        .withOdsHasTaxonIdentifications(List.of(
+                            new TaxonIdentification()
+                                .withDwcFamily("family"),
+                            new TaxonIdentification()
+                                .withDwcFamily("another family"),
+                            new TaxonIdentification()
+                                .withDwcFamily("another other family")))
+                )), 3),
+        Arguments.of(
+            givenDigitalSpecimenWrapper(ID)
+                .withOdsHasIdentifications(List.of(
+                    new Identification()
+                        .withOdsHasTaxonIdentifications(List.of()))), 0)
 
     );
   }
 
-  private static ElvisSpecimen givenElvisSpecimen(boolean hasTaxonomy) {
-    if (hasTaxonomy) {
-      var title = null + " " + null + "-" + null + "-" + null;
+  private static ElvisSpecimen givenElvisSpecimen(Integer taxonomies) {
+    var title = "Abyssothyris Thomson, 1927 global_id_123123, Royal Botanic Garden Edinburgh Herbarium";
+    if (taxonomies == 0) {
       return new ElvisSpecimen(
-          PHYSICAL_ID, title, ID, null, null, "https://ror.org/0349vqz63", null,
-          null, SANDBOX_URI + "/ds/" + ID, null, null, null, "family", null, null
+          ID, title, "", PHYSICAL_ID, "",
+          "", ID, "", "", "", "", "", ""
       );
+    } else if (taxonomies == 1) {
+      return new ElvisSpecimen(
+          ID, title, "", PHYSICAL_ID, "",
+          "", ID, "", "", "", "family", "", ""
+      );
+
+    } else {
+      var missing = ", , and 1 more";
+      return new ElvisSpecimen(
+          ID, title, "", PHYSICAL_ID, "", "", ID, missing, missing, missing,
+          "family, another family, and 1 more", missing, missing);
     }
-    var title = " " + null + "-" + null + "-" + null;
-    return new ElvisSpecimen(
-        PHYSICAL_ID, title, ID, null, null, "https://ror.org/0349vqz63", null,
-        null, SANDBOX_URI + "/ds/" + ID, null, null, null, null, null, null);
   }
-
-
 }
