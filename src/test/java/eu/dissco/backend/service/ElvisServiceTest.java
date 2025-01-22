@@ -118,7 +118,7 @@ class ElvisServiceTest {
     );
     var paramMap = Map.of(
         "ods:physicalSpecimenID.keyword", List.of("*" + PHYSICAL_ID + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + PHYSICAL_ID + "*"));
+        "dcterms:identifier.keyword", List.of(DOI +"*" + PHYSICAL_ID + "*"));
 
     given(elasticSearchRepository.elvisSearch(eq(paramMap), anyInt(), anyInt())).willReturn(
         Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));

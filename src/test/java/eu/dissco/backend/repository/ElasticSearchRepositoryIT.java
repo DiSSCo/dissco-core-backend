@@ -175,7 +175,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
         "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + searchId + "*"));
+        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
@@ -200,7 +200,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
         "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + searchId + "*"));
+        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
