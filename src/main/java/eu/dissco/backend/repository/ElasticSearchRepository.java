@@ -78,6 +78,18 @@ public class ElasticSearchRepository {
     return queries;
   }
 
+  private List<Query> generateWildcardQueries(Map<String, List<String>> params){
+    var queries = new ArrayList<Query>();
+    for (var entry : params.entrySet()) {
+      entry.getValue().forEach(value ->
+          queries.add(new Query.Builder().wildcard(
+                  w -> w.field(entry.getKey()).value(value).caseInsensitive(true)
+              ).build()
+          ));
+    }
+    return queries;
+  }
+
   public Pair<Long, List<DigitalSpecimen>> getLatestSpecimen(int pageNumber, int pageSize)
       throws IOException {
     var offset = getOffset(pageNumber, pageSize);
@@ -142,6 +154,19 @@ public class ElasticSearchRepository {
         .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .from(offset)
         .size(pageSizePlusOne).build();
+    return getDigitalSpecimenSearchResults(searchRequest);
+  }
+
+  public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
+      int pageNumber, int pageSize) throws IOException {
+    var offset = getOffset(pageNumber, pageSize);
+    var queries = generateWildcardQueries(params);
+    var searchRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
+        .query(
+            q -> q.bool(b -> b.should(queries).minimumShouldMatch("1")))
+        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
+        .from(offset)
+        .size(pageSize).build();
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 

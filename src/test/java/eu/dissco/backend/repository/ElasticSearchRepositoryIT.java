@@ -6,6 +6,7 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.PHYSICAL_ID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
@@ -160,6 +161,57 @@ class ElasticSearchRepositoryIT {
   }
 
   @Test
+  void testElvisSearchIdentifier() throws Exception {
+    // Given
+    String searchId = PREFIX + "/0";
+    var targetId = DOI + searchId + "000";
+    var targetSpecimen = givenDigitalSpecimenWrapper(targetId, PHYSICAL_ID);
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    specimenTestRecords.add(targetSpecimen);
+    for (int i = 1; i < 10; i++) {
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+      specimenTestRecords.add(specimen);
+    }
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+    var map = Map.of(
+        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
+        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+
+    // When
+    var result = repository.elvisSearch(map, 1, 11);
+
+    // then
+    assertThat(result.getLeft()).isEqualTo(1);
+    assertThat(result.getRight()).isEqualTo(List.of(targetSpecimen));
+  }
+
+  @Test
+  void testElvisSearchPhysicalId() throws Exception {
+    // Given
+    String searchId = PREFIX + "/0";
+    var targetId = searchId + "000";
+    var targetSpecimen = givenDigitalSpecimenWrapper(HANDLE, targetId);
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    specimenTestRecords.add(targetSpecimen);
+    for (int i = 1; i < 10; i++) {
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+      specimenTestRecords.add(specimen);
+    }
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+    var map = Map.of(
+        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
+        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+
+    // When
+    var result = repository.elvisSearch(map, 1, 11);
+
+    // then
+    assertThat(result.getLeft()).isEqualTo(1);
+    assertThat(result.getRight()).isEqualTo(List.of(targetSpecimen));
+  }
+
+
+  @Test
   void testGetSpecimens() throws Exception {
     // Given
     int pageNumber = 0;
@@ -225,7 +277,8 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_NAME.fullName(), List.of(anotherSourceSystemName)), getAggregationSet(),
+        Map.of(SOURCE_SYSTEM_NAME.fullName(), List.of(anotherSourceSystemName)),
+        getAggregationSet(),
         false);
 
     // Then
