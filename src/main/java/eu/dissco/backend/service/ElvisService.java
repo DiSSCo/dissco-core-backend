@@ -43,7 +43,7 @@ public class ElvisService {
     var specimenList = results.getRight();
     return new InventoryNumberSuggestionResponse(results.getLeft(), specimenList.stream().map(
         specimen -> new InventoryNumberSuggestion(
-            specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier())).toList());
+            specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier().replace("https://doi.org/",""))).toList());
   }
 
   private Pair<Long, List<DigitalSpecimen>> searchElastic(String inventoryNumber, int pageNumber,
