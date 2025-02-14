@@ -5,3 +5,12 @@ CVE-2024-47554
 # Nov 13
 # Issue with spring-starter-webflux
 CVE-2024-47535
+
+# Feb 14
+# Issue with Alpine
+CVE-2024-12797
+
+# Issue with Spring boot
+CVE-2025-24970
+CVE-2025-24970
+CVE-2024-57699
