@@ -12,7 +12,6 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.service.ElvisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,7 +64,7 @@ public class ElvisController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
           @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = InventoryNumberSuggestionResponse.class)))
+              schema = @Schema(implementation = InventoryNumberSuggestionResponse.class))
       })
   })
   @GetMapping(value = "/specimen/suggest/inventoryNumber", produces = MediaType.APPLICATION_JSON_VALUE)
