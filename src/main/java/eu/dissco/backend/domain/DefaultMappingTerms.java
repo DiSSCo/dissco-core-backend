@@ -25,8 +25,9 @@ public enum DefaultMappingTerms implements MappingTerm {
   COLLECTION_ID("collectionID", "dwc:collectionID.keyword"),
   IDENTIFIED_BY("identifiedBy", "ods:hasIdentifications.ods:hasAgents.schema:name.keyword"),
   BASIS_OF_RECORD("basisOfRecord", "dwc:basisOfRecord.keyword"),
-  LIVING_OR_PRESERVED("livingOrPreserved", "ods:livingOrPreserved"),
-  TOPIC_DISCIPLINE("topicDiscipline", "ods:topicDiscipline"),
+  LIVING_OR_PRESERVED("livingOrPreserved", "ods:livingOrPreserved.keyword"),
+  TOPIC_DISCIPLINE("topicDiscipline", "ods:topicDiscipline.keyword"),
+  HABITAT("habitat", "ods:hasEvents.dwc:habitat.keyword"),
   QUERY("q", "q");
 
 
