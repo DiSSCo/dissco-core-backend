@@ -1,16 +1,4 @@
-# October 14 2024
-# Issue in Spring OpenFeign, Need to upgrade commons-io to version 2.14.0
-CVE-2024-47554
-
-# Nov 13
-# Issue with spring-starter-webflux
-CVE-2024-47535
-
-# Feb 14
-# Issue with Alpine
-CVE-2024-12797
-
-# Issue with Spring boot
-CVE-2025-24970
-CVE-2025-24970
-CVE-2024-57699
+# March 18
+# Issues with Alpine
+CVE-2024-8176
+CVE-2025-0840
