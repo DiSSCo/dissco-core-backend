@@ -2,3 +2,7 @@
 # Issues with Alpine
 CVE-2024-8176
 CVE-2025-0840
+
+# March 18
+# Dependency managed by Spring Boot
+CVE-2024-47554
