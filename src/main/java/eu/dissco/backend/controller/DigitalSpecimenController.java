@@ -260,7 +260,29 @@ public class DigitalSpecimenController extends BaseController {
   @Operation(
       summary = "Search for digital specimen",
       description = """
-          Accepts key-value pairs of search parameters. Terms are mapped to the OpenDS standard.
+          Accepts key-value pairs of search parameters. Available search terms (literal):
+          * country
+          * countryCode
+          * midsLevel
+          * physicalSpecimenId
+          * typeStatus
+          * organisatonID
+          * organisationName
+          * sourceSystemID
+          * sourceSystemName
+          * specimenName
+          * datasetName
+          * collectionCode
+          * identifiedBy
+          * basisOfRecord
+          * livingOrPreserved
+          * habitat
+          
+          Additionally, a free text query can be provided: q={some query string}
+          
+          An example of a combined parameter and free text query: /search?q=Sabellaria+bellis&topicDiscipline=Zoology&midsLevel=1
+          
+          Wildcards are supported: "*"
           """
   )
   @ApiResponses(value = {

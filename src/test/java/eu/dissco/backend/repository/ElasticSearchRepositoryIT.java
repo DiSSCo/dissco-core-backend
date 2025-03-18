@@ -117,6 +117,8 @@ class ElasticSearchRepositoryIT {
     return Stream.of(
         Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45634",
             1L),
+        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45*",
+            1L),
         Arguments.of("q", PREFIX + "/0", 10L)
     );
   }

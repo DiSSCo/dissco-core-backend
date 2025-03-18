@@ -25,8 +25,8 @@ public enum DefaultMappingTerms implements MappingTerm {
   COLLECTION_ID("collectionID", "dwc:collectionID.keyword"),
   IDENTIFIED_BY("identifiedBy", "ods:hasIdentifications.ods:hasAgents.schema:name.keyword"),
   BASIS_OF_RECORD("basisOfRecord", "dwc:basisOfRecord.keyword"),
-  LIVING_OR_PRESERVED("livingOrPreserved", "ods:livingOrPreserved.keyword"),
-  TOPIC_DISCIPLINE("topicDiscipline", "ods:topicDiscipline.keyword"),
+  LIVING_OR_PRESERVED("livingOrPreserved", "ods:livingOrPreserved"),
+  TOPIC_DISCIPLINE("topicDiscipline", "ods:topicDiscipline"),
   HABITAT("habitat", "ods:hasEvents.dwc:habitat.keyword"),
   QUERY("q", "q");
 
@@ -91,6 +91,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     paramMap.put(COLLECTION_CODE.requestName, COLLECTION_CODE);
     paramMap.put(IDENTIFIED_BY.requestName, IDENTIFIED_BY);
     paramMap.put(COLLECTION_ID.requestName, COLLECTION_ID);
+    paramMap.put(HABITAT.requestName, HABITAT);
     paramMap.put(QUERY.requestName, QUERY);
     paramMap.putAll(TaxonMappingTerms.getTaxonMapping());
     return paramMap;
