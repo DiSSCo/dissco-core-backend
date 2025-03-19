@@ -11,7 +11,8 @@ public enum DefaultMappingTerms implements MappingTerm {
   COUNTRY("country", "ods:hasEvents.ods:hasLocation.dwc:country.keyword"),
   COUNTRY_CODE("countryCode", "ods:hasEvents.ods:hasLocation.dwc:countryCode.keyword"),
   MIDS_LEVEL("midsLevel", "ods:midsLevel"),
-  PHYSICAL_SPECIMEN_ID("physicalSpecimenId", "ods:physicalSpecimenID.keyword"),
+  PHYSICAL_SPECIMEN_ID_DEPRECATED("physicalSpecimenId", "ods:physicalSpecimenID.keyword"),
+  PHYSICAL_SPECIMEN_ID("physicalSpecimenID", "ods:physicalSpecimenID.keyword"),
   TYPE_STATUS("typeStatus", "ods:hasIdentifications.dwc:typeStatus.keyword"),
   LICENSE("license", "dcterms:license.keyword"),
   HAS_MEDIA("hasMedia", "ods:isKnownToContainMedia"),
@@ -75,6 +76,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     paramMap.put(COUNTRY.requestName, COUNTRY);
     paramMap.put(COUNTRY_CODE.requestName, COUNTRY_CODE);
     paramMap.put(MIDS_LEVEL.requestName, MIDS_LEVEL);
+    paramMap.put(PHYSICAL_SPECIMEN_ID_DEPRECATED.requestName, PHYSICAL_SPECIMEN_ID_DEPRECATED);
     paramMap.put(PHYSICAL_SPECIMEN_ID.requestName, PHYSICAL_SPECIMEN_ID);
     paramMap.put(TYPE_STATUS.requestName, TYPE_STATUS);
     paramMap.put(LICENSE.requestName, LICENSE);

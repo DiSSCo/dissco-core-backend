@@ -264,7 +264,7 @@ public class DigitalSpecimenController extends BaseController {
           * country
           * countryCode
           * midsLevel
-          * physicalSpecimenId
+          * physicalSpecimenID
           * typeStatus
           * organisatonID
           * organisationName
