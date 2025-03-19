@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -66,11 +67,13 @@ public class ElasticSearchRepository {
       for (var value : entry.getValue()) {
         Query query;
         if (Objects.equals(entry.getKey(), "q")) {
-          var sanitisedValue = value.replace("/", "//");
-          query = new Query.Builder().queryString(q -> q.query(sanitisedValue)).build();
+          query = generateStringQuery(value);
         } else {
-          query = new Query.Builder().term(
-              t -> t.field(entry.getKey()).value(value)).build();
+          if (value.contains("*")) {
+            query = generateWildcardQuery(entry.getKey(), value);
+          } else {
+            query = generateTermQuery(entry.getKey(), value);
+          }
         }
         queries.add(query);
       }
@@ -78,16 +81,20 @@ public class ElasticSearchRepository {
     return queries;
   }
 
-  private List<Query> generateWildcardQueries(Map<String, List<String>> params){
-    var queries = new ArrayList<Query>();
-    for (var entry : params.entrySet()) {
-      entry.getValue().forEach(value ->
-          queries.add(new Query.Builder().wildcard(
-                  w -> w.field(entry.getKey()).value(value).caseInsensitive(true)
-              ).build()
-          ));
-    }
-    return queries;
+  private static Query generateStringQuery(String value) {
+    var sanitisedValue = value.replace("/", "//");
+    return new Query.Builder().queryString(q -> q.query(sanitisedValue)).build();
+  }
+
+  private static Query generateWildcardQuery(String param, String value) {
+    return new Query.Builder().wildcard(
+        w -> w.field(param).value(value).caseInsensitive(true)
+    ).build();
+  }
+
+  private static Query generateTermQuery(String param, String value) {
+    return new Query.Builder().term(
+        t -> t.field(param).value(value)).build();
   }
 
   public Pair<Long, List<DigitalSpecimen>> getLatestSpecimen(int pageNumber, int pageSize)
@@ -160,7 +167,7 @@ public class ElasticSearchRepository {
   public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
-    var queries = generateWildcardQueries(params);
+    var queries = generateQueries(params);
     var searchRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch("1")))
