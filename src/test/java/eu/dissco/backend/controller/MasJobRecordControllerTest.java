@@ -66,7 +66,7 @@ class MasJobRecordControllerTest {
     // Given
     int pageNum = 1;
     int pageSize = 1;
-    given(masJobRecordService.getMasJobRecordsByMasId(ORCID, MJR_PATH, pageNum, pageSize,
+    given(masJobRecordService.getMasJobRecordsByCreatorId(ORCID, MJR_PATH, pageNum, pageSize,
         JobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
     given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
     givenAuthentication();

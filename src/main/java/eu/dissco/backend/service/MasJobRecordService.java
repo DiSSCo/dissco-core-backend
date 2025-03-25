@@ -58,12 +58,11 @@ public class MasJobRecordService {
     return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
   }
 
-  public JsonApiListResponseWrapper getMasJobRecordsByMasId(String masId, String path,
+  public JsonApiListResponseWrapper getMasJobRecordsByCreatorId(String creatorId, String path,
       int pageNum, int pageSize, JobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
-    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByMasId(masId,
-        state, pageNum, pageSizeToCheckNext);
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId, state, pageNum, pageSizeToCheckNext);
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 

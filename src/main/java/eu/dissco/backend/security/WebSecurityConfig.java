@@ -22,6 +22,7 @@ public class WebSecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
         .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
+        .requestMatchers(HttpMethod.GET, "/mjr/v1/creator").authenticated()
         .requestMatchers(HttpMethod.GET, "**").permitAll()
         .anyRequest().authenticated());
 

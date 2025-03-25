@@ -66,6 +66,21 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
+  public List<MasJobRecordFull> getMasJobRecordsByCreatorId(String creatorId, JobState state,
+      int pageNum, int pageSize) {
+    var offset = getOffset(pageNum, pageSize);
+    var condition = MAS_JOB_RECORD.CREATOR.eq(creatorId);
+    if (state != null) {
+      condition = condition.and(MAS_JOB_RECORD.JOB_STATE.eq(state));
+    }
+    return context.select(MAS_JOB_RECORD.asterisk())
+        .from(MAS_JOB_RECORD)
+        .where(condition)
+        .limit(pageSize)
+        .offset(offset)
+        .fetch(this::recordToMasJobRecord);
+  }
+
   public void createNewMasJobRecord(List<MasJobRecord> masJobRecord) {
     var queries = masJobRecord.stream().map(this::mjrToQuery).toList();
     context.batch(queries).execute();
