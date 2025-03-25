@@ -91,12 +91,12 @@ class MasJobRecordServiceTest {
     var pageNum = 1;
     var expected = givenMjrListResponse(pageSize, pageNum, true);
     given(
-        masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT, null, pageNum,
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum,
             pageSize + 1)).willReturn(
         Collections.nCopies(pageSize + 1, givenMasJobRecordFullScheduled()));
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByMasId(ID_ALT, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByCreatorId(ID_ALT, MJR_URI, pageNum, pageSize,
         null);
 
     // Then
@@ -112,12 +112,12 @@ class MasJobRecordServiceTest {
     var expected = givenMjrListResponse(pageSize, pageNum, false);
 
     given(
-        masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT, null, pageNum,
+        masJobRecordRepository.getMasJobRecordsByCreatorId(ID_ALT, null, pageNum,
             pageSize + 1)).willReturn(
         Collections.nCopies(pageSize, mjr));
 
     // When
-    var result = masJobRecordService.getMasJobRecordsByMasId(ID_ALT, MJR_URI, pageNum, pageSize,
+    var result = masJobRecordService.getMasJobRecordsByCreatorId(ID_ALT, MJR_URI, pageNum, pageSize,
         null);
 
     // Then

@@ -39,7 +39,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordById() throws JsonProcessingException {
+  void testGetMasJobRecordByMasId() throws JsonProcessingException {
     // Given
     var expected = givenMasJobRecordFullScheduled();
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
@@ -49,6 +49,32 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(result).isPresent().contains(expected);
+  }
+
+  @Test
+  void testGetMasJobRecordByCreatorId() throws JsonProcessingException {
+    // Given
+    var expected = givenMasJobRecordFullScheduled();
+    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, JobState.SCHEDULED, 1, 10);
+
+    // Then
+    assertThat(result).isEqualTo(List.of(expected));
+  }
+
+  @Test
+  void testGetMasJobRecordByCreatorIdAll() throws JsonProcessingException {
+    // Given
+    var expected = List.of(givenMasJobRecordFullScheduled(), givenMasJobRecordFullCompleted());
+    postMasJobRecordFull(expected);
+
+    // When
+    var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, null, 1, 10);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
   }
 
   @Test

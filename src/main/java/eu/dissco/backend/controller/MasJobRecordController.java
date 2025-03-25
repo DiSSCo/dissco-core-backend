@@ -81,7 +81,7 @@ public class MasJobRecordController extends BaseController {
       HttpServletRequest request, Authentication authentication) throws ForbiddenException {
     var creatorId = getAgent(authentication).getSchemaIdentifier();
     return ResponseEntity.ok().body(
-        service.getMasJobRecordsByMasId(creatorId, getPath(request), pageNumber, pageSize,
+        service.getMasJobRecordsByCreatorId(creatorId, getPath(request), pageNumber, pageSize,
             state));
   }
 
