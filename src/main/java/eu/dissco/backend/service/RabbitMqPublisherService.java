@@ -20,7 +20,7 @@ public class RabbitMqPublisherService {
   private final RabbitTemplate rabbitTemplate;
 
   public void sendObjectToQueue(String routingKey, Object object) throws JsonProcessingException {
-    log.info("Sending to exchange with routing key: {} and with object: {}", routingKey, object);
+    log.debug("Sending to exchange with routing key: {} and with object: {}", routingKey, object);
     rabbitTemplate.convertAndSend(exchangeName, routingKey, mapper.writeValueAsString(object));
   }
 
