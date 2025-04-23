@@ -84,7 +84,7 @@ public class DigitalMediaService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForMedia(String targetId, String path,
-      JobState state, int pageNum, int pageSize) throws NotFoundException {
+      JobState state, int pageNum, int pageSize) {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 

@@ -102,8 +102,11 @@ token.secret=# Keycloak secret
 token.id=# Keycloak client id
 token.grant-type= # Keycloak grant type
 
-#Kafka properties
-kafka.publisher.host=# Endpoint for kafka publisher
+#RabbitMQ properties
+rabbitmq.mas-exchange-name=# Default value is mas-exchange, can be overwritten
+spring.rabbitmq.username=# Username to connect to RabbitMQ
+spring.rabbitmq.password=# Password to connect to RabbitMQ
+spring.rabbitmq.host=# Hostname of RabbitMQ
 
 #MongoDB properties
 mongo.connection-string=# Connection string to MongoDB
