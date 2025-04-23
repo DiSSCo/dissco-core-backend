@@ -24,7 +24,7 @@
     <json-schema-validator.version>1.5.1</json-schema-validator.version>
     <mongodb-driver.version>5.1.3</mongodb-driver.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
-    <spring-cloud-starter-openfeign.version>4.1.3</spring-cloud-starter-openfeign.version>
+    <spring-cloud-starter-openfeign.version>4.2.1</spring-cloud-starter-openfeign.version>
     <spring-cloud.version>2024.0.0</spring-cloud.version>
     <springdoc.version>2.8.3</springdoc.version>
     <testcontainers.version>1.20.1</testcontainers.version>
@@ -106,6 +106,10 @@
       <artifactId>spring-boot-starter-jooq</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
@@ -163,15 +167,10 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
       <version>${json-path.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -190,6 +189,11 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>rabbitmq</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

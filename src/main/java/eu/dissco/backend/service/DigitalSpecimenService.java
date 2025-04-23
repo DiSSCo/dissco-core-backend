@@ -111,7 +111,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
-      JobState state, String path, int pageNum, int pageSize) throws NotFoundException {
+      JobState state, String path, int pageNum, int pageSize) {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 

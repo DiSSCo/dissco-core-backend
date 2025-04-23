@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 public class MachineAnnotationServiceService {
 
   private final MachineAnnotationServiceRepository repository;
-  private final KafkaPublisherService kafkaPublisherService;
+  private final RabbitMqPublisherService kafkaPublisherService;
   private final MasJobRecordService mjrService;
   private final ObjectMapper mapper;
 
@@ -102,7 +102,7 @@ public class MachineAnnotationServiceService {
         scheduledJobs.add(
             new JsonApiData(mjr.jobId(), FdoType.MJR.getName(), mjr, mapper));
       } catch (JsonProcessingException e) {
-        log.error("Failed to send masRecord: {}  to kafka", machineAnnotationService.getId());
+        log.error("Failed to send masRecord: {}  to rabbitMQ", machineAnnotationService.getId());
         failedRecords.add(mjr.jobId());
       }
     }

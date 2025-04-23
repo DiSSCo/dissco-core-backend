@@ -1,8 +1,11 @@
-# March 18
-# Issues with Alpine
-CVE-2024-8176
+# April 23
+# Issue with binutils in Alpine
 CVE-2025-0840
 
-# March 18
-# Dependency managed by Spring Boot
+# April 23
+# Isssue with Libexpat in Alpine
+CVE-2024-8176
+
+# April 23
+# Spring openfeign needs to update commons-io
 CVE-2024-47554

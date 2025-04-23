@@ -55,7 +55,7 @@ class MachineAnnotationServiceServiceTest {
   @Mock
   private MachineAnnotationServiceRepository repository;
   @Mock
-  private KafkaPublisherService kafkaPublisherService;
+  private RabbitMqPublisherService kafkaPublisherService;
   @Mock
   private MasJobRecordService masJobRecordService;
 
