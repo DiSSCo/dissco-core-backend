@@ -87,47 +87,6 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaForSpecimen() throws JsonProcessingException {
-    // Given
-    String specimenId = ID_ALT;
-    List<DigitalMedia> postedMediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject("aa", specimenId));
-    postMediaObjects(postedMediaObjects);
-
-    var specimen = givenDigitalSpecimenWrapper(specimenId);
-    postDigitalSpecimen(specimen);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(
-        List.of(
-            givenDigitalMediaObject(DOI + ID, specimenId),
-            givenDigitalMediaObject(DOI + "aa", specimenId)));
-  }
-
-  @Test
-  void testGetDigitalMediaIdsForSpecimen() throws JsonProcessingException {
-    // Given
-    List<String> expectedResponse = List.of(ID, ID_ALT);
-    String specimenId = "specimenId";
-    var specimen = givenDigitalSpecimenWrapper(specimenId);
-    postDigitalSpecimen(specimen);
-    List<DigitalMedia> mediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject(ID_ALT, specimenId));
-    postMediaObjects(mediaObjects);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaIdsForSpecimen(specimenId);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
   void testGetOriginalMediaData() throws JsonProcessingException{
     // Given
     var expected = MAPPER.createObjectNode()

@@ -15,7 +15,6 @@ import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
-import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaJsonApiData;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
@@ -199,7 +198,7 @@ class DigitalSpecimenServiceTest {
     var digitalMedia = List.of(new DigitalMediaFull(givenDigitalMediaObject(ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
-    given(digitalMediaService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(digitalMediaService.getFullDigitalMediaFromSpecimen(digitalSpecimen)).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var attributeNode = MAPPER.valueToTree(
         new DigitalSpecimenFull(digitalSpecimen,
@@ -226,7 +225,7 @@ class DigitalSpecimenServiceTest {
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
         specimen);
-    given(digitalMediaService.getDigitalMediaObjectFull(ID)).willReturn(digitalMedia);
+    given(digitalMediaService.getFullDigitalMediaFromSpecimen(any())).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
         SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
@@ -296,22 +295,6 @@ class DigitalSpecimenServiceTest {
 
     // When
     var result = service.getAnnotations(ID, ANNOTATION_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetDigitalMedia() {
-    // Given
-    var digitalMedia = givenDigitalMediaJsonApiData(ID);
-    var digitalMediaList = List.of(digitalMedia);
-    var expected = new JsonApiListResponseWrapper(List.of(digitalMedia),
-        new JsonApiLinksFull(SPECIMEN_PATH));
-    given(digitalMediaService.getDigitalMediaForSpecimen(ID)).willReturn(digitalMediaList);
-
-    // When
-    var result = service.getDigitalMedia(ID, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
