@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
@@ -263,6 +264,24 @@ class DigitalSpecimenServiceTest {
 
     // Then
     assertThat(responseReceived).isEqualTo(responseExpected);
+  }
+
+  @Test
+  void testGetDigitalMediaFromSpecimen(){
+    // Given
+    given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
+    given(digitalMediaService.getDigitalMediaFromSpecimen(givenDigitalSpecimenWrapper(ID)))
+        .willReturn(List.of(givenDigitalMediaObject(ID_ALT)));
+    var expected = new JsonApiListResponseWrapper(
+        List.of(new JsonApiData(ID_ALT, FdoType.DIGITAL_MEDIA.getName(), givenDigitalMediaObject(ID_ALT), MAPPER)),
+        new JsonApiLinksFull(SPECIMEN_PATH)
+    );
+
+    // When
+    var result = service.getDigitalMedia(ID, SPECIMEN_PATH);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
   }
 
   @Test
