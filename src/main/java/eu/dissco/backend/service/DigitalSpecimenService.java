@@ -123,7 +123,7 @@ public class DigitalSpecimenService {
   }
 
   private JsonApiWrapper mapFullSpecimen(String id, String path, DigitalSpecimen specimen) {
-    var digitalMedia = digitalMediaService.getDigitalMediaObjectFull(id);
+    var digitalMedia = digitalMediaService.getFullDigitalMediaFromSpecimen(specimen);
     var annotation = annotationService.getAnnotationForTargetObject(id);
     var attributeNode = mapper.valueToTree(
         new DigitalSpecimenFull(specimen, digitalMedia, annotation));
@@ -152,8 +152,15 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiListResponseWrapper getDigitalMedia(String id, String path) {
-    var dataNode = digitalMediaService.getDigitalMediaForSpecimen(id);
-    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+    var specimen = repository.getLatestSpecimenById(id);
+    var digitalMedias = digitalMediaService.getDigitalMediaFromSpecimen(specimen);
+    var dataNodes =
+        digitalMedias.stream()
+            .map(media -> new JsonApiData(
+                media.getId(), FdoType.DIGITAL_MEDIA.getName(), media, mapper
+            ))
+            .toList();
+    return new JsonApiListResponseWrapper(dataNodes, new JsonApiLinksFull(path));
   }
 
   private DigitalSpecimen mapResultToSpecimen(JsonNode result)

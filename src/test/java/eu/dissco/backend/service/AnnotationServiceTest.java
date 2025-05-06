@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
+import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
@@ -45,6 +46,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
@@ -140,6 +142,24 @@ class AnnotationServiceTest {
 
     // Then
     assertThat(received).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetAnnotationForTargetObjects() {
+    // Given
+    var expected = Map.of(
+        ID, List.of(givenAnnotationResponse("1", ORCID, ID)),
+        ID_ALT, List.of(givenAnnotationResponse("2", ORCID, ID_ALT))
+    );
+    given(repository.getForTargets(List.of(DOI + ID, DOI + ID_ALT))).willReturn(List.of(
+        givenAnnotationResponse("1", ORCID, ID),
+        givenAnnotationResponse("2", ORCID, ID_ALT)));
+
+    // When
+    var result = service.getAnnotationForTargetObjects(List.of(ID, ID_ALT));
+
+    // Then
+    assertThat(result).isEqualTo(expected);
   }
 
   @Test
@@ -306,7 +326,8 @@ class AnnotationServiceTest {
   void testUpdateAnnotation() throws Exception {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(
+        Optional.of(givenAnnotationResponse()));
     var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
     given(annotationClient.updateAnnotation(any(), any(), any()))
         .willReturn(kafkaResponse);
@@ -374,7 +395,8 @@ class AnnotationServiceTest {
   @Test
   void testTombstoneAnnotation() throws Exception {
     // Given
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(
+        Optional.of(givenAnnotationResponse()));
 
     // When
     var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false);
@@ -386,7 +408,8 @@ class AnnotationServiceTest {
   @Test
   void testTombstoneAnnotationAmin() throws Exception {
     // Given
-    given(repository.getActiveAnnotation(ID, null)).willReturn(Optional.of(givenAnnotationResponse()));
+    given(repository.getActiveAnnotation(ID, null)).willReturn(
+        Optional.of(givenAnnotationResponse()));
 
     // When
     var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true);

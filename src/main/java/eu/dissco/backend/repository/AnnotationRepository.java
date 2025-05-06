@@ -59,6 +59,14 @@ public class AnnotationRepository {
         .fetch(this::mapToAnnotation);
   }
 
+  public List<Annotation> getForTargets(List<String> ids){
+    return context.select(ANNOTATION.DATA)
+        .from(ANNOTATION)
+        .where(ANNOTATION.TARGET_ID.in(ids))
+        .and(ANNOTATION.TOMBSTONED.isNull())
+        .fetch(this::mapToAnnotation);
+  }
+
   private Annotation mapToAnnotation(Record dbRecord) {
     try {
       return mapper.readValue(dbRecord.get(ANNOTATION.DATA).data(),

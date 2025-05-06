@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,8 +32,12 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,7 +59,8 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotation(String id, String path) {
     var annotation = repository.getAnnotation(id);
-    var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(), mapper.valueToTree(annotation));
+    var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(),
+        mapper.valueToTree(annotation));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -105,8 +111,10 @@ public class AnnotationService {
     return null;
   }
 
-  public JsonNode getCountForBatchAnnotations(BatchAnnotationCountRequest annotationCountRequest) throws IOException {
-    var count = elasticRepository.getCountForBatchAnnotations(annotationCountRequest.data().attributes()
+  public JsonNode getCountForBatchAnnotations(BatchAnnotationCountRequest annotationCountRequest)
+      throws IOException {
+    var count = elasticRepository.getCountForBatchAnnotations(
+        annotationCountRequest.data().attributes()
             .batchMetadata(),
         annotationCountRequest.data().attributes().annotationTargetType());
     return mapper.createObjectNode()
@@ -206,13 +214,23 @@ public class AnnotationService {
     return repository.getForTarget(fullId);
   }
 
+  public Map<String, List<Annotation>> getAnnotationForTargetObjects(List<String> ids) {
+    var annotations = repository.getForTargets(ids.stream().map(AnnotationService::getFullId).toList());
+    var annotationMap = new HashMap<String, List<Annotation>>();
+    annotations.forEach(
+        annotation -> annotationMap.computeIfAbsent(
+                annotation.getOaHasTarget().getId(), k -> new ArrayList<>())
+            .add(annotation));
+    return annotationMap;
+  }
+
   public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
     var fullId = getFullId(id);
     var annotations = repository.getForTarget(fullId);
     return wrapListResponse(annotations, path);
   }
 
-  private String getFullId(String id) {
+  private static String getFullId(String id) {
     return (id.contains("https://doi.org/")) ? id : "https://doi.org/" + id;
   }
 

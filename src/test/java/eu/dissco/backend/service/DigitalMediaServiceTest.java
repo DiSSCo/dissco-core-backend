@@ -40,7 +40,6 @@ import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.EntityRelationship;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -185,7 +184,8 @@ class DigitalMediaServiceTest {
         mongoResponse);
 
     var expectedResponse = new JsonApiWrapper(
-        new JsonApiData(DOI + ID, FdoType.DIGITAL_MEDIA.getName(), MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
+        new JsonApiData(DOI + ID, FdoType.DIGITAL_MEDIA.getName(),
+            MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
         new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
     // When
@@ -196,57 +196,39 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaObjectFull() {
+  void testGetFullDigitalMediaFromSpecimen() {
     // Given
-    List<String> mediaIds = List.of("1", "2", "3");
-    List<DigitalMedia> mediaObjects = new ArrayList<>();
-    List<DigitalMediaFull> responseExpected = new ArrayList<>();
-
-    for (String id : mediaIds) {
-      var mediaObject = givenDigitalMediaObject(id);
-      mediaObjects.add(mediaObject);
-      var annotation = givenAnnotationResponse();
-      responseExpected.add(new DigitalMediaFull(mediaObject, List.of(annotation)));
-      given(annotationService.getAnnotationForTargetObject(String.valueOf(id))).willReturn(
-          List.of(annotation));
-    }
-    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(mediaObjects);
+    var firstId = "1";
+    var secondId = "2";
+    List<String> mediaIds = List.of(firstId, secondId);
+    List<DigitalMedia> mediaObjects = List.of(givenDigitalMediaObject(firstId),
+        givenDigitalMediaObject(secondId));
+    List<DigitalMediaFull> expected = List.of(
+        new DigitalMediaFull(givenDigitalMediaObject(firstId),
+            List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId))),
+        new DigitalMediaFull(givenDigitalMediaObject(secondId),
+            List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))));
+    var specimen = givenDigitalSpecimenWrapper(ID)
+        .withOdsHasEntityRelationships(
+            List.of(
+                new EntityRelationship()
+                    .withDwcRelationshipOfResource("hasDigitalMedia")
+                    .withDwcRelatedResourceID(firstId),
+                new EntityRelationship()
+                    .withDwcRelationshipOfResource("hasDigitalMedia")
+                    .withDwcRelatedResourceID(secondId))
+        );
+    given(annotationService.getAnnotationForTargetObjects(mediaIds)).willReturn(Map.of(
+        firstId, List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId)),
+        secondId, List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))
+    ));
+    given(repository.getLatestDigitalMediaObjectsById(List.of(firstId, secondId))).willReturn(mediaObjects);
 
     // When
-    var responseReceived = service.getDigitalMediaObjectFull(ID);
+    var received = service.getFullDigitalMediaFromSpecimen(specimen);
 
     // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
-  void testGetDigitalMediaForSpecimen() {
-    // Given
-    var mediaObject = givenDigitalMediaObject(ID);
-    var responseExpected = List.of(new JsonApiData(
-        mediaObject.getDctermsIdentifier(),
-        FdoType.DIGITAL_MEDIA.getName(),
-        MAPPER.valueToTree(mediaObject)));
-    given(repository.getDigitalMediaForSpecimen(ID)).willReturn(List.of(mediaObject));
-
-    // When
-    var responseReceived = service.getDigitalMediaForSpecimen(ID);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
-
-  @Test
-  void testGetDigitalMediaIdsForSpecimen() {
-    // Given
-    List<String> responseExpected = List.of("1, 2");
-    given(repository.getDigitalMediaIdsForSpecimen(ID)).willReturn(responseExpected);
-
-    // When
-    var responseReceived = service.getDigitalMediaIdsForSpecimen(ID);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
+    assertThat(received).isEqualTo(expected);
   }
 
   @Test

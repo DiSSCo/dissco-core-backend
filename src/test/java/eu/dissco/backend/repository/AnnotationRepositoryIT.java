@@ -6,6 +6,7 @@ import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
@@ -73,6 +74,19 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(receivedResponse).hasSameElementsAs(annotationsAll);
+  }
+
+  @Test
+  void testGetAnnotationsForTargets() throws JsonProcessingException {
+    // Given
+    var annotations = List.of(givenAnnotationResponse(), givenAnnotationResponse(ID_ALT, ORCID, "2"));
+    postAnnotations(annotations);
+
+    // When
+    var result = repository.getForTargets(List.of(TARGET_ID, "2"));
+
+    // Then
+    assertThat(result).hasSameElementsAs(annotations);
   }
 
   @Test
