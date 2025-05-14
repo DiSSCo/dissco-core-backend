@@ -4,6 +4,7 @@ import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
@@ -17,12 +18,14 @@ import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.JSONB;
 import org.jooq.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 class DigitalMediaRepositoryIT extends BaseRepositoryIT {
 
   private DigitalMediaRepository repository;
@@ -75,8 +78,6 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
     var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
 
     postMediaObjects(List.of(firstMediaObject, secondMediaObject));
-    var specimen = givenDigitalSpecimenWrapper(ID_ALT);
-    postDigitalSpecimen(specimen);
 
     // When
     var receivedResponse = repository.getLatestDigitalMediaObjectById(ID);
@@ -87,48 +88,21 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaForSpecimen() throws JsonProcessingException {
-    // Given
-    String specimenId = ID_ALT;
-    List<DigitalMedia> postedMediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject("aa", specimenId));
-    postMediaObjects(postedMediaObjects);
-
-    var specimen = givenDigitalSpecimenWrapper(specimenId);
-    postDigitalSpecimen(specimen);
+  void testGetLatestDigitalMediaObjectsById() throws JsonProcessingException {
+    var expected = List.of(givenDigitalMediaObject(DOI + ID, TARGET_ID),
+        givenDigitalMediaObject(DOI + ID_ALT, TARGET_ID));
+    postMediaObjects(List.of(givenDigitalMediaObject(ID, TARGET_ID),
+        givenDigitalMediaObject(ID_ALT, TARGET_ID)));
 
     // When
-    var receivedResponse = repository.getDigitalMediaForSpecimen(specimenId);
+    var receivedResponse = repository.getLatestDigitalMediaObjectsById(List.of(ID, ID_ALT));
 
     // Then
-    assertThat(receivedResponse).hasSameElementsAs(
-        List.of(
-            givenDigitalMediaObject(DOI + ID, specimenId),
-            givenDigitalMediaObject(DOI + "aa", specimenId)));
+    assertThat(receivedResponse).hasSameElementsAs(expected);
   }
 
   @Test
-  void testGetDigitalMediaIdsForSpecimen() throws JsonProcessingException {
-    // Given
-    List<String> expectedResponse = List.of(ID, ID_ALT);
-    String specimenId = "specimenId";
-    var specimen = givenDigitalSpecimenWrapper(specimenId);
-    postDigitalSpecimen(specimen);
-    List<DigitalMedia> mediaObjects = List.of(
-        givenDigitalMediaObject(ID, specimenId),
-        givenDigitalMediaObject(ID_ALT, specimenId));
-    postMediaObjects(mediaObjects);
-
-    // When
-    var receivedResponse = repository.getDigitalMediaIdsForSpecimen(specimenId);
-
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expectedResponse);
-  }
-
-  @Test
-  void testGetOriginalMediaData() throws JsonProcessingException{
+  void testGetOriginalMediaData() throws JsonProcessingException {
     // Given
     var expected = MAPPER.createObjectNode()
         .put("originalData", "yep");
