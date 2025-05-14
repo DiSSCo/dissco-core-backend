@@ -77,7 +77,8 @@ public class DigitalMediaService {
       throws JsonProcessingException, NotFoundException {
     var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
-    var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(), digitalMedia,
+    var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(),
+        FdoType.DIGITAL_MEDIA.getName(), digitalMedia,
         mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
@@ -93,20 +94,20 @@ public class DigitalMediaService {
 
   // Used By Other Services
   public List<DigitalMediaFull> getFullDigitalMediaFromSpecimen(DigitalSpecimen specimen) {
-    var mediaIds =getMediaIdsFromSpecimen(specimen);
+    var mediaIds = getMediaIdsFromSpecimen(specimen);
     var digitalMedias = repository.getLatestDigitalMediaObjectsById(mediaIds);
     var annotationsForMedia = annotationService.getAnnotationForTargetObjects(mediaIds);
     return digitalMedias.stream().map(digitalMedia -> {
-          var annotations = annotationsForMedia.get(digitalMedia.getDctermsIdentifier());
-          return new DigitalMediaFull(digitalMedia, annotations);
-        }).toList();
+      var annotations = annotationsForMedia.get(digitalMedia.getDctermsIdentifier());
+      return new DigitalMediaFull(digitalMedia, annotations);
+    }).toList();
   }
 
-  public List<DigitalMedia> getDigitalMediaFromSpecimen(DigitalSpecimen specimen){
+  public List<DigitalMedia> getDigitalMediaFromSpecimen(DigitalSpecimen specimen) {
     return repository.getLatestDigitalMediaObjectsById(getMediaIdsFromSpecimen(specimen));
   }
 
-  private static List<String> getMediaIdsFromSpecimen(DigitalSpecimen specimen){
+  private static List<String> getMediaIdsFromSpecimen(DigitalSpecimen specimen) {
     return specimen.getOdsHasEntityRelationships().stream()
         .filter(er -> er.getDwcRelationshipOfResource().equalsIgnoreCase("hasDigitalMedia"))
         .map(er -> er.getDwcRelatedResourceID().replace(DOI_STRING, ""))
@@ -159,13 +160,13 @@ public class DigitalMediaService {
       String path, String orcid)
       throws PidCreationException, ConflictException, NotFoundException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    if (digitalMedia == null){
+    if (digitalMedia == null) {
       log.error("Unable to find media with id {}", id);
       throw new NotFoundException("Specimen " + id + " not found");
     }
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));
-    if (digitalSpecimen == null){
+    if (digitalSpecimen == null) {
       log.error("Unable to find specimen for media with id {}", id);
       throw new NotFoundException("Unable to find related specimen for media with id " + id);
     }
