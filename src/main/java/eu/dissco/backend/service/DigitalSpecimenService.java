@@ -191,7 +191,7 @@ public class DigitalSpecimenService {
             mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var linksNode = new JsonApiLinksFull(params, pageNumber, pageSize, hasNext, path);
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
     return new JsonApiListResponseWrapper(dataNode, linksNode,
         new JsonApiMeta(digitalSpecimenSearchResult.getLeft()));

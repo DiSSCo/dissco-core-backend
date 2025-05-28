@@ -331,7 +331,7 @@ class DigitalSpecimenServiceTest {
     var map = new MultiValueMapAdapter<>(params);
     given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize))).willReturn(
         Pair.of(11L, givenDigitalSpecimenList(pageSize + 1)));
-    var linksNode = new JsonApiLinksFull(map, pageNum, pageSize, true, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode,
         new JsonApiMeta(11L));
 
@@ -351,17 +351,18 @@ class DigitalSpecimenServiceTest {
     var params = new HashMap<String, List<String>>();
     params.put("q", List.of("Leucanthemum ircutianum"));
     params.put("pageNumber", List.of("2"));
+    var path = SPECIMEN_PATH+"?q=Leucanthemum ircutianum";
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
-        false, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize,
+        false, path);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode,
         new JsonApiMeta(10L));
 
     // When
-    var result = service.search(map, SPECIMEN_PATH);
+    var result = service.search(map, path);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -380,7 +381,7 @@ class DigitalSpecimenServiceTest {
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(mappedParam), pageNum, pageSize,
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize,
         false, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode,
         new JsonApiMeta(10L));
@@ -401,6 +402,7 @@ class DigitalSpecimenServiceTest {
     var params = new LinkedHashMap<String, List<String>>();
     params.put("country", List.of("France", "Albania"));
     params.put("typeStatus", List.of("holotype"));
+    var path = SPECIMEN_PATH+"?country=France&country=Albania&typeStatus=holotype";
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of(
         "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
@@ -409,13 +411,13 @@ class DigitalSpecimenServiceTest {
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
-    var linksNode = new JsonApiLinksFull(new MultiValueMapAdapter<>(params), pageNum, pageSize,
-        false, SPECIMEN_PATH);
+    var linksNode = new JsonApiLinksFull(pageNum, pageSize,
+        false, path);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens, linksNode,
         new JsonApiMeta(10L));
 
     // When
-    var result = service.search(map, SPECIMEN_PATH);
+    var result = service.search(map, path);
 
     // Then
     assertThat(result).isEqualTo(expected);

@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 
 public class SpecimenUtils {
 
-  public static final String SPECIMEN_URI = "/api/v1/specimens";
+  public static final String SPECIMEN_URI = "/api/digital-specimen/v1";
   public static final String SPECIMEN_PATH = SANDBOX_URI + SPECIMEN_URI;
 
   public static List<JsonApiData> givenDigitalSpecimenJsonApiData(
