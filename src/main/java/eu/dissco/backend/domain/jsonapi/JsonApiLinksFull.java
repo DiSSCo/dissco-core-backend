@@ -1,7 +1,6 @@
 package eu.dissco.backend.domain.jsonapi;
 
 import lombok.Value;
-import org.springframework.util.MultiValueMap;
 
 @Value
 public class JsonApiLinksFull {

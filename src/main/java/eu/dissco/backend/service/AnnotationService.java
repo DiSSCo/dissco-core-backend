@@ -2,7 +2,6 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
-import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,8 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;

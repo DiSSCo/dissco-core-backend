@@ -158,6 +158,28 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
+  void testGetLatestSpecimenPage2() throws IOException {
+    // Given
+    int pageSize = 10;
+    int pageNum = 2;
+    var totalResults = 20L;
+    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimenWrapper(ID));
+    var elasticSearchResults = Pair.of(totalResults, specimens);
+    var dataNode = givenDigitalSpecimenJsonApiData(specimens);
+    var path = SPECIMEN_PATH + "?pageNumber=" + pageNum;
+    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
+    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
+        new JsonApiLinksFull(pageNum, pageSize, true, path),
+        new JsonApiMeta(totalResults));
+
+    // When
+    var result = service.getLatestSpecimen(pageNum, pageSize, path);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testGetLatestSpecimenLastPage() throws IOException {
     // Given
     int pageSize = 10;
