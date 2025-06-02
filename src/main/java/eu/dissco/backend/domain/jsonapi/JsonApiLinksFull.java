@@ -1,10 +1,12 @@
 package eu.dissco.backend.domain.jsonapi;
 
 import lombok.Value;
-import org.springframework.util.MultiValueMap;
 
 @Value
 public class JsonApiLinksFull {
+
+  private static final String PAGE_NUMBER = "pageNumber=";
+  private static final String PAGE_SIZE = "pageSize=";
 
   String self;
   String first;
@@ -25,40 +27,20 @@ public class JsonApiLinksFull {
     this.prev = null;
   }
 
-  public JsonApiLinksFull(MultiValueMap<String, String> params, int pageNum, int pageSize,
-      boolean hasNext, String path) {
-    var builder = new StringBuilder(path);
-    var isFirst = true;
-    for (var entry : params.entrySet()) {
-      for (var value : entry.getValue()) {
-        if (isFirst) {
-          builder.append("?").append(entry.getKey()).append("=").append(value);
-          isFirst = false;
-        } else {
-          builder.append("&").append(entry.getKey()).append("=").append(value);
-        }
-      }
+  private static String buildPathPages(String baseString, int pageNum, int pageSize) {
+    var linkPath = new StringBuilder(baseString);
+    if (!baseString.contains("?")) {
+      linkPath.append("?");
     }
-    var pathFull = builder.toString();
-
-    this.self = buildPathPages(pathFull, pageNum, pageSize, isFirst);
-    this.first = buildPathPages(pathFull, 1, pageSize, isFirst);
-    this.prev = (pageNum <= 1) ? null : buildPathPages(pathFull, (pageNum - 1), pageSize, isFirst);
-    this.next = (hasNext) ? buildPathPages(pathFull, (pageNum + 1), pageSize, isFirst) : null;
-  }
-
-  private String buildPathPages(String baseString, int pageNum, int pageSize) {
-    return buildPathPages(baseString, pageNum, pageSize, true);
-  }
-
-  private String buildPathPages(String baseString, int pageNum, int pageSize, boolean isFirst) {
-    var builder = new StringBuilder(baseString);
-    if (isFirst) {
-      builder.append("?");
+    if (!linkPath.toString().contains(PAGE_NUMBER)) {
+      linkPath.append("&").append(PAGE_NUMBER).append(pageNum);
     } else {
-      builder.append("&");
+      var str = linkPath.toString();
+      linkPath=new StringBuilder(str.replaceAll(PAGE_NUMBER+"\\d+", PAGE_NUMBER+pageNum));
     }
-    builder.append("pageNumber=").append(pageNum).append("&pageSize=").append(pageSize);
-    return builder.toString();
+    if (!linkPath.toString().contains(PAGE_SIZE)) {
+      linkPath.append("&").append(PAGE_SIZE).append(pageSize);
+    }
+    return linkPath.toString();
   }
 }

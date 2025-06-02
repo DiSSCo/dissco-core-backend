@@ -13,9 +13,9 @@ import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
+import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.MasJobRequest;
-import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -185,13 +185,13 @@ public class DigitalSpecimenService {
 
   private JsonApiListResponseWrapper wrapListResponseSearchResults(
       Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
-      int pageNumber, int pageSize, MultiValueMap<String, String> params, String path) {
+      int pageNumber, int pageSize, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
         .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(), specimen,
             mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var linksNode = new JsonApiLinksFull(params, pageNumber, pageSize, hasNext, path);
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
     var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
     return new JsonApiListResponseWrapper(dataNode, linksNode,
         new JsonApiMeta(digitalSpecimenSearchResult.getLeft()));
@@ -206,7 +206,7 @@ public class DigitalSpecimenService {
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
     var specimenPlusOne = elasticRepository.search(map, pageNumber, pageSize);
-    return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, params, path);
+    return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, path);
   }
 
   private void removePaginationParams(MultiValueMap<String, String> params) {

@@ -23,7 +23,7 @@ public class WebSecurityConfig {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
         .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
         .requestMatchers(HttpMethod.GET, "/mjr/v1/creator").authenticated()
-        .requestMatchers(HttpMethod.GET, "**").permitAll()
+        .requestMatchers(HttpMethod.GET, "/**").permitAll()
         .anyRequest().authenticated());
 
     http.oauth2ResourceServer(jwtoauth2ResourceServer -> jwtoauth2ResourceServer
