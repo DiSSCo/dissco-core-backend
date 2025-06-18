@@ -31,6 +31,10 @@ create table annotation
     data            jsonb
 );
 
+create index annotation_hash on annotation (annotation_hash);
+create index annotation_id_creator_id_index on annotation (creator);
+create index annotation_id_target_id_index on annotation (target_id);
+
 create table digital_media_object
 (
     id                  text                     not null
@@ -38,13 +42,13 @@ create table digital_media_object
             primary key,
     version             integer                  not null,
     type                text,
-    digital_specimen_id text                     not null,
     media_url           text                     not null,
     created             timestamp with time zone not null,
     last_checked        timestamp with time zone not null,
     deleted             timestamp with time zone,
     data                jsonb                    not null,
-    original_data       jsonb                    not null
+    original_data jsonb not null,
+    modified      timestamp with time zone
 );
 
 create index digital_media_object_id_idx
@@ -52,9 +56,6 @@ create index digital_media_object_id_idx
 
 create unique index digital_media_object_id_version_url
     on digital_media_object (id, version, media_url);
-
-create index digital_media_object_digital_specimen_id_url
-    on digital_media_object (digital_specimen_id, media_url);
 
 
 create table digital_specimen
@@ -74,7 +75,8 @@ create table digital_specimen
     last_checked           timestamp with time zone not null,
     deleted                timestamp with time zone,
     data                   jsonb,
-    original_data          jsonb
+    original_data jsonb,
+    modified      timestamp with time zone
 );
 create index digital_specimen_created_idx
     on digital_specimen (created);
@@ -105,11 +107,11 @@ create table machine_annotation_service
     data                   jsonb                    not null
 );
 
-create type job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED');
+create type job_state as enum ('SCHEDULED', 'RUNNING', 'FAILED', 'COMPLETED', 'QUEUED');
 
 create type mjr_target_type as enum ('DIGITAL_SPECIMEN', 'MEDIA_OBJECT');
 
-create type error_code as enum ('TIMEOUT', 'DISSCO_EXCEPTION');
+create type error_code as enum ('TIMEOUT', 'DISSCO_EXCEPTION', 'MAS_EXCEPTION');
 
 create table mas_job_record
 (
@@ -126,6 +128,7 @@ create table mas_job_record
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
-    expires_on         timestamp with time zone not null
+    expires_on    timestamp with time zone not null,
+    error_message text
 );
 
