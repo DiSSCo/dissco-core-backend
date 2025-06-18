@@ -123,14 +123,11 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
       throws JsonProcessingException {
     List<Query> queryList = new ArrayList<>();
     for (DigitalMedia mediaObject : mediaObjects) {
-      var specimenId = mediaObject.getOdsHasEntityRelationships().get(0)
-          .getDwcRelatedResourceID();
       var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
           .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
           .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
           .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
-          .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
           .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
               JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
@@ -143,7 +140,6 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
           .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
           .set(DIGITAL_MEDIA_OBJECT.CREATED,
               mediaObject.getDctermsCreated().toInstant())
-          .set(DIGITAL_MEDIA_OBJECT.DIGITAL_SPECIMEN_ID, specimenId)
           .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
           .set(DIGITAL_MEDIA_OBJECT.DATA,
               JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))

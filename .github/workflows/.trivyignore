@@ -1,11 +1,11 @@
-# April 23
-# Issue with binutils in Alpine
-CVE-2025-0840
+# Jun 13 2025
+# Issue with postgres lib, needs a spring boot parent update
+CVE-2025-49146
 
-# April 23
-# Isssue with Libexpat in Alpine
-CVE-2024-8176
+# Jun 18 2025
+# Issue with Tomcat, needs a spring boot parent update
+CVE-2025-48988
 
-# April 23
-# Spring openfeign needs to update commons-io
+# June 18, 2025
+# Issue with Apache commons, needs a spring boot parent update
 CVE-2024-47554

@@ -5,7 +5,6 @@ package eu.dissco.backend.database.jooq.enums;
 
 
 import eu.dissco.backend.database.jooq.Public;
-
 import org.jooq.Catalog;
 import org.jooq.EnumType;
 import org.jooq.Schema;
@@ -19,7 +18,9 @@ public enum ErrorCode implements EnumType {
 
     TIMEOUT("TIMEOUT"),
 
-    DISSCO_EXCEPTION("DISSCO_EXCEPTION");
+  DISSCO_EXCEPTION("DISSCO_EXCEPTION"),
+
+  MAS_EXCEPTION("MAS_EXCEPTION");
 
     private final String literal;
 

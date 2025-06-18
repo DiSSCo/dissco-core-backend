@@ -8,9 +8,7 @@ import eu.dissco.backend.database.jooq.enums.ErrorCode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
-
 import java.time.Instant;
-
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -192,6 +190,20 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
         return (Instant) get(11);
     }
 
+  /**
+   * Setter for <code>public.mas_job_record.error_message</code>.
+   */
+  public void setErrorMessage(String value) {
+    set(12, value);
+  }
+
+  /**
+   * Getter for <code>public.mas_job_record.error_message</code>.
+   */
+  public String getErrorMessage() {
+    return (String) get(12);
+  }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -215,8 +227,11 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
     /**
      * Create a detached, initialised MasJobRecordRecord
      */
-    public MasJobRecordRecord(String jobId, JobState jobState, String masId, Instant timeStarted, Instant timeCompleted, JSONB annotations, String targetId, String creator, MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant expiresOn) {
-        super(MasJobRecord.MAS_JOB_RECORD);
+    public MasJobRecordRecord(String jobId, JobState jobState, String masId, Instant timeStarted,
+        Instant timeCompleted, JSONB annotations, String targetId, String creator,
+        MjrTargetType targetType, Boolean batchingRequested, ErrorCode error, Instant expiresOn,
+        String errorMessage) {
+      super(MasJobRecord.MAS_JOB_RECORD);
 
         setJobId(jobId);
         setJobState(jobState);
@@ -230,6 +245,7 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
         setBatchingRequested(batchingRequested);
         setError(error);
         setExpiresOn(expiresOn);
-        resetChangedOnNotNull();
+      setErrorMessage(errorMessage);
+      resetChangedOnNotNull();
     }
 }
