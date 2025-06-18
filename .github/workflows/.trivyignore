@@ -5,3 +5,7 @@ CVE-2025-49146
 # Jun 18 2025
 # Issue with Tomcat, needs a spring boot parent update
 CVE-2025-48988
+
+# June 18, 2025
+# Issue with Apache commons, needs a spring boot parent update
+CVE-2024-47554
