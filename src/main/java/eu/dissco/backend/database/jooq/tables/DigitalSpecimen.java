@@ -8,12 +8,10 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.DigitalSpecimenRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Index;
@@ -124,6 +122,12 @@ public class DigitalSpecimen extends TableImpl<DigitalSpecimenRecord> {
      * The column <code>public.digital_specimen.original_data</code>.
      */
     public final TableField<DigitalSpecimenRecord, JSONB> ORIGINAL_DATA = createField(DSL.name("original_data"), SQLDataType.JSONB, this, "");
+
+    /**
+     * The column <code>public.digital_specimen.modified</code>.
+     */
+    public final TableField<DigitalSpecimenRecord, Instant> MODIFIED = createField(
+        DSL.name("modified"), SQLDataType.INSTANT, this, "");
 
     private DigitalSpecimen(Name alias, Table<DigitalSpecimenRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

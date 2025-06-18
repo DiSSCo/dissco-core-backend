@@ -10,10 +10,8 @@ import eu.dissco.backend.database.jooq.enums.ErrorCode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.database.jooq.tables.records.MasJobRecordRecord;
-
 import java.time.Instant;
 import java.util.Collection;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.JSONB;
@@ -113,6 +111,12 @@ public class MasJobRecord extends TableImpl<MasJobRecordRecord> {
      * The column <code>public.mas_job_record.expires_on</code>.
      */
     public final TableField<MasJobRecordRecord, Instant> EXPIRES_ON = createField(DSL.name("expires_on"), SQLDataType.INSTANT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.mas_job_record.error_message</code>.
+     */
+    public final TableField<MasJobRecordRecord, String> ERROR_MESSAGE = createField(
+        DSL.name("error_message"), SQLDataType.CLOB, this, "");
 
     private MasJobRecord(Name alias, Table<MasJobRecordRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

@@ -8,12 +8,10 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.DigitalMediaObjectRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Index;
@@ -71,11 +69,6 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
     public final TableField<DigitalMediaObjectRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.digital_media_object.digital_specimen_id</code>.
-     */
-    public final TableField<DigitalMediaObjectRecord, String> DIGITAL_SPECIMEN_ID = createField(DSL.name("digital_specimen_id"), SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
      * The column <code>public.digital_media_object.media_url</code>.
      */
     public final TableField<DigitalMediaObjectRecord, String> MEDIA_URL = createField(DSL.name("media_url"), SQLDataType.CLOB.nullable(false), this, "");
@@ -104,6 +97,12 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
      * The column <code>public.digital_media_object.original_data</code>.
      */
     public final TableField<DigitalMediaObjectRecord, JSONB> ORIGINAL_DATA = createField(DSL.name("original_data"), SQLDataType.JSONB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.digital_media_object.modified</code>.
+     */
+    public final TableField<DigitalMediaObjectRecord, Instant> MODIFIED = createField(
+        DSL.name("modified"), SQLDataType.INSTANT, this, "");
 
     private DigitalMediaObject(Name alias, Table<DigitalMediaObjectRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -143,7 +142,8 @@ public class DigitalMediaObject extends TableImpl<DigitalMediaObjectRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.DIGITAL_MEDIA_OBJECT_DIGITAL_SPECIMEN_ID_URL, Indexes.DIGITAL_MEDIA_OBJECT_ID_IDX, Indexes.DIGITAL_MEDIA_OBJECT_ID_VERSION_URL);
+        return Arrays.asList(Indexes.DIGITAL_MEDIA_OBJECT_ID_IDX,
+            Indexes.DIGITAL_MEDIA_OBJECT_ID_VERSION_URL);
     }
 
     @Override

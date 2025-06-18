@@ -4,16 +4,18 @@
 package eu.dissco.backend.database.jooq.tables;
 
 
+import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.AnnotationRecord;
-
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
-
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Index;
 import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.PlainSQL;
@@ -155,6 +157,12 @@ public class Annotation extends TableImpl<AnnotationRecord> {
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
     }
+
+  @Override
+  public List<Index> getIndexes() {
+    return Arrays.asList(Indexes.ANNOTATION_HASH, Indexes.ANNOTATION_ID_CREATOR_ID_INDEX,
+        Indexes.ANNOTATION_ID_TARGET_ID_INDEX);
+  }
 
     @Override
     public UniqueKey<AnnotationRecord> getPrimaryKey() {
