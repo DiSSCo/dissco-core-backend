@@ -54,11 +54,15 @@ public class AnnotationService {
   private final ObjectMapper mapper;
   private final MasJobRecordService masJobRecordService;
 
-  public JsonApiWrapper getAnnotation(String id, String path) {
+  public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
     var annotation = repository.getAnnotation(id);
-    var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(),
-        mapper.valueToTree(annotation));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+    if (annotation != null) {
+      var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(),
+          mapper.valueToTree(annotation));
+      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+    }
+    log.warn("Unable to find annotation {}", id);
+    throw new NotFoundException("Unable to find annotation " + id);
   }
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)

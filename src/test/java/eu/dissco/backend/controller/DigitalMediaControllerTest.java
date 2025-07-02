@@ -84,7 +84,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectById() {
+  void testGetLatestDigitalMediaObjectById() throws NotFoundException {
     // Given
     given(service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH)).willReturn(
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));

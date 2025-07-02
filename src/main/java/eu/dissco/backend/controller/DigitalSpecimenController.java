@@ -105,7 +105,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getSpecimenById(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for specimen with id: {}", id);
     var specimen = service.getSpecimenById(id, getPath(request));

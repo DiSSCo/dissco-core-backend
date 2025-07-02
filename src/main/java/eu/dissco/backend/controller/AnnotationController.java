@@ -13,10 +13,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
-import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest;
+import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NoAnnotationFoundException;
@@ -78,7 +78,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotation(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {}", id);
     var annotation = service.getAnnotation(id, getPath(request));

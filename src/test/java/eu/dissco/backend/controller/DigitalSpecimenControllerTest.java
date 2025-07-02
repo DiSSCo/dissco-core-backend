@@ -34,6 +34,7 @@ import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData.MasSchedulingAttributes;
 import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
 import java.util.List;
@@ -86,7 +87,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenById() {
+  void testGetSpecimenById() throws NotFoundException {
     // When
     var result = controller.getSpecimenById(PREFIX, SUFFIX, mockRequest);
 

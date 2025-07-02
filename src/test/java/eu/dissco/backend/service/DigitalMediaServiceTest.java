@@ -125,7 +125,7 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaById() {
+  void testGetDigitalMediaById() throws NotFoundException {
     // Given
     var mediaObject = givenDigitalMediaObject(ID);
     given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
@@ -139,6 +139,16 @@ class DigitalMediaServiceTest {
     // Then
     assertThat(responseReceived).isEqualTo(expected);
   }
+
+  @Test
+  void testGetDigitalMediaByIdNotFound() {
+    // Given
+
+    // When / Then
+    assertThrows(NotFoundException.class,
+        () -> service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH));
+  }
+
 
   @Test
   void testGetAnnotationsOnDigitalMedia() {

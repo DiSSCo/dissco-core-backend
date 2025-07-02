@@ -23,6 +23,7 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseLis
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponseSingleDataNode;
 import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -188,7 +189,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetAnnotation() {
+  void testGetAnnotation() throws NotFoundException {
     // Given
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse(ID));
@@ -198,6 +199,14 @@ class AnnotationServiceTest {
 
     // Then
     assertThat(expected).isEqualTo(result);
+  }
+
+  @Test
+  void testGetAnnotationNotFound() {
+    // Given
+
+    // When / Then
+    assertThrows(NotFoundException.class, () -> service.getAnnotation(ID, ANNOTATION_PATH));
   }
 
   @ParameterizedTest

@@ -90,12 +90,17 @@ public class DigitalSpecimenService {
     return wrapListResponse(elasticSearchResults, pageSize, pageNumber, path);
   }
 
-  public JsonApiWrapper getSpecimenById(String id, String path) {
+  public JsonApiWrapper getSpecimenById(String id, String path) throws NotFoundException {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    var dataNode = new JsonApiData(digitalSpecimen.getDctermsIdentifier(),
-        FdoType.DIGITAL_SPECIMEN.getName(), digitalSpecimen,
-        mapper);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+    if (digitalSpecimen != null) {
+      var dataNode = new JsonApiData(digitalSpecimen.getDctermsIdentifier(),
+          FdoType.DIGITAL_SPECIMEN.getName(), digitalSpecimen,
+          mapper);
+      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+    } else {
+      log.warn("Unable to find specimen {}", id);
+      throw new NotFoundException("Unable to find specimen " + id);
+    }
   }
 
   public JsonApiWrapper getSpecimenByIdFull(String id, String path) {

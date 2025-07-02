@@ -10,8 +10,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
-import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -54,12 +54,17 @@ public class DigitalMediaService {
     return wrapResponse(dataNodePlusOne, pageNumber, pageSize, path);
   }
 
-  public JsonApiWrapper getDigitalMediaById(String id, String path) {
+  public JsonApiWrapper getDigitalMediaById(String id, String path) throws NotFoundException {
     var mediaObject = repository.getLatestDigitalMediaObjectById(id);
-    var dataNode = new JsonApiData(mediaObject.getDctermsIdentifier(),
-        FdoType.DIGITAL_MEDIA.getName(), mediaObject, mapper);
-    var linksNode = new JsonApiLinks(path);
-    return new JsonApiWrapper(dataNode, linksNode);
+    if (mediaObject != null) {
+      var dataNode = new JsonApiData(mediaObject.getDctermsIdentifier(),
+          FdoType.DIGITAL_MEDIA.getName(), mediaObject, mapper);
+      var linksNode = new JsonApiLinks(path);
+      return new JsonApiWrapper(dataNode, linksNode);
+    }
+    log.warn("Unable to find digital media {}", id);
+    throw new NotFoundException("Unable to find digital media " + id);
+
   }
 
   public JsonApiListResponseWrapper getAnnotationsOnDigitalMedia(String mediaId, String path) {

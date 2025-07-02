@@ -201,7 +201,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenById() {
+  void testGetSpecimenById() throws NotFoundException {
     // Given
     var dataNode = givenDigitalSpecimenJsonApiData(givenDigitalSpecimenWrapper(ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
@@ -214,6 +214,17 @@ class DigitalSpecimenServiceTest {
     assertThat(result).isEqualTo(expected);
   }
 
+
+  @Test
+  void testGetSpecimenByIdNotFound() {
+    // Given
+    given(repository.getLatestSpecimenById(ID)).willReturn(null);
+
+    // When / Then
+    assertThrows(NotFoundException.class, () -> service.getSpecimenById(ID, ANNOTATION_PATH));
+
+  }
+
   @Test
   void testGetSpecimenByIdFull() {
     // Given
@@ -221,7 +232,8 @@ class DigitalSpecimenServiceTest {
     var digitalMedia = List.of(new DigitalMediaFull(givenDigitalMediaObject(ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
-    given(digitalMediaService.getFullDigitalMediaFromSpecimen(digitalSpecimen)).willReturn(digitalMedia);
+    given(digitalMediaService.getFullDigitalMediaFromSpecimen(digitalSpecimen)).willReturn(
+        digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
     var attributeNode = MAPPER.valueToTree(
         new DigitalSpecimenFull(digitalSpecimen,
@@ -289,13 +301,14 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaFromSpecimen(){
+  void testGetDigitalMediaFromSpecimen() {
     // Given
     given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
     given(digitalMediaService.getDigitalMediaFromSpecimen(givenDigitalSpecimenWrapper(ID)))
         .willReturn(List.of(givenDigitalMediaObject(ID_ALT)));
     var expected = new JsonApiListResponseWrapper(
-        List.of(new JsonApiData(ID_ALT, FdoType.DIGITAL_MEDIA.getName(), givenDigitalMediaObject(ID_ALT), MAPPER)),
+        List.of(new JsonApiData(ID_ALT, FdoType.DIGITAL_MEDIA.getName(),
+            givenDigitalMediaObject(ID_ALT), MAPPER)),
         new JsonApiLinksFull(SPECIMEN_PATH)
     );
 
@@ -373,7 +386,7 @@ class DigitalSpecimenServiceTest {
     var params = new HashMap<String, List<String>>();
     params.put("q", List.of("Leucanthemum ircutianum"));
     params.put("pageNumber", List.of("2"));
-    var path = SPECIMEN_PATH+"?q=Leucanthemum ircutianum";
+    var path = SPECIMEN_PATH + "?q=Leucanthemum ircutianum";
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
@@ -424,7 +437,7 @@ class DigitalSpecimenServiceTest {
     var params = new LinkedHashMap<String, List<String>>();
     params.put("country", List.of("France", "Albania"));
     params.put("typeStatus", List.of("holotype"));
-    var path = SPECIMEN_PATH+"?country=France&country=Albania&typeStatus=holotype";
+    var path = SPECIMEN_PATH + "?country=France&country=Albania&typeStatus=holotype";
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of(
         "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
