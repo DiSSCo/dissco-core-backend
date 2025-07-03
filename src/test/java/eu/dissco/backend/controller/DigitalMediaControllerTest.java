@@ -141,7 +141,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetMasJobRecordForMedia() throws Exception {
+  void testGetMasJobRecordForMedia() {
     // When
     var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, JobState.SCHEDULED, 1, 1,
         mockRequest);
