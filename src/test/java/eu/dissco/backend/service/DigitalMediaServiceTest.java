@@ -151,7 +151,7 @@ class DigitalMediaServiceTest {
 
 
   @Test
-  void testGetAnnotationsOnDigitalMedia() throws NotFoundException {
+  void testGetAnnotationsOnDigitalMedia() {
     // Given
     var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
     given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);

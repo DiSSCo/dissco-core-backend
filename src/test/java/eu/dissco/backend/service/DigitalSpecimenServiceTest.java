@@ -350,7 +350,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetAnnotations() throws NotFoundException {
+  void testGetAnnotations() {
     // Given
     var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
     given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);

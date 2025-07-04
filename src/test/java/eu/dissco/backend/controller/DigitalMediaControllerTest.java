@@ -124,7 +124,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetAnnotationsById() throws NotFoundException {
+  void testGetAnnotationsById() {
     // Given
     var responseExpected = givenAnnotationJsonResponseNoPagination(USER_ID_TOKEN,
         List.of("1", "2"));
