@@ -96,7 +96,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenByIdFull() {
+  void testGetSpecimenByIdFull() throws NotFoundException {
     // When
     var result = controller.getSpecimenByIdFull(PREFIX, SUFFIX, mockRequest);
 
@@ -126,7 +126,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenAnnotations() {
+  void testGetSpecimenAnnotations() throws NotFoundException {
     // When
     var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
 
@@ -135,7 +135,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetMjrsForSpecimen() throws Exception {
+  void testGetMjrsForSpecimen() {
 
     // When
     var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, JobState.SCHEDULED,
@@ -146,7 +146,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetSpecimenDigitalMedia() {
+  void testGetSpecimenDigitalMedia() throws NotFoundException {
     // When
     var result = controller.getSpecimenDigitalMedia(PREFIX, SUFFIX, mockRequest);
 
@@ -245,7 +245,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetMas() {
+  void testGetMas() throws NotFoundException {
     // Given
     var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
@@ -305,7 +305,7 @@ class DigitalSpecimenControllerTest {
   }
 
   @Test
-  void testGetOriginalDataForSpecimenForSpecimen(){
+  void testGetOriginalDataForSpecimenForSpecimen() throws NotFoundException {
     // When
     var result = controller.getOriginalDataForSpecimen(PREFIX, SUFFIX, mockRequest);
 

@@ -124,7 +124,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetAnnotationsById() {
+  void testGetAnnotationsById() throws NotFoundException {
     // Given
     var responseExpected = givenAnnotationJsonResponseNoPagination(USER_ID_TOKEN,
         List.of("1", "2"));
@@ -151,7 +151,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetMas() {
+  void testGetMas() throws NotFoundException {
     // Given
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
@@ -198,7 +198,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetOriginalDataForMediaForSpecimenForMedia() {
+  void testGetOriginalDataForMediaForSpecimenForMedia() throws NotFoundException {
     // When
     var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
 

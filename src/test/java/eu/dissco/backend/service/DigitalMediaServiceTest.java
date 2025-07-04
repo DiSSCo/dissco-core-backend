@@ -151,7 +151,7 @@ class DigitalMediaServiceTest {
 
 
   @Test
-  void testGetAnnotationsOnDigitalMedia() {
+  void testGetAnnotationsOnDigitalMedia() throws NotFoundException {
     // Given
     var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
     given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
@@ -242,7 +242,7 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetMas() {
+  void testGetMas() throws NotFoundException {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
     var specimenId = DOI + ID_ALT;
@@ -260,9 +260,19 @@ class DigitalMediaServiceTest {
     assertThat(result).isEqualTo(response);
   }
 
+  @Test
+  void testGetMassNotFound() {
+    // Given
+
+    // When / then
+    assertThrows(NotFoundException.class, () -> service.getMass(ID, ANNOTATION_PATH));
+  }
+
+
   @ParameterizedTest
   @MethodSource("missingSpecimenDoiAttributes")
-  void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships) {
+  void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships)
+      throws NotFoundException {
     // Given
     var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
     digitalMedia.setOdsHasEntityRelationships(entityRelationships);
@@ -327,7 +337,7 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetOriginalDataForMedia() throws JsonProcessingException {
+  void testGetOriginalDataForMedia() throws JsonProcessingException, NotFoundException {
     // Given
     var expectedJson = givenMongoDBMediaResponse();
     var expected = new JsonApiWrapper(
@@ -341,6 +351,16 @@ class DigitalMediaServiceTest {
     // Then
     assertThat(result).isEqualTo(expected);
   }
+
+  @Test
+  void testGetOriginalDataNotFound() {
+    // Given
+
+    // When / then
+    assertThrows(NotFoundException.class,
+        () -> service.getOriginalDataForMedia(ID, ANNOTATION_PATH));
+  }
+
 
   private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
     return MAPPER.readValue(

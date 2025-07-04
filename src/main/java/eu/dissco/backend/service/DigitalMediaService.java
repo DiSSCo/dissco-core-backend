@@ -73,6 +73,10 @@ public class DigitalMediaService {
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "digital_media_provenance");
+    if (versions.isEmpty()) {
+      log.warn("Can not find media {}", id);
+      throw new NotFoundException("Unable to find media " + id);
+    }
     var versionNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(id, "digitalMediaVersions", versionNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -128,19 +132,28 @@ public class DigitalMediaService {
     return new JsonApiListResponseWrapper(dataNode, linksNode);
   }
 
-  public JsonApiListResponseWrapper getMass(String id, String path) {
+  public JsonApiListResponseWrapper getMass(String id, String path) throws NotFoundException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
+    if (digitalMedia == null) {
+      log.warn("Unable to find media {}, can not retrieve MASs", id);
+      throw new NotFoundException("Unable to find media " + id);
+    }
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));
     var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
     return masService.getMassForObject(flattenObjectData, path);
   }
 
-  public JsonApiWrapper getOriginalDataForMedia(String targetId, String path) {
+  public JsonApiWrapper getOriginalDataForMedia(String targetId, String path)
+      throws NotFoundException {
     var originalData = repository.getMediaOriginalData(targetId);
-    return new JsonApiWrapper(
-        new JsonApiData(targetId, FdoType.DIGITAL_MEDIA.getName(), originalData),
-        new JsonApiLinks(path));
+    if (originalData != null) {
+      return new JsonApiWrapper(
+          new JsonApiData(targetId, FdoType.DIGITAL_MEDIA.getName(), originalData),
+          new JsonApiLinks(path));
+    }
+    log.warn("Unable to find media {}, can not retrieve original data", targetId);
+    throw new NotFoundException("Unable to find media " + targetId);
   }
 
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {

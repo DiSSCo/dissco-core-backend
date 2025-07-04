@@ -37,7 +37,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -356,7 +355,7 @@ class AnnotationServiceTest {
     given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
-    assertThrowsExactly(NoAnnotationFoundException.class,
+    assertThrowsExactly(NotFoundException.class,
         () -> service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(),
             ANNOTATION_PATH, PREFIX, SUFFIX));
   }
@@ -433,7 +432,7 @@ class AnnotationServiceTest {
     given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
 
     // Then
-    assertThrowsExactly(NoAnnotationFoundException.class,
+    assertThrowsExactly(NotFoundException.class,
         () -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false));
   }
 

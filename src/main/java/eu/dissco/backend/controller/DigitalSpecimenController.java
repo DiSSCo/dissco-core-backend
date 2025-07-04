@@ -126,7 +126,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getSpecimenByIdFull(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {}", id);
     var specimen = service.getSpecimenByIdFull(id, getPath(request));
@@ -203,7 +203,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenAnnotations(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotationRequests of specimen with id: {}", id);
     var annotations = service.getAnnotations(id, getPath(request));
@@ -221,7 +221,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for digital media of specimen with id: {}", id);
     var digitalMedia = service.getDigitalMedia(id, getPath(request));
@@ -249,7 +249,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) throws NotFoundException {
+      HttpServletRequest request) {
     var id = prefix + '/' + suffix;
     log.info("Received get request for MAS Job records for specimen {}", id);
     String path = getPath(request);
@@ -397,7 +397,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalSpecimen(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for mass for digital specimen: {}", id);
     var mass = service.getMass(id, getPath(request));
@@ -420,7 +420,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getOriginalDataForSpecimen(
       @PathVariable("prefix") String prefix,
       @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var path = getPath(request);
     var id = prefix + '/' + suffix;
     return ResponseEntity.ok(service.getOriginalDataForSpecimen(id, path));

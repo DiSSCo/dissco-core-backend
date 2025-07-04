@@ -163,7 +163,7 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalMediaObject(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for mass for digital media: {}", id);
     var mass = service.getMass(id, getPath(request));
@@ -213,7 +213,7 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getOriginalDataForMedia(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var path = getPath(request);
     var id = prefix + '/' + suffix;
     return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));

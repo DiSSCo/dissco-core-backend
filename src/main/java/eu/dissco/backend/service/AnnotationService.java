@@ -18,7 +18,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
-import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -152,7 +151,7 @@ public class AnnotationService {
       AnnotationProcessingRequest annotationProcessingRequest,
       Agent agent,
       String path, String prefix, String suffix)
-      throws NoAnnotationFoundException, JsonProcessingException {
+      throws NotFoundException, JsonProcessingException {
     var result = repository.getActiveAnnotation(id, agent.getId());
     if (result.isPresent()) {
       if (annotationProcessingRequest.getDctermsIdentifier() == null) {
@@ -164,7 +163,7 @@ public class AnnotationService {
     } else {
       log.info("No active annotationRequests with id: {} found for user {}", id,
           agent.getId());
-      throw new NoAnnotationFoundException(
+      throw new NotFoundException(
           "No active annotationRequests with id: " + id + " was found for user");
     }
   }
@@ -184,7 +183,7 @@ public class AnnotationService {
   }
 
   public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent, boolean isAdmin)
-      throws NoAnnotationFoundException {
+      throws NotFoundException {
     var id = prefix + "/" + suffix;
     Optional<Annotation> result;
     if (isAdmin) {
@@ -204,7 +203,7 @@ public class AnnotationService {
       } else {
         log.info("No active annotations with id: {} found for user: {}", id, agent.getId());
       }
-      throw new NoAnnotationFoundException(
+      throw new NotFoundException(
           "No active annotationRequests with id: " + id + " was found");
     }
   }

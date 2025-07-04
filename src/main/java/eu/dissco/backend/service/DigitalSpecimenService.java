@@ -53,6 +53,7 @@ public class DigitalSpecimenService {
   private static final String DEFAULT_PAGE_SIZE = "10";
   private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
   private static final String AGGREGATIONS_TYPE = "aggregations";
+  private static final String SPECIMEN_NOT_FOUND = "Unable to find specimen {}";
   private final ObjectMapper mapper;
   private final DigitalSpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
@@ -97,22 +98,29 @@ public class DigitalSpecimenService {
           FdoType.DIGITAL_SPECIMEN.getName(), digitalSpecimen,
           mapper);
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    } else {
-      log.warn("Unable to find specimen {}", id);
-      throw new NotFoundException("Unable to find specimen " + id);
     }
+    log.warn(SPECIMEN_NOT_FOUND, id);
+    throw new NotFoundException("Unable to find specimen " + id);
   }
 
-  public JsonApiWrapper getSpecimenByIdFull(String id, String path) {
+  public JsonApiWrapper getSpecimenByIdFull(String id, String path) throws NotFoundException {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    return mapFullSpecimen(id, path, digitalSpecimen);
+    if (digitalSpecimen != null) {
+      return mapFullSpecimen(id, path, digitalSpecimen);
+    }
+    log.warn(SPECIMEN_NOT_FOUND, id);
+    throw new NotFoundException("Unable to find specimen " + id);
   }
 
   public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
-    var specimen = mapResultToSpecimen(specimenNode);
-    return mapFullSpecimen(id, path, specimen);
+    if (specimenNode != null) {
+      var specimen = mapResultToSpecimen(specimenNode);
+      return mapFullSpecimen(id, path, specimen);
+    }
+    log.warn(SPECIMEN_NOT_FOUND, id);
+    throw new NotFoundException("Unable to find specimen " + id);
   }
 
   public JsonApiListResponseWrapper getMasJobRecordsForSpecimen(String targetId,
@@ -120,11 +128,17 @@ public class DigitalSpecimenService {
     return masJobRecordService.getMasJobRecordByTargetId(targetId, state, path, pageNum, pageSize);
   }
 
-  public JsonApiWrapper getOriginalDataForSpecimen(String targetId, String path) {
+  public JsonApiWrapper getOriginalDataForSpecimen(String targetId, String path)
+      throws NotFoundException {
     var originalData = repository.getSpecimenOriginalData(targetId);
-    return new JsonApiWrapper(
-        new JsonApiData(targetId, FdoType.DIGITAL_SPECIMEN.getName(), originalData),
-        new JsonApiLinks(path));
+    if (originalData != null) {
+      return new JsonApiWrapper(
+          new JsonApiData(targetId, FdoType.DIGITAL_SPECIMEN.getName(), originalData),
+          new JsonApiLinks(path));
+    }
+    log.warn("Unable to find specimen {}, can not retrieve original data", targetId);
+    throw new NotFoundException(
+        "Can not find specimen " + targetId + ", can not retrieve origina; data");
   }
 
   private JsonApiWrapper mapFullSpecimen(String id, String path, DigitalSpecimen specimen) {
@@ -133,7 +147,8 @@ public class DigitalSpecimenService {
     var attributeNode = mapper.valueToTree(
         new DigitalSpecimenFull(specimen, digitalMedia, annotation));
     return new JsonApiWrapper(
-        new JsonApiData(specimen.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(), attributeNode),
+        new JsonApiData(specimen.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(),
+            attributeNode),
         new JsonApiLinks(path));
   }
 
@@ -141,7 +156,8 @@ public class DigitalSpecimenService {
       throws JsonProcessingException, NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
     var specimen = mapResultToSpecimen(specimenNode);
-    var dataNode = new JsonApiData(specimen.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper);
+    var dataNode = new JsonApiData(specimen.getDctermsIdentifier(),
+        FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -156,8 +172,13 @@ public class DigitalSpecimenService {
     return annotationService.getAnnotationForTarget(id, path);
   }
 
-  public JsonApiListResponseWrapper getDigitalMedia(String id, String path) {
+  public JsonApiListResponseWrapper getDigitalMedia(String id, String path)
+      throws NotFoundException {
     var specimen = repository.getLatestSpecimenById(id);
+    if (specimen == null) {
+      log.warn("Unable to find specimen {}. Can not retrieve media", id);
+      throw new NotFoundException("Unable to retrieve media. Specimen " + id + " does not exist");
+    }
     var digitalMedias = digitalMediaService.getDigitalMediaFromSpecimen(specimen);
     var dataNodes =
         digitalMedias.stream()
@@ -192,7 +213,8 @@ public class DigitalSpecimenService {
       Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, String path) {
     var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
-        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(), FdoType.DIGITAL_SPECIMEN.getName(), specimen,
+        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
+            FdoType.DIGITAL_SPECIMEN.getName(), specimen,
             mapper))
         .toList();
     boolean hasNext = dataNodePlusOne.size() > pageSize;
@@ -301,10 +323,15 @@ public class DigitalSpecimenService {
     }
   }
 
-  public JsonApiListResponseWrapper getMass(String id, String path) {
+  public JsonApiListResponseWrapper getMass(String id, String path) throws NotFoundException {
     var digitalSpecimen = repository.getLatestSpecimenById(id);
-    var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.getMassForObject(flattenAttributes, path);
+    if (digitalSpecimen != null) {
+      var flattenAttributes = flattenAttributes(digitalSpecimen);
+      return masService.getMassForObject(flattenAttributes, path);
+    }
+    log.warn("Specimen {} can not be found. Can not retrieve MASs", id);
+    throw new NotFoundException("Unable to find specimen " + id + ". Can not retrieve MASs");
+
   }
 
   private JsonNode flattenAttributes(DigitalSpecimen digitalSpecimen) {

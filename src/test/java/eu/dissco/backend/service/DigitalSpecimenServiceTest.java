@@ -226,7 +226,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimenByIdFull() {
+  void testGetSpecimenByIdFull() throws NotFoundException {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var digitalMedia = List.of(new DigitalMediaFull(givenDigitalMediaObject(ID), List.of()));
@@ -301,7 +301,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaFromSpecimen() {
+  void testGetDigitalMediaFromSpecimen() throws NotFoundException {
     // Given
     given(repository.getLatestSpecimenById(ID)).willReturn(givenDigitalSpecimenWrapper(ID));
     given(digitalMediaService.getDigitalMediaFromSpecimen(givenDigitalSpecimenWrapper(ID)))
@@ -317,6 +317,14 @@ class DigitalSpecimenServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetDigitalMediaFromSpecimenNotFound() {
+    // Given
+
+    // When / then
+    assertThrows(NotFoundException.class, () -> service.getDigitalMedia(ID, SPECIMEN_PATH));
   }
 
   @Test
@@ -342,7 +350,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetAnnotations() {
+  void testGetAnnotations() throws NotFoundException {
     // Given
     var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
     given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
@@ -564,7 +572,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetMas() {
+  void testGetMas() throws NotFoundException {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var response = givenMasResponse(SPECIMEN_PATH);
@@ -577,6 +585,14 @@ class DigitalSpecimenServiceTest {
 
     // Then
     assertThat(result).isEqualTo(response);
+  }
+
+  @Test
+  void testGetMassNotFound() {
+    // Given
+
+    // When / then
+    assertThrows(NotFoundException.class, () -> service.getMass(ID, SPECIMEN_PATH));
   }
 
   @Test
@@ -610,7 +626,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetOriginalDataForSpecimen() throws JsonProcessingException {
+  void testGetOriginalDataForSpecimen() throws JsonProcessingException, NotFoundException {
     // Given
     var expectedJson = givenMongoDBResponse();
     var expected = new JsonApiWrapper(
@@ -623,6 +639,15 @@ class DigitalSpecimenServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetOriginalDataForSpecimenNotFound() {
+    // Given
+
+    // When / then
+    assertThrows(NotFoundException.class,
+        () -> service.getOriginalDataForSpecimen(ID, SPECIMEN_PATH));
   }
 
   private JsonNode givenMongoDBResponse() throws JsonProcessingException {
