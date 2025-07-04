@@ -13,13 +13,12 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationRequest;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseList;
 import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
-import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountResponse;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest;
+import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
-import eu.dissco.backend.exceptions.NoAnnotationFoundException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
@@ -39,7 +38,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,7 +76,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getAnnotation(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {}", id);
     var annotation = service.getAnnotation(id, getPath(request));
@@ -234,7 +232,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
-      throws NoAnnotationFoundException, JsonProcessingException, ForbiddenException {
+      throws NotFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
     var agent = getAgent(authentication);
     var annotation = getAnnotationFromRequest(requestBody);
@@ -297,7 +295,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NoAnnotationFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     var agent = getAgent(authentication);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix),
@@ -326,11 +324,6 @@ public class AnnotationController extends BaseController {
               + " but was " + requestBody.data().type());
     }
     return requestBody.data().attributes();
-  }
-
-  @ExceptionHandler(NoAnnotationFoundException.class)
-  public ResponseEntity<String> handleException(NoAnnotationFoundException e) {
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(e.getMessage());
   }
 
 }
