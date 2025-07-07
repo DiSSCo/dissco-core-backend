@@ -84,7 +84,7 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectById(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for multiMedia with id: {}", id);
     var multiMedia = service.getDigitalMediaById(id, getPath(request));
@@ -163,7 +163,7 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalMediaObject(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var id = prefix + '/' + suffix;
     log.info("Received get request for mass for digital media: {}", id);
     var mass = service.getMass(id, getPath(request));
@@ -190,8 +190,7 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request
-  ) throws NotFoundException {
+      HttpServletRequest request) {
     var path = getPath(request);
     var id = prefix + '/' + suffix;
     return ResponseEntity.ok(
@@ -214,7 +213,7 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<JsonApiWrapper> getOriginalDataForMedia(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
+      HttpServletRequest request) throws NotFoundException {
     var path = getPath(request);
     var id = prefix + '/' + suffix;
     return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));

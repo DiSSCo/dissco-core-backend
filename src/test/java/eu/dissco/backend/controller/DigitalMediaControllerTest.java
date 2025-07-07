@@ -84,7 +84,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectById() {
+  void testGetLatestDigitalMediaObjectById() throws NotFoundException {
     // Given
     given(service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH)).willReturn(
         givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
@@ -141,7 +141,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetMasJobRecordForMedia() throws Exception {
+  void testGetMasJobRecordForMedia() {
     // When
     var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, JobState.SCHEDULED, 1, 1,
         mockRequest);
@@ -151,7 +151,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetMas() {
+  void testGetMas() throws NotFoundException {
     // Given
     var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
     given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
@@ -198,7 +198,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetOriginalDataForMediaForSpecimenForMedia() {
+  void testGetOriginalDataForMediaForSpecimenForMedia() throws NotFoundException {
     // When
     var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
 

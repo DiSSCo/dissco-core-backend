@@ -82,7 +82,7 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testGetAnnotation() {
+  void testGetAnnotation() throws NotFoundException {
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
