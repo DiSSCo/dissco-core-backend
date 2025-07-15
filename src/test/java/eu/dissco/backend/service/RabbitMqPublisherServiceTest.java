@@ -13,9 +13,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.containers.RabbitMQContainer;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +28,8 @@ class RabbitMqPublisherServiceTest {
   private static RabbitMQContainer container;
   private static RabbitTemplate rabbitTemplate;
   private RabbitMqPublisherService rabbitMqPublisherService;
+  @Mock
+  private ProvenanceService provenanceService;
 
   @BeforeAll
   static void setupContainer() throws IOException, InterruptedException {
@@ -61,7 +65,7 @@ class RabbitMqPublisherServiceTest {
 
   @BeforeEach
   void setup() {
-    rabbitMqPublisherService = new RabbitMqPublisherService(MAPPER, rabbitTemplate);
+    rabbitMqPublisherService = new RabbitMqPublisherService(MAPPER, rabbitTemplate, provenanceService);
   }
 
   @Test

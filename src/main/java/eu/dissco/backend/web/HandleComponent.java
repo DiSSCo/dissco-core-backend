@@ -1,8 +1,11 @@
 package eu.dissco.backend.web;
 
+import static org.springframework.http.HttpMethod.POST;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.schema.VirtualCollectionRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -32,10 +36,23 @@ public class HandleComponent {
   private final TokenAuthenticator tokenAuthenticator;
   private final FdoRecordComponent fdoRecordComponent;
 
+  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
+    var request = fdoRecordComponent.getPostRequest(virtualCollection);
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(POST, requestBody, "batch");
+    var result = validateResponse(response);
+    try {
+      return result.get("data").get("id").asText();
+    } catch (NullPointerException e) {
+      log.error("Unexpected response from handle API: {}", result);
+      throw new PidCreationException("Unexpected response from Handle API");
+    }
+  }
+
   public List<String> postHandle(int n) {
     var request = Collections.nCopies(n, fdoRecordComponent.getPostRequest());
     var requestBody = BodyInserters.fromValue(request);
-    var response = sendRequest(requestBody);
+    var response = sendRequest(POST, requestBody, "batch");
     var result = validateResponse(response);
     try {
       var dataNode = result.get("data");
@@ -54,12 +71,12 @@ public class HandleComponent {
     }
   }
 
-  private <T> Mono<JsonNode> sendRequest(
-      BodyInserter<T, ReactiveHttpOutputMessage> requestBody) {
+  private <T> Mono<JsonNode> sendRequest(HttpMethod httpMethod,
+      BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint) {
     var token = "Bearer " + tokenAuthenticator.getToken();
     return handleClient
-        .post()
-        .uri(uriBuilder -> uriBuilder.path("batch").build())
+        .method(httpMethod)
+        .uri(uriBuilder -> uriBuilder.path(endpoint).build())
         .body(requestBody)
         .header("Authorization", token)
         .acceptCharset(StandardCharsets.UTF_8)
@@ -89,4 +106,10 @@ public class HandleComponent {
     }
   }
 
+  public void rollbackVirtualCollection(String id) throws PidCreationException {
+    var request = fdoRecordComponent.buildRollbackCreateRequest(id);
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback/create");
+    validateResponse(response);
+  }
 }

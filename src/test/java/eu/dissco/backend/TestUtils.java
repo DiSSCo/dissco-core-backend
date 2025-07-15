@@ -1,5 +1,8 @@
 package eu.dissco.backend;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -18,6 +21,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 public class TestUtils {
 
@@ -69,6 +74,12 @@ public class TestUtils {
   }
 
   // Token
+  public static void givenAuthentication(Authentication authentication, Map<String, Object> claims) {
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getClaims()).willReturn(claims);
+  }
+
   public static Map<String, Object> givenClaims() {
     return Map.of(
         "orcid", ORCID,
@@ -168,5 +179,12 @@ public class TestUtils {
     return Map.of(
         "phylum", Map.of("Chordata", 3782L)
     );
+  }
+
+  public static Agent givenCreator(String userId) {
+    return new Agent()
+        .withId(userId)
+        .withType(Type.SCHEMA_PERSON)
+        .withSchemaName("User");
   }
 }

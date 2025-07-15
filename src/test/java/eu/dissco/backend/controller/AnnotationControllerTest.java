@@ -9,6 +9,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAdminClaims;
 import static eu.dissco.backend.TestUtils.givenAgent;
+import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
@@ -26,6 +27,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
+import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
@@ -134,7 +136,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotation() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     var annotation = givenAnnotationRequest();
 
     var request = givenAnnotationRequestObject();
@@ -183,7 +185,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatch() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     var event = givenAnnotationEventRequest();
     var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
     given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
@@ -202,7 +204,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationNullResponse() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     var request = givenAnnotationRequestObject();
     given(
         service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(
@@ -218,7 +220,7 @@ class AnnotationControllerTest {
   @Test
   void testCreateAnnotationBatchNullResponse() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     var event = givenAnnotationEventRequest();
     given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
         .willReturn(null);
@@ -235,7 +237,7 @@ class AnnotationControllerTest {
   @Test
   void testUpdateAnnotation() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     var annotation = givenAnnotationRequest();
     var requestBody = givenAnnotationRequestObject();
     var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
@@ -256,7 +258,7 @@ class AnnotationControllerTest {
   @Test
   void testGetAnnotationsForUserJsonResponse() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
 
     // When
     var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest,
@@ -283,7 +285,7 @@ class AnnotationControllerTest {
   void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims)
       throws Exception {
     // Given
-    givenAuthentication(claims);
+    givenAuthentication(authentication, claims);
     given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
 
     // When
@@ -311,7 +313,7 @@ class AnnotationControllerTest {
   @Test
   void testTombstoneAnnotationSuccessAdmin() throws Exception {
     // Given
-    givenAuthentication(givenAdminClaims());
+    givenAuthentication(authentication, givenAdminClaims());
     given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true)).willReturn(true);
 
     // When
@@ -324,7 +326,7 @@ class AnnotationControllerTest {
   @Test
   void testTombstoneAnnotationFailure() throws Exception {
     // Given
-    givenAuthentication(givenClaims());
+    givenAuthentication(authentication, givenClaims());
     given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(false);
 
     // When
@@ -334,11 +336,7 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
-  private void givenAuthentication(Map<String, Object> claims) {
-    var principal = mock(Jwt.class);
-    given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(claims);
-  }
+
 
   public static AnnotationRequest givenAnnotationRequestObject() {
     return new AnnotationRequest(
