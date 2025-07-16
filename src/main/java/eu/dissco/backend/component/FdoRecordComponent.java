@@ -31,7 +31,7 @@ public class FdoRecordComponent {
         .set("data", mapper.createObjectNode()
             .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
             .set("attributes", mapper.createObjectNode()
-                .put("collectioName", virtualCollection.getLtcCollectionName())
+                .put("collectionName", virtualCollection.getLtcCollectionName())
                 .put("basisOfScheme", virtualCollection.getLtcBasisOfScheme().value())));
   }
 

@@ -143,7 +143,6 @@ public class VirtualCollectionService {
   public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
     var eventNode = mongoRepository.getByVersion(id, version, VIRTUAL_COLLECTION_PROVENANCE);
-    mapper.treeToValue(eventNode.get(VIRTUAL_COLLECTION.getName()), VirtualCollection.class);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }

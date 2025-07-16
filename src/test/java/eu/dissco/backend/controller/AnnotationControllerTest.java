@@ -27,7 +27,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
-import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;

@@ -10,7 +10,6 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollect
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.dissco.backend.utils.VirtualCollectionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

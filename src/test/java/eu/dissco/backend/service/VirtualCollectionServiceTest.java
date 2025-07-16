@@ -7,9 +7,9 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.givenCreator;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionJsonResponse;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
-import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseList;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseWrapper;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -197,16 +197,15 @@ class VirtualCollectionServiceTest {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
+    var creator = givenCreator(ORCID);
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
     doThrow(new JsonParseException("Failed to parse")).when(rabbitMqPublisherService)
-        .publishCreateEvent(
-            MAPPER.valueToTree(virtualCollection), givenCreator(ORCID));
+        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), creator);
 
     // When
     assertThrows(
         ProcessingFailedException.class,
-        () -> service.persistVirtualCollection(request, givenCreator(ORCID),
-            VIRTUAL_COLLECTION_PATH));
+        () -> service.persistVirtualCollection(request, creator, VIRTUAL_COLLECTION_PATH));
 
     // Then
     then(repository).should().createVirtualCollection(virtualCollection);

@@ -9,7 +9,6 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.UPDATED;
 import static eu.dissco.backend.TestUtils.givenCreator;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
-import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -128,7 +127,7 @@ public class VirtualCollectionUtils {
         .set("data", MAPPER.createObjectNode()
             .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
             .set("attributes", MAPPER.createObjectNode()
-                .put("collectioName", VIRTUAL_COLLECTION_NAME)
+                .put("collectionName", VIRTUAL_COLLECTION_NAME)
                 .put("basisOfScheme",
                     VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
   }

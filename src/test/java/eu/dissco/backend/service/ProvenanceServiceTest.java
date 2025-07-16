@@ -22,7 +22,6 @@ import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
 import eu.dissco.backend.schema.Identifier.DctermsType;
 import eu.dissco.backend.schema.OdsChangeValue;
-import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollection.OdsStatus;
 import eu.dissco.backend.utils.AgentUtils;
 import java.util.Date;

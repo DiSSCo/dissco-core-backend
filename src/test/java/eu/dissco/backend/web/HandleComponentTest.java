@@ -10,6 +10,7 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollect
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito.Then;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -91,14 +93,17 @@ class HandleComponentTest {
   }
 
   @Test
-  void testRollbackHandleVirtualCollection() throws Exception {
+  void testRollbackHandleVirtualCollection() {
     // Given
     given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
         givenVirtualCollectionHandleRollbackRequest());
     mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value()));
 
-    // When / Then
+    // When
     handleComponent.rollbackVirtualCollection(HANDLE + ID);
+
+    // Then
+    then(fdoRecordComponent).should().getRollbackCreateRequest(HANDLE + ID);
   }
 
   @Test
