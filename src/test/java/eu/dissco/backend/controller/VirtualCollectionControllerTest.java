@@ -103,7 +103,7 @@ class VirtualCollectionControllerTest {
   }
 
   @Test
-  void testGetVirtualCollection() throws IOException {
+  void testGetVirtualCollection() {
     // Given
     int pageNumber = 1;
     int pageSize = 11;
