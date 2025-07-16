@@ -52,8 +52,7 @@ class ProvenanceServiceTest {
     return List.of(
         givenOdsChangeValue("add", "/ods:hasTombstoneMetadata", givenTombstoneMetadata()),
         givenOdsChangeValue("replace", "/ods:status", OdsStatus.TOMBSTONE),
-        givenOdsChangeValue("replace", "/schema:version", 2),
-        givenOdsChangeValue("replace", "/schema:dateModified", Date.from(UPDATED))
+        givenOdsChangeValue("replace", "/schema:version", 2)
     );
   }
 
