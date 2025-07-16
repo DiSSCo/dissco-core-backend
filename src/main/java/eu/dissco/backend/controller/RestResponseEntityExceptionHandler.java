@@ -6,7 +6,7 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
@@ -43,8 +43,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   }
 
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-  @ExceptionHandler(PidCreationException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidCreationException e) {
+  @ExceptionHandler(PidException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidException e) {
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.UNPROCESSABLE_ENTITY,
         "PidCreationException",

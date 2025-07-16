@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.UPDATED;
+import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenCreator;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
 
@@ -69,7 +70,7 @@ public class VirtualCollectionUtils {
         .withLtcBasisOfScheme(LtcBasisOfScheme.REFERENCE_COLLECTION)
         .withSchemaDateCreated(Date.from(CREATED))
         .withSchemaDateModified(Date.from(CREATED))
-        .withSchemaCreator(givenCreator(userId))
+        .withSchemaCreator(givenAgent(userId))
         .withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
   }
 
@@ -103,6 +104,11 @@ public class VirtualCollectionUtils {
   public static JsonApiWrapper givenVirtualCollectionResponseWrapper(
       String path, String orcid) {
     var virtualCollection = givenVirtualCollection(HANDLE + ID, orcid);
+    return givenVirtualCollectionResponseWrapper(path, virtualCollection);
+  }
+
+  public static JsonApiWrapper givenVirtualCollectionResponseWrapper(
+      String path, VirtualCollection virtualCollection) {
     var dataNode = new JsonApiData(HANDLE + ID, "ods:VirtualCollection",
         MAPPER.valueToTree(virtualCollection));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -142,7 +148,28 @@ public class VirtualCollectionUtils {
     return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
         .withOdsHasTombstoneMetadata(givenTombstoneMetadata())
         .withOdsStatus(OdsStatus.TOMBSTONE)
-        .withSchemaDateModified(Date.from(UPDATED));
+        .withSchemaDateModified(Date.from(CREATED));
+  }
+
+  public static JsonNode givenVirtualCollectionTombstoneHandleRequest() {
+    return MAPPER.createObjectNode()
+        .set("data", MAPPER.createObjectNode()
+            .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
+            .put("id", ID)
+            .set("attributes", MAPPER.createObjectNode()
+                .put("tombstoneText",
+                    FdoType.VIRTUAL_COLLECTION.getName() + " tombstoned by agent through the backend")));
+  }
+
+  public static JsonNode givenVirtualCollectionUpdateHandleRequest() {
+    return MAPPER.createObjectNode()
+        .set("data", MAPPER.createObjectNode()
+            .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
+            .put("id", ID)
+            .set("attributes", MAPPER.createObjectNode()
+                .put("collectionName", VIRTUAL_COLLECTION_NAME)
+                .put("basisOfScheme",
+                    VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
   }
 }
 

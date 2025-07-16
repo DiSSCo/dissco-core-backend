@@ -28,6 +28,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import eu.dissco.backend.web.HandleComponent;
@@ -125,7 +126,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testCreateMasJobRecord() {
+  void testCreateMasJobRecord() throws PidException {
     // Given
     var masRecord = MachineAnnotationServiceUtils.givenMas();
     var expected = givenMasJobRecordIdMap(masRecord.getId());
@@ -140,7 +141,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testCreateMasJobRecordForDissco() {
+  void testCreateMasJobRecordForDissco() throws PidException {
     // Given
     var masRecord = new MasJobRecord(
         JOB_ID,
@@ -163,7 +164,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testCreateMasJobRecordForDisscoMedia() {
+  void testCreateMasJobRecordForDisscoMedia() throws PidException {
     // Given
     var masRecord = new MasJobRecord(
         JOB_ID,
@@ -189,7 +190,7 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testCreateMasJobRecordCustomTTL() {
+  void testCreateMasJobRecordCustomTTL() throws PidException {
     // Given
     var masRecord = MachineAnnotationServiceUtils.givenMas();
     var expected = givenMasJobRecordIdMap(masRecord.getId());

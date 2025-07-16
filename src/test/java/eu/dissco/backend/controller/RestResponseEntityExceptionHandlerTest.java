@@ -7,7 +7,7 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +64,7 @@ class RestResponseEntityExceptionHandlerTest {
     // Given
 
     // When
-    var result = exceptionHandler.handlePidCreationException(new PidCreationException(""));
+    var result = exceptionHandler.handlePidCreationException(new PidException(""));
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);

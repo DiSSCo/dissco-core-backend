@@ -58,17 +58,21 @@ public class TestUtils {
 
   // Users
   public static Agent givenAgent() {
+    return givenAgent(ORCID);
+  }
+
+  public static Agent givenAgent(String userId) {
     return new Agent()
         .withType(Type.SCHEMA_PERSON)
         .withSchemaName(USER_NAME)
-        .withSchemaIdentifier(ORCID)
-        .withId(ORCID)
+        .withSchemaIdentifier(userId)
+        .withId(userId)
         .withOdsHasRoles(List.of(new OdsHasRole().withType("schema:Role")
             .withSchemaRoleName("annotator")))
         .withOdsHasIdentifiers(List.of(
             new eu.dissco.backend.schema.Identifier()
                 .withType("ods:Identifier")
-                .withId(ORCID)
+                .withId(userId)
                 .withDctermsIdentifier(ORCID)
                 .withOdsIsPartOfLabel(false)
                 .withOdsIdentifierStatus(OdsIdentifierStatus.PREFERRED)
@@ -197,7 +201,7 @@ public class TestUtils {
     return new TombstoneMetadata()
         .withType("ods:TombstoneMetadata")
         .withOdsHasAgents(List.of(givenAgent()))
-        .withOdsTombstoneDate(Date.from(UPDATED))
-        .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco core backend");
+        .withOdsTombstoneDate(Date.from(CREATED))
+        .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco backend");
   }
 }

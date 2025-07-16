@@ -36,6 +36,7 @@ public class AnnotationRepository {
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(ANNOTATION.asterisk())
         .from(ANNOTATION)
+        .where(ANNOTATION.TOMBSTONED.isNull())
         .orderBy(ANNOTATION.CREATED.desc())
         .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
   }
