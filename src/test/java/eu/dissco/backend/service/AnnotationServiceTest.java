@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.TestUtils.CREATED;
 import static eu.dissco.backend.TestUtils.DOI;
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -379,13 +380,13 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaVersions() throws NotFoundException {
+  void testGetAnnotationVersions() throws NotFoundException {
     // Given
     List<Integer> versionsList = List.of(1, 2);
     var versionsNode = MAPPER.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     arrayNode.add(1).add(2);
-    var dataNode = new JsonApiData(ID, "annotationVersions", versionsNode);
+    var dataNode = new JsonApiData(HANDLE + ID, "annotationVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
     given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);

@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.HandleProxyUtils.HANDLE_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,7 +16,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -26,6 +26,7 @@ import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
+import eu.dissco.backend.utils.JsonApiUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -172,13 +172,18 @@ public class AnnotationService {
       int pageSize, String path) throws IOException {
     var elasticSearchResults = elasticRepository.getAnnotationsForCreator(orcid, pageNumber,
         pageSize);
-    return wrapListResponseElasticSearchResults(elasticSearchResults, pageNumber, pageSize, path);
+    var annotationList = elasticSearchResults.getRight();
+    var dataNodePlusOne = annotationList.stream().map(annotation ->
+        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
+            mapper.valueToTree(annotation))).toList();
+    return JsonApiUtils.wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
+        pageSize, pageNumber, path);
   }
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
     var versions = mongoRepository.getVersions(id, "annotation_provenance");
     var versionsNode = createVersionNode(versions, mapper);
-    var dataNode = new JsonApiData(id, "annotationVersions", versionsNode);
+    var dataNode = new JsonApiData(HANDLE_PROXY + id, "annotationVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
@@ -246,18 +251,6 @@ public class AnnotationService {
         new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
             mapper.valueToTree(annotation))));
     return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
-  }
-
-  private JsonApiListResponseWrapper wrapListResponseElasticSearchResults(
-      Pair<Long, List<Annotation>> elasticSearchResults, int pageNumber, int pageSize,
-      String path) {
-    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
-    var annotationsPlusOne = elasticSearchResults.getRight();
-    annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
-            mapper.valueToTree(annotation))));
-    return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path,
-        new JsonApiMeta(elasticSearchResults.getLeft()));
   }
 
   private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotations,

@@ -1,0 +1,3 @@
+# Jul 16 2025
+# Issue with commons-fileupload, needs an update of spring-cloud-openfeign
+CVE-2025-48976

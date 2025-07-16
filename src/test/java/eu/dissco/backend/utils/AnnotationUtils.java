@@ -7,6 +7,7 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
+import static eu.dissco.backend.TestUtils.givenCreator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
@@ -147,13 +148,6 @@ public class AnnotationUtils {
     return new OaHasSelector()
         .withAdditionalProperty("@type", "ods:FieldSelector")
         .withAdditionalProperty("field", "ods:specimenName");
-  }
-
-  public static Agent givenCreator(String userId) {
-    return new Agent()
-        .withId(userId)
-        .withType(Type.SCHEMA_PERSON)
-        .withSchemaName("User");
   }
 
   public static Agent givenGenerator() {

@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.domain.DefaultMappingTerms.getParamMapping;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +31,7 @@ import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
+import eu.dissco.backend.utils.JsonApiUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,13 +84,25 @@ public class DigitalSpecimenService {
   public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
     var elasticSearchResults = elasticRepository.getSpecimens(pageNumber, pageSize);
-    return wrapListResponse(elasticSearchResults, pageSize, pageNumber, path);
+    var digitalSpecimenList = elasticSearchResults.getRight();
+    var dataNodePlusOne = digitalSpecimenList.stream()
+        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
+            FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper))
+        .toList();
+    return wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
+        pageSize, pageNumber, path);
   }
 
   public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path)
       throws IOException {
     var elasticSearchResults = elasticRepository.getLatestSpecimen(pageNumber, pageSize);
-    return wrapListResponse(elasticSearchResults, pageSize, pageNumber, path);
+    var digitalSpecimenList = elasticSearchResults.getRight();
+    var dataNodePlusOne = digitalSpecimenList.stream()
+        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
+            FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper))
+        .toList();
+    return wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
+        pageSize, pageNumber, path);
   }
 
   public JsonApiWrapper getSpecimenById(String id, String path) throws NotFoundException {
@@ -192,21 +206,6 @@ public class DigitalSpecimenService {
   private DigitalSpecimen mapResultToSpecimen(JsonNode result)
       throws JsonProcessingException {
     return mapper.treeToValue(result, DigitalSpecimen.class);
-  }
-
-  private JsonApiListResponseWrapper wrapListResponse(
-      Pair<Long, List<DigitalSpecimen>> elasticSearchResults,
-      int pageSize, int pageNumber, String path) {
-    var digitalSpecimenList = elasticSearchResults.getRight();
-    var dataNodePlusOne = digitalSpecimenList.stream()
-        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
-            FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper))
-        .toList();
-    boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
-    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
-    var metaNode = new JsonApiMeta(elasticSearchResults.getLeft());
-    return new JsonApiListResponseWrapper(dataNode, linksNode, metaNode);
   }
 
   private JsonApiListResponseWrapper wrapListResponseSearchResults(

@@ -30,6 +30,10 @@ public enum FdoType {
   @JsonAlias("ods:MachineAnnotationService")
   MAS("https://doi.org/21.T11148/a369e128df5ef31044d4", "ods:MachineAnnotationService"),
 
+  @JsonProperty("https://doi.org/21.T11148/2ac65a933b7a0361b651")
+  @JsonAlias("ods:VirtualCollection")
+  VIRTUAL_COLLECTION("https://doi.org/21.T11148/2ac65a933b7a0361b651", "ods:VirtualCollection"),
+
   @JsonProperty("https://doi.org/21.T11148/532ce6796e2828dd2be6")
   @JsonAlias("MachineAnnotationServiceJobRecord")
   MJR("https://doi.org/21.T11148/532ce6796e2828dd2be6", "MachineAnnotationServiceJobRecord");
