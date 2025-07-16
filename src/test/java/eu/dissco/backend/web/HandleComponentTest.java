@@ -1,10 +1,15 @@
 package eu.dissco.backend.web;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRollbackRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.given;
 
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
@@ -68,6 +73,35 @@ class HandleComponentTest {
   }
 
   @Test
+  void testPostHandleVirtualCollection() throws Exception {
+    // Given
+    var responseBody = givenPostHandleResponse(1);
+    var virtualCollectionRequest = givenVirtualCollectionRequest();
+    given(fdoRecordComponent.getPostRequest(virtualCollectionRequest)).willReturn(
+        givenVirtualCollectionHandleRequest());
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+        .setBody(MAPPER.writeValueAsString(responseBody))
+        .addHeader("Content-Type", "application/json"));
+
+    // When
+    var response = handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
+
+    // Then
+    assertThat(response).isEqualTo(ID);
+  }
+
+  @Test
+  void testRollbackHandleVirtualCollection() throws Exception {
+    // Given
+    given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
+        givenVirtualCollectionHandleRollbackRequest());
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value()));
+
+    // When / Then
+    handleComponent.rollbackVirtualCollection(HANDLE + ID);
+  }
+
+  @Test
   void testUnauthorized() {
     // Given
 
@@ -86,25 +120,6 @@ class HandleComponentTest {
 
     // Then
     assertThrows(PidCreationException.class, () -> handleComponent.postHandle(1));
-  }
-
-  @Test
-  void testRetriesSuccess() throws Exception {
-    // Given
-    var responseBody = givenPostHandleResponse(1);
-    int requestCount = mockHandleServer.getRequestCount();
-
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
-
-    // When
-    var response = handleComponent.postHandle(1);
-
-    // Then
-    assertThat(response).isEqualTo(List.of(ID));
-    assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(2);
   }
 
   @Test

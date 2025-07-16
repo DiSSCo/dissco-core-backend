@@ -8,6 +8,10 @@ import java.util.List;
 
 public class JsonApiUtils {
 
+  private JsonApiUtils() {
+    // Utility class, no instantiation needed
+  }
+
   public static JsonApiListResponseWrapper wrapListResponse(
       List<JsonApiData> dataNodePlusOne, long totalCount,
       int pageSize, int pageNumber, String path) {

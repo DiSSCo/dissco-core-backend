@@ -2,7 +2,6 @@ package eu.dissco.backend.domain.openapi.virtual_collection;
 
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 

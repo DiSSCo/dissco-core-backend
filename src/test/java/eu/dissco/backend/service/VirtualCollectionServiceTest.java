@@ -9,7 +9,7 @@ import static eu.dissco.backend.TestUtils.givenCreator;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionJsonResponse;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
-import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponse;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseList;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseWrapper;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +29,7 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
+import eu.dissco.backend.utils.VirtualCollectionUtils;
 import eu.dissco.backend.web.HandleComponent;
 import java.time.Clock;
 import java.time.Instant;
@@ -84,7 +85,7 @@ class VirtualCollectionServiceTest {
     // Given
     var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
     given(repository.getVirtualCollectionById(ID))
-        .willReturn(givenVirtualCollectionResponse(HANDLE + ID));
+        .willReturn(VirtualCollectionUtils.givenVirtualCollection(HANDLE + ID));
 
     // When
     var result = service.getVirtualCollectionById(ID, VIRTUAL_COLLECTION_PATH);
@@ -136,7 +137,8 @@ class VirtualCollectionServiceTest {
   void testGetVirtualCollectionByVersion() throws NotFoundException, JsonProcessingException {
     // Given
     var version = 2;
-    var virtualCollectionNode = MAPPER.valueToTree(givenVirtualCollectionResponse(HANDLE + ID));
+    var virtualCollectionNode = MAPPER.valueToTree(
+        VirtualCollectionUtils.givenVirtualCollection(HANDLE + ID));
     var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
     given(mongoRepository.getByVersion(ID, version, "virtual_collection_provenance"))
         .willReturn(virtualCollectionNode);
@@ -174,7 +176,7 @@ class VirtualCollectionServiceTest {
   @Test
   void persistVirtualCollection() throws JsonProcessingException {
     // Given
-    var virtualCollection = givenVirtualCollectionResponse(HANDLE + ID, ORCID);
+    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
     var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH, ORCID);
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
@@ -193,7 +195,7 @@ class VirtualCollectionServiceTest {
   @Test
   void persistVirtualCollectionRollback() throws JsonProcessingException {
     // Given
-    var virtualCollection = givenVirtualCollectionResponse(HANDLE + ID, ORCID);
+    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
     doThrow(new JsonParseException("Failed to parse")).when(rabbitMqPublisherService)

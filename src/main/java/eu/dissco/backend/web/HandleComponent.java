@@ -30,6 +30,7 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Slf4j
 public class HandleComponent {
+  private static final String ERROR_MESSAGE = "Error occurred while creating PID: {}";
 
   @Qualifier("handleClient")
   private final WebClient handleClient;
@@ -39,12 +40,12 @@ public class HandleComponent {
   public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
     var request = fdoRecordComponent.getPostRequest(virtualCollection);
     var requestBody = BodyInserters.fromValue(request);
-    var response = sendRequest(POST, requestBody, "batch");
+    var response = sendRequest(POST, requestBody, "");
     var result = validateResponse(response);
     try {
-      return result.get("data").get("id").asText();
+      return result.get("data").get(0).get("id").asText();
     } catch (NullPointerException e) {
-      log.error("Unexpected response from handle API: {}", result);
+      log.error(ERROR_MESSAGE, result);
       throw new PidCreationException("Unexpected response from Handle API");
     }
   }
@@ -57,7 +58,7 @@ public class HandleComponent {
     try {
       var dataNode = result.get("data");
       if (!dataNode.isArray()) {
-        log.error("Unexpected response from handle API: {}", result);
+        log.error(ERROR_MESSAGE, result);
         throw new PidCreationException("Unexpected response from Handle API");
       }
       var handles = new ArrayList<String>();
@@ -66,7 +67,7 @@ public class HandleComponent {
       }
       return handles;
     } catch (NullPointerException e) {
-      log.error("Unexpected response from handle API: {}", result);
+      log.error(ERROR_MESSAGE, result);
       throw new PidCreationException("Unexpected response from Handle API");
     }
   }
@@ -107,7 +108,7 @@ public class HandleComponent {
   }
 
   public void rollbackVirtualCollection(String id) throws PidCreationException {
-    var request = fdoRecordComponent.buildRollbackCreateRequest(id);
+    var request = fdoRecordComponent.getRollbackCreateRequest(id);
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback/create");
     validateResponse(response);

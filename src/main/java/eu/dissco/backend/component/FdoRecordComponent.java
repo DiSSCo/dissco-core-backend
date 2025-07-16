@@ -35,7 +35,7 @@ public class FdoRecordComponent {
                 .put("basisOfScheme", virtualCollection.getLtcBasisOfScheme().value())));
   }
 
-  public JsonNode buildRollbackCreateRequest(String handle) {
+  public JsonNode getRollbackCreateRequest(String handle) {
     var dataNode = List.of(mapper.createObjectNode().put("id", removeProxy(handle)));
     ArrayNode dataArrayNode = mapper.valueToTree(dataNode);
     return mapper.createObjectNode().set("data", dataArrayNode);
