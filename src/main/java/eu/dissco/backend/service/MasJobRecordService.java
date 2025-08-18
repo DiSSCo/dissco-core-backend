@@ -6,7 +6,6 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -16,13 +15,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 import eu.dissco.backend.schema.Annotation;
-import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -82,35 +76,8 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
-  public Map<String, MasJobRecord> createMasJobRecord(
-      Set<MachineAnnotationService> masRecords,
-      String targetId, String orcid, MjrTargetType targetType,
-      Map<String, MasJobRequest> masRequests) {
-    log.info("Requesting {} handles from API", masRecords.size());
-    var handles = handleComponent.postHandle(masRecords.size());
-    var handleItr = handles.iterator();
-    var masJobRecordList = masRecords.stream()
-        .map(masRecord -> {
-          var request = masRequests.get(masRecord.getId());
-          return new MasJobRecord(
-              handleItr.next(),
-              JobState.SCHEDULED,
-              masRecord.getId(),
-              targetId,
-              targetType,
-              orcid,
-              request.batching(),
-              masRecord.getOdsTimeToLive()
-          );
-        })
-        .toList();
-    masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream()
-        .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
-  }
-
   public String createJobRecordForDisscover(Annotation annotation, String orcid) {
-    var handle = handleComponent.postHandle(1).get(0);
+    var handle = handleComponent.postHandle(1).getFirst();
     var mjr = new MasJobRecord(
         handle,
         JobState.RUNNING,
@@ -129,10 +96,6 @@ public class MasJobRecordService {
     if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
       throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
     }
-  }
-
-  public void markMasJobRecordAsFailed(List<String> failedJobIds) {
-    masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
   }
 
   private MjrTargetType getMjrTargetType(Annotation annotation){

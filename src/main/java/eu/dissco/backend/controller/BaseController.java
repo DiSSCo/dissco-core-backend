@@ -17,8 +17,6 @@ import eu.dissco.backend.schema.OdsHasRole;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -110,7 +108,7 @@ public abstract class BaseController {
     return path;
   }
 
-  protected Map<String, MasJobRequest> getMassRequestFromRequest(MasSchedulingRequest requestBody)
+  protected List<MasJobRequest> getMassRequestFromRequest(MasSchedulingRequest requestBody)
       throws ConflictException {
     if (!requestBody.data().type().equals("MasRequest")) {
       throw new ConflictException();
@@ -118,8 +116,7 @@ public abstract class BaseController {
     if (requestBody.data().attributes().mass() == null) {
       throw new IllegalArgumentException();
     }
-    return requestBody.data().attributes().mass().stream()
-        .collect(Collectors.toMap(MasJobRequest::masId, Function.identity()));
+    return requestBody.data().attributes().mass();
   }
 
 }

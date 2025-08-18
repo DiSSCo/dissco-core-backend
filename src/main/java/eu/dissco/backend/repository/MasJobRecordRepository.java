@@ -51,21 +51,6 @@ public class MasJobRecordRepository {
         .fetch(this::recordToMasJobRecord);
   }
 
-  public List<MasJobRecordFull> getMasJobRecordsByMasId(String masId, JobState state,
-      int pageNum, int pageSize) {
-    var offset = getOffset(pageNum, pageSize);
-    var condition = MAS_JOB_RECORD.MAS_ID.eq((masId));
-    if (state != null) {
-      condition = condition.and(MAS_JOB_RECORD.JOB_STATE.eq(state));
-    }
-    return context.select(MAS_JOB_RECORD.asterisk())
-        .from(MAS_JOB_RECORD)
-        .where(condition)
-        .limit(pageSize)
-        .offset(offset)
-        .fetch(this::recordToMasJobRecord);
-  }
-
   public List<MasJobRecordFull> getMasJobRecordsByCreatorId(String creatorId, JobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
@@ -84,14 +69,6 @@ public class MasJobRecordRepository {
   public void createNewMasJobRecord(List<MasJobRecord> masJobRecord) {
     var queries = masJobRecord.stream().map(this::mjrToQuery).toList();
     context.batch(queries).execute();
-  }
-
-  public void markMasJobRecordsAsFailed(List<String> ids) {
-    context.update(MAS_JOB_RECORD)
-        .set(MAS_JOB_RECORD.JOB_STATE, JobState.FAILED)
-        .set(MAS_JOB_RECORD.TIME_COMPLETED, Instant.now())
-        .where(MAS_JOB_RECORD.JOB_ID.in(ids))
-        .execute();
   }
 
   public int markMasJobRecordAsRunning(String masId, String jobId) {

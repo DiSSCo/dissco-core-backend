@@ -18,8 +18,8 @@ import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseList;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseSingle;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
@@ -439,18 +439,17 @@ public class DigitalSpecimenController extends BaseController {
       })
   })
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
+  public ResponseEntity<Void> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
-      HttpServletRequest request)
-      throws ConflictException, ForbiddenException, PidCreationException, NotFoundException {
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
+      throws ConflictException, ForbiddenException, MasSchedulingException {
     var orcid = getAgent(authentication).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
         masRequests, id);
-    var massResponse = service.scheduleMass(id, masRequests, orcid, getPath(request));
-    return ResponseEntity.accepted().body(massResponse);
+    service.scheduleMass(id, masRequests, orcid);
+    return ResponseEntity.accepted().build();
   }
 
 }

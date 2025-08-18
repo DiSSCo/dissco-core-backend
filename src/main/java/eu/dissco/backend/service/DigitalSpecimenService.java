@@ -23,7 +23,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
@@ -338,17 +338,9 @@ public class DigitalSpecimenService {
     return mapper.convertValue(digitalSpecimen, ObjectNode.class);
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
-      String orcid, String path)
-      throws ConflictException, NotFoundException {
-    var digitalSpecimen = repository.getLatestSpecimenById(id);
-    if (digitalSpecimen == null) {
-      log.error("Unable to find specimen with id {}", id);
-      throw new NotFoundException("Specimen " + id + " not found");
-    }
-    var flattenAttributes = flattenAttributes(digitalSpecimen);
-    return masService.scheduleMass(flattenAttributes, masRequests, path, digitalSpecimen, id, orcid,
-        MjrTargetType.DIGITAL_SPECIMEN);
+  public void scheduleMass(String id, List<MasJobRequest> masRequests,
+      String orcid) throws MasSchedulingException {
+    masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN);
   }
 
 
