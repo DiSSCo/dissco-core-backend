@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResponseList;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResponseSingle;
@@ -185,7 +184,7 @@ public class VirtualCollectionController extends BaseController {
           """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Virtual Collection successfully updated", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
+          @Content(mediaType = "application/json", schema = @Schema(implementation = VirtualCollectionResponseSingle.class))
       })
   })
   @PreAuthorize("hasRole('dissco-virtual-collection')")
@@ -196,7 +195,8 @@ public class VirtualCollectionController extends BaseController {
           (description = "Virtual Collection adhering to JSON:API standard",
               content = {
                   @Content(mediaType = "application/json", schema = @Schema(implementation = eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest.class))})
-      Authentication authentication, @RequestBody eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest requestBody,
+      Authentication authentication,
+      @RequestBody eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest requestBody,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
@@ -205,7 +205,8 @@ public class VirtualCollectionController extends BaseController {
     var agent = getAgent(authentication);
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);
     log.info("Received update for virtual collection: {} from user: {}", id, agent.getId());
-    var virtualCollectionResponse = service.updateVirtualCollection(id, virtualCollection, agent, getPath(request));
+    var virtualCollectionResponse = service.updateVirtualCollection(id, virtualCollection, agent,
+        getPath(request));
     if (virtualCollectionResponse != null) {
       return ResponseEntity.status(HttpStatus.OK).body(virtualCollectionResponse);
     } else {
@@ -228,7 +229,7 @@ public class VirtualCollectionController extends BaseController {
       throws NotFoundException, ForbiddenException {
     var agent = getAgent(authentication);
     var isAdmin = isAdmin(authentication);
-    log.info("Received delete for virtualCollection: {} from user: {}", (prefix + suffix),
+    log.info("Received delete for virtualCollection: {} from user: {}", (prefix + '/' + suffix),
         agent.getId());
     var success = service.tombstoneVirtualCollection(prefix, suffix, agent, isAdmin);
     if (success) {

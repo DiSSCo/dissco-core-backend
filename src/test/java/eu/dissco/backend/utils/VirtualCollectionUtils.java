@@ -154,8 +154,7 @@ public class VirtualCollectionUtils {
             .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
             .put("id", ID)
             .set("attributes", MAPPER.createObjectNode()
-                .put("tombstoneText",
-                    FdoType.VIRTUAL_COLLECTION.getName() + " tombstoned by agent through the backend")));
+                .put("tombstoneText", givenTombstoneMetadata().getOdsTombstoneText())));
   }
 
   public static JsonNode givenVirtualCollectionUpdateHandleRequest() {
