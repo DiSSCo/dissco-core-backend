@@ -188,6 +188,7 @@ public class VirtualCollectionController extends BaseController {
           @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
       })
   })
+  @PreAuthorize("hasRole('dissco-virtual-collection')")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> updateVirtualCollection(
@@ -219,6 +220,7 @@ public class VirtualCollectionController extends BaseController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Virtual Collection successfully tombstoned")})
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasRole('dissco-virtual-collection')")
   @DeleteMapping(value = "/{prefix}/{suffix}")
   public ResponseEntity<Void> tombstoneVirtualCollection(Authentication authentication,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
