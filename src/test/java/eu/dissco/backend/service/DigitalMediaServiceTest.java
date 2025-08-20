@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -232,7 +233,8 @@ class DigitalMediaServiceTest {
         firstId, List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId)),
         secondId, List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))
     ));
-    given(repository.getLatestDigitalMediaObjectsById(List.of(firstId, secondId))).willReturn(mediaObjects);
+    given(repository.getLatestDigitalMediaObjectsById(List.of(firstId, secondId))).willReturn(
+        mediaObjects);
 
     // When
     var received = service.getFullDigitalMediaFromSpecimen(specimen);
@@ -292,48 +294,12 @@ class DigitalMediaServiceTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
-    var digitalMediaWrapper = givenDigitalMediaObject(HANDLE + ID);
-    var specimenId = DOI + ID_ALT;
-    var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
-    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
-    given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
-    given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
-        eq(DIGITAL_MEDIA_PATH),
-        eq(digitalMediaWrapper), eq(ID), eq(ORCID), eq(MjrTargetType.MEDIA_OBJECT))).willReturn(
-        response);
-
     // When
-    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-        ORCID);
+    service.scheduleMass(ID, List.of(givenMasJobRequest()), ORCID);
 
     // Then
-    assertThat(result).isEqualTo(response);
-  }
-
-
-  @Test
-  void testScheduleMasMediaNotFound() {
-    // Given
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(null);
-
-    // When / Then
-    assertThrows(NotFoundException.class,
-        () -> service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-            ORCID));
-  }
-
-  @Test
-  void testScheduleMasSpecimenNotFound() {
-    // Given
-    var digitalMediaWrapper = givenDigitalMediaObject(HANDLE + ID);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMediaWrapper);
-    given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(null);
-
-    // When / Then
-    assertThrows(NotFoundException.class,
-        () -> service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-            ORCID));
+    then(masService).should()
+        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.MEDIA_OBJECT);
   }
 
   @Test

@@ -85,7 +85,6 @@ class DigitalSpecimenServiceTest {
   @Mock
   private MasJobRecordService masJobRecordService;
 
-
   private DigitalSpecimenService service;
 
   @BeforeEach
@@ -598,31 +597,13 @@ class DigitalSpecimenServiceTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
-    var digitalSpecimenWrapper = givenDigitalSpecimenWrapper(ID);
-    var response = givenMasResponse(SPECIMEN_PATH);
-    given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimenWrapper);
-    given(masService.scheduleMass(any(JsonNode.class), eq(Map.of(ID, givenMasJobRequest())),
-        eq(SPECIMEN_PATH),
-        eq(digitalSpecimenWrapper),
-        eq(digitalSpecimenWrapper.getDctermsIdentifier()), eq(ORCID),
-        eq(MjrTargetType.DIGITAL_SPECIMEN))).willReturn(response);
 
     // When
-    var result = service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), ORCID,
-        SPECIMEN_PATH);
+    service.scheduleMass(ID, List.of(givenMasJobRequest()), ORCID);
 
     // Then
-    assertThat(result).isEqualTo(response);
-  }
-
-  @Test
-  void testScheduleMasNotFound() {
-    // Given
-    given(repository.getLatestSpecimenById(ID)).willReturn(null);
-
-    // When / Then
-    assertThrows(NotFoundException.class,
-        () -> service.scheduleMass(ID, Map.of(ID, givenMasJobRequest()), ORCID, SPECIMEN_PATH));
+    then(masService).should()
+        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
   }
 
   @Test

@@ -110,7 +110,7 @@ public class MasJobRecordService {
   }
 
   public String createJobRecordForDisscover(Annotation annotation, String orcid) {
-    var handle = handleComponent.postHandleMjr(1).get(0);
+    var handle = handleComponent.postHandleMjr(1).getFirst();
     var mjr = new MasJobRecord(
         handle,
         JobState.RUNNING,
@@ -129,10 +129,6 @@ public class MasJobRecordService {
     if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
       throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
     }
-  }
-
-  public void markMasJobRecordAsFailed(List<String> failedJobIds) {
-    masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
   }
 
   private MjrTargetType getMjrTargetType(Annotation annotation){

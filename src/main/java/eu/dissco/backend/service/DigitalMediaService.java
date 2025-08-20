@@ -17,16 +17,14 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -174,23 +172,9 @@ public class DigitalMediaService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
-      String path, String orcid)
-      throws PidCreationException, ConflictException, NotFoundException {
-    var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
-    if (digitalMedia == null) {
-      log.error("Unable to find media with id {}", id);
-      throw new NotFoundException("Specimen " + id + " not found");
-    }
-    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
-        getDsDoiFromDmo(digitalMedia));
-    if (digitalSpecimen == null) {
-      log.error("Unable to find specimen for media with id {}", id);
-      throw new NotFoundException("Unable to find related specimen for media with id " + id);
-    }
-    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
-        MjrTargetType.MEDIA_OBJECT);
+  public void scheduleMass(String id, List<MasJobRequest> masRequests,
+      String orcid) throws MasSchedulingException {
+    masService.scheduleMas(id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT);
   }
 
 }

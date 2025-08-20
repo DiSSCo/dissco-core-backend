@@ -16,8 +16,8 @@ import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidCreationException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -232,20 +232,18 @@ public class DigitalMediaController extends BaseController {
       })
   })
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
+  public ResponseEntity<Void> scheduleMassForDigitalMediaObject(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
-      HttpServletRequest request)
-      throws ConflictException, ForbiddenException, PidCreationException, NotFoundException {
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
+      throws ConflictException, ForbiddenException, MasSchedulingException {
     var orcid = getAgent(authentication).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
         masRequests, id);
-
-    var massResponse = service.scheduleMass(id, masRequests, getPath(request), orcid);
-    return ResponseEntity.accepted().body(massResponse);
+    service.scheduleMass(id, masRequests, orcid);
+    return ResponseEntity.accepted().build();
   }
 
 }
