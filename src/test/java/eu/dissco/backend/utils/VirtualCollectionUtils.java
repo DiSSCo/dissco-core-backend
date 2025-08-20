@@ -17,7 +17,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.schema.OdsHasPredicate;
 import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
@@ -113,7 +112,7 @@ public class VirtualCollectionUtils {
       boolean hasNextPage) {
     JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
     var dataNodes = givenVirtualCollectionJsonApiDataList(pageSize, userId, virtualCollectionID);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode, new JsonApiMeta(pageSize));
+    return new JsonApiListResponseWrapper(dataNodes, linksNode, null);
   }
 
   public static List<JsonApiData> givenVirtualCollectionJsonApiDataList(int pageSize, String userId,

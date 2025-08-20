@@ -13,6 +13,14 @@ public class JsonApiUtils {
   }
 
   public static JsonApiListResponseWrapper wrapListResponse(
+      List<JsonApiData> dataNodePlusOne, int pageSize, int pageNumber, String path) {
+    boolean hasNext = dataNodePlusOne.size() > pageSize;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
+    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    return new JsonApiListResponseWrapper(dataNode, linksNode, null);
+  }
+
+  public static JsonApiListResponseWrapper wrapListResponse(
       List<JsonApiData> dataNodePlusOne, long totalCount,
       int pageSize, int pageNumber, String path) {
     boolean hasNext = dataNodePlusOne.size() > pageSize;

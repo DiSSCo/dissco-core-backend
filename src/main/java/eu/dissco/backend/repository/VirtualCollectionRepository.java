@@ -1,6 +1,7 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.VIRTUAL_COLLECTION;
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
 import static org.jooq.impl.DSL.noCondition;
@@ -14,12 +15,10 @@ import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollection.LtcBasisOfScheme;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -38,7 +37,7 @@ public class VirtualCollectionRepository {
 
   public void createVirtualCollection(VirtualCollection virtualCollection) {
     context.insertInto(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.ID, virtualCollection.getId())
+        .set(VIRTUAL_COLLECTION.ID, removeProxy(virtualCollection.getId()))
         .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
         .set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
         .set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
@@ -66,7 +65,7 @@ public class VirtualCollectionRepository {
   public VirtualCollection getVirtualCollectionById(String id) {
     return context.select(VIRTUAL_COLLECTION.DATA)
         .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(id))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(id)))
         .fetchOne(this::mapToVirtualCollection);
   }
 
@@ -78,35 +77,25 @@ public class VirtualCollectionRepository {
     }
   }
 
-  public Pair<Integer, List<VirtualCollection>> getVirtualCollection(int pageNumber, int pageSize) {
-    var virtualCollection = getVirtualCollectionQuery(pageNumber, pageSize, List.of(noCondition()));
-    return addTotalCount(virtualCollection, List.of(noCondition()));
+  public List<VirtualCollection> getVirtualCollections(int pageNumber, int pageSize) {
+    return virtualCollectionQuery(pageNumber, pageSize, List.of(noCondition()));
   }
 
-  private List<VirtualCollection> getVirtualCollectionQuery(int pageNumber, int pageSize, List<Condition> conditions) {
+  private List<VirtualCollection> virtualCollectionQuery(int pageNumber, int pageSize, List<Condition> conditions) {
     int offset = getOffset(pageNumber, pageSize);
+    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(VIRTUAL_COLLECTION.DATA)
         .from(VIRTUAL_COLLECTION)
         .where(conditions)
         .orderBy(VIRTUAL_COLLECTION.CREATED.desc())
-        .limit(pageSize)
+        .limit(pageSizePlusOne)
         .offset(offset)
         .fetch(this::mapToVirtualCollection);
   }
 
-  private Pair<Integer, List<VirtualCollection>> addTotalCount(
-      List<VirtualCollection> virtualCollection, List<Condition> conditions) {
-    var totalCount = context.selectCount()
-        .from(VIRTUAL_COLLECTION)
-        .where(conditions)
-        .fetchOne(Record1::value1);
-    return Pair.of(totalCount, virtualCollection);
-  }
-
-  public Pair<Integer, List<VirtualCollection>> getVirtualCollectionForUser(String userId,
+  public List<VirtualCollection> getVirtualCollectionsForUser(String userId,
       int pageNumber, int pageSize) {
     var condition = VIRTUAL_COLLECTION.CREATOR.eq(userId);
-    var virtualCollection = getVirtualCollectionQuery(pageNumber, pageSize, List.of(condition));
-    return addTotalCount(virtualCollection, List.of(condition));
+    return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
   }
 }

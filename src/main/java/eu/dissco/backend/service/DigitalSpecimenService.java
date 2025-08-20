@@ -31,7 +31,6 @@ import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
-import eu.dissco.backend.utils.JsonApiUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;

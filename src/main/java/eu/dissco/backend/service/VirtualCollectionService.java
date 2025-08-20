@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -44,7 +43,7 @@ public class VirtualCollectionService {
   private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
 
-  private static LtcBasisOfScheme getLtcBasisOfSchem(VirtualCollectionRequest virtualCollection) {
+  private static LtcBasisOfScheme getLtcBasisOfScheme(VirtualCollectionRequest virtualCollection) {
     return LtcBasisOfScheme.fromValue(virtualCollection.getLtcBasisOfScheme().value());
   }
 
@@ -95,7 +94,7 @@ public class VirtualCollectionService {
         .withOdsStatus(OdsStatus.ACTIVE)
         .withLtcCollectionName(virtualCollection.getLtcCollectionName())
         .withLtcDescription(virtualCollection.getLtcDescription())
-        .withLtcBasisOfScheme(getLtcBasisOfSchem(virtualCollection))
+        .withLtcBasisOfScheme(getLtcBasisOfScheme(virtualCollection))
         .withSchemaDateCreated(Date.from(Instant.now()))
         .withSchemaDateModified(Date.from(Instant.now()))
         .withSchemaCreator(agent)
@@ -114,30 +113,26 @@ public class VirtualCollectionService {
     throw new NotFoundException("Virtual collection with id " + id + " not found");
   }
 
-  public JsonApiListResponseWrapper getVirtualCollection(int pageNumber, int pageSize,
+  public JsonApiListResponseWrapper getVirtualCollections(int pageNumber, int pageSize,
       String path) {
-    var virtualCollections = virtualCollectionRepository.getVirtualCollection(pageNumber, pageSize);
+    var virtualCollections = virtualCollectionRepository.getVirtualCollections(pageNumber, pageSize);
     var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
-    return wrapListResponse(dataNodePlusOne, virtualCollections.getLeft(), pageSize, pageNumber,
-        path);
+    return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
   }
 
-  private List<JsonApiData> mapToDataNodePlusOne(
-      Pair<Integer, List<VirtualCollection>> virtualCollections) {
-    var virtualCollectionList = virtualCollections.getRight();
-    return virtualCollectionList.stream()
+  private List<JsonApiData> mapToDataNodePlusOne(List<VirtualCollection> virtualCollections) {
+    return virtualCollections.stream()
         .map(vc -> new JsonApiData(vc.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
             mapper.valueToTree(vc)))
         .toList();
   }
 
-  public JsonApiListResponseWrapper getVirtualCollectionForUser(String orcid, int pageNumber,
+  public JsonApiListResponseWrapper getVirtualCollectionsForUser(String orcid, int pageNumber,
       int pageSize, String path) {
-    var virtualCollections = virtualCollectionRepository.getVirtualCollectionForUser(orcid,
+    var virtualCollections = virtualCollectionRepository.getVirtualCollectionsForUser(orcid,
         pageNumber, pageSize);
     var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
-    return wrapListResponse(dataNodePlusOne, virtualCollections.getLeft(), pageSize, pageNumber,
-        path);
+    return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
   }
 
   public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)

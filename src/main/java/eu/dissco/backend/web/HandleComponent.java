@@ -38,7 +38,7 @@ public class HandleComponent {
   private final FdoRecordComponent fdoRecordComponent;
 
   public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
-    var request = fdoRecordComponent.getPostRequest(virtualCollection);
+    var request = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollection);
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "");
     var result = validateResponse(response);
@@ -50,8 +50,8 @@ public class HandleComponent {
     }
   }
 
-  public List<String> postHandle(int n) {
-    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequest());
+  public List<String> postHandleMjr(int n) {
+    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequestMjr());
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "batch");
     var result = validateResponse(response);

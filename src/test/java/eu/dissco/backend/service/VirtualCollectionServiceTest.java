@@ -35,7 +35,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,30 +103,30 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testGetVirtualCollection() {
+  void testGetVirtualCollections() {
     // Given
     var expected = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, 1, 15, ORCID, ID,
         true);
-    given(repository.getVirtualCollection(1, 15)).willReturn(
-        Pair.of(15, givenVirtualCollectionResponseList(ID, 115)));
+    given(repository.getVirtualCollections(1, 15)).willReturn(
+        givenVirtualCollectionResponseList(ID, 115));
 
     // When
-    var result = service.getVirtualCollection(1, 15, VIRTUAL_COLLECTION_PATH);
+    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
   }
 
   @Test
-  void testGetVirtualCollectionForUser() {
+  void testGetVirtualCollectionsForUser() {
     // Given
     var expected = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, 1, 15, ORCID, ID,
         false);
-    given(repository.getVirtualCollectionForUser(ORCID, 1, 15)).willReturn(
-        Pair.of(15, givenVirtualCollectionResponseList(ID, 15)));
+    given(repository.getVirtualCollectionsForUser(ORCID, 1, 15)).willReturn(
+        givenVirtualCollectionResponseList(ID, 15));
 
     // When
-    var result = service.getVirtualCollectionForUser(ORCID, 1, 15, VIRTUAL_COLLECTION_PATH);
+    var result = service.getVirtualCollectionsForUser(ORCID, 1, 15, VIRTUAL_COLLECTION_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
