@@ -26,14 +26,14 @@ public class FdoRecordComponent {
 
   private final ObjectMapper mapper;
 
-  public JsonNode getPostRequest() {
+  public JsonNode getPostRequestMjr() {
     return mapper.createObjectNode()
         .set(DATA, mapper.createObjectNode()
             .put(TYPE, FdoType.MJR.getPid())
             .set(ATTRIBUTES, mapper.createObjectNode()));
   }
 
-  public JsonNode getPostRequest(VirtualCollectionRequest virtualCollection) {
+  public JsonNode getPostRequestVirtualCollection(VirtualCollectionRequest virtualCollection) {
     return mapper.createObjectNode()
         .set(DATA, mapper.createObjectNode()
             .put(TYPE, FdoType.VIRTUAL_COLLECTION.getPid())

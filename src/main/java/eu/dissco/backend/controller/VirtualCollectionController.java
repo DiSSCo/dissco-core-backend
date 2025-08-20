@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,13 +63,13 @@ public class VirtualCollectionController extends BaseController {
   })
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getVirtualCollection(
+  public ResponseEntity<JsonApiListResponseWrapper> getVirtualCollections(
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) {
     log.info("Received get request for virtual collections with page number: {} and page size: {}",
         pageNumber, pageSize);
-    var specimen = service.getVirtualCollection(pageNumber, pageSize, getPath(request));
+    var specimen = service.getVirtualCollections(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -99,13 +100,13 @@ public class VirtualCollectionController extends BaseController {
   })
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getVirtualCollectionForUser(
+  public ResponseEntity<JsonApiListResponseWrapper> getVirtualCollectionsForUser(
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request, Authentication authentication) throws ForbiddenException {
     var orcid = getAgent(authentication).getId();
     log.info("Received get request to show all virtual collections for user: {}", orcid);
-    var annotations = service.getVirtualCollectionForUser(orcid, pageNumber, pageSize,
+    var annotations = service.getVirtualCollectionsForUser(orcid, pageNumber, pageSize,
         getPath(request));
     return ResponseEntity.ok(annotations);
   }
@@ -158,6 +159,7 @@ public class VirtualCollectionController extends BaseController {
       })
   })
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('dissco-virtual-collection')")
   @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiWrapper> createVirtualCollection(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(

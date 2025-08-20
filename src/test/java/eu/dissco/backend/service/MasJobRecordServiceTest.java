@@ -130,7 +130,7 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = MachineAnnotationServiceUtils.givenMas();
     var expected = givenMasJobRecordIdMap(masRecord.getId());
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
@@ -153,7 +153,7 @@ class MasJobRecordServiceTest {
         true,
         TTL_DEFAULT
     );
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createJobRecordForDisscover(givenAnnotationResponse(), ORCID);
@@ -179,7 +179,7 @@ class MasJobRecordServiceTest {
     var annotation = givenAnnotationResponse()
         .withOaHasTarget(givenOaTarget(TARGET_ID)
             .withOdsFdoType(AnnotationTargetType.DIGITAL_MEDIA.getName()));
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createJobRecordForDisscover(annotation, ORCID);
@@ -194,7 +194,7 @@ class MasJobRecordServiceTest {
     // Given
     var masRecord = MachineAnnotationServiceUtils.givenMas();
     var expected = givenMasJobRecordIdMap(masRecord.getId());
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,

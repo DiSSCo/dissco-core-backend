@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.schema.VirtualCollection;
-import eu.dissco.backend.utils.VirtualCollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
@@ -60,28 +59,26 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
   void testGetVirtualCollectionByIdNotFound() {
     // Given
     var fullAddedList = populateTable();
-    var expected = Pair.of(11, fullAddedList.subList(0, 5));
+    var expected = Pair.of(11, fullAddedList.subList(0, 6));
 
     // When
-    var result = repository.getVirtualCollection(1, 5);
+    var result = repository.getVirtualCollections(1, 5);
 
     // Then
-    assertThat(result.getLeft()).isEqualTo(expected.getLeft());
-    assertThat(result.getRight()).containsExactlyInAnyOrderElementsOf(expected.getRight());
+    assertThat(result).containsExactlyInAnyOrderElementsOf(expected.getRight());
   }
 
   @Test
-  void testGetVirtualCollectionForCreator() {
+  void testGetVirtualCollectionsForCreator() {
     // Given
     populateTable();
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    var virtualCollection = List.of(givenVirtualCollection(HANDLE + ID));
 
     // When
-    var result = repository.getVirtualCollectionForUser(ORCID, 1, 10);
+    var result = repository.getVirtualCollectionsForUser(ORCID, 1, 10);
 
     // Then
-    assertThat(result.getLeft()).isEqualTo(1);
-    assertThat(result.getRight()).isEqualTo(List.of(virtualCollection));
+    assertThat(result).hasSize(1).isEqualTo(virtualCollection);
   }
 
   @Test

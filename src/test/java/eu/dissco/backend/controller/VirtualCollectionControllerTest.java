@@ -134,7 +134,7 @@ class VirtualCollectionControllerTest {
   }
 
   @Test
-  void testGetVirtualCollection() {
+  void testGetVirtualCollections() {
     // Given
     int pageNumber = 1;
     int pageSize = 11;
@@ -142,24 +142,24 @@ class VirtualCollectionControllerTest {
         pageSize,
         USER_ID_TOKEN, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getVirtualCollection(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH)).willReturn(
+    given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH)).willReturn(
         expectedJson);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var receivedResponse = controller.getVirtualCollection(pageNumber, pageSize, mockRequest);
+    var receivedResponse = controller.getVirtualCollections(pageNumber, pageSize, mockRequest);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 
   @Test
-  void testGetAnnotationsForUserJsonResponse() throws Exception {
+  void testGetVirtualCollectionsForUserJsonResponse() throws Exception {
     // Given
     givenAuthentication(authentication, givenClaims());
 
     // When
-    var receivedResponse = controller.getVirtualCollectionForUser(1, 1, mockRequest,
+    var receivedResponse = controller.getVirtualCollectionsForUser(1, 1, mockRequest,
         authentication);
 
     // Then
@@ -167,7 +167,7 @@ class VirtualCollectionControllerTest {
   }
 
   @Test
-  void testGetAnnotationsByVersion() throws NotFoundException {
+  void testGetVirtualCollectionVersions() throws NotFoundException {
     // Given
 
     // When

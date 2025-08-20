@@ -29,30 +29,30 @@ class FdoRecordComponentTest {
   }
 
   @Test
-  void testGetRequest() throws Exception {
+  void testGetRequestMjr() throws Exception {
     // Given
 
     // When
-    var result = fdoRecordComponent.getPostRequest();
+    var result = fdoRecordComponent.getPostRequestMjr();
 
     // Then
     assertThat(result).isEqualTo(givenPostHandleRequest());
   }
 
   @Test
-  void testGetPostRequest() {
+  void testGetPostRequestVirtualCollection() {
     // Given
     var virtualCollectionHandleRequest = givenVirtualCollectionRequest();
 
     // When
-    var result = fdoRecordComponent.getPostRequest(virtualCollectionHandleRequest);
+    var result = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollectionHandleRequest);
 
     // Then
     assertThat(result).isEqualTo(givenVirtualCollectionHandleRequest());
   }
 
   @Test
-  void testGetRollbackCreateRequest() {
+  void testGetRollbackCreateRequestVirtualCollection() {
     // Given
     var handle = HANDLE + ID;
 

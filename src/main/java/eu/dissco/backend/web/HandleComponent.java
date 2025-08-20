@@ -38,9 +38,8 @@ public class HandleComponent {
   private final TokenAuthenticator tokenAuthenticator;
   private final FdoRecordComponent fdoRecordComponent;
 
-  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection)
-      throws PidException {
-    var request = fdoRecordComponent.getPostRequest(virtualCollection);
+  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
+    var request = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollection);
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "");
     var result = validateResponse(response);
@@ -52,8 +51,8 @@ public class HandleComponent {
     }
   }
 
-  public List<String> postHandle(int n) throws PidException {
-    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequest());
+  public List<String> postHandleMjr(int n) {
+    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequestMjr());
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "batch");
     var result = validateResponse(response);

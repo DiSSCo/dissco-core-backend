@@ -89,7 +89,7 @@ public class MasJobRecordService {
       String targetId, String orcid, MjrTargetType targetType,
       Map<String, MasJobRequest> masRequests) {
     log.info("Requesting {} handles from API", masRecords.size());
-    List<String> handles = postHandle(masRecords);
+    var handles = handleComponent.postHandleMjr(masRecords.size());
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
@@ -121,7 +121,7 @@ public class MasJobRecordService {
   }
 
   public String createJobRecordForDisscover(Annotation annotation, String orcid) {
-    var handle = postHandle();
+    var handle = handleComponent.postHandleMjr(1).get(0);
     var mjr = new MasJobRecord(
         handle,
         JobState.RUNNING,
