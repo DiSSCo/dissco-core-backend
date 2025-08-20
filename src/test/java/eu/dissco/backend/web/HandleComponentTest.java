@@ -116,7 +116,7 @@ class HandleComponentTest {
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
+    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test
@@ -126,7 +126,7 @@ class HandleComponentTest {
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
+    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test
@@ -140,7 +140,7 @@ class HandleComponentTest {
     mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
+    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
     assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(4);
   }
 
@@ -155,7 +155,7 @@ class HandleComponentTest {
     Thread.currentThread().interrupt();
 
     // When
-    var response = assertThrows(PidCreationException.class,
+    var response = assertThrows(PidException.class,
         () -> handleComponent.postHandleMjr(1));
 
     // Then
@@ -172,7 +172,7 @@ class HandleComponentTest {
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
+    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test

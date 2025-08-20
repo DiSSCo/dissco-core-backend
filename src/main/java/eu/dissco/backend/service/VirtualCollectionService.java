@@ -128,7 +128,7 @@ public class VirtualCollectionService {
 
   public JsonApiListResponseWrapper getVirtualCollections(int pageNumber, int pageSize,
       String path) {
-    var virtualCollections = virtualCollectionRepository.getVirtualCollections(pageNumber, pageSize);
+    var virtualCollections = repository.getVirtualCollections(pageNumber, pageSize);
     var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
     return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
   }
@@ -142,7 +142,7 @@ public class VirtualCollectionService {
 
   public JsonApiListResponseWrapper getVirtualCollectionsForUser(String orcid, int pageNumber,
       int pageSize, String path) {
-    var virtualCollections = virtualCollectionRepository.getVirtualCollectionsForUser(orcid,
+    var virtualCollections = repository.getVirtualCollectionsForUser(orcid,
         pageNumber, pageSize);
     var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
     return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);

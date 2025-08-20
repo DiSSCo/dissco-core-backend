@@ -89,7 +89,7 @@ public class MasJobRecordService {
       String targetId, String orcid, MjrTargetType targetType,
       Map<String, MasJobRequest> masRequests) {
     log.info("Requesting {} handles from API", masRecords.size());
-    var handles = handleComponent.postHandleMjr(masRecords.size());
+    var handles = postHandleMjr(masRecords);
     var handleItr = handles.iterator();
     var masJobRecordList = masRecords.stream()
         .map(masRecord -> {
@@ -111,9 +111,9 @@ public class MasJobRecordService {
         .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
-  private List<String> postHandle(Set<MachineAnnotationService> masRecords) {
+  private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords) {
     try {
-     return handleComponent.postHandle(masRecords.size());
+     return handleComponent.postHandleMjr(masRecords.size());
     } catch (PidException e) {
       log.error("Failed to create handles for MJR records: {}", masRecords, e);
       throw new ProcessingFailedException("Failed to create handles for MJR records", e);
@@ -121,7 +121,7 @@ public class MasJobRecordService {
   }
 
   public String createJobRecordForDisscover(Annotation annotation, String orcid) {
-    var handle = handleComponent.postHandleMjr(1).get(0);
+    var handle = postHandleMjr();
     var mjr = new MasJobRecord(
         handle,
         JobState.RUNNING,
@@ -136,9 +136,9 @@ public class MasJobRecordService {
     return handle;
   }
 
-  private String postHandle() {
+  private String postHandleMjr() {
     try {
-      return handleComponent.postHandle(1).get(0);
+      return handleComponent.postHandleMjr(1).getFirst();
     } catch (PidException e) {
       log.error("Failed to create handles for Job record Disscover", e);
       throw new ProcessingFailedException("Failed to create handles for Job record Disscover", e);
