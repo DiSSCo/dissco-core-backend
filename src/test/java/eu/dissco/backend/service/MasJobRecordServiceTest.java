@@ -7,10 +7,12 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenOaTarget;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
+import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMjrListResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,10 +29,13 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
+import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -196,15 +201,6 @@ class MasJobRecordServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testMarkMasJobRecordAsFailed() {
-    // When
-    masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));
-
-    // Then
-    then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_ID));
   }
 
   @Test
