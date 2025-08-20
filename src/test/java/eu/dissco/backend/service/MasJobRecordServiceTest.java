@@ -120,6 +120,21 @@ class MasJobRecordServiceTest {
   }
 
   @Test
+  void testCreateMasJobRecord() {
+    // Given
+    var masRecord = MachineAnnotationServiceUtils.givenMas();
+    var expected = givenMasJobRecordIdMap(masRecord.getId());
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
+
+    // When
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest()));
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
   void testCreateMasJobRecordForDissco() {
     // Given
     var masRecord = new MasJobRecord(
@@ -132,7 +147,7 @@ class MasJobRecordServiceTest {
         true,
         TTL_DEFAULT
     );
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createJobRecordForDisscover(givenAnnotationResponse(), ORCID);
@@ -158,7 +173,7 @@ class MasJobRecordServiceTest {
     var annotation = givenAnnotationResponse()
         .withOaHasTarget(givenOaTarget(TARGET_ID)
             .withOdsFdoType(AnnotationTargetType.DIGITAL_MEDIA.getName()));
-    given(handleComponent.postHandle(1)).willReturn(List.of(JOB_ID));
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
 
     // When
     var result = masJobRecordService.createJobRecordForDisscover(annotation, ORCID);
@@ -166,6 +181,30 @@ class MasJobRecordServiceTest {
     // Then
     assertThat(result).isEqualTo(JOB_ID);
     then(masJobRecordRepository).should().createNewMasJobRecord(List.of(masRecord));
+  }
+
+  @Test
+  void testCreateMasJobRecordCustomTTL() {
+    // Given
+    var masRecord = MachineAnnotationServiceUtils.givenMas();
+    var expected = givenMasJobRecordIdMap(masRecord.getId());
+    given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
+
+    // When
+    var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest(false)));
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testMarkMasJobRecordAsFailed() {
+    // When
+    masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));
+
+    // Then
+    then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_ID));
   }
 
   @Test

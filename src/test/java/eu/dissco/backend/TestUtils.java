@@ -1,5 +1,8 @@
 package eu.dissco.backend;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -13,15 +16,21 @@ import eu.dissco.backend.schema.Identifier.OdsGupriLevel;
 import eu.dissco.backend.schema.Identifier.OdsIdentifierStatus;
 import eu.dissco.backend.schema.Location;
 import eu.dissco.backend.schema.OdsHasRole;
+import eu.dissco.backend.schema.TombstoneMetadata;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 public class TestUtils {
 
+  public static final String APP_NAME = "dissco-core-backend";
+  public static final String APP_HANDLE = "https://hdl.handle.net/TEST/123-123-123";
   public static final String USER_ID_TOKEN = "https://orcid.org/0000-0002-5669-2769";
+  public static final String USER_NAME = "Sam Leeflang";
   public static final String FORBIDDEN_MESSAGE =
       "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
   public static final String HANDLE = "https://hdl.handle.net/";
@@ -41,6 +50,7 @@ public class TestUtils {
 
   public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
+  public static final Instant UPDATED = Instant.parse("2025-07-16T10:00:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
   public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
   public static final UUID BATCH_ID = UUID.fromString("f43e4ec6-ca1c-4a88-9aac-08f6da4b0b1c");
@@ -50,7 +60,7 @@ public class TestUtils {
   public static Agent givenAgent() {
     return new Agent()
         .withType(Type.SCHEMA_PERSON)
-        .withSchemaName("Sam Leeflang")
+        .withSchemaName(USER_NAME)
         .withSchemaIdentifier(ORCID)
         .withId(ORCID)
         .withOdsHasRoles(List.of(new OdsHasRole().withType("schema:Role")
@@ -69,6 +79,12 @@ public class TestUtils {
   }
 
   // Token
+  public static void givenAuthentication(Authentication authentication, Map<String, Object> claims) {
+    var principal = mock(Jwt.class);
+    given(authentication.getPrincipal()).willReturn(principal);
+    given(principal.getClaims()).willReturn(claims);
+  }
+
   public static Map<String, Object> givenClaims() {
     return Map.of(
         "orcid", ORCID,
@@ -168,5 +184,20 @@ public class TestUtils {
     return Map.of(
         "phylum", Map.of("Chordata", 3782L)
     );
+  }
+
+  public static Agent givenCreator(String userId) {
+    return new Agent()
+        .withId(userId)
+        .withType(Type.SCHEMA_PERSON)
+        .withSchemaName("User");
+  }
+
+  public static TombstoneMetadata givenTombstoneMetadata() {
+    return new TombstoneMetadata()
+        .withType("ods:TombstoneMetadata")
+        .withOdsHasAgents(List.of(givenAgent()))
+        .withOdsTombstoneDate(Date.from(UPDATED))
+        .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco core backend");
   }
 }

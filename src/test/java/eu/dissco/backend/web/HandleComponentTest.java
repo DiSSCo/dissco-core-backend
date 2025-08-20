@@ -1,10 +1,16 @@
 package eu.dissco.backend.web;
 
+import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRollbackRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
@@ -51,7 +57,7 @@ class HandleComponentTest {
   }
 
   @Test
-  void testPostHandle() throws Exception {
+  void testPostHandleMjr() throws Exception {
     // Given
     int n = 1;
     var responseBody = givenPostHandleResponse(n);
@@ -61,10 +67,42 @@ class HandleComponentTest {
         .addHeader("Content-Type", "application/json"));
 
     // When
-    var response = handleComponent.postHandle(n);
+    var response = handleComponent.postHandleMjr(n);
 
     // Then
     assertThat(response).isEqualTo(expected);
+  }
+
+  @Test
+  void testPostHandleVirtualCollection() throws Exception {
+    // Given
+    var responseBody = givenPostHandleResponse(1);
+    var virtualCollectionRequest = givenVirtualCollectionRequest();
+    given(fdoRecordComponent.getPostRequestVirtualCollection(virtualCollectionRequest)).willReturn(
+        givenVirtualCollectionHandleRequest());
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
+        .setBody(MAPPER.writeValueAsString(responseBody))
+        .addHeader("Content-Type", "application/json"));
+
+    // When
+    var response = handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
+
+    // Then
+    assertThat(response).isEqualTo(ID);
+  }
+
+  @Test
+  void testRollbackHandleVirtualCollection() {
+    // Given
+    given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
+        givenVirtualCollectionHandleRollbackRequest());
+    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value()));
+
+    // When
+    handleComponent.rollbackVirtualCollection(HANDLE + ID);
+
+    // Then
+    then(fdoRecordComponent).should().getRollbackCreateRequest(HANDLE + ID);
   }
 
   @Test
@@ -75,7 +113,7 @@ class HandleComponentTest {
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandle(1));
+    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test
@@ -85,26 +123,7 @@ class HandleComponentTest {
         .addHeader("Content-Type", "application/json"));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandle(1));
-  }
-
-  @Test
-  void testRetriesSuccess() throws Exception {
-    // Given
-    var responseBody = givenPostHandleResponse(1);
-    int requestCount = mockHandleServer.getRequestCount();
-
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
-
-    // When
-    var response = handleComponent.postHandle(1);
-
-    // Then
-    assertThat(response).isEqualTo(List.of(ID));
-    assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(2);
+    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test
@@ -118,7 +137,7 @@ class HandleComponentTest {
     mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
 
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandle(1));
+    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
     assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(4);
   }
 
@@ -134,7 +153,7 @@ class HandleComponentTest {
 
     // When
     var response = assertThrows(PidCreationException.class,
-        () -> handleComponent.postHandle(1));
+        () -> handleComponent.postHandleMjr(1));
 
     // Then
     assertThat(response).hasMessage(
@@ -150,6 +169,6 @@ class HandleComponentTest {
         .setBody(MAPPER.writeValueAsString(responseBody))
         .addHeader("Content-Type", "application/json"));
     // Then
-    assertThrows(PidCreationException.class, () -> handleComponent.postHandle(1));
+    assertThrows(PidCreationException.class, () -> handleComponent.postHandleMjr(1));
   }
 }

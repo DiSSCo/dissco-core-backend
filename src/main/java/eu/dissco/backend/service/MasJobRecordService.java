@@ -76,8 +76,35 @@ public class MasJobRecordService {
     return new JsonApiListResponseWrapper(dataList, linksNode);
   }
 
+  public Map<String, MasJobRecord> createMasJobRecord(
+      Set<MachineAnnotationService> masRecords,
+      String targetId, String orcid, MjrTargetType targetType,
+      Map<String, MasJobRequest> masRequests) {
+    log.info("Requesting {} handles from API", masRecords.size());
+    var handles = handleComponent.postHandleMjr(masRecords.size());
+    var handleItr = handles.iterator();
+    var masJobRecordList = masRecords.stream()
+        .map(masRecord -> {
+          var request = masRequests.get(masRecord.getId());
+          return new MasJobRecord(
+              handleItr.next(),
+              JobState.SCHEDULED,
+              masRecord.getId(),
+              targetId,
+              targetType,
+              orcid,
+              request.batching(),
+              masRecord.getOdsTimeToLive()
+          );
+        })
+        .toList();
+    masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+    return masJobRecordList.stream()
+        .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
+  }
+
   public String createJobRecordForDisscover(Annotation annotation, String orcid) {
-    var handle = handleComponent.postHandle(1).getFirst();
+    var handle = handleComponent.postHandleMjr(1).getFirst();
     var mjr = new MasJobRecord(
         handle,
         JobState.RUNNING,
