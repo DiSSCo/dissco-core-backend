@@ -80,7 +80,7 @@ public class VirtualCollectionService {
     } catch (JsonProcessingException e) {
       log.error("Unable to publish message to RabbitMQ", e);
       rollbackVirtualCollection(virtualCollection);
-      throw new ProcessingFailedException("Failed to create new virtual collection service", e);
+      throw new ProcessingFailedException("Failed to create new virtual collection", e);
     }
   }
 

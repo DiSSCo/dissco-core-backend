@@ -69,6 +69,6 @@ public class FdoRecordComponent {
             .put(TYPE, FdoType.VIRTUAL_COLLECTION.getPid())
             .set(ATTRIBUTES, mapper.createObjectNode()
                 .put("tombstoneText", FdoType.VIRTUAL_COLLECTION.getName()
-                    + " tombstoned by agent through the backend")));
+                    + " tombstoned by agent through the dissco backend")));
   }
 }

@@ -141,7 +141,7 @@ public class VirtualCollectionUtils {
     return MAPPER.createObjectNode().set("data", dataArrayNode);
   }
 
-  public static  VirtualCollection givenTombstoneVirtualCollection() {
+  public static VirtualCollection givenTombstoneVirtualCollection() {
     return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
         .withOdsHasTombstoneMetadata(givenTombstoneMetadata())
         .withOdsStatus(OdsStatus.TOMBSTONE)
@@ -154,7 +154,8 @@ public class VirtualCollectionUtils {
             .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
             .put("id", ID)
             .set("attributes", MAPPER.createObjectNode()
-                .put("tombstoneText", givenTombstoneMetadata().getOdsTombstoneText())));
+                .put("tombstoneText",
+                    "ods:VirtualCollection tombstoned by agent through the dissco backend")));
   }
 
   public static JsonNode givenVirtualCollectionUpdateHandleRequest() {
