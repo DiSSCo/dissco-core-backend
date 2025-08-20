@@ -6,9 +6,7 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.UPDATED;
 import static eu.dissco.backend.TestUtils.givenAgent;
-import static eu.dissco.backend.TestUtils.givenCreator;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
 
 import com.fasterxml.jackson.databind.JsonNode;

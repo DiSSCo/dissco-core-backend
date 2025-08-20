@@ -108,7 +108,7 @@ public class VirtualCollectionService {
         .withLtcCollectionName(virtualCollection.getLtcCollectionName())
         .withLtcDescription(virtualCollection.getLtcDescription())
         .withLtcBasisOfScheme(getLtcBasisOfScheme(virtualCollection))
-        .withSchemaDateCreated(Date.from(Instant.now()))
+        .withSchemaDateCreated(createdTimestamp)
         .withSchemaDateModified(Date.from(Instant.now()))
         .withSchemaCreator(agent)
         .withOdsHasTargetDigitalObjectFilter(
@@ -164,15 +164,15 @@ public class VirtualCollectionService {
   }
 
   public boolean tombstoneVirtualCollection(String prefix, String suffix, Agent agent,
-      boolean isAdmin)
-      throws NotFoundException {
+      boolean isAdmin) throws NotFoundException {
     var id = prefix + "/" + suffix;
     var result = getActiveVirtualCollection(agent, isAdmin, id);
     if (result.isPresent()) {
       return tombstoneActiveVirtualCollection(agent, result.get(), id);
     } else {
       missingActiveVirtualCollection(agent, isAdmin, id);
-      return false;
+      throw new NotFoundException(
+          "No active virtual collection with id: " + id + " was found for user: " + agent.getId());
     }
   }
 
@@ -223,15 +223,12 @@ public class VirtualCollectionService {
             "Virtual Collection tombstoned by agent through the dissco backend", timestamp));
   }
 
-  private void missingActiveVirtualCollection(Agent agent, boolean isAdmin, String id)
-      throws NotFoundException {
+  private void missingActiveVirtualCollection(Agent agent, boolean isAdmin, String id) {
     if (isAdmin) {
       log.info("No active virtual collection with id: {}", id);
     } else {
       log.info("No active virtual collection with id: {} found for user: {}", id, agent.getId());
     }
-    throw new NotFoundException(
-        "No active virtual collection with id: " + id + " was found for user: " + agent.getId());
   }
 
   private Optional<VirtualCollection> getActiveVirtualCollection(Agent agent, boolean isAdmin,

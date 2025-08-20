@@ -5,8 +5,6 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.UPDATED;
-import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.database.jooq.Tables.VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtualCollection;
