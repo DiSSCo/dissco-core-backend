@@ -1,8 +1,11 @@
 package eu.dissco.backend.web;
 
+import static org.springframework.http.HttpMethod.POST;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.schema.VirtualCollectionRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ReactiveHttpOutputMessage;
@@ -26,21 +30,35 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Slf4j
 public class HandleComponent {
+  private static final String ERROR_MESSAGE = "Error occurred while creating PID: {}";
 
   @Qualifier("handleClient")
   private final WebClient handleClient;
   private final TokenAuthenticator tokenAuthenticator;
   private final FdoRecordComponent fdoRecordComponent;
 
-  public List<String> postHandle(int n) {
-    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequest());
+  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
+    var request = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollection);
     var requestBody = BodyInserters.fromValue(request);
-    var response = sendRequest(requestBody);
+    var response = sendRequest(POST, requestBody, "");
+    var result = validateResponse(response);
+    try {
+      return result.get("data").get(0).get("id").asText();
+    } catch (NullPointerException e) {
+      log.error(ERROR_MESSAGE, result);
+      throw new PidCreationException("Unexpected response from Handle API");
+    }
+  }
+
+  public List<String> postHandleMjr(int n) {
+    var request = Collections.nCopies(n, fdoRecordComponent.getPostRequestMjr());
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(POST, requestBody, "batch");
     var result = validateResponse(response);
     try {
       var dataNode = result.get("data");
       if (!dataNode.isArray()) {
-        log.error("Unexpected response from handle API: {}", result);
+        log.error(ERROR_MESSAGE, result);
         throw new PidCreationException("Unexpected response from Handle API");
       }
       var handles = new ArrayList<String>();
@@ -49,17 +67,17 @@ public class HandleComponent {
       }
       return handles;
     } catch (NullPointerException e) {
-      log.error("Unexpected response from handle API: {}", result);
+      log.error(ERROR_MESSAGE, result);
       throw new PidCreationException("Unexpected response from Handle API");
     }
   }
 
-  private <T> Mono<JsonNode> sendRequest(
-      BodyInserter<T, ReactiveHttpOutputMessage> requestBody) {
+  private <T> Mono<JsonNode> sendRequest(HttpMethod httpMethod,
+      BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint) {
     var token = "Bearer " + tokenAuthenticator.getToken();
     return handleClient
-        .post()
-        .uri(uriBuilder -> uriBuilder.path("batch").build())
+        .method(httpMethod)
+        .uri(uriBuilder -> uriBuilder.path(endpoint).build())
         .body(requestBody)
         .header("Authorization", token)
         .acceptCharset(StandardCharsets.UTF_8)
@@ -89,4 +107,10 @@ public class HandleComponent {
     }
   }
 
+  public void rollbackVirtualCollection(String id) throws PidCreationException {
+    var request = fdoRecordComponent.getRollbackCreateRequest(id);
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback/create");
+    validateResponse(response);
+  }
 }
