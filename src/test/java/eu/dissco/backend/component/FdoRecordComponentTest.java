@@ -5,9 +5,12 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRollbackRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionTombstoneHandleRequest;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionUpdateHandleRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -60,4 +63,25 @@ class FdoRecordComponentTest {
     assertThat(result).isEqualTo(givenVirtualCollectionHandleRollbackRequest());
   }
 
+  @Test
+  void testGetTombstoneRequest() {
+    // Given
+
+    // When
+    var result = fdoRecordComponent.getTombstoneRequest(ID);
+
+    // Then
+    assertThat(result).isEqualTo(givenVirtualCollectionTombstoneHandleRequest());
+  }
+
+  @Test
+  void testGetUpdateRequest() {
+    // Given
+
+    // When
+    var result = fdoRecordComponent.getPatchHandleRequest(givenVirtualCollection(HANDLE + ID));
+
+    // Then
+    assertThat(result).isEqualTo(givenVirtualCollectionUpdateHandleRequest());
+  }
 }

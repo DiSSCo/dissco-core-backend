@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.domain.openapi.annotation.AnnotationResponseSingle;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResponseList;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResponseSingle;
@@ -29,7 +28,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -153,7 +154,7 @@ public class VirtualCollectionController extends BaseController {
           """)
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Virtual Collection successfully created", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
+          @Content(mediaType = "application/json", schema = @Schema(implementation = VirtualCollectionResponseSingle.class))
       })
   })
   @ResponseStatus(HttpStatus.CREATED)
@@ -174,6 +175,68 @@ public class VirtualCollectionController extends BaseController {
     var virtualCollectionResponse = service.persistVirtualCollection(virtualCollection, agent,
         getPath(request));
     return ResponseEntity.status(HttpStatus.CREATED).body(virtualCollectionResponse);
+  }
+
+  @Operation(
+      summary = "Update existing virtual collection",
+      description = """
+          Update an existing virtual collection. Users may only update virtual collection they have created.
+          """)
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Virtual Collection successfully updated", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = VirtualCollectionResponseSingle.class))
+      })
+  })
+  @PreAuthorize("hasRole('dissco-virtual-collection')")
+  @ResponseStatus(HttpStatus.OK)
+  @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonApiWrapper> updateVirtualCollection(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody
+          (description = "Virtual Collection adhering to JSON:API standard",
+              content = {
+                  @Content(mediaType = "application/json", schema = @Schema(implementation = eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest.class))})
+      Authentication authentication,
+      @RequestBody eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest requestBody,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+      HttpServletRequest request)
+      throws NotFoundException, JsonProcessingException, ForbiddenException {
+    var id = prefix + '/' + suffix;
+    var agent = getAgent(authentication);
+    var virtualCollection = getVirtualCollectionFromRequest(requestBody);
+    log.info("Received update for virtual collection: {} from user: {}", id, agent.getId());
+    var virtualCollectionResponse = service.updateVirtualCollection(id, virtualCollection, agent,
+        getPath(request));
+    if (virtualCollectionResponse != null) {
+      return ResponseEntity.status(HttpStatus.OK).body(virtualCollectionResponse);
+    } else {
+      return ResponseEntity.status(HttpStatus.OK).build();
+    }
+  }
+
+  @Operation(summary = "Tombstone a given virtual collection",
+      description = """
+          Tombstone a given virtual collection. Users may only tombstone virtual collections they created.
+          """)
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Virtual Collection successfully tombstoned")})
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasRole('dissco-virtual-collection')")
+  @DeleteMapping(value = "/{prefix}/{suffix}")
+  public ResponseEntity<Void> tombstoneVirtualCollection(Authentication authentication,
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+      throws NotFoundException, ForbiddenException {
+    var agent = getAgent(authentication);
+    var isAdmin = isAdmin(authentication);
+    log.info("Received delete for virtualCollection: {} from user: {}", (prefix + '/' + suffix),
+        agent.getId());
+    var success = service.tombstoneVirtualCollection(prefix, suffix, agent, isAdmin);
+    if (success) {
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    } else {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
   }
 
   private VirtualCollectionRequest getVirtualCollectionFromRequest(

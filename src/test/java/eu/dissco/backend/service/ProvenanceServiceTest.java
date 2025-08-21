@@ -6,7 +6,6 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.UPDATED;
 import static eu.dissco.backend.TestUtils.USER_NAME;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
@@ -24,7 +23,6 @@ import eu.dissco.backend.schema.Identifier.DctermsType;
 import eu.dissco.backend.schema.OdsChangeValue;
 import eu.dissco.backend.schema.VirtualCollection.OdsStatus;
 import eu.dissco.backend.utils.AgentUtils;
-import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,8 +50,7 @@ class ProvenanceServiceTest {
     return List.of(
         givenOdsChangeValue("add", "/ods:hasTombstoneMetadata", givenTombstoneMetadata()),
         givenOdsChangeValue("replace", "/ods:status", OdsStatus.TOMBSTONE),
-        givenOdsChangeValue("replace", "/schema:version", 2),
-        givenOdsChangeValue("replace", "/schema:dateModified", Date.from(UPDATED))
+        givenOdsChangeValue("replace", "/schema:version", 2)
     );
   }
 
