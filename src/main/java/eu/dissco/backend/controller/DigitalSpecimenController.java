@@ -78,12 +78,16 @@ public class DigitalSpecimenController extends BaseController {
     return ResponseEntity.ok(specimen);
   }
 
+  /**
+   * @deprecated
+   */
   @Operation(summary = "Get latest paginated digital specimens")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Digital specimens successfully retrieved", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseList.class))
       })
   })
+  @Deprecated(since = "1.1.3", forRemoval = true)
   @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
