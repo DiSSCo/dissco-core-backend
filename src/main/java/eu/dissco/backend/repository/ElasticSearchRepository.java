@@ -125,37 +125,41 @@ public class ElasticSearchRepository {
       List<Query> queries, String index) throws IOException {
     var curPage = 1;
     Pair<Long, String> searchAfter = null;
-    Pair<Long, List<ObjectNode>> searchResult = Pair.of(0L, List.of());
-    boolean keepSearching = true;
-    while (keepSearching) {
-      var searchRequest = buildPaginatedSearchRequest(searchAfter, pageSize, queries, index);
+    var totalHits = 0L;
+    var pitResponse = client.openPointInTime(op -> op.index(index).keepAlive(t -> t.time("1m")));
+    var pitId = pitResponse.id();
+    while (curPage <= pageNumber) {
+      var searchRequest = buildPaginatedSearchRequest(searchAfter, pageSize, queries,
+          curPage == 1, pitId);
       var elasticResults = client.search(searchRequest, ObjectNode.class);
       var objectResults = elasticResults.hits().hits().stream()
           .map(Hit::source).toList();
       if (elasticResults.hits().total() == null) {
-        searchResult = Pair.of(0L, objectResults);
-      } else {
-        var totalHits = elasticResults.hits().total().value();
-        searchResult = Pair.of(totalHits, objectResults);
+        client.closePointInTime(c -> c.id(pitId));
+        return Pair.of(0L, objectResults);
       }
-      if (searchResult.getValue().isEmpty() || curPage == pageNumber) {
-        keepSearching = false;
+      if (curPage == 1) {
+        totalHits = elasticResults.hits().total().value();
+      }
+      if (objectResults.isEmpty() || curPage == pageNumber) {
+        client.closePointInTime(c -> c.id(pitId));
+        return Pair.of(totalHits, objectResults);
       } else {
         searchAfter = Pair.of(
-            mapper.treeToValue(searchResult.getValue().getLast().get(FIELD_CREATED), Date.class)
+            mapper.treeToValue(objectResults.getLast().get(FIELD_CREATED), Date.class)
                 .getTime(),
-            searchResult.getValue().getLast().get("dcterms:identifier").asText());
+            objectResults.getLast().get("dcterms:identifier").asText());
+        log.info("Reached page {} of {}", curPage, pageNumber);
         curPage++;
       }
     }
-    return searchResult;
+    client.closePointInTime(c -> c.id(pitId));
+    return Pair.of(0L, List.of(mapper.createObjectNode()));
   }
 
   private SearchRequest buildPaginatedSearchRequest(Pair<Long, String> searchAfter, int pageSize,
-      List<Query> queries, String index) {
+      List<Query> queries, boolean trackTotalHits, String pitId) {
     var searchRequestBuilder = new SearchRequest.Builder()
-        .index(index)
-        .trackTotalHits(t -> t.enabled(Boolean.TRUE))
         .size(pageSize)
         .sort(s -> s
             .field(f -> f
@@ -165,7 +169,8 @@ public class ElasticSearchRepository {
         .sort(s -> s
             .field(f -> f
                 .field(FIELD_ID) // tie breaker
-                .order(SortOrder.Asc)));
+                .order(SortOrder.Asc)))
+        .pit(p -> p.id(pitId).keepAlive(t -> t.time("1m")));
     if (!queries.isEmpty()) {
       searchRequestBuilder.query(
           q -> q.bool(b -> b.must(queries)));
@@ -174,6 +179,9 @@ public class ElasticSearchRepository {
       searchRequestBuilder
           .searchAfter(sa -> sa.longValue(searchAfter.getLeft()))
           .searchAfter(sa -> sa.stringValue(searchAfter.getRight()));
+    }
+    if (trackTotalHits) {
+      searchRequestBuilder.trackTotalHits(t -> t.enabled(Boolean.TRUE));
     }
     return searchRequestBuilder.build();
   }
