@@ -149,7 +149,6 @@ public class ElasticSearchRepository {
             mapper.treeToValue(objectResults.getLast().get(FIELD_CREATED), Date.class)
                 .getTime(),
             objectResults.getLast().get("dcterms:identifier").asText());
-        log.info("Reached page {} of {}", curPage, pageNumber);
         curPage++;
       }
     }
