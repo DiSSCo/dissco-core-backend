@@ -4,6 +4,7 @@ import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.domain.DefaultMappingTerms.getParamMapping;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
+import static eu.dissco.backend.utils.ServiceUtils.hasNext;
 import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,28 +81,16 @@ public class DigitalSpecimenService {
     return levels;
   }
 
-  public JsonApiListResponseWrapper getSpecimen(int pageNumber, int pageSize, String path)
+  public JsonApiListResponseWrapper getLatestSpecimens(int pageNumber, int pageSize, String path)
       throws IOException {
-    var elasticSearchResults = elasticRepository.getSpecimens(pageNumber, pageSize);
+    var elasticSearchResults = elasticRepository.getLatestSpecimens(pageNumber, pageSize);
     var digitalSpecimenList = elasticSearchResults.getRight();
-    var dataNodePlusOne = digitalSpecimenList.stream()
+    var dataNode = digitalSpecimenList.stream()
         .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
             FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper))
         .toList();
-    return wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
-        pageSize, pageNumber, path);
-  }
-
-  public JsonApiListResponseWrapper getLatestSpecimen(int pageNumber, int pageSize, String path)
-      throws IOException {
-    var elasticSearchResults = elasticRepository.getLatestSpecimen(pageNumber, pageSize);
-    var digitalSpecimenList = elasticSearchResults.getRight();
-    var dataNodePlusOne = digitalSpecimenList.stream()
-        .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
-            FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper))
-        .toList();
-    return wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
-        pageSize, pageNumber, path);
+    return wrapListResponse(dataNode, elasticSearchResults.getLeft(),
+        pageSize, pageNumber, path, hasNext(pageNumber, pageSize, elasticSearchResults.getLeft()));
   }
 
   public JsonApiWrapper getSpecimenById(String id, String path) throws NotFoundException {
@@ -210,14 +199,13 @@ public class DigitalSpecimenService {
   private JsonApiListResponseWrapper wrapListResponseSearchResults(
       Pair<Long, List<DigitalSpecimen>> digitalSpecimenSearchResult,
       int pageNumber, int pageSize, String path) {
-    var dataNodePlusOne = digitalSpecimenSearchResult.getRight().stream()
+    var dataNode = digitalSpecimenSearchResult.getRight().stream()
         .map(specimen -> new JsonApiData(specimen.getDctermsIdentifier(),
             FdoType.DIGITAL_SPECIMEN.getName(), specimen,
             mapper))
         .toList();
-    boolean hasNext = dataNodePlusOne.size() > pageSize;
-    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
-    var dataNode = hasNext ? dataNodePlusOne.subList(0, pageSize) : dataNodePlusOne;
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize,
+        hasNext(pageNumber, pageSize, digitalSpecimenSearchResult.getLeft()), path);
     return new JsonApiListResponseWrapper(dataNode, linksNode,
         new JsonApiMeta(digitalSpecimenSearchResult.getLeft()));
   }
@@ -230,8 +218,8 @@ public class DigitalSpecimenService {
     var mappedParams = mapParamsKeyword(params, getParamMapping());
     var map = mappedParams.entrySet().stream()
         .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var specimenPlusOne = elasticRepository.search(map, pageNumber, pageSize);
-    return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, path);
+    var digitalSpecimenSearchResult = elasticRepository.search(map, pageNumber, pageSize);
+    return wrapListResponseSearchResults(digitalSpecimenSearchResult, pageNumber, pageSize, path);
   }
 
   private void removePaginationParams(MultiValueMap<String, String> params) {

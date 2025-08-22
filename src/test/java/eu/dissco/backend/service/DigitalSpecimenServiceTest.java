@@ -95,92 +95,50 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetSpecimen() throws Exception {
-    // Given
-    int pageNum = 1;
-    int pageSize = 10;
-    var digitalSpecimens = givenDigitalSpecimenList(pageSize + 1);
-    var totalResults = 20L;
-    var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
-    var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
-    var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize), linksNode,
-        new JsonApiMeta(totalResults));
-    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(
-        Pair.of(totalResults, digitalSpecimens));
-
-    // When
-    var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetSpecimenLastPage() throws Exception {
-    // Given
-    int pageNum = 1;
-    int pageSize = 10;
-    var digitalSpecimens = List.of(givenDigitalSpecimenWrapper(ID));
-    var dataNode = givenDigitalSpecimenJsonApiData(digitalSpecimens);
-    var linksNode = new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH);
-    var totalResults = 10L;
-    var expected = new JsonApiListResponseWrapper(dataNode, linksNode,
-        new JsonApiMeta(totalResults));
-    given(elasticRepository.getSpecimens(pageNum, pageSize)).willReturn(
-        Pair.of(totalResults, digitalSpecimens));
-
-    // When
-    var result = service.getSpecimen(pageNum, pageSize, SPECIMEN_PATH);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetLatestSpecimen() throws IOException {
+  void testGetLatestSpecimens() throws IOException {
     // Given
     int pageSize = 10;
     int pageNum = 1;
     var totalResults = 20L;
-    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimenWrapper(ID));
+    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimenWrapper(ID));
     var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
+    given(elasticRepository.getLatestSpecimens(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
         new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH),
         new JsonApiMeta(totalResults));
 
     // When
-    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
+    var result = service.getLatestSpecimens(pageNum, pageSize, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);
   }
 
   @Test
-  void testGetLatestSpecimenPage2() throws IOException {
+  void testGetLatestSpecimensPage2() throws IOException {
     // Given
     int pageSize = 10;
     int pageNum = 2;
     var totalResults = 20L;
-    var specimens = Collections.nCopies(pageSize + 1, givenDigitalSpecimenWrapper(ID));
+    var specimens = Collections.nCopies(pageSize, givenDigitalSpecimenWrapper(ID));
     var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
     var path = SPECIMEN_PATH + "?pageNumber=" + pageNum;
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
+    given(elasticRepository.getLatestSpecimens(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode.subList(0, pageSize),
         new JsonApiLinksFull(pageNum, pageSize, true, path),
         new JsonApiMeta(totalResults));
 
     // When
-    var result = service.getLatestSpecimen(pageNum, pageSize, path);
+    var result = service.getLatestSpecimens(pageNum, pageSize, path);
 
     // Then
     assertThat(result).isEqualTo(expected);
   }
 
   @Test
-  void testGetLatestSpecimenLastPage() throws IOException {
+  void testGetLatestSpecimensLastPage() throws IOException {
     // Given
     int pageSize = 10;
     int pageNum = 2;
@@ -188,13 +146,13 @@ class DigitalSpecimenServiceTest {
     var specimens = Collections.nCopies(pageSize, givenDigitalSpecimenWrapper(ID));
     var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
-    given(elasticRepository.getLatestSpecimen(pageNum, pageSize)).willReturn(elasticSearchResults);
+    given(elasticRepository.getLatestSpecimens(pageNum, pageSize)).willReturn(elasticSearchResults);
     var expected = new JsonApiListResponseWrapper(dataNode,
         new JsonApiLinksFull(pageNum, pageSize, false, SPECIMEN_PATH),
         new JsonApiMeta(totalResults));
 
     // When
-    var result = service.getLatestSpecimen(pageNum, pageSize, SPECIMEN_PATH);
+    var result = service.getLatestSpecimens(pageNum, pageSize, SPECIMEN_PATH);
 
     // Then
     assertThat(result).isEqualTo(expected);

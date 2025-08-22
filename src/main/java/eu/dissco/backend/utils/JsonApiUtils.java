@@ -29,4 +29,14 @@ public class JsonApiUtils {
     var metaNode = new JsonApiMeta(totalCount);
     return new JsonApiListResponseWrapper(dataNode, linksNode, metaNode);
   }
+
+  public static JsonApiListResponseWrapper wrapListResponse(
+      List<JsonApiData> dataNode, long totalCount,
+      int pageSize, int pageNumber, String path, boolean hasNext) {
+    var linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNext, path);
+    var metaNode = new JsonApiMeta(totalCount);
+    return new JsonApiListResponseWrapper(dataNode, linksNode, metaNode);
+  }
+
+
 }

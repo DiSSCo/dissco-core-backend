@@ -212,28 +212,6 @@ class ElasticSearchRepositoryIT {
     assertThat(result.getRight()).isEqualTo(List.of(targetSpecimen));
   }
 
-
-  @Test
-  void testGetSpecimens() throws Exception {
-    // Given
-    int pageNumber = 0;
-    int pageSize = 10;
-    long totalHits = 15L;
-    var digitalSpecimens = new ArrayList<DigitalSpecimen>();
-    for (int i = 0; i < totalHits; i++) {
-      String id = DOI + PREFIX + "/" + i;
-      digitalSpecimens.add(givenDigitalSpecimenWrapper(id));
-    }
-    postDigitalSpecimens(parseToElasticFormat(digitalSpecimens));
-
-    // When
-    var responseReceived = repository.getSpecimens(pageNumber, pageSize);
-
-    // Then
-    assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
-    assertThat(responseReceived.getRight()).hasSize(pageSize + 1);
-  }
-
   @Test
   void testSearchSecondPage() throws IOException {
     // Given
@@ -379,23 +357,25 @@ class ElasticSearchRepositoryIT {
     var givenSpecimens = new ArrayList<DigitalSpecimen>();
     var responseExpected = new ArrayList<DigitalSpecimen>();
 
-    for (int i = 0; i < pageSize + 1; i++) {
-      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+    for (int i = 0; i < pageSize; i++) {
+      var id = DOI + PREFIX + "/" + (char) i;
+      var specimen = givenDigitalSpecimenWrapper(id);
       responseExpected.add(
-          givenDigitalSpecimenSourceSystem(DOI + PREFIX + "/" + i, SOURCE_SYSTEM_ID_1));
+          givenDigitalSpecimenSourceSystem(id, SOURCE_SYSTEM_ID_1));
       givenSpecimens.add(specimen);
     }
     for (int i = pageSize; i < pageSize * 2; i++) {
-      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+      var id = DOI + PREFIX + "/" + (char) i;
+      var specimen = givenDigitalSpecimenWrapper(id);
       givenSpecimens.add(specimen);
     }
     postDigitalSpecimens(parseToElasticFormat(givenSpecimens));
 
     // When
-    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimens(pageNumber, pageSize);
 
     // Then
-    assertThat(responseReceived.getRight()).hasSize(11).hasSameElementsAs(responseExpected);
+    assertThat(responseReceived.getRight()).hasSize(10).hasSameElementsAs(responseExpected);
   }
 
   @Test
@@ -420,7 +400,7 @@ class ElasticSearchRepositoryIT {
     postDigitalSpecimens(parseToElasticFormat(givenSpecimens));
 
     // When
-    var responseReceived = repository.getLatestSpecimen(pageNumber, pageSize);
+    var responseReceived = repository.getLatestSpecimens(pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived.getRight()).hasSize(pageSize).hasSameElementsAs(responseExpected);
@@ -439,8 +419,8 @@ class ElasticSearchRepositoryIT {
     List<Annotation> givenAnnotations = new ArrayList<>();
     List<Annotation> expected = new ArrayList<>();
     for (long i = 0; i < totalHits; i++) {
-      String id = HANDLE + PREFIX + "/" + i;
-      if (i <= pageSize) {
+      String id = HANDLE + PREFIX + "/" + (char) i;
+      if (i < pageSize) {
         expected.add(givenAnnotationResponse(id, USER_ID_TOKEN));
       }
       givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
@@ -454,7 +434,7 @@ class ElasticSearchRepositoryIT {
 
     // Then
     assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
-    assertThat(responseReceived.getRight()).isEqualTo(expected);
+    assertThat(responseReceived.getRight()).hasSize(10).hasSameElementsAs(expected);
   }
 
   @Test

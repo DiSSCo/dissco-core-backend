@@ -74,7 +74,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) throws IOException {
     log.info("Received get request for specimen");
-    var specimen = service.getSpecimen(pageNumber, pageSize, getPath(request));
+    var specimen = service.getLatestSpecimens(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(specimen);
   }
 
@@ -90,7 +90,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) throws IOException {
     log.info("Received get request for latest digital specimen");
-    var specimens = service.getLatestSpecimen(pageNumber, pageSize, getPath(request));
+    var specimens = service.getLatestSpecimens(pageNumber, pageSize, getPath(request));
     return ResponseEntity.ok(specimens);
   }
 

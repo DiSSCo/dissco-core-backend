@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.HandleProxyUtils.HANDLE_PROXY;
+import static eu.dissco.backend.utils.ServiceUtils.hasNext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -173,11 +174,11 @@ public class AnnotationService {
     var elasticSearchResults = elasticRepository.getAnnotationsForCreator(orcid, pageNumber,
         pageSize);
     var annotationList = elasticSearchResults.getRight();
-    var dataNodePlusOne = annotationList.stream().map(annotation ->
+    var dataNode = annotationList.stream().map(annotation ->
         new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
             mapper.valueToTree(annotation))).toList();
-    return JsonApiUtils.wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
-        pageSize, pageNumber, path);
+    return JsonApiUtils.wrapListResponse(dataNode, elasticSearchResults.getLeft(),
+        pageSize, pageNumber, path, hasNext(pageNumber, pageSize, elasticSearchResults.getLeft()));
   }
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
