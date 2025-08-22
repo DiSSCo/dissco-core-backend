@@ -120,7 +120,7 @@ class DigitalSpecimenServiceTest {
     // Given
     int pageSize = 10;
     int pageNum = 2;
-    var totalResults = 20L;
+    var totalResults = 22L;
     var specimens = Collections.nCopies(pageSize, givenDigitalSpecimenWrapper(ID));
     var elasticSearchResults = Pair.of(totalResults, specimens);
     var dataNode = givenDigitalSpecimenJsonApiData(specimens);
@@ -321,7 +321,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testSearch() throws IOException, UnknownParameterException {
+  void testSearchHasNext() throws IOException, UnknownParameterException {
     // Given
     int pageNum = 1;
     int pageSize = 10;
@@ -331,10 +331,10 @@ class DigitalSpecimenServiceTest {
     params.put("q", List.of("Leucanthemum ircutianum"));
     var map = new MultiValueMapAdapter<>(params);
     given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize))).willReturn(
-        Pair.of(11L, givenDigitalSpecimenList(pageSize + 1)));
+        Pair.of(11L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode,
-        new JsonApiMeta(11L));
+        new JsonApiMeta(10L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);

@@ -114,7 +114,7 @@ class AnnotationServiceTest {
     var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
         new JsonApiMeta(totalCount));
     given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
-        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
+        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
 
     // When
     var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);

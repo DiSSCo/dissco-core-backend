@@ -61,6 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -212,14 +213,16 @@ class ElasticSearchRepositoryIT {
     assertThat(result.getRight()).isEqualTo(List.of(targetSpecimen));
   }
 
-  @Test
-  void testSearchSecondPage() throws IOException {
+  @ParameterizedTest
+  @ValueSource(ints = {10, 8})
+  void testSearchSecondPage(int totalResults) throws IOException {
     // Given
     int pageNumber = 2;
     int pageSize = 5;
+    var expectedResultsSize = totalResults % pageSize == 0 ? pageSize : totalResults % pageSize;
     List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < totalResults; i++) {
       var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
       specimenTestRecords.add(specimen);
     }
@@ -231,8 +234,8 @@ class ElasticSearchRepositoryIT {
         pageSize);
 
     // Then
-    assertThat(responseReceived.getLeft()).isEqualTo(10L);
-    assertThat(responseReceived.getRight()).hasSize(pageSize);
+    assertThat(responseReceived.getLeft()).isEqualTo(totalResults);
+    assertThat(responseReceived.getRight()).hasSize(expectedResultsSize);
   }
 
   @Test
