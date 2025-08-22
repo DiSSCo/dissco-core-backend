@@ -170,7 +170,11 @@ public class VirtualCollectionService {
     if (result.isPresent()) {
       return tombstoneActiveVirtualCollection(agent, result.get(), id);
     } else {
-      missingActiveVirtualCollection(agent, isAdmin, id);
+      if (isAdmin) {
+        log.info("No active virtual collection with id: {}", id);
+      } else {
+        log.info("No active virtual collection with id: {} found for user: {}", id, agent.getId());
+      }
       throw new NotFoundException(
           "No active virtual collection with id: " + id + " was found for user: " + agent.getId());
     }
@@ -180,7 +184,7 @@ public class VirtualCollectionService {
       String id) {
     tombstoneHandle(id);
     var timestamp = Instant.now();
-    var tombstoneVirtualCollection = buildTombstoneDataMapping(virtualCollection, agent, timestamp);
+    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent, timestamp);
     repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
     try {
       rabbitMqPublisherService.publishTombstoneEvent(mapper.valueToTree(tombstoneVirtualCollection),
@@ -202,7 +206,7 @@ public class VirtualCollectionService {
     }
   }
 
-  private VirtualCollection buildTombstoneDataMapping(VirtualCollection virtualCollection,
+  private VirtualCollection buildTombstoneVirtualCollection(VirtualCollection virtualCollection,
       Agent tombstoningAgent, Instant timestamp) {
     return new VirtualCollection()
         .withId(virtualCollection.getId())
@@ -221,14 +225,6 @@ public class VirtualCollectionService {
             virtualCollection.getOdsHasTargetDigitalObjectFilter())
         .withOdsHasTombstoneMetadata(buildTombstoneMetadata(tombstoningAgent,
             "Virtual Collection tombstoned by agent through the dissco backend", timestamp));
-  }
-
-  private void missingActiveVirtualCollection(Agent agent, boolean isAdmin, String id) {
-    if (isAdmin) {
-      log.info("No active virtual collection with id: {}", id);
-    } else {
-      log.info("No active virtual collection with id: {} found for user: {}", id, agent.getId());
-    }
   }
 
   private Optional<VirtualCollection> getActiveVirtualCollection(Agent agent, boolean isAdmin,
