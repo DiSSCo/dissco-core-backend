@@ -334,7 +334,7 @@ class DigitalSpecimenServiceTest {
         Pair.of(11L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(pageNum, pageSize, true, SPECIMEN_PATH);
     var expected = new JsonApiListResponseWrapper(digitalSpecimens.subList(0, pageSize), linksNode,
-        new JsonApiMeta(10L));
+        new JsonApiMeta(11L));
 
     // When
     var result = service.search(map, SPECIMEN_PATH);
