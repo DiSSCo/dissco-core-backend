@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 
@@ -72,7 +73,7 @@ public class DigitalMediaService {
   }
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, "digital_media_provenance");
+    var versions = mongoRepository.getVersions(id, "digital_media_provenance", ODS_VERSION);
     if (versions.isEmpty()) {
       log.warn("Can not find media {}", id);
       throw new NotFoundException("Unable to find media " + id);

@@ -3,6 +3,7 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
@@ -81,7 +82,7 @@ class MongoRepositoryIT {
 
     // When
     var result = repository.getVersions("https://doi.org/20.5000.1025/4AF-E6L-9VQ",
-        "digital_specimen_provenance");
+        "digital_specimen_provenance", ODS_VERSION);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -93,7 +94,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getVersions(DOI + ID, "digital_specimen_provenance"));
+        () -> repository.getVersions(DOI + ID, "digital_specimen_provenance", ODS_VERSION));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);

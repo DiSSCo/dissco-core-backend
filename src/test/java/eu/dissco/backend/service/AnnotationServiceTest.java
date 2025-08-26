@@ -12,6 +12,7 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
@@ -389,7 +390,7 @@ class AnnotationServiceTest {
     var dataNode = new JsonApiData(HANDLE + ID, "annotationVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
-    given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, "annotation_provenance", ODS_VERSION)).willReturn(versionsList);
     try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
       mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);

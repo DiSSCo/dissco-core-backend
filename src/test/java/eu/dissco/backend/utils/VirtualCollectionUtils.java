@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -67,7 +68,7 @@ public class VirtualCollectionUtils {
         .withLtcBasisOfScheme(LtcBasisOfScheme.REFERENCE_COLLECTION)
         .withSchemaDateCreated(Date.from(CREATED))
         .withSchemaDateModified(Date.from(CREATED))
-        .withSchemaCreator(givenAgent(userId))
+        .withSchemaCreator(givenAgent(userId, ROLE_NAME_VIRTUAL_COLLECTION))
         .withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
   }
 

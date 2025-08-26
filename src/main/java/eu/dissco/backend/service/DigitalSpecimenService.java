@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.domain.DefaultMappingTerms.getParamMapping;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static java.util.Comparator.comparing;
@@ -175,7 +176,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
-    var versionsList = mongoRepository.getVersions(id, MONGODB_COLLECTION_NAME);
+    var versionsList = mongoRepository.getVersions(id, MONGODB_COLLECTION_NAME, ODS_VERSION);
     var versionNode = createVersionNode(versionsList, mapper);
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode),
         new JsonApiLinks(path));

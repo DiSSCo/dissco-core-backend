@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.HandleProxyUtils.HANDLE_PROXY;
 
@@ -181,7 +182,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, "annotation_provenance");
+    var versions = mongoRepository.getVersions(id, "annotation_provenance", ODS_VERSION);
     var versionsNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, "annotationVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));

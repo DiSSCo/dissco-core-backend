@@ -13,6 +13,8 @@ import java.util.List;
 
 public class AgentUtils {
 
+  public static final String ROLE_NAME_ANNOTATOR = "annotator";
+  public static final String ROLE_NAME_VIRTUAL_COLLECTION = "virtual-collection-admin";
   public static final String ORCID = "orcid";
 
   private AgentUtils() {

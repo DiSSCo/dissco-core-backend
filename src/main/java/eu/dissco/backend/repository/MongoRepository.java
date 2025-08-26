@@ -20,7 +20,8 @@ public class MongoRepository {
 
   private static final String PROV_ENTITY = "prov:Entity";
   private static final String PROV_VALUE = "prov:value";
-  private static final String ODS_VERSION = "ods:version";
+  public static final String ODS_VERSION = "ods:version";
+  public static final String SCHEMA_VERSION = "schema:version";
 
   private final MongoDatabase database;
   private final ObjectMapper mapper;
@@ -38,16 +39,16 @@ public class MongoRepository {
         .get(PROV_VALUE);
   }
 
-  public List<Integer> getVersions(String id, String collectionName) throws NotFoundException {
+  public List<Integer> getVersions(String id, String collectionName, String versionProperty) throws NotFoundException {
     var collection = database.getCollection(collectionName);
     var result = collection.find(eq(PROV_ENTITY + "." + PROV_VALUE + ".@id", id))
-        .projection(include(PROV_ENTITY + "." + PROV_VALUE + "." + ODS_VERSION));
+        .projection(include(PROV_ENTITY + "." + PROV_VALUE + "." + versionProperty));
     if (result.first() == null) {
       throw new NotFoundException("Could not find " + id + " in collection: " + collectionName);
     }
     var versions = new ArrayList<Integer>();
     result.forEach(document -> versions.add(
-        document.getEmbedded(List.of(PROV_ENTITY, PROV_VALUE, ODS_VERSION), Integer.class)));
+        document.getEmbedded(List.of(PROV_ENTITY, PROV_VALUE, versionProperty), Integer.class)));
     Collections.sort(versions);
     return versions;
   }

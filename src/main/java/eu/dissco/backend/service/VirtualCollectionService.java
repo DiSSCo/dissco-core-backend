@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
+import static eu.dissco.backend.repository.MongoRepository.SCHEMA_VERSION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
@@ -12,6 +13,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
@@ -157,7 +159,7 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper getVirtualCollectionVersions(String id, String path)
       throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, VIRTUAL_COLLECTION_PROVENANCE);
+    var versions = mongoRepository.getVersions(id, VIRTUAL_COLLECTION_PROVENANCE, SCHEMA_VERSION);
     var versionsNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(id, "virtualCollectionVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -242,7 +244,7 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper updateVirtualCollection(String id,
       VirtualCollectionRequest virtualCollectionRequest, Agent agent, String path)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException, JsonProcessingException, ForbiddenException {
     var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
     if (currentVirtualCollectionOptional.isEmpty()) {
       log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
@@ -287,13 +289,13 @@ public class VirtualCollectionService {
   }
 
   private boolean isEqual(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) {
+      VirtualCollection virtualCollection) throws ForbiddenException {
     if (!Objects.equals(currentVirtualCollection.getOdsHasTargetDigitalObjectFilter(),
         virtualCollection.getOdsHasTargetDigitalObjectFilter())) {
       log.warn(
           "OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id {}",
           currentVirtualCollection.getId());
-      throw new ProcessingFailedException(
+      throw new ForbiddenException(
           "OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id "
               + currentVirtualCollection.getId());
     }

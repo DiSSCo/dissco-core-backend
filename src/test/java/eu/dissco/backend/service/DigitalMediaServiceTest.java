@@ -10,6 +10,7 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
@@ -167,7 +168,7 @@ class DigitalMediaServiceTest {
   void testGetDigitalMediaVersions() throws NotFoundException {
     // Given
     List<Integer> versionsList = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, "digital_media_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, "digital_media_provenance", ODS_VERSION)).willReturn(versionsList);
     var versionsNode = MAPPER.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     arrayNode.add(1).add(2);

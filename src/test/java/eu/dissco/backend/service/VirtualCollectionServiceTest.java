@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
+import static eu.dissco.backend.repository.MongoRepository.SCHEMA_VERSION;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
@@ -173,7 +175,7 @@ class VirtualCollectionServiceTest {
     var dataNode = new JsonApiData(ID, "virtualCollectionVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(VIRTUAL_COLLECTION_PATH));
 
-    given(mongoRepository.getVersions(ID, "virtual_collection_provenance")).willReturn(
+    given(mongoRepository.getVersions(ID, "virtual_collection_provenance", SCHEMA_VERSION)).willReturn(
         versionsList);
     try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
       mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
@@ -308,7 +310,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testUpdateVirtualCollection()
-      throws JsonProcessingException, PidException, NotFoundException {
+      throws JsonProcessingException, PidException, NotFoundException, ForbiddenException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
@@ -352,7 +354,8 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testUpdateVirtualCollectionEqual() throws JsonProcessingException, NotFoundException {
+  void testUpdateVirtualCollectionEqual()
+      throws JsonProcessingException, NotFoundException, ForbiddenException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var virtualCollectionRequest = givenVirtualCollectionRequest();
@@ -381,7 +384,7 @@ class VirtualCollectionServiceTest {
     var agent = givenAgent();
 
     // When
-    assertThrows(ProcessingFailedException.class,
+    assertThrows(ForbiddenException.class,
         () -> service.updateVirtualCollection(ID, virtualCollectionRequest, agent,
             VIRTUAL_COLLECTION_PATH));
 

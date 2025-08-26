@@ -3,12 +3,14 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
@@ -189,7 +191,8 @@ class VirtualCollectionControllerTest {
             givenVirtualCollectionRequest()));
     var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
     given(
-        service.persistVirtualCollection(virtualCollection, givenAgent(), VIRTUAL_COLLECTION_PATH))
+        service.persistVirtualCollection(virtualCollection,
+            givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), VIRTUAL_COLLECTION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -220,7 +223,8 @@ class VirtualCollectionControllerTest {
       throws NotFoundException, ForbiddenException {
     // Given
     givenAuthentication(authentication, givenClaims());
-    given(service.tombstoneVirtualCollection(PREFIX, SUFFIX, givenAgent(), false)).willReturn(
+    given(service.tombstoneVirtualCollection(PREFIX, SUFFIX,
+        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), false)).willReturn(
         success);
 
     // When
@@ -240,7 +244,7 @@ class VirtualCollectionControllerTest {
     var request = new VirtualCollectionRequest(
         new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION,
             givenVirtualCollectionRequest()));
-    given(service.updateVirtualCollection(ID, virtualCollection, givenAgent(),
+    given(service.updateVirtualCollection(ID, virtualCollection, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
         VIRTUAL_COLLECTION_PATH)).willReturn(response);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

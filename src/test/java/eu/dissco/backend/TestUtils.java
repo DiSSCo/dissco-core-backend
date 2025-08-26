@@ -1,5 +1,6 @@
 package eu.dissco.backend;
 
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -58,17 +59,17 @@ public class TestUtils {
 
   // Users
   public static Agent givenAgent() {
-    return givenAgent(ORCID);
+    return givenAgent(ORCID, ROLE_NAME_ANNOTATOR);
   }
 
-  public static Agent givenAgent(String userId) {
+  public static Agent givenAgent(String userId, String roleName) {
     return new Agent()
         .withType(Type.SCHEMA_PERSON)
         .withSchemaName(USER_NAME)
         .withSchemaIdentifier(userId)
         .withId(userId)
         .withOdsHasRoles(List.of(new OdsHasRole().withType("schema:Role")
-            .withSchemaRoleName("annotator")))
+            .withSchemaRoleName(roleName)))
         .withOdsHasIdentifiers(List.of(
             new eu.dissco.backend.schema.Identifier()
                 .withType("ods:Identifier")

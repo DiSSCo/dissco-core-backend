@@ -13,6 +13,7 @@ import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
 import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
@@ -331,7 +332,7 @@ class DigitalSpecimenServiceTest {
   void testGetSpecimenVersions() throws NotFoundException {
     // Given
     List<Integer> versionsList = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, "digital_specimen_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, "digital_specimen_provenance", ODS_VERSION)).willReturn(versionsList);
     var versionsNode = MAPPER.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     arrayNode.add(1).add(2);
