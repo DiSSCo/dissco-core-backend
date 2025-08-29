@@ -69,7 +69,7 @@ class JwtAuthConverterTest {
     // Then
     assertThat(token.isAuthenticated()).isTrue();
     assertThat(token.getName()).isEqualTo("adf294ba-bb03-4962-8042-a37f1648458e");
-    assertThat(token.getAuthorities()).hasSize(0);
+    assertThat(token.getAuthorities()).isEmpty();
   }
 
 }
