@@ -1,7 +1,6 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
-import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.HandleProxyUtils.HANDLE_PROXY;
 
@@ -10,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
@@ -67,7 +67,7 @@ public class AnnotationService {
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
-    var eventNode = mongoRepository.getByVersion(id, version, "annotation_provenance");
+    var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.ANNOTATION);
     validateAnnotationNode(eventNode);
     var dataNode = new JsonApiData(id, ANNOTATION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -182,7 +182,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, "annotation_provenance", ODS_VERSION);
+    var versions = mongoRepository.getVersions(id, MongoCollection.ANNOTATION);
     var versionsNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, "annotationVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));

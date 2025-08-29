@@ -198,10 +198,10 @@ public class TestUtils {
         .withSchemaName("User");
   }
 
-  public static TombstoneMetadata givenTombstoneMetadata() {
+  public static TombstoneMetadata givenTombstoneMetadata(Agent agent) {
     return new TombstoneMetadata()
         .withType("ods:TombstoneMetadata")
-        .withOdsHasAgents(List.of(givenAgent()))
+        .withOdsHasAgents(List.of(agent))
         .withOdsTombstoneDate(Date.from(CREATED))
         .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco backend");
   }

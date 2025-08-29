@@ -18,6 +18,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.OdsHasPredicate;
 import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
 import eu.dissco.backend.schema.TargetDigitalObjectFilter;
@@ -144,7 +145,7 @@ public class VirtualCollectionUtils {
 
   public static VirtualCollection givenTombstoneVirtualCollection() {
     return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
-        .withOdsHasTombstoneMetadata(givenTombstoneMetadata())
+        .withOdsHasTombstoneMetadata(givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION)))
         .withOdsStatus(OdsStatus.TOMBSTONE)
         .withSchemaDateModified(Date.from(CREATED));
   }

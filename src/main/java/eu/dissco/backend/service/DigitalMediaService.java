@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.repository.MongoRepository.ODS_VERSION;
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 
@@ -13,6 +12,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -73,7 +73,7 @@ public class DigitalMediaService {
   }
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, "digital_media_provenance", ODS_VERSION);
+    var versions = mongoRepository.getVersions(id, MongoCollection.DIGITAL_MEDIA);
     if (versions.isEmpty()) {
       log.warn("Can not find media {}", id);
       throw new NotFoundException("Unable to find media " + id);
@@ -85,7 +85,7 @@ public class DigitalMediaService {
 
   public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
+    var digitalMediaNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_MEDIA);
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
     var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(),
         FdoType.DIGITAL_MEDIA.getName(), digitalMedia,

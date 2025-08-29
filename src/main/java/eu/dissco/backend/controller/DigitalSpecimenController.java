@@ -20,7 +20,6 @@ import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseSingle;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;

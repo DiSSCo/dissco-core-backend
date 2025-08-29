@@ -1,7 +1,6 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
-import static eu.dissco.backend.repository.MongoRepository.SCHEMA_VERSION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
@@ -9,6 +8,7 @@ import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -41,7 +41,6 @@ public class VirtualCollectionService {
 
   private static final String HANDLE_PROXY = "https://hdl.handle.net/";
   private static final String VIRTUAL_COLLECTION_NOT_FOUND = "Unable to find virtual collection {}";
-  private static final String VIRTUAL_COLLECTION_PROVENANCE = "virtual_collection_provenance";
   private final VirtualCollectionRepository repository;
   private final RabbitMqPublisherService rabbitMqPublisherService;
   private final MongoRepository mongoRepository;
@@ -152,14 +151,14 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
-    var eventNode = mongoRepository.getByVersion(id, version, VIRTUAL_COLLECTION_PROVENANCE);
+    var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.VIRTUAL_COLLECTION);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
   }
 
   public JsonApiWrapper getVirtualCollectionVersions(String id, String path)
       throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, VIRTUAL_COLLECTION_PROVENANCE, SCHEMA_VERSION);
+    var versions = mongoRepository.getVersions(id, MongoCollection.VIRTUAL_COLLECTION);
     var versionsNode = createVersionNode(versions, mapper);
     var dataNode = new JsonApiData(id, "virtualCollectionVersions", versionsNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));

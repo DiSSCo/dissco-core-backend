@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.exceptions.NotFoundException;
 import java.util.List;
 import org.bson.Document;
@@ -55,7 +56,7 @@ class MongoRepositoryIT {
     var expected = givenExpectedSpecimen(4);
 
     // When
-    var result = repository.getByVersion(DOI + ID, 4, "digital_specimen_provenance");
+    var result = repository.getByVersion(DOI + ID, 4, MongoCollection.DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(expected.get("prov:Entity").get("prov:value"));
@@ -67,7 +68,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getByVersion(DOI + ID, 2, "digital_specimen_provenance"));
+        () -> repository.getByVersion(DOI + ID, 2, MongoCollection.DIGITAL_SPECIMEN));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);
@@ -81,8 +82,7 @@ class MongoRepositoryIT {
     var expected = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
     // When
-    var result = repository.getVersions("https://doi.org/20.5000.1025/4AF-E6L-9VQ",
-        "digital_specimen_provenance", ODS_VERSION);
+    var result = repository.getVersions("https://doi.org/20.5000.1025/4AF-E6L-9VQ", MongoCollection.DIGITAL_SPECIMEN);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -94,7 +94,7 @@ class MongoRepositoryIT {
 
     // When
     var exception = assertThrowsExactly(NotFoundException.class,
-        () -> repository.getVersions(DOI + ID, "digital_specimen_provenance", ODS_VERSION));
+        () -> repository.getVersions(DOI + ID, MongoCollection.DIGITAL_SPECIMEN));
 
     // Then
     assertThat(exception).isInstanceOf(NotFoundException.class);
