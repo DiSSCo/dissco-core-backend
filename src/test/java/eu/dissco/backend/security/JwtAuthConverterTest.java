@@ -55,4 +55,21 @@ class JwtAuthConverterTest {
     assertThat(token.getAuthorities()).hasSize(2);
   }
 
+  @Test
+  void testTokenMissingPropertyRoles() {
+    // Given
+    var jwt = new Jwt("SomeRandomStringWithTheFullValue", Instant.now(), Instant.now(),
+        Map.of("kid", "SomeRandom", "typ", "JWT", "alg", "RS256"),
+        Map.of("sub", "adf294ba-bb03-4962-8042-a37f1648458e",
+            "resource_access", Map.of("orchestration-service", Map.of("no-roles", List.of("I am not here")))));
+
+    // When
+    var token = converter.convert(jwt);
+
+    // Then
+    assertThat(token.isAuthenticated()).isTrue();
+    assertThat(token.getName()).isEqualTo("adf294ba-bb03-4962-8042-a37f1648458e");
+    assertThat(token.getAuthorities()).hasSize(0);
+  }
+
 }
