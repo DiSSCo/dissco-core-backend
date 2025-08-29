@@ -21,8 +21,6 @@ public class MongoRepository {
 
   private static final String PROV_ENTITY = "prov:Entity";
   private static final String PROV_VALUE = "prov:value";
-  public static final String ODS_VERSION = "ods:version";
-  public static final String SCHEMA_VERSION = "schema:version";
 
   private final MongoDatabase database;
   private final ObjectMapper mapper;

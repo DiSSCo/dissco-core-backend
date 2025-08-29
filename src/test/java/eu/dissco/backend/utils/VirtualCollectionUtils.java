@@ -18,7 +18,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.OdsHasPredicate;
 import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
 import eu.dissco.backend.schema.TargetDigitalObjectFilter;
