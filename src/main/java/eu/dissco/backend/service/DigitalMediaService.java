@@ -12,6 +12,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -19,6 +20,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -70,7 +72,7 @@ public class DigitalMediaService {
   }
 
   public JsonApiWrapper getDigitalMediaVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, "digital_media_provenance");
+    var versions = mongoRepository.getVersions(id, MongoCollection.DIGITAL_MEDIA);
     if (versions.isEmpty()) {
       log.warn("Can not find media {}", id);
       throw new NotFoundException("Unable to find media " + id);
@@ -82,7 +84,7 @@ public class DigitalMediaService {
 
   public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var digitalMediaNode = mongoRepository.getByVersion(id, version, "digital_media_provenance");
+    var digitalMediaNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_MEDIA);
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
     var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(),
         FdoType.DIGITAL_MEDIA.getName(), digitalMedia,
@@ -172,9 +174,23 @@ public class DigitalMediaService {
     return objectNode;
   }
 
-  public void scheduleMass(String id, List<MasJobRequest> masRequests,
-      String orcid) throws MasSchedulingException {
-    masService.scheduleMas(id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT);
+  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
+      String path, String orcid)
+      throws PidException, ConflictException, NotFoundException {
+    var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
+    if (digitalMedia == null) {
+      log.error("Unable to find media with id {}", id);
+      throw new NotFoundException("Specimen " + id + " not found");
+    }
+    var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
+        getDsDoiFromDmo(digitalMedia));
+    if (digitalSpecimen == null) {
+      log.error("Unable to find specimen for media with id {}", id);
+      throw new NotFoundException("Unable to find related specimen for media with id " + id);
+    }
+    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
+    return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
+        MjrTargetType.MEDIA_OBJECT);
   }
 
 }

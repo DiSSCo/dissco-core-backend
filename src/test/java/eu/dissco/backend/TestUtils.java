@@ -1,5 +1,6 @@
 package eu.dissco.backend;
 
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -58,17 +59,21 @@ public class TestUtils {
 
   // Users
   public static Agent givenAgent() {
+    return givenAgent(ORCID, ROLE_NAME_ANNOTATOR);
+  }
+
+  public static Agent givenAgent(String userId, String roleName) {
     return new Agent()
         .withType(Type.SCHEMA_PERSON)
         .withSchemaName(USER_NAME)
-        .withSchemaIdentifier(ORCID)
-        .withId(ORCID)
+        .withSchemaIdentifier(userId)
+        .withId(userId)
         .withOdsHasRoles(List.of(new OdsHasRole().withType("schema:Role")
-            .withSchemaRoleName("annotator")))
+            .withSchemaRoleName(roleName)))
         .withOdsHasIdentifiers(List.of(
             new eu.dissco.backend.schema.Identifier()
                 .withType("ods:Identifier")
-                .withId(ORCID)
+                .withId(userId)
                 .withDctermsIdentifier(ORCID)
                 .withOdsIsPartOfLabel(false)
                 .withOdsIdentifierStatus(OdsIdentifierStatus.PREFERRED)
@@ -193,11 +198,11 @@ public class TestUtils {
         .withSchemaName("User");
   }
 
-  public static TombstoneMetadata givenTombstoneMetadata() {
+  public static TombstoneMetadata givenTombstoneMetadata(Agent agent) {
     return new TombstoneMetadata()
         .withType("ods:TombstoneMetadata")
-        .withOdsHasAgents(List.of(givenAgent()))
-        .withOdsTombstoneDate(Date.from(UPDATED))
-        .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco core backend");
+        .withOdsHasAgents(List.of(agent))
+        .withOdsTombstoneDate(Date.from(CREATED))
+        .withOdsTombstoneText("Virtual Collection tombstoned by agent through the dissco backend");
   }
 }

@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -142,7 +143,7 @@ public class AnnotationController extends BaseController {
       @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
       throws JsonProcessingException, ForbiddenException {
     var annotation = getAnnotationFromRequest(requestBody);
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     log.info("Received new annotationRequests from agent: {}", agent.getId());
     var annotationResponse = service.persistAnnotation(annotation, agent, getPath(request));
     if (annotationResponse != null) {
@@ -201,7 +202,7 @@ public class AnnotationController extends BaseController {
       throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
-    var user = getAgent(authentication);
+    var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     log.info("Received new batch annotation from user: {}", user);
     var annotationResponse = service.persistAnnotationBatch(event, user, getPath(request));
     if (annotationResponse != null) {
@@ -234,7 +235,7 @@ public class AnnotationController extends BaseController {
       HttpServletRequest request)
       throws NotFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var annotation = getAnnotationFromRequest(requestBody);
     log.info("Received update for annotationRequests: {} from user: {}", id, agent.getId());
     var annotationResponse = service.updateAnnotation(id, annotation, agent, getPath(request),
@@ -259,7 +260,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request,
       Authentication authentication) throws IOException, ForbiddenException {
-    var orcid = getAgent(authentication).getId();
+    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     log.info("Received get request to show all annotationRequests for user: {}", orcid);
     var annotations = service.getAnnotationsForUser(orcid, pageNumber, pageSize,
         getPath(request));
@@ -296,7 +297,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
       throws NotFoundException, ForbiddenException {
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix),
         agent.getId());

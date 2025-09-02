@@ -46,7 +46,7 @@ public abstract class BaseController {
   protected static final String JOB_STATUS_OAS ="Optional filter on job status";
 
 
-  protected static Agent getAgent(Authentication authentication) throws ForbiddenException {
+  protected static Agent getAgent(Authentication authentication, String roleName) throws ForbiddenException {
     var claims = ((Jwt) authentication.getPrincipal()).getClaims();
     if (claims.containsKey(ORCID)) {
       StringBuilder fullName = new StringBuilder();
@@ -68,7 +68,7 @@ public abstract class BaseController {
           .withOdsHasRoles(List.of(
               new OdsHasRole()
                   .withType("schema:Role")
-                  .withSchemaRoleName("annotator")))
+                  .withSchemaRoleName(roleName)))
           .withOdsHasIdentifiers(List.of(
               new Identifier()
                   .withId(id)

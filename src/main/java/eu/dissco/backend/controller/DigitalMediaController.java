@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +19,7 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -235,9 +237,10 @@ public class DigitalMediaController extends BaseController {
   public ResponseEntity<Void> scheduleMassForDigitalMediaObject(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
-      throws ConflictException, ForbiddenException, MasSchedulingException {
-    var orcid = getAgent(authentication).getId();
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
+      HttpServletRequest request)
+      throws ConflictException, ForbiddenException, PidException, NotFoundException, MasSchedulingException {
+    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",

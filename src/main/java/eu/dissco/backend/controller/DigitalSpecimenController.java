@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -441,9 +442,10 @@ public class DigitalSpecimenController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
-      throws ConflictException, ForbiddenException, MasSchedulingException {
-    var orcid = getAgent(authentication).getId();
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
+      HttpServletRequest request, MasSchedulingException)
+      throws ConflictException, ForbiddenException, NotFoundException {
+    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",

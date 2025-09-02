@@ -5,8 +5,14 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.givenCreator;
+import static eu.dissco.backend.TestUtils.PREFIX;
+import static eu.dissco.backend.TestUtils.SUFFIX;
+import static eu.dissco.backend.TestUtils.givenAgent;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionJsonResponse;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
@@ -22,23 +28,34 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
+import eu.dissco.backend.schema.OdsHasPredicate;
+import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
+import eu.dissco.backend.schema.TargetDigitalObjectFilter;
+import eu.dissco.backend.schema.VirtualCollectionRequest.LtcBasisOfScheme;
 import eu.dissco.backend.utils.VirtualCollectionUtils;
 import eu.dissco.backend.web.HandleComponent;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -139,7 +156,7 @@ class VirtualCollectionServiceTest {
     var virtualCollectionNode = MAPPER.valueToTree(
         VirtualCollectionUtils.givenVirtualCollection(HANDLE + ID));
     var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
-    given(mongoRepository.getByVersion(ID, version, "virtual_collection_provenance"))
+    given(mongoRepository.getByVersion(ID, version, MongoCollection.VIRTUAL_COLLECTION))
         .willReturn(virtualCollectionNode);
 
     // When
@@ -159,7 +176,7 @@ class VirtualCollectionServiceTest {
     var dataNode = new JsonApiData(ID, "virtualCollectionVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(VIRTUAL_COLLECTION_PATH));
 
-    given(mongoRepository.getVersions(ID, "virtual_collection_provenance")).willReturn(
+    given(mongoRepository.getVersions(ID, MongoCollection.VIRTUAL_COLLECTION)).willReturn(
         versionsList);
     try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
       mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
@@ -173,43 +190,242 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void persistVirtualCollection() throws JsonProcessingException {
+  void persistVirtualCollection() throws JsonProcessingException, PidException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
     var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH, ORCID);
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
+    var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
 
     // When
-    var result = service.persistVirtualCollection(request, givenCreator(ORCID),
+    var result = service.persistVirtualCollection(request, agent,
         VIRTUAL_COLLECTION_PATH);
 
     // Then
     then(repository).should().createVirtualCollection(virtualCollection);
     then(rabbitMqPublisherService).should()
-        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), givenCreator(ORCID));
+        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), agent);
     assertThat(result).isEqualTo(expected);
   }
 
   @Test
-  void persistVirtualCollectionRollback() throws JsonProcessingException {
+  void persistVirtualCollectionRollback() throws JsonProcessingException, PidException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
-    var creator = givenCreator(ORCID);
+    var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
     doThrow(new JsonParseException("Failed to parse")).when(rabbitMqPublisherService)
-        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), creator);
+        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), agent);
 
     // When
     assertThrows(
         ProcessingFailedException.class,
-        () -> service.persistVirtualCollection(request, creator, VIRTUAL_COLLECTION_PATH));
+        () -> service.persistVirtualCollection(request, agent, VIRTUAL_COLLECTION_PATH));
 
     // Then
     then(repository).should().createVirtualCollection(virtualCollection);
     then(handleComponent).should().rollbackVirtualCollection(HANDLE + ID);
     then(repository).should().rollbackVirtualCollectionCreate(HANDLE + ID);
+  }
+
+  @Test
+  void testTombstoneVirtualCollection()
+      throws PidException, JsonProcessingException, NotFoundException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
+    var tombstoneVirtualCollection = givenTombstoneVirtualCollection();
+    given(repository.getActiveVirtualCollection(ID, null)).willReturn(
+        Optional.of(virtualCollection));
+
+    // When
+    var result = service.tombstoneVirtualCollection(PREFIX, SUFFIX, agent, true);
+
+    // Then
+    then(handleComponent).should().tombstoneHandle(ID);
+    then(repository).should().tombstoneVirtualCollection(tombstoneVirtualCollection);
+    then(rabbitMqPublisherService).should()
+        .publishTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
+            MAPPER.valueToTree(virtualCollection), agent);
+    assertThat(result).isTrue();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {ORCID})
+  @NullSource
+  void testTombstoneVirtualCollectionNoRecord(String userId) {
+    // Given
+    given(repository.getActiveVirtualCollection(ID, userId)).willReturn(Optional.empty());
+
+    // When
+    assertThrows(NotFoundException.class,
+        () -> service.tombstoneVirtualCollection(PREFIX, SUFFIX, givenAgent(), userId == null));
+
+    // Then
+    then(handleComponent).shouldHaveNoInteractions();
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+  }
+
+  @Test
+  void testTombstoneVirtualCollectionHandleException()
+      throws PidException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    given(repository.getActiveVirtualCollection(ID, null)).willReturn(
+        Optional.of(virtualCollection));
+    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+        .tombstoneHandle(ID);
+    var agent = givenAgent();
+
+    // When
+    assertThrows(ProcessingFailedException.class,
+        () -> service.tombstoneVirtualCollection(PREFIX, SUFFIX, agent, true));
+
+    // Then
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+  }
+
+  @Test
+  void testTombstoneVirtualCollectionRabbitException()
+      throws PidException, JsonProcessingException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
+    var tombstoneVirtualCollection = givenTombstoneVirtualCollection();
+    given(repository.getActiveVirtualCollection(ID, null)).willReturn(
+        Optional.of(virtualCollection));
+    doThrow(new JsonParseException("Handle tombstoning failed")).when(rabbitMqPublisherService)
+        .publishTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
+            MAPPER.valueToTree(virtualCollection), agent);
+
+    // When
+    assertThrows(ProcessingFailedException.class,
+        () -> service.tombstoneVirtualCollection(PREFIX, SUFFIX, agent, true));
+
+    // Then
+    then(handleComponent).should().tombstoneHandle(ID);
+    then(repository).should().tombstoneVirtualCollection(tombstoneVirtualCollection);
+  }
+
+  @Test
+  void testUpdateVirtualCollection() throws Exception {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
+    var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
+        LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter());
+    var updatedVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "Updated Name", 2);
+    var expected = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH,
+        updatedVirtualCollection);
+    given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
+        Optional.of(virtualCollection));
+
+    // When
+    var result = service.updateVirtualCollection(ID, virtualCollectionRequest,
+        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+        VIRTUAL_COLLECTION_PATH);
+
+    // Then
+    then(handleComponent).should().updateHandle(updatedVirtualCollection);
+    then(repository).should().updateVirtualCollection(updatedVirtualCollection);
+    then(rabbitMqPublisherService).should()
+        .publishUpdateEvent(MAPPER.valueToTree(updatedVirtualCollection),
+            MAPPER.valueToTree(virtualCollection), givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testUpdateVirtualCollectionNotFound() {
+    // Given
+    var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
+        LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter());
+    given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
+        Optional.empty());
+
+    // When
+    assertThrows(NotFoundException.class,
+        () -> service.updateVirtualCollection(ID, virtualCollectionRequest, givenAgent(),
+            VIRTUAL_COLLECTION_PATH));
+
+    // Then
+    then(handleComponent).shouldHaveNoInteractions();
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+  }
+
+  @Test
+  void testUpdateVirtualCollectionEqual()
+      throws JsonProcessingException, NotFoundException, ForbiddenException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    var virtualCollectionRequest = givenVirtualCollectionRequest();
+    given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
+        Optional.of(virtualCollection));
+
+    // When
+    var result = service.updateVirtualCollection(ID, virtualCollectionRequest, givenAgent(),
+        VIRTUAL_COLLECTION_PATH);
+
+    // Then
+    then(handleComponent).shouldHaveNoInteractions();
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+    assertThat(result).isNull();
+  }
+
+  @Test
+  void testUpdateVirtualCollectionTargetFilters() {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
+    var virtualCollectionRequest = givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
+        LtcBasisOfScheme.REFERENCE_COLLECTION, givenUpdatedTargetFilter());
+    given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
+        Optional.of(virtualCollection));
+    var agent = givenAgent();
+
+    // When
+    assertThrows(ForbiddenException.class,
+        () -> service.updateVirtualCollection(ID, virtualCollectionRequest, agent,
+            VIRTUAL_COLLECTION_PATH));
+
+    // Then
+    then(handleComponent).shouldHaveNoInteractions();
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+  }
+
+  @Test
+  void testUpdateVirtualCollectionHandleFails() throws PidException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
+    var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
+        LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter());
+    var updatedVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "Updated Name", 2);
+    given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
+        Optional.of(virtualCollection));
+    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+        .updateHandle(updatedVirtualCollection);
+    var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
+
+    // When
+    assertThrows(ProcessingFailedException.class,
+        () -> service.updateVirtualCollection(ID, virtualCollectionRequest, agent,
+            VIRTUAL_COLLECTION_PATH));
+
+    // Then
+    then(repository).shouldHaveNoMoreInteractions();
+    then(rabbitMqPublisherService).shouldHaveNoInteractions();
+  }
+
+  private TargetDigitalObjectFilter givenUpdatedTargetFilter() {
+    return new TargetDigitalObjectFilter()
+        .withOdsHasPredicates(List.of(new OdsHasPredicate()
+            .withOdsPredicateType(OdsPredicateType.EQUALS)
+            .withOdsPredicateKey("$['ods:topicDiscipline']")
+            .withOdsPredicateValue("botany")));
   }
 
 

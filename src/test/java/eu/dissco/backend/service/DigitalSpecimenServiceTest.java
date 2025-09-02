@@ -40,6 +40,7 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -257,7 +258,7 @@ class DigitalSpecimenServiceTest {
     var digitalMedia = List.of(
         new DigitalMediaFull(givenDigitalMediaObject(DOI + ID), List.of()));
     var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
-    given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_SPECIMEN)).willReturn(
         specimen);
     given(digitalMediaService.getFullDigitalMediaFromSpecimen(any())).willReturn(digitalMedia);
     given(annotationService.getAnnotationForTargetObject(ID)).willReturn(annotations);
@@ -283,7 +284,7 @@ class DigitalSpecimenServiceTest {
     var givenSpecimenWrapper = givenDigitalSpecimenWrapper(DOI + ID, "123", version,
         SOURCE_SYSTEM_ID_1, SPECIMEN_NAME);
     var specimen = givenMongoDBResponse();
-    given(mongoRepository.getByVersion(ID, version, "digital_specimen_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_SPECIMEN)).willReturn(
         specimen);
     var responseExpected = new JsonApiWrapper(
         new JsonApiData(DOI + ID, FdoType.DIGITAL_SPECIMEN.getName(),
@@ -330,7 +331,7 @@ class DigitalSpecimenServiceTest {
   void testGetSpecimenVersions() throws NotFoundException {
     // Given
     List<Integer> versionsList = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, "digital_specimen_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, MongoCollection.DIGITAL_SPECIMEN)).willReturn(versionsList);
     var versionsNode = MAPPER.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     arrayNode.add(1).add(2);

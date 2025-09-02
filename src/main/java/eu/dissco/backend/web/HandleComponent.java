@@ -4,7 +4,8 @@ import static org.springframework.http.HttpMethod.POST;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.component.FdoRecordComponent;
-import eu.dissco.backend.exceptions.PidCreationException;
+import eu.dissco.backend.exceptions.PidException;
+import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollectionRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -37,7 +38,8 @@ public class HandleComponent {
   private final TokenAuthenticator tokenAuthenticator;
   private final FdoRecordComponent fdoRecordComponent;
 
-  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection) {
+  public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection)
+      throws PidException {
     var request = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollection);
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "");
@@ -46,11 +48,11 @@ public class HandleComponent {
       return result.get("data").get(0).get("id").asText();
     } catch (NullPointerException e) {
       log.error(ERROR_MESSAGE, result);
-      throw new PidCreationException("Unexpected response from Handle API");
+      throw new PidException("Unexpected response from Handle API");
     }
   }
 
-  public List<String> postHandleMjr(int n) {
+  public List<String> postHandleMjr(int n) throws PidException {
     var request = Collections.nCopies(n, fdoRecordComponent.getPostRequestMjr());
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(POST, requestBody, "batch");
@@ -59,7 +61,7 @@ public class HandleComponent {
       var dataNode = result.get("data");
       if (!dataNode.isArray()) {
         log.error(ERROR_MESSAGE, result);
-        throw new PidCreationException("Unexpected response from Handle API");
+        throw new PidException("Unexpected response from Handle API");
       }
       var handles = new ArrayList<String>();
       for (var node : dataNode) {
@@ -68,12 +70,12 @@ public class HandleComponent {
       return handles;
     } catch (NullPointerException e) {
       log.error(ERROR_MESSAGE, result);
-      throw new PidCreationException("Unexpected response from Handle API");
+      throw new PidException("Unexpected response from Handle API");
     }
   }
 
   private <T> Mono<JsonNode> sendRequest(HttpMethod httpMethod,
-      BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint) {
+      BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint) throws PidException {
     var token = "Bearer " + tokenAuthenticator.getToken();
     return handleClient
         .method(httpMethod)
@@ -84,33 +86,47 @@ public class HandleComponent {
         .retrieve()
         .onStatus(HttpStatus.UNAUTHORIZED::equals,
             r -> Mono.error(
-                new PidCreationException("Unable to authenticate with Handle Service.")))
-        .onStatus(HttpStatusCode::is4xxClientError, r -> Mono.error(new PidCreationException(
+                new PidException("Unable to authenticate with Handle Service.")))
+        .onStatus(HttpStatusCode::is4xxClientError, r -> Mono.error(new PidException(
             "Unable to create PID. Response from Handle API: " + r.statusCode())))
         .bodyToMono(JsonNode.class).retryWhen(
             Retry.fixedDelay(3, Duration.ofSeconds(2)).filter(WebClientUtils::is5xxServerError)
-                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> new PidCreationException(
+                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> new PidException(
                     "External Service failed to process after max retries")));
   }
 
-  private JsonNode validateResponse(Mono<JsonNode> response) {
+  private JsonNode validateResponse(Mono<JsonNode> response) throws PidException {
     try {
       return response.toFuture().get();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Interrupted exception has occurred.");
-      throw new PidCreationException(
+      throw new PidException(
           "Interrupted execution: A connection error has occurred in creating a jobId.");
     } catch (ExecutionException e) {
       log.error("PID creation failed.", e.getCause());
-      throw new PidCreationException(e.getCause().getMessage());
+      throw new PidException(e.getCause().getMessage());
     }
   }
 
-  public void rollbackVirtualCollection(String id) throws PidCreationException {
+  public void rollbackVirtualCollection(String id) throws PidException {
     var request = fdoRecordComponent.getRollbackCreateRequest(id);
     var requestBody = BodyInserters.fromValue(request);
     var response = sendRequest(HttpMethod.DELETE, requestBody, "rollback/create");
+    validateResponse(response);
+  }
+
+  public void tombstoneHandle(String handle) throws PidException {
+    var request = fdoRecordComponent.getTombstoneRequest(handle);
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.PUT, requestBody, handle);
+    validateResponse(response);
+  }
+
+  public void updateHandle(VirtualCollection virtualCollection) throws PidException {
+    var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
+    var requestBody = BodyInserters.fromValue(request);
+    var response = sendRequest(HttpMethod.PATCH, requestBody, virtualCollection.getId());
     validateResponse(response);
   }
 }

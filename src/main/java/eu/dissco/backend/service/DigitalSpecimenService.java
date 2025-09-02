@@ -17,6 +17,7 @@ import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.MasJobRequest;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -52,7 +53,6 @@ public class DigitalSpecimenService {
 
   private static final String DEFAULT_PAGE_NUM = "1";
   private static final String DEFAULT_PAGE_SIZE = "10";
-  private static final String MONGODB_COLLECTION_NAME = "digital_specimen_provenance";
   private static final String AGGREGATIONS_TYPE = "aggregations";
   private static final String SPECIMEN_NOT_FOUND = "Unable to find specimen {}";
   private final ObjectMapper mapper;
@@ -127,7 +127,7 @@ public class DigitalSpecimenService {
 
   public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
       throws NotFoundException, JsonProcessingException {
-    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
+    var specimenNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_SPECIMEN);
     if (specimenNode != null) {
       var specimen = mapResultToSpecimen(specimenNode);
       return mapFullSpecimen(id, path, specimen);
@@ -167,7 +167,7 @@ public class DigitalSpecimenService {
 
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
       throws JsonProcessingException, NotFoundException {
-    var specimenNode = mongoRepository.getByVersion(id, version, MONGODB_COLLECTION_NAME);
+    var specimenNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_SPECIMEN);
     var specimen = mapResultToSpecimen(specimenNode);
     var dataNode = new JsonApiData(specimen.getDctermsIdentifier(),
         FdoType.DIGITAL_SPECIMEN.getName(), specimen, mapper);
@@ -175,7 +175,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiWrapper getSpecimenVersions(String id, String path) throws NotFoundException {
-    var versionsList = mongoRepository.getVersions(id, MONGODB_COLLECTION_NAME);
+    var versionsList = mongoRepository.getVersions(id, MongoCollection.DIGITAL_SPECIMEN);
     var versionNode = createVersionNode(versionsList, mapper);
     return new JsonApiWrapper(new JsonApiData(id, "digitalSpecimenVersions", versionNode),
         new JsonApiLinks(path));

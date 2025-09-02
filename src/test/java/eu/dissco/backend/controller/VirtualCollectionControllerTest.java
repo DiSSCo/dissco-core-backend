@@ -3,12 +3,14 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
@@ -24,8 +26,10 @@ import static org.mockito.BDDMockito.then;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest.VirtualCollectionRequestData;
+import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.VirtualCollectionRequest.LtcBasisOfScheme;
@@ -59,6 +63,37 @@ class VirtualCollectionControllerTest {
 
   private MockHttpServletRequest mockRequest;
 
+  static Stream<Arguments> sourceInvalidRequest() {
+    return Stream.of(
+        Arguments.of(FdoType.ANNOTATION, null),
+        Arguments.of(FdoType.VIRTUAL_COLLECTION,
+            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
+                LtcBasisOfScheme.REFERENCE_COLLECTION, null)),
+        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest("",
+            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
+        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest(null,
+            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
+        Arguments.of(FdoType.VIRTUAL_COLLECTION,
+            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
+                null, givenTargetFilter()))
+    );
+  }
+
+  static Stream<Arguments> sourceTestTombstoneVirtualCollection() {
+    return Stream.of(
+        Arguments.of(true, ResponseEntity.noContent().build()),
+        Arguments.of(false, ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+    );
+  }
+
+  static Stream<Arguments> sourceTestUpdateVirtualCollection() {
+    var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
+    return Stream.of(
+        Arguments.of(expectedResponse, ResponseEntity.ok().body(expectedResponse)),
+        Arguments.of(null, ResponseEntity.ok().build())
+    );
+  }
+
   @BeforeEach
   void setup() {
     mockRequest = new MockHttpServletRequest();
@@ -81,7 +116,6 @@ class VirtualCollectionControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
   }
-
 
   @Test
   void testGetVirtualCollectionVersion() throws NotFoundException, JsonProcessingException {
@@ -157,7 +191,8 @@ class VirtualCollectionControllerTest {
             givenVirtualCollectionRequest()));
     var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
     given(
-        service.persistVirtualCollection(virtualCollection, givenAgent(), VIRTUAL_COLLECTION_PATH))
+        service.persistVirtualCollection(virtualCollection,
+            givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), VIRTUAL_COLLECTION_PATH))
         .willReturn(expectedResponse);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
@@ -171,28 +206,53 @@ class VirtualCollectionControllerTest {
 
   @ParameterizedTest
   @MethodSource("sourceInvalidRequest")
-  void testCreateAnnotationWithInvalidRequest(FdoType fdoType, eu.dissco.backend.schema.VirtualCollectionRequest virtualCollectionRequest) {
+  void testCreateAnnotationWithInvalidRequest(FdoType fdoType,
+      eu.dissco.backend.schema.VirtualCollectionRequest virtualCollectionRequest) {
     // Given
-    var request = new VirtualCollectionRequest(new VirtualCollectionRequestData(fdoType, virtualCollectionRequest));
+    var request = new VirtualCollectionRequest(
+        new VirtualCollectionRequestData(fdoType, virtualCollectionRequest));
 
     // When / Then
     assertThrows(IllegalArgumentException.class,
         () -> controller.createVirtualCollection(authentication, request, mockRequest));
   }
 
-  static Stream<Arguments> sourceInvalidRequest() {
-    return Stream.of(
-        Arguments.of(FdoType.ANNOTATION, null),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
-                LtcBasisOfScheme.REFERENCE_COLLECTION, null)),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest("",
-            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest(null,
-            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
-                null, givenTargetFilter()))
-    );
+  @ParameterizedTest
+  @MethodSource("sourceTestTombstoneVirtualCollection")
+  void testTombstoneVirtualCollection(boolean success, ResponseEntity<Object> expectedResponse)
+      throws NotFoundException, ForbiddenException {
+    // Given
+    givenAuthentication(authentication, givenClaims());
+    given(service.tombstoneVirtualCollection(PREFIX, SUFFIX,
+        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), false)).willReturn(
+        success);
+
+    // When
+    var receivedResponse = controller.tombstoneVirtualCollection(authentication, PREFIX, SUFFIX);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
+  }
+
+  @ParameterizedTest
+  @MethodSource("sourceTestUpdateVirtualCollection")
+  void testUpdateVirtualCollection(JsonApiWrapper response, ResponseEntity<Object> expectedResponse)
+      throws NotFoundException, ForbiddenException, JsonProcessingException {
+    // Given
+    givenAuthentication(authentication, givenClaims());
+    var virtualCollection = givenVirtualCollectionRequest();
+    var request = new VirtualCollectionRequest(
+        new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION,
+            givenVirtualCollectionRequest()));
+    given(service.updateVirtualCollection(ID, virtualCollection, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+        VIRTUAL_COLLECTION_PATH)).willReturn(response);
+    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+
+    // When
+    var receivedResponse = controller.updateVirtualCollection(authentication, request, PREFIX,
+        SUFFIX, mockRequest);
+
+    // Then
+    assertThat(receivedResponse).isEqualTo(expectedResponse);
   }
 }
