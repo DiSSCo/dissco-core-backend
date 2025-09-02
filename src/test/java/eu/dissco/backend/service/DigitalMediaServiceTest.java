@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -167,7 +168,7 @@ class DigitalMediaServiceTest {
   void testGetDigitalMediaVersions() throws NotFoundException {
     // Given
     List<Integer> versionsList = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, "digital_media_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, MongoCollection.DIGITAL_MEDIA)).willReturn(versionsList);
     var versionsNode = MAPPER.createObjectNode();
     var arrayNode = versionsNode.putArray("versions");
     arrayNode.add(1).add(2);
@@ -190,7 +191,7 @@ class DigitalMediaServiceTest {
     // Given
     int version = 1;
     var mongoResponse = givenMongoDBMediaResponse();
-    given(mongoRepository.getByVersion(ID, version, "digital_media_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_MEDIA)).willReturn(
         mongoResponse);
 
     var expectedResponse = new JsonApiWrapper(

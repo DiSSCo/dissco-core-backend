@@ -1,5 +1,7 @@
 package eu.dissco.backend.controller;
 
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -79,7 +81,7 @@ public class MasJobRecordController extends BaseController {
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
       HttpServletRequest request, Authentication authentication) throws ForbiddenException {
-    var creatorId = getAgent(authentication).getSchemaIdentifier();
+    var creatorId = getAgent(authentication, ROLE_NAME_ANNOTATOR).getSchemaIdentifier();
     return ResponseEntity.ok().body(
         service.getMasJobRecordsByCreatorId(creatorId, getPath(request), pageNumber, pageSize,
             state));

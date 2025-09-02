@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
 import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,7 +104,7 @@ public class VirtualCollectionController extends BaseController {
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request, Authentication authentication) throws ForbiddenException {
-    var orcid = getAgent(authentication).getId();
+    var orcid = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION).getId();
     log.info("Received get request to show all virtual collections for user: {}", orcid);
     var annotations = service.getVirtualCollectionsForUser(orcid, pageNumber, pageSize,
         getPath(request));
@@ -170,7 +171,7 @@ public class VirtualCollectionController extends BaseController {
       HttpServletRequest request)
       throws ForbiddenException {
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     log.info("Received new virtualCollectionRequests from agent: {}", agent.getId());
     var virtualCollectionResponse = service.persistVirtualCollection(virtualCollection, agent,
         getPath(request));
@@ -202,7 +203,7 @@ public class VirtualCollectionController extends BaseController {
       HttpServletRequest request)
       throws NotFoundException, JsonProcessingException, ForbiddenException {
     var id = prefix + '/' + suffix;
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);
     log.info("Received update for virtual collection: {} from user: {}", id, agent.getId());
     var virtualCollectionResponse = service.updateVirtualCollection(id, virtualCollection, agent,
@@ -227,7 +228,7 @@ public class VirtualCollectionController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
       throws NotFoundException, ForbiddenException {
-    var agent = getAgent(authentication);
+    var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for virtualCollection: {} from user: {}", (prefix + '/' + suffix),
         agent.getId());

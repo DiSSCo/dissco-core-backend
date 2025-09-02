@@ -32,6 +32,7 @@ import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import eu.dissco.backend.client.AnnotationClient;
+import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -366,7 +367,7 @@ class AnnotationServiceTest {
     // Given
     int version = 1;
     var annotationNode = MAPPER.valueToTree(givenAnnotationResponse(ID));
-    given(mongoRepository.getByVersion(ID, version, "annotation_provenance")).willReturn(
+    given(mongoRepository.getByVersion(ID, version, MongoCollection.ANNOTATION)).willReturn(
         annotationNode);
     var expected = new JsonApiWrapper(
         new JsonApiData(ID, "ods:Annotation", annotationNode),
@@ -389,7 +390,7 @@ class AnnotationServiceTest {
     var dataNode = new JsonApiData(HANDLE + ID, "annotationVersions", versionsNode);
     var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
 
-    given(mongoRepository.getVersions(ID, "annotation_provenance")).willReturn(versionsList);
+    given(mongoRepository.getVersions(ID, MongoCollection.ANNOTATION)).willReturn(versionsList);
     try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
       mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
           .thenReturn(versionsNode);

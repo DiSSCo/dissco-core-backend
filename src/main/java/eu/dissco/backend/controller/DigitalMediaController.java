@@ -2,6 +2,7 @@ package eu.dissco.backend.controller;
 
 
 import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -238,7 +239,7 @@ public class DigitalMediaController extends BaseController {
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
       throws ConflictException, ForbiddenException, PidException, NotFoundException {
-    var orcid = getAgent(authentication).getId();
+    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",

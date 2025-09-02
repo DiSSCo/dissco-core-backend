@@ -9,6 +9,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.USER_NAME;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenTombstoneMetadata;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
@@ -48,7 +49,8 @@ class ProvenanceServiceTest {
 
   private static List<OdsChangeValue> givenChangeValueTombstone() {
     return List.of(
-        givenOdsChangeValue("add", "/ods:hasTombstoneMetadata", givenTombstoneMetadata()),
+        givenOdsChangeValue("add", "/ods:hasTombstoneMetadata",
+            givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION))),
         givenOdsChangeValue("replace", "/ods:status", OdsStatus.TOMBSTONE),
         givenOdsChangeValue("replace", "/schema:version", 2)
     );
@@ -121,7 +123,8 @@ class ProvenanceServiceTest {
     var tombstoneMas = MAPPER.valueToTree(givenTombstoneVirtualCollection());
 
     // When
-    var event = service.generateTombstoneEvent(tombstoneMas, originalMas, givenAgent());
+    var event = service.generateTombstoneEvent(tombstoneMas, originalMas,
+        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
 
     // Then
     assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
