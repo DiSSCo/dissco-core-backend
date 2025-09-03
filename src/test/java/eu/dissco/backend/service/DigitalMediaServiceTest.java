@@ -306,7 +306,8 @@ class DigitalMediaServiceTest {
 
     // Then
     then(masService).should()
-        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.MEDIA_OBJECT);
+        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.MEDIA_OBJECT,
+            SANDBOX_URI);
   }
 
   @Test

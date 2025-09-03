@@ -1,7 +1,7 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -150,7 +150,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @PathVariable("version") int version,
       HttpServletRequest request) throws NotFoundException, JsonProcessingException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {} and version: {}", id, version);
     var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -169,7 +169,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var specimen = service.getSpecimenByVersion(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -187,7 +187,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request) throws NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var versions = service.getSpecimenVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
@@ -440,17 +440,18 @@ public class DigitalSpecimenController extends BaseController {
       })
   })
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> scheduleMassForDigitalSpecimen(
+  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
+      HttpServletRequest request)
       throws ConflictException, ForbiddenException, MasSchedulingException {
+    var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
         masRequests, id);
-    service.scheduleMass(id, masRequests, orcid);
-    return ResponseEntity.accepted().build();
+    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
   }
 
 }

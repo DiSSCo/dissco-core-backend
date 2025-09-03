@@ -264,8 +264,8 @@ class DigitalSpecimenControllerTest {
     givenAuthentication();
 
     // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication
-    );
+    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+        mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -280,8 +280,8 @@ class DigitalSpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication
-        ));
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
   }
 
   @Test
@@ -293,8 +293,8 @@ class DigitalSpecimenControllerTest {
 
     // When / Then
     assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication
-        ));
+        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
   }
 
   @Test

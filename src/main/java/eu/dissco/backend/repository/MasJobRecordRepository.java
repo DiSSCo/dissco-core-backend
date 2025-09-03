@@ -1,8 +1,8 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,7 +38,7 @@ public class MasJobRecordRepository {
   public List<MasJobRecordFull> getMasJobRecordsByTargetId(String targetId, JobState state,
       int pageNum, int pageSize) {
     var offset = getOffset(pageNum, pageSize);
-    var condition = MAS_JOB_RECORD.TARGET_ID.eq(DOI_STRING + targetId);
+    var condition = MAS_JOB_RECORD.TARGET_ID.eq(DOI_PROXY + targetId);
     if (state != null) {
       condition = condition.and(MAS_JOB_RECORD.JOB_STATE.eq(state));
     }
@@ -88,7 +88,7 @@ public class MasJobRecordRepository {
         .set(MAS_JOB_RECORD.JOB_STATE, masJobRecord.state())
         .set(MAS_JOB_RECORD.MAS_ID, masJobRecord.masId())
         .set(MAS_JOB_RECORD.CREATOR, masJobRecord.orcid())
-        .set(MAS_JOB_RECORD.TARGET_ID, DOI_STRING + masJobRecord.targetId())
+        .set(MAS_JOB_RECORD.TARGET_ID, DOI_PROXY + masJobRecord.targetId())
         .set(MAS_JOB_RECORD.TARGET_TYPE, masJobRecord.targetType())
         .set(MAS_JOB_RECORD.TIME_STARTED, now)
         .set(MAS_JOB_RECORD.BATCHING_REQUESTED, masJobRecord.batchingRequested())

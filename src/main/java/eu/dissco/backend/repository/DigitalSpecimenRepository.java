@@ -2,6 +2,7 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,9 +42,9 @@ public class DigitalSpecimenRepository {
   private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
     try {
       return mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
-          .withId("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
+          .withId(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
           .withType(FdoType.DIGITAL_SPECIMEN.getName())
-          .withDctermsIdentifier("https://doi.org/" + dbRecord.get(DIGITAL_SPECIMEN.ID))
+          .withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
           .withOdsFdoType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
           .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))

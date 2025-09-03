@@ -1,5 +1,9 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -7,6 +11,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.client.MasClient;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.FdoType;
+import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.MasScheduleJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
@@ -19,6 +24,7 @@ import eu.dissco.backend.schema.MachineAnnotationService;
 import feign.FeignException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -75,22 +81,40 @@ public class MachineAnnotationServiceService {
         new JsonApiMeta(availableMass.size()));
   }
 
-  public void scheduleMas(String targetId, List<MasJobRequest> masRequests, String orcid,
-      MjrTargetType targetType)
+  public JsonApiListResponseWrapper scheduleMas(String targetId, List<MasJobRequest> masRequests,
+      String orcid,
+      MjrTargetType targetType, String path)
       throws MasSchedulingException {
-    for (var masRequest : masRequests) {
-      try {
-        masClient.scheduleMas(new MasScheduleJobRequest(
+    var masScheduleJobRequests = masRequests.stream()
+        .map(masRequest -> new MasScheduleJobRequest(
             masRequest.masId(),
-            targetId,
+            DOI_PROXY + targetId,
             masRequest.batching(),
             orcid,
             targetType
-        ));
+        )).collect(Collectors.toSet());
+    try {
+      var result = masClient.scheduleMas(masScheduleJobRequests);
+      return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
+      }), path);
       } catch (FeignException e) {
         throw new MasSchedulingException(e.contentUTF8());
+    } catch (JsonProcessingException e) {
+      log.error("Unable to read response from mas scheduler");
+      throw new MasSchedulingException("Unable to read response from mas scheduler");
       }
-    }
+  }
+
+  private JsonApiListResponseWrapper formatMasScheduleResponse(List<MasJobRecord> masJobRecords,
+      String path) {
+    var dataNode = masJobRecords.stream().map(
+        mjr -> new JsonApiData(
+            mjr.jobId(),
+            "MachineAnnotationServiceJobRecord",
+            mjr,
+            mapper
+        )).toList();
+    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
   }
 
 }

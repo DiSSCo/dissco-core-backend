@@ -336,9 +336,9 @@ public class DigitalSpecimenService {
     return mapper.convertValue(digitalSpecimen, ObjectNode.class);
   }
 
-  public void scheduleMass(String id, List<MasJobRequest> masRequests,
-      String orcid) throws MasSchedulingException {
-    masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN);
+  public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
+      String orcid, String path) throws MasSchedulingException {
+    return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN, path);
   }
 
 

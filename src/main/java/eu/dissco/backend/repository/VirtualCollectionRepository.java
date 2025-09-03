@@ -3,7 +3,7 @@ package eu.dissco.backend.repository;
 import static eu.dissco.backend.database.jooq.Tables.VIRTUAL_COLLECTION;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
-import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
+import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
 import static org.jooq.impl.DSL.noCondition;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,7 +38,7 @@ public class VirtualCollectionRepository {
 
   public void createVirtualCollection(VirtualCollection virtualCollection) {
     context.insertInto(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.ID, removeProxy(virtualCollection.getId()))
+        .set(VIRTUAL_COLLECTION.ID, removeHandleProxy(virtualCollection.getId()))
         .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
         .set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
         .set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
@@ -59,14 +59,14 @@ public class VirtualCollectionRepository {
 
   public void rollbackVirtualCollectionCreate(String id) {
     context.deleteFrom(Tables.VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(id)))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
         .execute();
   }
 
   public VirtualCollection getVirtualCollectionById(String id) {
     return context.select(VIRTUAL_COLLECTION.DATA)
         .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(id)))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
         .fetchOne(this::mapToVirtualCollection);
   }
 
@@ -104,7 +104,7 @@ public class VirtualCollectionRepository {
   public Optional<VirtualCollection> getActiveVirtualCollection(String id, String userId) {
     var query = context.select(VIRTUAL_COLLECTION.DATA)
         .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(id)))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
         .and(VIRTUAL_COLLECTION.TOMBSTONED.isNull());
     if (userId != null) {
       query = query.and(VIRTUAL_COLLECTION.CREATOR.eq(userId));
@@ -118,7 +118,7 @@ public class VirtualCollectionRepository {
         .set(VIRTUAL_COLLECTION.MODIFIED, tombstoneVirtualCollection.getSchemaDateModified().toInstant())
         .set(VIRTUAL_COLLECTION.VERSION, tombstoneVirtualCollection.getSchemaVersion())
         .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(tombstoneVirtualCollection))
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(tombstoneVirtualCollection.getId())))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombstoneVirtualCollection.getId())))
         .execute();
   }
 
@@ -131,7 +131,7 @@ public class VirtualCollectionRepository {
         .set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
         .set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
         .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(virtualCollection.getId())))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(virtualCollection.getId())))
         .execute();
   }
 }

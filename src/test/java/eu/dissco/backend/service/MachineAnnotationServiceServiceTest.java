@@ -4,6 +4,7 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenFlattenedDigitalMedia;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMas;
@@ -25,6 +26,7 @@ import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import eu.dissco.backend.schema.OdsHasTargetDigitalObjectFilter;
 import feign.FeignException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,11 +100,20 @@ class MachineAnnotationServiceServiceTest {
   @Test
   void testScheduleMass() throws Exception {
     // Given
-    var expected = new MasScheduleJobRequest(MAS_ID, ID, false, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN);
+    var expected = Set.of(new MasScheduleJobRequest(MAS_ID, ID, false, ORCID,
+        MjrTargetType.DIGITAL_SPECIMEN));
+    given(masClient.scheduleMas(expected)).willReturn(
+        MAPPER.readTree("""
+            [
+              {
+                "jobId" : "something"
+              }
+            ]
+            """));
 
     // When
-    service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+    service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN,
+        SANDBOX_URI);
 
     // Then
     then(masClient).should().scheduleMas(expected);
@@ -117,7 +128,7 @@ class MachineAnnotationServiceServiceTest {
     assertThrows(
         MasSchedulingException.class,
         () -> service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID,
-            MjrTargetType.DIGITAL_SPECIMEN));
+            MjrTargetType.DIGITAL_SPECIMEN, SANDBOX_URI));
 
   }
 

@@ -10,8 +10,6 @@ import org.jooq.Record;
 
 public class RepositoryUtils {
 
-  public static final String HANDLE_STRING = "https://hdl.handle.net/";
-  public static final String DOI_STRING = "https://doi.org/";
   protected static final int ONE_TO_CHECK_NEXT = 1;
 
   private RepositoryUtils() {

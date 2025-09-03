@@ -600,11 +600,12 @@ class DigitalSpecimenServiceTest {
     // Given
 
     // When
-    service.scheduleMass(ID, List.of(givenMasJobRequest()), ORCID);
+    service.scheduleMass(ID, List.of(givenMasJobRequest()), ORCID, SANDBOX_URI);
 
     // Then
     then(masService).should()
-        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN);
+        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN,
+            SANDBOX_URI);
   }
 
   @Test

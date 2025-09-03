@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.ProxyUtils.removeDoiProxy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -118,7 +118,7 @@ public class DigitalMediaService {
   private static List<String> getMediaIdsFromSpecimen(DigitalSpecimen specimen) {
     return specimen.getOdsHasEntityRelationships().stream()
         .filter(er -> er.getDwcRelationshipOfResource().equalsIgnoreCase("hasDigitalMedia"))
-        .map(er -> er.getDwcRelatedResourceID().replace(DOI_STRING, ""))
+        .map(er -> removeDoiProxy(er.getDwcRelatedResourceID()))
         .toList();
   }
 
@@ -158,7 +158,7 @@ public class DigitalMediaService {
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
     for (var entityRelationship : digitalMedia.getOdsHasEntityRelationships()) {
       if (entityRelationship.getDwcRelationshipOfResource().equals("hasDigitalSpecimen")) {
-        return entityRelationship.getDwcRelatedResourceID().replace(DOI_STRING, "");
+        return removeDoiProxy(entityRelationship.getDwcRelatedResourceID());
       }
     }
     log.warn("Digital Media Object with doi: {} is not attached to a specimen",
@@ -187,15 +187,8 @@ public class DigitalMediaService {
       log.error("Unable to find specimen for media with id {}", id);
       throw new NotFoundException("Unable to find related specimen for media with id " + id);
     }
-    masService.scheduleMas(
-        id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT);
-    var dataList = masRequests.stream()
-        .map(masRequest -> new JsonApiData(
-            masRequest.masId(),
-            "masJobRequest",
-            mapper.valueToTree(masRequest)
-        )).toList();
-    return new JsonApiListResponseWrapper(dataList, new JsonApiLinksFull(path));
+    return masService.scheduleMas(
+        id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT, path);
   }
 
 }
