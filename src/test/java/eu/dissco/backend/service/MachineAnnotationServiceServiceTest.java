@@ -1,5 +1,6 @@
 package eu.dissco.backend.service;
 
+import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.MAS_ID;
@@ -100,7 +101,7 @@ class MachineAnnotationServiceServiceTest {
   @Test
   void testScheduleMass() throws Exception {
     // Given
-    var expected = Set.of(new MasScheduleJobRequest(MAS_ID, ID, false, ORCID,
+    var expected = Set.of(new MasScheduleJobRequest(MAS_ID, DOI + ID, false, ORCID,
         MjrTargetType.DIGITAL_SPECIMEN));
     given(masClient.scheduleMas(expected)).willReturn(
         MAPPER.readTree("""
