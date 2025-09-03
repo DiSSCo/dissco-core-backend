@@ -165,12 +165,11 @@ class DigitalMediaControllerTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
-    var request = givenMasRequest();
     givenAuthentication();
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request,
-        authentication);
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, givenMasRequest(),
+        authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -185,8 +184,8 @@ class DigitalMediaControllerTest {
 
     // When / Then
     assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication
-        ));
+        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication,
+            mockRequest));
   }
 
   @Test

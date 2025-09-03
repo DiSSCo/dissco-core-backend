@@ -374,7 +374,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiWrapper> searchTermValue(
       @Parameter(description = "Term to search on") @RequestParam String term,
       @Parameter(description = "Value of term") @RequestParam String value,
-      @Parameter (description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
+      @Parameter(description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
       HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request text search for term value of term: {} with value: {}", term, value);
@@ -430,9 +430,9 @@ public class DigitalSpecimenController extends BaseController {
   @Operation(
       summary = "Schedule Machine Annotation Services",
       description = """
-         Schedules applicable MASs on a given digital media.
-         Only users who have provided their ORCID may schedule MASs.
-         """
+          Schedules applicable MASs on a given digital media.
+          Only users who have provided their ORCID may schedule MASs.
+          """
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "MAS successfully scheduled", content = {
@@ -442,9 +442,8 @@ public class DigitalSpecimenController extends BaseController {
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> scheduleMassForDigitalSpecimen(
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
-      HttpServletRequest request, MasSchedulingException)
-      throws ConflictException, ForbiddenException, NotFoundException {
+      @RequestBody MasSchedulingRequest requestBody, Authentication authentication)
+      throws ConflictException, ForbiddenException, MasSchedulingException {
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);

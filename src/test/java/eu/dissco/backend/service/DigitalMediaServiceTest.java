@@ -5,6 +5,7 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
@@ -295,8 +296,13 @@ class DigitalMediaServiceTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
+    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(givenDigitalMediaObject(ID));
+    given(
+        digitalSpecimenRepository.getLatestSpecimenById(any())).willReturn(
+        givenDigitalSpecimenWrapper(MAS_ID));
+
     // When
-    service.scheduleMass(ID, List.of(givenMasJobRequest()), ORCID);
+    service.scheduleMass(ID, List.of(givenMasJobRequest()), SANDBOX_URI, ORCID);
 
     // Then
     then(masService).should()

@@ -20,7 +20,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -174,13 +173,13 @@ public class DigitalMediaService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
+  public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
       String path, String orcid)
-      throws PidException, ConflictException, NotFoundException {
+      throws NotFoundException, MasSchedulingException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     if (digitalMedia == null) {
       log.error("Unable to find media with id {}", id);
-      throw new NotFoundException("Specimen " + id + " not found");
+      throw new NotFoundException("Media " + id + " not found");
     }
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));
@@ -188,9 +187,15 @@ public class DigitalMediaService {
       log.error("Unable to find specimen for media with id {}", id);
       throw new NotFoundException("Unable to find related specimen for media with id " + id);
     }
-    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
-        MjrTargetType.MEDIA_OBJECT);
+    masService.scheduleMas(
+        id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT);
+    var dataList = masRequests.stream()
+        .map(masRequest -> new JsonApiData(
+            masRequest.masId(),
+            "masJobRequest",
+            mapper.valueToTree(masRequest)
+        )).toList();
+    return new JsonApiListResponseWrapper(dataList, new JsonApiLinksFull(path));
   }
 
 }

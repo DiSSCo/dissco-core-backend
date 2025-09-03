@@ -19,7 +19,6 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -229,24 +228,24 @@ public class DigitalMediaController extends BaseController {
          """
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS successfully scheduled", content = {
+      @ApiResponse(responseCode = "202", description = "MAS successfully scheduled", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
       })
   })
   @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> scheduleMassForDigitalMediaObject(
+  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, PidException, NotFoundException, MasSchedulingException {
+      throws ConflictException, ForbiddenException, NotFoundException, MasSchedulingException {
+    var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
         masRequests, id);
-    service.scheduleMass(id, masRequests, orcid);
-    return ResponseEntity.accepted().build();
+    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
   }
 
 }
