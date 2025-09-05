@@ -54,7 +54,8 @@ public class MachineAnnotationServiceService {
               valueList))) {
             complies = false;
           }
-        } else if (values instanceof Object && (!allowedValues.contains(values) && !allowedValues.contains("*"))) {
+        } else if (values instanceof Object && (!allowedValues.contains(values)
+            && !allowedValues.contains("*"))) {
           complies = false;
         }
       } catch (PathNotFoundException e) {
@@ -97,12 +98,12 @@ public class MachineAnnotationServiceService {
       var result = masClient.scheduleMas(masScheduleJobRequests);
       return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
       }), path);
-      } catch (FeignException e) {
-        throw new MasSchedulingException(e.contentUTF8());
+    } catch (FeignException e) {
+      throw new MasSchedulingException(e.contentUTF8());
     } catch (JsonProcessingException e) {
       log.error("Unable to read response from mas scheduler");
       throw new MasSchedulingException("Unable to read response from mas scheduler");
-      }
+    }
   }
 
   private JsonApiListResponseWrapper formatMasScheduleResponse(List<MasJobRecord> masJobRecords,
