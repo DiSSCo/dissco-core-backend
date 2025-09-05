@@ -151,10 +151,6 @@ public class MasJobRecordService {
     }
   }
 
-  public void markMasJobRecordAsFailed(List<String> failedJobIds) {
-    masJobRecordRepository.markMasJobRecordsAsFailed(failedJobIds);
-  }
-
   private MjrTargetType getMjrTargetType(Annotation annotation){
     var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsFdoType());
     if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)){

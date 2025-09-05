@@ -205,15 +205,6 @@ class MasJobRecordServiceTest {
   }
 
   @Test
-  void testMarkMasJobRecordAsFailed() {
-    // When
-    masJobRecordService.markMasJobRecordAsFailed(List.of(JOB_ID));
-
-    // Then
-    then(masJobRecordRepository).should().markMasJobRecordsAsFailed(List.of(JOB_ID));
-  }
-
-  @Test
   void testMarkMasJobRecordAsRunning() throws Exception {
     // Given
     given(masJobRecordRepository.markMasJobRecordAsRunning(ID, JOB_ID)).willReturn(1);

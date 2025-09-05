@@ -9,7 +9,6 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -45,15 +44,6 @@ public class MachineAnnotationServiceUtils {
     var links = new JsonApiLinksFull(path);
     var masRecords = List.of(
         new JsonApiData(masRecord.getId(), "ods:MachineAnnotationService", masRecord, MAPPER));
-    return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
-  }
-
-  public static JsonApiListResponseWrapper givenScheduledMasResponse(MasJobRecord masJobRecord,
-      String path) {
-    var links = new JsonApiLinksFull(path);
-    var masRecords = List.of(
-        new JsonApiData(masJobRecord.jobId(), "MachineAnnotationServiceJobRecord", masJobRecord,
-            MAPPER));
     return new JsonApiListResponseWrapper(masRecords, links, new JsonApiMeta(masRecords.size()));
   }
 

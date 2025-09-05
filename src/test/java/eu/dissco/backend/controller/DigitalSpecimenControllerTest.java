@@ -1,10 +1,8 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SUFFIX;
@@ -262,12 +260,8 @@ class DigitalSpecimenControllerTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
-    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
     var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), ORCID,
-        SPECIMEN_PATH)).willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
     var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
@@ -275,7 +269,6 @@ class DigitalSpecimenControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test

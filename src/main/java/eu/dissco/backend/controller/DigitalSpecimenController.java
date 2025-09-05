@@ -1,7 +1,7 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +19,7 @@ import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseList;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseSingle;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
@@ -149,7 +150,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @PathVariable("version") int version,
       HttpServletRequest request) throws NotFoundException, JsonProcessingException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {} and version: {}", id, version);
     var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -168,7 +169,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var specimen = service.getSpecimenByVersion(id, version, getPath(request));
     return ResponseEntity.ok(specimen);
@@ -186,7 +187,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request) throws NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var versions = service.getSpecimenVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
@@ -373,7 +374,7 @@ public class DigitalSpecimenController extends BaseController {
   public ResponseEntity<JsonApiWrapper> searchTermValue(
       @Parameter(description = "Term to search on") @RequestParam String term,
       @Parameter(description = "Value of term") @RequestParam String value,
-      @Parameter (description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
+      @Parameter(description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
       HttpServletRequest request)
       throws IOException, UnknownParameterException {
     log.info("Request text search for term value of term: {} with value: {}", term, value);
@@ -429,9 +430,9 @@ public class DigitalSpecimenController extends BaseController {
   @Operation(
       summary = "Schedule Machine Annotation Services",
       description = """
-         Schedules applicable MASs on a given digital media.
-         Only users who have provided their ORCID may schedule MASs.
-         """
+          Schedules applicable MASs on a given digital media.
+          Only users who have provided their ORCID may schedule MASs.
+          """
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "MAS successfully scheduled", content = {
@@ -443,14 +444,14 @@ public class DigitalSpecimenController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, NotFoundException {
+      throws ConflictException, ForbiddenException, MasSchedulingException {
+    var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
         masRequests, id);
-    var massResponse = service.scheduleMass(id, masRequests, orcid, getPath(request));
-    return ResponseEntity.accepted().body(massResponse);
+    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
   }
 
 }

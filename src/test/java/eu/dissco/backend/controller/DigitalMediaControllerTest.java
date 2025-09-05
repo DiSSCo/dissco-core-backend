@@ -1,10 +1,8 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
@@ -35,7 +33,6 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -168,20 +165,14 @@ class DigitalMediaControllerTest {
   @Test
   void testScheduleMas() throws Exception {
     // Given
-    var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
-    var request = givenMasRequest();
     givenAuthentication();
-    given(service.scheduleMass(ID, Map.of(HANDLE + ID, givenMasJobRequest()), DIGITAL_MEDIA_PATH,
-        ORCID)).willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request,
+    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, givenMasRequest(),
         authentication, mockRequest);
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-    assertThat(result.getBody()).isEqualTo(expectedResponse);
   }
 
   @Test

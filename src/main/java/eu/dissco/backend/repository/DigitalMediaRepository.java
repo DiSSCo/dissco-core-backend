@@ -1,10 +1,10 @@
 package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_MEDIA_OBJECT;
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,8 +60,8 @@ public class DigitalMediaRepository {
     try {
       return mapper.readValue(dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
               DigitalMedia.class)
-          .withId(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
-          .withDctermsIdentifier(DOI_STRING + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
+          .withId(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
+          .withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
           .withOdsFdoType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));

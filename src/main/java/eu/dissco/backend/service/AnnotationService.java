@@ -2,7 +2,8 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
-import static eu.dissco.backend.utils.HandleProxyUtils.HANDLE_PROXY;
+import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
+import static eu.dissco.backend.utils.ProxyUtils.getFullId;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,6 +29,7 @@ import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.utils.JsonApiUtils;
+import eu.dissco.backend.utils.ProxyUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -221,7 +223,7 @@ public class AnnotationService {
   }
 
   public Map<String, List<Annotation>> getAnnotationForTargetObjects(List<String> ids) {
-    var annotations = repository.getForTargets(ids.stream().map(AnnotationService::getFullId).toList());
+    var annotations = repository.getForTargets(ids.stream().map(ProxyUtils::getFullId).toList());
     var annotationMap = new HashMap<String, List<Annotation>>();
     annotations.forEach(
         annotation -> annotationMap.computeIfAbsent(
@@ -234,10 +236,6 @@ public class AnnotationService {
     var fullId = getFullId(id);
     var annotations = repository.getForTarget(fullId);
     return wrapListResponse(annotations, path);
-  }
-
-  private static String getFullId(String id) {
-    return (id.contains("https://doi.org/")) ? id : "https://doi.org/" + id;
   }
 
   // Response Constructors

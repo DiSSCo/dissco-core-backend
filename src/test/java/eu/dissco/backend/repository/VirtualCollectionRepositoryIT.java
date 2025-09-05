@@ -6,7 +6,7 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.database.jooq.Tables.VIRTUAL_COLLECTION;
-import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
+import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,7 +130,7 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
     // Then
     var result = context.select(VIRTUAL_COLLECTION.TOMBSTONED)
         .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(tombStonedvirtualCollection.getId())))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombStonedvirtualCollection.getId())))
         .fetchOne(VIRTUAL_COLLECTION.TOMBSTONED);
     assertThat(result).isEqualTo(CREATED);
   }
@@ -147,7 +147,7 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
     // Then
     var result = context.select(VIRTUAL_COLLECTION.DATA)
         .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeProxy(updatedRecord.getId())))
+        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(updatedRecord.getId())))
         .fetchOne(VIRTUAL_COLLECTION.DATA);
     assertThat(MAPPER.readValue(result.data(), VirtualCollection.class)).isEqualTo(updatedRecord);
   }

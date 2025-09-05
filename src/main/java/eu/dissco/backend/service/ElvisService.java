@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 
+import static eu.dissco.backend.utils.ProxyUtils.removeDoiProxy;
 import static java.lang.Math.min;
 
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
@@ -43,7 +44,8 @@ public class ElvisService {
     var specimenList = results.getRight();
     return new InventoryNumberSuggestionResponse(results.getLeft(), specimenList.stream().map(
         specimen -> new InventoryNumberSuggestion(
-            specimen.getOdsPhysicalSpecimenID(), specimen.getDctermsIdentifier().replace("https://doi.org/",""))).toList());
+            specimen.getOdsPhysicalSpecimenID(), removeDoiProxy(specimen.getDctermsIdentifier())))
+        .toList());
   }
 
   private Pair<Long, List<DigitalSpecimen>> searchElastic(String inventoryNumber, int pageNumber,

@@ -1,8 +1,8 @@
 package eu.dissco.backend.controller;
 
 
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,8 +17,8 @@ import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -123,7 +123,7 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
       throws NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for versions of digital media with id: {}", id);
     var versions = service.getDigitalMediaVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
@@ -142,7 +142,7 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = DOI_STRING + prefix + '/' + suffix;
+    var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
     var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));
     return ResponseEntity.ok(digitalMedia);
@@ -228,7 +228,7 @@ public class DigitalMediaController extends BaseController {
          """
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS successfully scheduled", content = {
+      @ApiResponse(responseCode = "202", description = "MAS successfully scheduled", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
       })
   })
@@ -238,15 +238,14 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, PidException, NotFoundException {
+      throws ConflictException, ForbiddenException, NotFoundException, MasSchedulingException {
+    var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;
     var masRequests = getMassRequestFromRequest(requestBody);
     log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
         masRequests, id);
-
-    var massResponse = service.scheduleMass(id, masRequests, getPath(request), orcid);
-    return ResponseEntity.accepted().body(massResponse);
+    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
   }
 
 }
