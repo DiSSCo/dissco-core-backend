@@ -1,3 +1,7 @@
 # Jul 16 2025
 # Issue with commons-fileupload, needs an update of spring-cloud-openfeign
 CVE-2025-48976
+
+# Sep 5 2025
+# Issue with Netty, wait for spring boot upgrade
+CVE-2025-58056
