@@ -99,7 +99,9 @@ public class MachineAnnotationServiceService {
       return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
       }), path);
     } catch (FeignException e) {
-      throw new MasSchedulingException(e.contentUTF8());
+      log.error("An error has occurred with MAS Scheduler Client", e);
+      var msg = e.contentUTF8().isBlank() ? e.getMessage() : e.contentUTF8();
+      throw new MasSchedulingException(msg);
     } catch (JsonProcessingException e) {
       log.error("Unable to read response from mas scheduler");
       throw new MasSchedulingException("Unable to read response from mas scheduler");
