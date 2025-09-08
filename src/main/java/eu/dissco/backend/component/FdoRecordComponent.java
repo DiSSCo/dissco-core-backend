@@ -1,6 +1,6 @@
 package eu.dissco.backend.component;
 
-import static eu.dissco.backend.utils.HandleProxyUtils.removeProxy;
+import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +48,7 @@ public class FdoRecordComponent {
   }
 
   public JsonNode getRollbackCreateRequest(String handle) {
-    var dataNode = List.of(mapper.createObjectNode().put("id", removeProxy(handle)));
+    var dataNode = List.of(mapper.createObjectNode().put("id", removeHandleProxy(handle)));
     ArrayNode dataArrayNode = mapper.valueToTree(dataNode);
     return mapper.createObjectNode().set("data", dataArrayNode);
   }
@@ -56,7 +56,7 @@ public class FdoRecordComponent {
   public JsonNode getPatchHandleRequest(VirtualCollection virtualCollection) {
     return mapper.createObjectNode()
         .set(DATA, mapper.createObjectNode()
-            .put(ID, removeProxy(virtualCollection.getId()))
+            .put(ID, removeHandleProxy(virtualCollection.getId()))
             .put(TYPE, FdoType.VIRTUAL_COLLECTION.getPid())
             .set(ATTRIBUTES, getAttributes(virtualCollection.getLtcCollectionName(),
                 virtualCollection.getLtcBasisOfScheme().value())));
@@ -65,7 +65,7 @@ public class FdoRecordComponent {
   public JsonNode getTombstoneRequest(String handle) {
     return mapper.createObjectNode()
         .set(DATA, mapper.createObjectNode()
-            .put(ID, removeProxy(handle))
+            .put(ID, removeHandleProxy(handle))
             .put(TYPE, FdoType.VIRTUAL_COLLECTION.getPid())
             .set(ATTRIBUTES, mapper.createObjectNode()
                 .put("tombstoneText", FdoType.VIRTUAL_COLLECTION.getName()

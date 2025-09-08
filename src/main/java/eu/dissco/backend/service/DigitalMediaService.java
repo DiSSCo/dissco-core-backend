@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.repository.RepositoryUtils.DOI_STRING;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.ProxyUtils.removeDoiProxy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,16 +18,14 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.ConflictException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -120,7 +118,7 @@ public class DigitalMediaService {
   private static List<String> getMediaIdsFromSpecimen(DigitalSpecimen specimen) {
     return specimen.getOdsHasEntityRelationships().stream()
         .filter(er -> er.getDwcRelationshipOfResource().equalsIgnoreCase("hasDigitalMedia"))
-        .map(er -> er.getDwcRelatedResourceID().replace(DOI_STRING, ""))
+        .map(er -> removeDoiProxy(er.getDwcRelatedResourceID()))
         .toList();
   }
 
@@ -160,7 +158,7 @@ public class DigitalMediaService {
   private String getDsDoiFromDmo(DigitalMedia digitalMedia) {
     for (var entityRelationship : digitalMedia.getOdsHasEntityRelationships()) {
       if (entityRelationship.getDwcRelationshipOfResource().equals("hasDigitalSpecimen")) {
-        return entityRelationship.getDwcRelatedResourceID().replace(DOI_STRING, "");
+        return removeDoiProxy(entityRelationship.getDwcRelatedResourceID());
       }
     }
     log.warn("Digital Media Object with doi: {} is not attached to a specimen",
@@ -175,13 +173,13 @@ public class DigitalMediaService {
     return objectNode;
   }
 
-  public JsonApiListResponseWrapper scheduleMass(String id, Map<String, MasJobRequest> masRequests,
+  public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
       String path, String orcid)
-      throws PidException, ConflictException, NotFoundException {
+      throws NotFoundException, MasSchedulingException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     if (digitalMedia == null) {
       log.error("Unable to find media with id {}", id);
-      throw new NotFoundException("Specimen " + id + " not found");
+      throw new NotFoundException("Media " + id + " not found");
     }
     var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(
         getDsDoiFromDmo(digitalMedia));
@@ -189,9 +187,8 @@ public class DigitalMediaService {
       log.error("Unable to find specimen for media with id {}", id);
       throw new NotFoundException("Unable to find related specimen for media with id " + id);
     }
-    var flattenObjectData = flattenAttributes(digitalMedia, digitalSpecimen);
-    return masService.scheduleMass(flattenObjectData, masRequests, path, digitalMedia, id, orcid,
-        MjrTargetType.MEDIA_OBJECT);
+    return masService.scheduleMas(
+        id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT, path);
   }
 
 }

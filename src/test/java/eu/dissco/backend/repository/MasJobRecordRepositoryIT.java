@@ -103,53 +103,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordsByCreator() throws JsonProcessingException {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted(ID)));
-
-    // When
-    var result = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT, null, 1, 10);
-
-    // Then
-    assertThat(result).isEqualTo(List.of(expected));
-  }
-
-  @Test
-  void testGetMasJobRecordsByCreatorAndStatus() throws JsonProcessingException {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
-
-    // When
-    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        JobState.FAILED, 1, 10);
-    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        JobState.SCHEDULED, 1, 10);
-
-    // Then
-    assertThat(resultStatusFailed).isEmpty();
-    assertThat(resultStatusScheduled).isEqualTo(List.of(expected));
-  }
-
-  @Test
-  void testGetMasJobRecordsByTargetId() throws JsonProcessingException {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
-
-    // When
-    var resultStatusFailed = masJobRecordRepository.getMasJobRecordsByTargetId(ID_ALT,
-        JobState.FAILED, 1, 10);
-    var resultStatusScheduled = masJobRecordRepository.getMasJobRecordsByMasId(ID_ALT,
-        JobState.SCHEDULED, 1, 10);
-
-    // Then
-    assertThat(resultStatusFailed).isEmpty();
-    assertThat(resultStatusScheduled).isEqualTo(List.of(expected));
-  }
-
-  @Test
   void testCreateNewMasJobRecord() {
     // Given
     var mjr = new MasJobRecord(JOB_ID, JobState.SCHEDULED, ID, ID_ALT,
@@ -163,26 +116,6 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     // Then
     assertThat(result.get(MAS_JOB_RECORD.JOB_ID)).isEqualTo(JOB_ID);
     assertThat(result.get(MAS_JOB_RECORD.JOB_STATE)).isEqualTo(JobState.SCHEDULED);
-  }
-
-  @Test
-  void testMarkMasJobRecordsAsFailed() throws Exception {
-    // Given
-    postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
-
-    // When
-    masJobRecordRepository.markMasJobRecordsAsFailed(List.of(JOB_ID));
-    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE,
-            MAS_JOB_RECORD.TIME_COMPLETED)
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
-        .fetchSingle();
-    var timestamp = result.get(MAS_JOB_RECORD.TIME_COMPLETED);
-    var state = result.get(MAS_JOB_RECORD.JOB_STATE);
-
-    // Then
-    assertThat(timestamp).isNotNull();
-    assertThat(state).isEqualTo(JobState.FAILED);
   }
 
   @Test

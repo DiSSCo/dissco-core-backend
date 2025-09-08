@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
+import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
@@ -98,6 +99,17 @@ class RestResponseEntityExceptionHandlerTest {
 
     // When
     var result = exceptionHandler.handleException(new IllegalArgumentException());
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void testMasSchedulingException() {
+    // Given
+
+    // When
+    var result = exceptionHandler.handleException(new MasSchedulingException(""));
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);

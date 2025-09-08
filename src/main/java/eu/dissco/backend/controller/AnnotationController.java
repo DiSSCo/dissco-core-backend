@@ -1,8 +1,8 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
-import static eu.dissco.backend.repository.RepositoryUtils.HANDLE_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -97,7 +97,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
       throws JsonProcessingException, NotFoundException {
-    var id = HANDLE_STRING + prefix + '/' + suffix;
+    var id = HANDLE_PROXY + prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, getPath(request));
     return ResponseEntity.ok(annotation);
@@ -279,7 +279,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request) throws NotFoundException {
-    var id = HANDLE_STRING + prefix + '/' + suffix;
+    var id = HANDLE_PROXY + prefix + '/' + suffix;
     log.info("Received get request for versions of annotationRequests with id: {}", id);
     var versions = service.getAnnotationVersions(id, getPath(request));
     return ResponseEntity.ok(versions);
