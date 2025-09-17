@@ -75,7 +75,7 @@ public class VirtualCollectionService {
       rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
     } catch (JsonProcessingException e) {
       log.error(
-          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manuel action required",
+          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manual action required",
           e);
     }
   }
