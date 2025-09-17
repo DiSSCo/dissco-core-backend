@@ -1,6 +1,7 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
+import static eu.dissco.backend.domain.VirtualCollectionAction.DELETE;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
@@ -9,6 +10,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
+import eu.dissco.backend.domain.VirtualCollectionAction;
+import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -56,12 +59,25 @@ public class VirtualCollectionService {
     log.info("Requesting handle for Virtual Collection: {}",
         virtualCollectionRequest.getLtcCollectionName());
     String handle = postHandle(virtualCollectionRequest);
-    var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle, Date.from(Instant.now()));
+    var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle,
+        Date.from(Instant.now()));
     repository.createVirtualCollection(virtualCollection);
     publishCreateEvent(virtualCollection, agent);
+    publishVirtualCollectionEvent(new VirtualCollectionEvent(
+        VirtualCollectionAction.CREATE, virtualCollection));
     var dataNode = new JsonApiData(virtualCollection.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
         mapper.valueToTree(virtualCollection));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+  }
+
+  private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
+    try {
+      rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+    } catch (JsonProcessingException e) {
+      log.error(
+          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manual action required",
+          e);
+    }
   }
 
   private String postHandle(VirtualCollectionRequest virtualCollectionRequest) {
@@ -96,7 +112,8 @@ public class VirtualCollectionService {
     repository.rollbackVirtualCollectionCreate(virtualCollection.getId());
   }
 
-  private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection, int version,
+  private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection,
+      int version,
       Agent agent, String handle, Date createdTimestamp) {
     var id = HANDLE_PROXY + handle;
     return new VirtualCollection()
@@ -185,12 +202,19 @@ public class VirtualCollectionService {
       String id) {
     tombstoneHandle(id);
     var timestamp = Instant.now();
-    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent, timestamp);
+    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent,
+        timestamp);
     repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
+    publishTombstoneEvent(agent, virtualCollection, tombstoneVirtualCollection);
+    publishVirtualCollectionEvent(new VirtualCollectionEvent(DELETE, tombstoneVirtualCollection));
+    return true;
+  }
+
+  private void publishTombstoneEvent(Agent agent, VirtualCollection virtualCollection,
+      VirtualCollection tombstoneVirtualCollection) {
     try {
       rabbitMqPublisherService.publishTombstoneEvent(mapper.valueToTree(tombstoneVirtualCollection),
           mapper.valueToTree(virtualCollection), agent);
-      return true;
     } catch (JsonProcessingException e) {
       log.error("Unable to publish tombstone event to provenance service", e);
       throw new ProcessingFailedException(

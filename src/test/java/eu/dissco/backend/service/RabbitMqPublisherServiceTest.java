@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.dissco.backend.domain.VirtualCollectionAction;
+import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.schema.CreateUpdateTombstoneEvent;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.io.IOException;
@@ -31,6 +33,7 @@ class RabbitMqPublisherServiceTest {
 
   private static final String ROUTING_KEY = "ABC-123-XYZ";
   private static final String CREATE_UPDATE_TOMBSTONE = "create-update-tombstone";
+  private static final String VIRTUAL_COLLECTION = "virtual-collection";
 
   private static RabbitMQContainer container;
   private static RabbitTemplate rabbitTemplate;
@@ -48,6 +51,9 @@ class RabbitMqPublisherServiceTest {
     declareRabbitResources(CREATE_UPDATE_TOMBSTONE + "-exchange",
         CREATE_UPDATE_TOMBSTONE + "-queue",
         CREATE_UPDATE_TOMBSTONE);
+    declareRabbitResources(VIRTUAL_COLLECTION + "-exchange",
+        VIRTUAL_COLLECTION + "-queue",
+        VIRTUAL_COLLECTION);
 
     CachingConnectionFactory factory = new CachingConnectionFactory(container.getHost());
     factory.setPort(container.getAmqpPort());
@@ -81,6 +87,10 @@ class RabbitMqPublisherServiceTest {
         CREATE_UPDATE_TOMBSTONE + "-exchange");
     ReflectionTestUtils.setField(rabbitMqPublisherService, "cutRoutingKey",
         CREATE_UPDATE_TOMBSTONE);
+    ReflectionTestUtils.setField(rabbitMqPublisherService, "virtualCollectionExchange",
+        VIRTUAL_COLLECTION + "-exchange");
+    ReflectionTestUtils.setField(rabbitMqPublisherService, "virtualCollectionRoutingKey",
+        VIRTUAL_COLLECTION);
   }
 
   @Test
@@ -89,7 +99,7 @@ class RabbitMqPublisherServiceTest {
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
 
     // When
-    rabbitMqPublisherService.sendObjectToQueue(ROUTING_KEY, digitalSpecimen);
+    rabbitMqPublisherService.publishMasRequestEvent(ROUTING_KEY, digitalSpecimen);
 
     // Then
     var result = rabbitTemplate.receive(ROUTING_KEY + "-queue");
@@ -152,4 +162,19 @@ class RabbitMqPublisherServiceTest {
         CreateUpdateTombstoneEvent.class).getId()).isEqualTo(ID);
   }
 
+  @Test
+  void testPublishVirtualCollectionEvent() throws JsonProcessingException {
+    // Given
+    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+    var virtualCollectionEvent = new VirtualCollectionEvent(
+        VirtualCollectionAction.CREATE, virtualCollection);
+
+    // When
+    rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+
+    // Then
+    var result = rabbitTemplate.receive(VIRTUAL_COLLECTION + "-queue");
+    assertThat(MAPPER.readValue(new String(result.getBody()),
+        VirtualCollectionEvent.class)).isEqualTo(virtualCollectionEvent);
+  }
 }
