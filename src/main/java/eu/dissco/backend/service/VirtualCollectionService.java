@@ -59,7 +59,8 @@ public class VirtualCollectionService {
     log.info("Requesting handle for Virtual Collection: {}",
         virtualCollectionRequest.getLtcCollectionName());
     String handle = postHandle(virtualCollectionRequest);
-    var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle, Date.from(Instant.now()));
+    var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle,
+        Date.from(Instant.now()));
     repository.createVirtualCollection(virtualCollection);
     publishCreateEvent(virtualCollection, agent);
     publishVirtualCollectionEvent(new VirtualCollectionEvent(
@@ -73,7 +74,9 @@ public class VirtualCollectionService {
     try {
       rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
     } catch (JsonProcessingException e) {
-      log.error("Fatal exception, unable to publish virtual collection event to RabbitMQ. Manuel action required", e);
+      log.error(
+          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manuel action required",
+          e);
     }
   }
 
@@ -109,7 +112,8 @@ public class VirtualCollectionService {
     repository.rollbackVirtualCollectionCreate(virtualCollection.getId());
   }
 
-  private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection, int version,
+  private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection,
+      int version,
       Agent agent, String handle, Date createdTimestamp) {
     var id = HANDLE_PROXY + handle;
     return new VirtualCollection()
@@ -198,7 +202,8 @@ public class VirtualCollectionService {
       String id) {
     tombstoneHandle(id);
     var timestamp = Instant.now();
-    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent, timestamp);
+    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent,
+        timestamp);
     repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
     publishTombstoneEvent(agent, virtualCollection, tombstoneVirtualCollection);
     publishVirtualCollectionEvent(new VirtualCollectionEvent(DELETE, tombstoneVirtualCollection));

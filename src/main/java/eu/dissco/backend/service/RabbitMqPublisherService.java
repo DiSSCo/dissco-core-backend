@@ -30,8 +30,10 @@ public class RabbitMqPublisherService {
   @Value("${rabbitmq.virtual-collection.routing-key:virtual-collection}")
   private String virtualCollectionRoutingKey;
 
-  public void publishMasRequestEvent(String routingKey, Object object) throws JsonProcessingException {
-    log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey, object);
+  public void publishMasRequestEvent(String routingKey, Object object)
+      throws JsonProcessingException {
+    log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey,
+        object);
     rabbitTemplate.convertAndSend(masExchangeName, routingKey, mapper.writeValueAsString(object));
   }
 
@@ -59,7 +61,8 @@ public class RabbitMqPublisherService {
   public void publishVirtualCollectionEvent(VirtualCollectionEvent event)
       throws JsonProcessingException {
     log.info("Publishing {} virtual-collection to queue", event.action());
-    rabbitTemplate.convertAndSend(virtualCollectionExchange, virtualCollectionRoutingKey, mapper.writeValueAsString(event));
+    rabbitTemplate.convertAndSend(virtualCollectionExchange, virtualCollectionRoutingKey,
+        mapper.writeValueAsString(event));
   }
 
 }
