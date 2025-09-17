@@ -8,6 +8,7 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
+import static eu.dissco.backend.domain.VirtualCollectionAction.DELETE;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
@@ -29,6 +30,8 @@ import static org.mockito.Mockito.mockStatic;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MongoCollection;
+import eu.dissco.backend.domain.VirtualCollectionAction;
+import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -206,6 +209,9 @@ class VirtualCollectionServiceTest {
     then(repository).should().createVirtualCollection(virtualCollection);
     then(rabbitMqPublisherService).should()
         .publishCreateEvent(MAPPER.valueToTree(virtualCollection), agent);
+    then(rabbitMqPublisherService).should()
+        .publishVirtualCollectionEvent(
+            new VirtualCollectionEvent(VirtualCollectionAction.CREATE, virtualCollection));
     assertThat(result).isEqualTo(expected);
   }
 
@@ -249,6 +255,9 @@ class VirtualCollectionServiceTest {
     then(rabbitMqPublisherService).should()
         .publishTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
             MAPPER.valueToTree(virtualCollection), agent);
+    then(rabbitMqPublisherService).should()
+        .publishVirtualCollectionEvent(new VirtualCollectionEvent(
+            DELETE, tombstoneVirtualCollection));
     assertThat(result).isTrue();
   }
 

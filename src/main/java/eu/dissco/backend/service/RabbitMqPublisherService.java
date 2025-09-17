@@ -3,6 +3,7 @@ package eu.dissco.backend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.schema.Agent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +20,19 @@ public class RabbitMqPublisherService {
   private final RabbitTemplate rabbitTemplate;
   private final ProvenanceService provenanceService;
   @Value("${rabbitmq.mas-exchange-name:mas-exchange}")
-  private String exchangeName = "mas-exchange";
+  private String masExchangeName = "mas-exchange";
   @Value("${rabbitmq.create-update-tombstone.exchange-name:create-update-tombstone-exchange}")
   private String cutExchange;
   @Value("${rabbitmq.create-update-tombstone.routing-key:create-update-tombstone}")
   private String cutRoutingKey;
+  @Value(value = "${rabbitmq.virtual-collection.exchange-name:virtual-collection-exchange}")
+  private String virtualCollectionExchange;
+  @Value("${rabbitmq.virtual-collection.routing-key:virtual-collection}")
+  private String virtualCollectionRoutingKey;
 
-  public void sendObjectToQueue(String routingKey, Object object) throws JsonProcessingException {
-    log.debug("Sending to exchange with routing key: {} and with object: {}", routingKey, object);
-    rabbitTemplate.convertAndSend(exchangeName, routingKey, mapper.writeValueAsString(object));
+  public void publishMasRequestEvent(String routingKey, Object object) throws JsonProcessingException {
+    log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey, object);
+    rabbitTemplate.convertAndSend(masExchangeName, routingKey, mapper.writeValueAsString(object));
   }
 
   public void publishCreateEvent(JsonNode object, Agent agent)
@@ -49,6 +54,12 @@ public class RabbitMqPublisherService {
     var event = provenanceService.generateTombstoneEvent(tombstoneObject, currentObject, agent);
     log.info("Publishing new tombstone message to queue: {}", event);
     rabbitTemplate.convertAndSend(cutExchange, cutRoutingKey, mapper.writeValueAsString(event));
+  }
+
+  public void publishVirtualCollectionEvent(VirtualCollectionEvent event)
+      throws JsonProcessingException {
+    log.info("Publishing {} virtual-collection to queue", event.action());
+    rabbitTemplate.convertAndSend(virtualCollectionExchange, virtualCollectionRoutingKey, mapper.writeValueAsString(event));
   }
 
 }
