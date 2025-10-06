@@ -280,8 +280,8 @@ public class DigitalSpecimenService {
         throw new UnknownParameterException(
             "Parameter :" + entry.getKey() + " accepts at most 1 value");
       }
-      if (!(entry.getValue().getFirst().equals("true") && entry.getValue().getFirst()
-          .equals("false"))) {
+      if (!entry.getValue().getFirst().equals("true") && !entry.getValue().getFirst()
+          .equals("false")) {
         throw new UnknownParameterException(
             "Parameter : " + entry.getKey() + " must be either true or false");
       }

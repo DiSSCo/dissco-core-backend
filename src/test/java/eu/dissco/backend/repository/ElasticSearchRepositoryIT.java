@@ -316,6 +316,8 @@ class ElasticSearchRepositoryIT {
     var aggregation = responseReceived.getRight();
     assertThat(aggregation.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
     assertThat(aggregation.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_1, 5L);
+    assertThat(aggregation.get("missingData")).containsEntry("noLongitude", 10L);
+    assertThat(aggregation.get("missingData")).containsEntry("noCountry", 0L);
     assertThat(responseReceived.getLeft()).isEqualTo(10L);
   }
 
@@ -344,6 +346,7 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
     assertThat(responseReceived.get("sourceSystemID")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
+    assertThat(responseReceived).doesNotContainKey("missingData");
   }
 
   @Test

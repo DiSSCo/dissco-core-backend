@@ -48,10 +48,12 @@ public enum MissingMappingTerms implements MappingTerm {
 
   private static Map<String, MissingMappingTerms> fillMissingMapping() {
     var paramMap = new HashMap<String, MissingMappingTerms>();
+    paramMap.put(HAS_KINGDOM.requestName, HAS_KINGDOM);
+    paramMap.put(HAS_PHYLUM.requestName, HAS_PHYLUM);
     paramMap.put(HAS_CLASS.requestName, HAS_CLASS);
     paramMap.put(HAS_ORDER.requestName, HAS_ORDER);
-    paramMap.put(HAS_GENUS.requestName, HAS_GENUS);
     paramMap.put(HAS_FAMILY.requestName, HAS_FAMILY);
+    paramMap.put(HAS_GENUS.requestName, HAS_GENUS);
     paramMap.put(HAS_SPECIES.requestName, HAS_SPECIES);
     paramMap.put(HAS_COUNTRY.requestName, HAS_COUNTRY);
     paramMap.put(HAS_LOCALITY.requestName, HAS_LOCALITY);

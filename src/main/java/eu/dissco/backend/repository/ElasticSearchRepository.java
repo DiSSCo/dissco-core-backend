@@ -234,11 +234,27 @@ public class ElasticSearchRepository {
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
         .aggregations(aggregationQueries).build();
     var aggregations = client.search(aggregationRequest, ObjectNode.class).aggregations();
-    return collectResult(aggregations);
+    var missingDataAggregations = getMissingDataAggregation();
+    return collectResult(aggregations, missingDataAggregations);
+  }
+
+  private Map<String, Long> getMissingDataAggregation() throws IOException {
+    var result = new HashMap<String, Long>();
+    for (var term : MissingMappingTerms.values()) {
+      var query = generateExistsQuery(term.fullName(), false);
+      var countRequest = new CountRequest.Builder()
+          .index(properties.getDigitalSpecimenIndex())
+          .query(query)
+          .build();
+      var count = client.count(countRequest).count();
+      result.put(term.requestName().replace("has", "no"), count);
+    }
+    return result;
   }
 
   private Map<String, Map<String, Long>> collectResult(
-      Map<String, Aggregate> aggregations) {
+      Map<String, Aggregate> aggregations, Map<String, Long> missingDataAggregation)
+      throws IOException {
     var mapped = new LinkedHashMap<String, Map<String, Long>>();
     for (var entry : aggregations.entrySet()) {
       var aggregation = new LinkedHashMap<String, Long>();
@@ -253,6 +269,9 @@ public class ElasticSearchRepository {
       }
       mapped.put(entry.getKey(), aggregation);
     }
+    if (!missingDataAggregation.isEmpty()) {
+      mapped.put("missingData", getMissingDataAggregation());
+    }
     return mapped;
   }
 
@@ -266,7 +285,8 @@ public class ElasticSearchRepository {
         .build();
     var aggregation = client.search(aggregationRequest, ObjectNode.class);
     var totalRecords = aggregation.hits().total().value();
-    var aggregationResult = collectResult(aggregation.aggregations());
+    var missingDataAggregation = getMissingDataAggregation();
+    var aggregationResult = collectResult(aggregation.aggregations(), missingDataAggregation);
     return Pair.of(totalRecords, aggregationResult);
   }
 
@@ -280,7 +300,7 @@ public class ElasticSearchRepository {
         .size(0)
         .build();
     var aggregation = client.search(searchQuery, ObjectNode.class);
-    return collectResult(aggregation.aggregations());
+    return collectResult(aggregation.aggregations(), Map.of());
   }
 
   public long getCountForBatchAnnotations(BatchMetadata batchMetadata,
