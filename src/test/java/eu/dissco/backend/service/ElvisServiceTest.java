@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
@@ -117,8 +118,8 @@ class ElvisServiceTest {
         """
     );
     var paramMap = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + PHYSICAL_ID + "*"),
-        "dcterms:identifier.keyword", List.of(DOI +"*" + PHYSICAL_ID + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + PHYSICAL_ID + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + PHYSICAL_ID + "*"));
 
     given(elasticSearchRepository.elvisSearch(eq(paramMap), anyInt(), anyInt())).willReturn(
         Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));

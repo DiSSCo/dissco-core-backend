@@ -12,7 +12,7 @@ import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
-import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
@@ -41,7 +41,8 @@ import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
-import eu.dissco.backend.domain.TaxonMappingTerms;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -396,7 +397,7 @@ class DigitalSpecimenServiceTest {
     params.put("pageNumber", List.of("2"));
     var path = SPECIMEN_PATH + "?q=Leucanthemum ircutianum";
     var map = new MultiValueMapAdapter<>(params);
-    var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
+    var mappedParam = Map.of(DefaultMappingTerms.QUERY, List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(pageNum, pageSize,
@@ -421,7 +422,7 @@ class DigitalSpecimenServiceTest {
     params.put("q", List.of("Leucanthemum ircutianum"));
     params.put("pageNumber", List.of("randomString", "anotherRandomString"));
     var map = new MultiValueMapAdapter<>(params);
-    var mappedParam = Map.of("q", List.of("Leucanthemum ircutianum"));
+    var mappedParam = Map.of(DefaultMappingTerms.QUERY, List.of("Leucanthemum ircutianum"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
     var linksNode = new JsonApiLinksFull(pageNum, pageSize,
@@ -448,9 +449,9 @@ class DigitalSpecimenServiceTest {
     var path = SPECIMEN_PATH + "?country=France&country=Albania&typeStatus=holotype";
     var map = new MultiValueMapAdapter<>(params);
     var mappedParam = Map.of(
-        "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
+        DefaultMappingTerms.COUNTRY,
         List.of("France", "Albania"),
-        "ods:hasIdentifications.dwc:typeStatus.keyword",
+        DefaultMappingTerms.TYPE_STATUS,
         List.of("holotype"));
     given(elasticRepository.search(mappedParam, pageNum, pageSize)).willReturn(
         Pair.of(10L, givenDigitalSpecimenList(pageSize)));
@@ -511,7 +512,7 @@ class DigitalSpecimenServiceTest {
     var aggregationMap = givenTaxonAggregationMap();
     given(elasticRepository.getAggregations(
         Map.of(
-            "ods:hasIdentifications.ods:hasTaxonIdentifications.dwc:kingdom.keyword",
+            TaxonMappingTerms.KINGDOM,
             List.of("animalia")),
         Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true)).willReturn(
         aggregationMap);

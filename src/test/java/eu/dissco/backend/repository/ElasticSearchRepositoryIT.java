@@ -17,9 +17,9 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimenAltCountry;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_ID;
-import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
-import static eu.dissco.backend.domain.DefaultMappingTerms.getAggregationSet;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_ID;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getAggregationSet;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,10 +32,11 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.MappingTerm;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -115,11 +116,11 @@ class ElasticSearchRepositoryIT {
 
   private static Stream<Arguments> provideKeyValue() {
     return Stream.of(
-        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45634",
+        Arguments.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, "global_id_45634",
             1L),
-        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45*",
+        Arguments.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, "global_id_45*",
             1L),
-        Arguments.of("q", PREFIX + "/0", 10L)
+        Arguments.of(DefaultMappingTerms.QUERY, PREFIX + "/0", 10L)
     );
   }
 
@@ -140,7 +141,7 @@ class ElasticSearchRepositoryIT {
 
   @ParameterizedTest
   @MethodSource("provideKeyValue")
-  void testSearch(String field, String value, Long totalHits) throws IOException {
+  void testSearch(MappingTerm field, String value, Long totalHits) throws IOException {
     // Given
     List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     String targetId = DOI + PREFIX + "/0";
@@ -176,8 +177,8 @@ class ElasticSearchRepositoryIT {
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + searchId + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
@@ -201,8 +202,8 @@ class ElasticSearchRepositoryIT {
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + searchId + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
@@ -249,7 +250,8 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.search(
-        Map.of("ods:organisationID.keyword", List.of("https://ror.org/0349vqz63")), pageNumber,
+        Map.of(DefaultMappingTerms.ORGANISATION_ID, List.of("https://ror.org/0349vqz63")),
+        pageNumber,
         pageSize);
 
     // Then
@@ -279,7 +281,7 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_NAME.fullName(), List.of(anotherSourceSystemName)),
+        Map.of(SOURCE_SYSTEM_NAME, List.of(anotherSourceSystemName)),
         getAggregationSet(),
         false);
 

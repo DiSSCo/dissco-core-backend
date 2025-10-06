@@ -21,10 +21,11 @@ import co.elastic.clients.util.NamedValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DefaultMappingTerms;
-import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.MissingMappingTerms;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
@@ -51,6 +52,8 @@ public class ElasticSearchRepository {
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
+  private static final Set<MappingTerm> MISSING_MAPPING_TERMS = Set.of(
+      MissingMappingTerms.values());
 
   private static Builder getTerm(String field, Builder t, boolean sort) {
     var term = t.field(field);
@@ -60,18 +63,21 @@ public class ElasticSearchRepository {
     return term;
   }
 
-  private List<Query> generateQueries(Map<String, List<String>> params) {
+  private <T extends MappingTerm> List<Query> generateQueries(Map<T, List<String>> params) {
     var queries = new ArrayList<Query>();
     for (var entry : params.entrySet()) {
       for (var value : entry.getValue()) {
         Query query;
-        if (Objects.equals(entry.getKey(), "q")) {
+        if (MISSING_MAPPING_TERMS.contains(entry.getKey())) {
+          query = generateExistsQuery(entry.getKey().fullName(),
+              Boolean.parseBoolean(value));
+        } else if (Objects.equals(entry.getKey(), DefaultMappingTerms.QUERY)) {
           query = generateStringQuery(value);
         } else {
           if (value.contains("*")) {
-            query = generateWildcardQuery(entry.getKey(), value);
+            query = generateWildcardQuery(entry.getKey().fullName(), value);
           } else {
-            query = generateTermQuery(entry.getKey(), value);
+            query = generateTermQuery(entry.getKey().fullName(), value);
           }
         }
         queries.add(query);
@@ -89,6 +95,12 @@ public class ElasticSearchRepository {
     return new Query.Builder().wildcard(
         w -> w.field(param).value(value).caseInsensitive(true)
     ).build();
+  }
+
+  private static Query generateExistsQuery(String param, boolean exists) {
+    return exists ? new Query.Builder().bool(b -> b.must(m -> m.exists(f -> f.field(param))))
+        .build() :
+        new Query.Builder().bool(b -> b.mustNot(m -> m.exists(f -> f.field(param)))).build();
   }
 
   private static Query generateTermQuery(String param, String value) {
@@ -149,7 +161,8 @@ public class ElasticSearchRepository {
     return Pair.of(0L, new ArrayList<>());
   }
 
-  public Pair<Long, List<DigitalSpecimen>> search(Map<String, List<String>> params,
+  public <T extends MappingTerm> Pair<Long, List<DigitalSpecimen>> search(
+      Map<T, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
@@ -163,7 +176,8 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
+  public <T extends MappingTerm> Pair<Long, List<DigitalSpecimen>> elvisSearch(
+      Map<T, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var queries = generateQueries(params);
@@ -203,7 +217,8 @@ public class ElasticSearchRepository {
     }
   }
 
-  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params,
+  public <T extends MappingTerm> Map<String, Map<String, Long>> getAggregations(
+      Map<T, List<String>> params,
       Set<MappingTerm> aggregationTerms, boolean isTaxonomyOnly)
       throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
