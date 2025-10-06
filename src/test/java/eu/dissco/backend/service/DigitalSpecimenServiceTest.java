@@ -372,6 +372,7 @@ class DigitalSpecimenServiceTest {
     var digitalSpecimens = givenDigitalSpecimenJsonApiDataList(pageSize + 1);
     var params = new HashMap<String, List<String>>();
     params.put("q", List.of("Leucanthemum ircutianum"));
+    params.put("hasCountry", List.of("true"));
     var map = new MultiValueMapAdapter<>(params);
     given(elasticRepository.search(anyMap(), eq(pageNum), eq(pageSize))).willReturn(
         Pair.of(11L, givenDigitalSpecimenList(pageSize + 1)));
@@ -384,6 +385,26 @@ class DigitalSpecimenServiceTest {
 
     // Then
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testSearchTermValueInvalidExistsValue() {
+    var params = new HashMap<String, List<String>>();
+    params.put("hasCountry", List.of("Leucanthemum ircutianum"));
+    var map = new MultiValueMapAdapter<>(params);
+
+    // When / then
+    assertThrows(UnknownParameterException.class, () -> service.search(map, SPECIMEN_PATH));
+  }
+
+  @Test
+  void testSearchTermValueTooManyExistsValue() {
+    var params = new HashMap<String, List<String>>();
+    params.put("hasCountry", List.of("true", "false"));
+    var map = new MultiValueMapAdapter<>(params);
+
+    // When / then
+    assertThrows(UnknownParameterException.class, () -> service.search(map, SPECIMEN_PATH));
   }
 
   @Test

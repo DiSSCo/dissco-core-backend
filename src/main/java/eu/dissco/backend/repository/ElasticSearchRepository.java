@@ -52,8 +52,6 @@ public class ElasticSearchRepository {
   private final ElasticsearchClient client;
   private final ObjectMapper mapper;
   private final ElasticSearchProperties properties;
-  private static final Set<MappingTerm> MISSING_MAPPING_TERMS = Set.of(
-      MissingMappingTerms.values());
 
   private static Builder getTerm(String field, Builder t, boolean sort) {
     var term = t.field(field);
@@ -68,7 +66,7 @@ public class ElasticSearchRepository {
     for (var entry : params.entrySet()) {
       for (var value : entry.getValue()) {
         Query query;
-        if (MISSING_MAPPING_TERMS.contains(entry.getKey())) {
+        if (entry.getKey() instanceof MissingMappingTerms) {
           query = generateExistsQuery(entry.getKey().fullName(),
               Boolean.parseBoolean(value));
         } else if (Objects.equals(entry.getKey(), DefaultMappingTerms.QUERY)) {
