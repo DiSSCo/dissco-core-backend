@@ -256,9 +256,10 @@ public class ElasticSearchRepository {
   }
 
   private static String getMissingKeyName(String missingTerm) {
+    var term = missingTerm.replace("has", "");
     return "no" +
-        missingTerm.substring(0, 1).toUpperCase() +
-        missingTerm.substring(1).replace("has", "");
+        term.substring(0, 1).toUpperCase() +
+        term.substring(1);
   }
 
   private Map<String, Map<String, Long>> collectResult(

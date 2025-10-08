@@ -37,15 +37,19 @@ import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
+import eu.dissco.backend.schema.Identification;
+import eu.dissco.backend.schema.TaxonIdentification;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -289,6 +293,63 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
     assertThat(responseReceived.get("sourceSystemName")).containsEntry(anotherSourceSystemName, 5L);
     assertThat(responseReceived.get("sourceSystemName").get(SOURCE_SYSTEM_NAME)).isNull();
+  }
+
+  @Test
+  void testGetAggregations() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+      specimenTestRecords.add(specimen);
+    }
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.getAggregations(
+        Map.of(),
+        getAggregationSet(),
+        false);
+
+    // Then
+    assertThat(responseReceived.get("midsLevel")).containsEntry("0", 10L);
+    assertThat(responseReceived.get("missingData")).containsEntry("noCountry", 0L);
+    assertThat(responseReceived.get("missingData")).containsEntry("noGenus", 10L);
+  }
+
+  @Test
+  void testGetAggregationsTaxonomy() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      var kingdom = i < 5 ? "Fungi" : "Plantae";
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i)
+          .withOdsHasIdentifications(
+              List.of(
+                  new Identification()
+                      .withOdsHasTaxonIdentifications(
+                          List.of(
+                              new TaxonIdentification()
+                                  .withDwcKingdom(kingdom)
+                          )
+                      )
+              )
+          );
+      specimenTestRecords.add(specimen);
+    }
+    specimenTestRecords.add(givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + 10));
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.getAggregations(
+        Map.of(),
+        Set.of(TaxonMappingTerms.KINGDOM),
+        true);
+
+    // Then
+    assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
+    assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
+    assertThat(responseReceived.get("missingData")).containsEntry("noKingdom", 1L).hasSize(1);
   }
 
   @Test
