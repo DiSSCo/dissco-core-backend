@@ -37,6 +37,7 @@ import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
 import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.MissingMappingTerms;
 import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
@@ -124,6 +125,10 @@ class ElasticSearchRepositoryIT {
             1L),
         Arguments.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, "global_id_45*",
             1L),
+        Arguments.of(MissingMappingTerms.HAS_COUNTRY, "true",
+            10L),
+        Arguments.of(MissingMappingTerms.HAS_PHYLUM, "false",
+            10L),
         Arguments.of(DefaultMappingTerms.QUERY, PREFIX + "/0", 10L)
     );
   }
