@@ -10,6 +10,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.MissingAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation.Builder;
@@ -227,48 +228,61 @@ public class ElasticSearchRepository {
           AggregationBuilders.terms()
               .field(aggregationTerm.fullName()).size(size).build()._toAggregation());
     }
+    if (isTaxonomyOnly) {
+      aggregationQueries.putAll(getMissingDataAggregationQuery(aggregationTerms));
+    } else {
+      aggregationQueries.putAll(
+          getMissingDataAggregationQuery(Set.of(MissingMappingTerms.values())));
+    }
     var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .size(0)
+        .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .aggregations(aggregationQueries).build();
     var aggregations = client.search(aggregationRequest, ObjectNode.class).aggregations();
-    var missingDataAggregations = getMissingDataAggregation();
-    return collectResult(aggregations, missingDataAggregations);
+    return collectResult(aggregations);
   }
 
-  private Map<String, Long> getMissingDataAggregation() throws IOException {
-    var result = new HashMap<String, Long>();
-    for (var term : MissingMappingTerms.values()) {
-      var query = generateExistsQuery(term.fullName(), false);
-      var countRequest = new CountRequest.Builder()
-          .index(properties.getDigitalSpecimenIndex())
-          .query(query)
+  private Map<String, Aggregation> getMissingDataAggregationQuery(Set<MappingTerm> missingTerms) {
+    Map<String, Aggregation> aggregationsMap = new HashMap<>();
+    for (var term : missingTerms) {
+      var aggregation = new Aggregation.Builder()
+          .missing(m -> m.field(term.fullName()))
           .build();
-      var count = client.count(countRequest).count();
-      result.put(term.requestName().replace("has", "no"), count);
+      aggregationsMap.put(getMissingKeyName(term.requestName()), aggregation);
     }
-    return result;
+    return aggregationsMap;
+  }
+
+  private static String getMissingKeyName(String missingTerm) {
+    return "no" +
+        missingTerm.substring(0, 1).toUpperCase() +
+        missingTerm.substring(1).replace("has", "");
   }
 
   private Map<String, Map<String, Long>> collectResult(
-      Map<String, Aggregate> aggregations, Map<String, Long> missingDataAggregation)
-      throws IOException {
+      Map<String, Aggregate> aggregations) {
     var mapped = new LinkedHashMap<String, Map<String, Long>>();
+    var missingData = new LinkedHashMap<String, Long>();
     for (var entry : aggregations.entrySet()) {
       var aggregation = new LinkedHashMap<String, Long>();
       if (entry.getValue()._get() instanceof StringTermsAggregate value) {
         for (StringTermsBucket stringTermsBucket : value.buckets().array()) {
           aggregation.put(stringTermsBucket.key().stringValue(), stringTermsBucket.docCount());
         }
+        mapped.put(entry.getKey(), aggregation);
       } else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
         for (LongTermsBucket stringTermsBucket : value.buckets().array()) {
           aggregation.put(String.valueOf(stringTermsBucket.key()), stringTermsBucket.docCount());
         }
+        mapped.put(entry.getKey(), aggregation);
+      } else if (entry.getValue()._get() instanceof MissingAggregate value) {
+        missingData.put(entry.getKey(), value.docCount());
       }
-      mapped.put(entry.getKey(), aggregation);
     }
-    if (!missingDataAggregation.isEmpty()) {
-      mapped.put("missingData", getMissingDataAggregation());
+    if (!missingData.isEmpty()) {
+      mapped.put("missingData", missingData);
     }
     return mapped;
   }
@@ -283,8 +297,7 @@ public class ElasticSearchRepository {
         .build();
     var aggregation = client.search(aggregationRequest, ObjectNode.class);
     var totalRecords = aggregation.hits().total().value();
-    var missingDataAggregation = getMissingDataAggregation();
-    var aggregationResult = collectResult(aggregation.aggregations(), missingDataAggregation);
+    var aggregationResult = collectResult(aggregation.aggregations());
     return Pair.of(totalRecords, aggregationResult);
   }
 
@@ -296,9 +309,10 @@ public class ElasticSearchRepository {
         .aggregations(name,
             agg -> agg.terms(t -> getTerm(field, t, sort)))
         .size(0)
+        .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .build();
     var aggregation = client.search(searchQuery, ObjectNode.class);
-    return collectResult(aggregation.aggregations(), Map.of());
+    return collectResult(aggregation.aggregations());
   }
 
   public long getCountForBatchAnnotations(BatchMetadata batchMetadata,
