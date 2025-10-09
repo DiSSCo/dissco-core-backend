@@ -354,7 +354,7 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
     assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
-    assertThat(responseReceived.get("missingData")).containsEntry("noKingdom", 1L).hasSize(1);
+    assertThat(responseReceived).doesNotContainKey("missingData");
   }
 
   @Test

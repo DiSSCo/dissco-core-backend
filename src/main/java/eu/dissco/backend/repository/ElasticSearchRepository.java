@@ -228,9 +228,7 @@ public class ElasticSearchRepository {
           AggregationBuilders.terms()
               .field(aggregationTerm.fullName()).size(size).build()._toAggregation());
     }
-    if (isTaxonomyOnly) {
-      aggregationQueries.putAll(getMissingDataAggregationQuery(aggregationTerms));
-    } else {
+    if (!isTaxonomyOnly) {
       aggregationQueries.putAll(
           getMissingDataAggregationQuery(Set.of(MissingMappingTerms.values())));
     }
