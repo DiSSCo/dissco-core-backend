@@ -1,4 +1,4 @@
-package eu.dissco.backend.domain;
+package eu.dissco.backend.domain.elastic;
 
 public interface MappingTerm {
 

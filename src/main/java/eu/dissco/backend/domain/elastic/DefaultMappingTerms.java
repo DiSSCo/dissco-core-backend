@@ -1,6 +1,6 @@
-package eu.dissco.backend.domain;
+package eu.dissco.backend.domain.elastic;
 
-import static eu.dissco.backend.domain.TaxonMappingTerms.KINGDOM;
+import static eu.dissco.backend.domain.elastic.TaxonMappingTerms.KINGDOM;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,9 +10,13 @@ import java.util.Set;
 public enum DefaultMappingTerms implements MappingTerm {
   COUNTRY("country", "ods:hasEvents.ods:hasLocation.dwc:country.keyword"),
   COUNTRY_CODE("countryCode", "ods:hasEvents.ods:hasLocation.dwc:countryCode.keyword"),
+  LOCALITY("locality", "ods:hasEvents.ods:hasLocation.dwc:locality.keyword"),
+  LATITUDE("latitude", "ods:hasEvents.ods:hasLocation.ods:hasGeoreference.dwc:decimalLatitude"),
+  LONGITUDE("longitude", "ods:hasEvents.ods:hasLocation.ods:hasGeoreference.dwc:decimalLongitude"),
   MIDS_LEVEL("midsLevel", "ods:midsLevel"),
   PHYSICAL_SPECIMEN_ID_DEPRECATED("physicalSpecimenId", "ods:physicalSpecimenID.keyword"),
   PHYSICAL_SPECIMEN_ID("physicalSpecimenID", "ods:physicalSpecimenID.keyword"),
+  IDENTIFIER("identifier", "dcterms:identifier.keyword"),
   TYPE_STATUS("typeStatus", "ods:hasIdentifications.dwc:typeStatus.keyword"),
   LICENSE("license", "dcterms:license.keyword"),
   HAS_MEDIA("hasMedia", "ods:isKnownToContainMedia"),
@@ -75,6 +79,9 @@ public enum DefaultMappingTerms implements MappingTerm {
     var paramMap = new HashMap<String, MappingTerm>();
     paramMap.put(COUNTRY.requestName, COUNTRY);
     paramMap.put(COUNTRY_CODE.requestName, COUNTRY_CODE);
+    paramMap.put(LOCALITY.requestName, LOCALITY);
+    paramMap.put(LATITUDE.requestName, LATITUDE);
+    paramMap.put(LONGITUDE.requestName, LONGITUDE);
     paramMap.put(MIDS_LEVEL.requestName, MIDS_LEVEL);
     paramMap.put(PHYSICAL_SPECIMEN_ID_DEPRECATED.requestName, PHYSICAL_SPECIMEN_ID_DEPRECATED);
     paramMap.put(PHYSICAL_SPECIMEN_ID.requestName, PHYSICAL_SPECIMEN_ID);
@@ -96,6 +103,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     paramMap.put(HABITAT.requestName, HABITAT);
     paramMap.put(QUERY.requestName, QUERY);
     paramMap.putAll(TaxonMappingTerms.getTaxonMapping());
+    paramMap.putAll(MissingMappingTerms.getMissingMapping());
     return paramMap;
   }
 

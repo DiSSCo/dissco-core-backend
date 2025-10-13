@@ -10,6 +10,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.MissingAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation.Builder;
@@ -21,10 +22,11 @@ import co.elastic.clients.util.NamedValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DefaultMappingTerms;
-import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.MissingMappingTerms;
 import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
@@ -60,18 +62,21 @@ public class ElasticSearchRepository {
     return term;
   }
 
-  private List<Query> generateQueries(Map<String, List<String>> params) {
+  private <T extends MappingTerm> List<Query> generateQueries(Map<T, List<String>> params) {
     var queries = new ArrayList<Query>();
     for (var entry : params.entrySet()) {
       for (var value : entry.getValue()) {
         Query query;
-        if (Objects.equals(entry.getKey(), "q")) {
+        if (entry.getKey() instanceof MissingMappingTerms) {
+          query = generateExistsQuery(entry.getKey().fullName(),
+              Boolean.parseBoolean(value));
+        } else if (Objects.equals(entry.getKey(), DefaultMappingTerms.QUERY)) {
           query = generateStringQuery(value);
         } else {
           if (value.contains("*")) {
-            query = generateWildcardQuery(entry.getKey(), value);
+            query = generateWildcardQuery(entry.getKey().fullName(), value);
           } else {
-            query = generateTermQuery(entry.getKey(), value);
+            query = generateTermQuery(entry.getKey().fullName(), value);
           }
         }
         queries.add(query);
@@ -89,6 +94,12 @@ public class ElasticSearchRepository {
     return new Query.Builder().wildcard(
         w -> w.field(param).value(value).caseInsensitive(true)
     ).build();
+  }
+
+  private static Query generateExistsQuery(String param, boolean exists) {
+    return exists ? new Query.Builder().bool(b -> b.must(m -> m.exists(f -> f.field(param))))
+        .build() :
+        new Query.Builder().bool(b -> b.mustNot(m -> m.exists(f -> f.field(param)))).build();
   }
 
   private static Query generateTermQuery(String param, String value) {
@@ -149,7 +160,8 @@ public class ElasticSearchRepository {
     return Pair.of(0L, new ArrayList<>());
   }
 
-  public Pair<Long, List<DigitalSpecimen>> search(Map<String, List<String>> params,
+  public <T extends MappingTerm> Pair<Long, List<DigitalSpecimen>> search(
+      Map<T, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
@@ -163,7 +175,8 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  public Pair<Long, List<DigitalSpecimen>> elvisSearch(Map<String, List<String>> params,
+  public <T extends MappingTerm> Pair<Long, List<DigitalSpecimen>> elvisSearch(
+      Map<T, List<String>> params,
       int pageNumber, int pageSize) throws IOException {
     var offset = getOffset(pageNumber, pageSize);
     var queries = generateQueries(params);
@@ -203,7 +216,8 @@ public class ElasticSearchRepository {
     }
   }
 
-  public Map<String, Map<String, Long>> getAggregations(Map<String, List<String>> params,
+  public <T extends MappingTerm> Map<String, Map<String, Long>> getAggregations(
+      Map<T, List<String>> params,
       Set<MappingTerm> aggregationTerms, boolean isTaxonomyOnly)
       throws IOException {
     var aggregationQueries = new HashMap<String, Aggregation>();
@@ -214,29 +228,60 @@ public class ElasticSearchRepository {
           AggregationBuilders.terms()
               .field(aggregationTerm.fullName()).size(size).build()._toAggregation());
     }
+    if (!isTaxonomyOnly) {
+      aggregationQueries.putAll(
+          getMissingDataAggregationQuery(Set.of(MissingMappingTerms.values())));
+    }
     var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
         .query(
             q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+        .size(0)
+        .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .aggregations(aggregationQueries).build();
     var aggregations = client.search(aggregationRequest, ObjectNode.class).aggregations();
     return collectResult(aggregations);
   }
 
+  private Map<String, Aggregation> getMissingDataAggregationQuery(Set<MappingTerm> missingTerms) {
+    Map<String, Aggregation> aggregationsMap = new HashMap<>();
+    for (var term : missingTerms) {
+      var aggregation = new Aggregation.Builder()
+          .missing(m -> m.field(term.fullName()))
+          .build();
+      aggregationsMap.put(getMissingKeyName(term.requestName()), aggregation);
+    }
+    return aggregationsMap;
+  }
+
+  private static String getMissingKeyName(String missingTerm) {
+    var term = missingTerm.replace("has", "");
+    return "no" +
+        term.substring(0, 1).toUpperCase() +
+        term.substring(1);
+  }
+
   private Map<String, Map<String, Long>> collectResult(
       Map<String, Aggregate> aggregations) {
     var mapped = new LinkedHashMap<String, Map<String, Long>>();
+    var missingData = new LinkedHashMap<String, Long>();
     for (var entry : aggregations.entrySet()) {
       var aggregation = new LinkedHashMap<String, Long>();
       if (entry.getValue()._get() instanceof StringTermsAggregate value) {
         for (StringTermsBucket stringTermsBucket : value.buckets().array()) {
           aggregation.put(stringTermsBucket.key().stringValue(), stringTermsBucket.docCount());
         }
+        mapped.put(entry.getKey(), aggregation);
       } else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
         for (LongTermsBucket stringTermsBucket : value.buckets().array()) {
           aggregation.put(String.valueOf(stringTermsBucket.key()), stringTermsBucket.docCount());
         }
+        mapped.put(entry.getKey(), aggregation);
+      } else if (entry.getValue()._get() instanceof MissingAggregate value) {
+        missingData.put(entry.getKey(), value.docCount());
       }
-      mapped.put(entry.getKey(), aggregation);
+    }
+    if (!missingData.isEmpty()) {
+      mapped.put("missingData", missingData);
     }
     return mapped;
   }
@@ -263,6 +308,7 @@ public class ElasticSearchRepository {
         .aggregations(name,
             agg -> agg.terms(t -> getTerm(field, t, sort)))
         .size(0)
+        .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .build();
     var aggregation = client.search(searchQuery, ObjectNode.class);
     return collectResult(aggregation.aggregations());

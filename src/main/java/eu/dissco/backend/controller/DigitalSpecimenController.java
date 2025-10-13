@@ -261,7 +261,9 @@ public class DigitalSpecimenController extends BaseController {
   @Operation(
       summary = "Search for digital specimen",
       description = """
-          Accepts key-value pairs of search parameters. Available search terms (literal):
+          The Specimen Search endpoint allows for comprehensive filtering using standard key-value pairs, a free-text search, and field existence checks.
+          
+          `1. Search for exact matches (with optional wildcard * support) using the following parameters:
           * country
           * countryCode
           * midsLevel
@@ -279,11 +281,22 @@ public class DigitalSpecimenController extends BaseController {
           * livingOrPreserved
           * habitat
           
-          Additionally, a free text query can be provided: q={some query string}
+          2. Use the q parameter for a full-text search across various fields
           
-          An example of a combined parameter and free text query: /search?q=Sabellaria+bellis&topicDiscipline=Zoology&midsLevel=1
+          3. Filter results based on whether a specific field exists (true) or does not exist (false) on a specimen record
+          * hasLongitude
+          * hasKingdom
+          * hasGenus
+          * hasLocality
+          * hasFamily
+          * hasSpecies
+          * hasOrder
+          * hasClass
+          * hasLatitude
+          * hasPhylum
+          * hasCountry
           
-          Wildcards are supported: "*"
+          An example of all three types of queries: /search?q=Sabellaria+bellis&topicDiscipline=Zoology&midsLevel=1&hasCountry=true
           """
   )
   @ApiResponses(value = {

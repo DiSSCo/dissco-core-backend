@@ -4,6 +4,7 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.utils.ProxyUtils.removeDoiProxy;
 import static java.lang.Math.min;
 
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elvis.ElvisSpecimen;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestion;
 import eu.dissco.backend.domain.elvis.InventoryNumberSuggestionResponse;
@@ -52,8 +53,8 @@ public class ElvisService {
       int pageSize)
       throws IOException {
     var map = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + inventoryNumber + "*"),
-        "dcterms:identifier.keyword", List.of("https://doi.org/*" + inventoryNumber + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + inventoryNumber + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of("https://doi.org/*" + inventoryNumber + "*"));
     return elasticSearchRepository.elvisSearch(map, pageNumber, pageSize);
   }
 

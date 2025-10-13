@@ -1,7 +1,7 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.domain.DefaultMappingTerms.TOPIC_DISCIPLINE;
-import static eu.dissco.backend.domain.DefaultMappingTerms.getParamMapping;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getParamMapping;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static java.util.Comparator.comparing;
@@ -12,13 +12,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
-import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
 import eu.dissco.backend.domain.FdoType;
-import eu.dissco.backend.domain.MappingTerm;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.MongoCollection;
-import eu.dissco.backend.domain.TaxonMappingTerms;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.MissingMappingTerms;
+import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -37,9 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -228,9 +227,7 @@ public class DigitalSpecimenService {
     var pageSize = getIntParam("pageSize", params, DEFAULT_PAGE_SIZE);
     removePaginationParams(params);
     var mappedParams = mapParamsKeyword(params, getParamMapping());
-    var map = mappedParams.entrySet().stream()
-        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var specimenPlusOne = elasticRepository.search(map, pageNumber, pageSize);
+    var specimenPlusOne = elasticRepository.search(mappedParams, pageNumber, pageSize);
     return wrapListResponseSearchResults(specimenPlusOne, pageNumber, pageSize, path);
   }
 
@@ -246,7 +243,7 @@ public class DigitalSpecimenService {
       log.warn("Taking first value for param: {} values: {}", paramName, paramValue);
     }
     try {
-      var intValue = Integer.parseInt(paramValue.get(0));
+      var intValue = Integer.parseInt(paramValue.getFirst());
       if (intValue > 0) {
         return intValue;
       } else {
@@ -266,6 +263,7 @@ public class DigitalSpecimenService {
     var mappedParams = new HashMap<T, List<String>>();
     for (var entry : requestParams.entrySet()) {
       var mappedParam = acceptedParams.get(entry.getKey());
+      validateExistsQuery(mappedParam, entry);
       if (mappedParam != null) {
         mappedParams.put(mappedParam, entry.getValue());
       } else {
@@ -275,13 +273,26 @@ public class DigitalSpecimenService {
     return mappedParams;
   }
 
+  private <T extends MappingTerm> void validateExistsQuery(T mappedParam,
+      Map.Entry<String, List<String>> entry) throws UnknownParameterException {
+    if (mappedParam instanceof MissingMappingTerms && !entry.getValue().isEmpty()) {
+      if (entry.getValue().size() > 1) {
+        throw new UnknownParameterException(
+            "Parameter :" + entry.getKey() + " accepts at most 1 value");
+      }
+      if (!entry.getValue().getFirst().equals("true") && !entry.getValue().getFirst()
+          .equals("false")) {
+        throw new UnknownParameterException(
+            "Parameter : " + entry.getKey() + " must be either true or false");
+      }
+    }
+  }
+
   public JsonApiWrapper taxonAggregations(MultiValueMap<String, String> params,
       String path) throws UnknownParameterException, IOException {
     var mappedParams = mapParamsKeyword(params, TaxonMappingTerms.getTaxonMapping());
     var aggregateTerm = retrieveTaxRanks(mappedParams);
-    var map = mappedParams.entrySet().stream()
-        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var aggregations = elasticRepository.getAggregations(map, aggregateTerm, true);
+    var aggregations = elasticRepository.getAggregations(mappedParams, aggregateTerm, true);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -290,9 +301,7 @@ public class DigitalSpecimenService {
   public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
       throws IOException, UnknownParameterException {
     var mappedParams = mapParamsKeyword(params, getParamMapping());
-    var map = mappedParams.entrySet().stream()
-        .collect(Collectors.toMap(entry -> entry.getKey().fullName(), Entry::getValue));
-    var aggregations = elasticRepository.getAggregations(map,
+    var aggregations = elasticRepository.getAggregations(mappedParams,
         DefaultMappingTerms.getAggregationSet(), false);
     var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
         mapper.valueToTree(aggregations));

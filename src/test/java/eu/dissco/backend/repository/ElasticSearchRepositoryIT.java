@@ -17,9 +17,9 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimenAltCountry;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_ID;
-import static eu.dissco.backend.domain.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
-import static eu.dissco.backend.domain.DefaultMappingTerms.getAggregationSet;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_ID;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getAggregationSet;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,19 +32,25 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import eu.dissco.backend.domain.DefaultMappingTerms;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
+import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
+import eu.dissco.backend.domain.elastic.MappingTerm;
+import eu.dissco.backend.domain.elastic.MissingMappingTerms;
+import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
+import eu.dissco.backend.schema.Identification;
+import eu.dissco.backend.schema.TaxonIdentification;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -115,11 +121,15 @@ class ElasticSearchRepositoryIT {
 
   private static Stream<Arguments> provideKeyValue() {
     return Stream.of(
-        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45634",
+        Arguments.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, "global_id_45634",
             1L),
-        Arguments.of("ods:physicalSpecimenID.keyword", "global_id_45*",
+        Arguments.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, "global_id_45*",
             1L),
-        Arguments.of("q", PREFIX + "/0", 10L)
+        Arguments.of(MissingMappingTerms.HAS_COUNTRY, "true",
+            10L),
+        Arguments.of(MissingMappingTerms.HAS_PHYLUM, "false",
+            10L),
+        Arguments.of(DefaultMappingTerms.QUERY, PREFIX + "/0", 10L)
     );
   }
 
@@ -140,7 +150,7 @@ class ElasticSearchRepositoryIT {
 
   @ParameterizedTest
   @MethodSource("provideKeyValue")
-  void testSearch(String field, String value, Long totalHits) throws IOException {
+  void testSearch(MappingTerm field, String value, Long totalHits) throws IOException {
     // Given
     List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
     String targetId = DOI + PREFIX + "/0";
@@ -176,8 +186,8 @@ class ElasticSearchRepositoryIT {
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + searchId + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
@@ -201,8 +211,8 @@ class ElasticSearchRepositoryIT {
     }
     postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
     var map = Map.of(
-        "ods:physicalSpecimenID.keyword", List.of("*" + searchId + "*"),
-        "dcterms:identifier.keyword", List.of(DOI + "*" + searchId + "*"));
+        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + searchId + "*"),
+        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + searchId + "*"));
 
     // When
     var result = repository.elvisSearch(map, 1, 11);
@@ -249,7 +259,8 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.search(
-        Map.of("ods:organisationID.keyword", List.of("https://ror.org/0349vqz63")), pageNumber,
+        Map.of(DefaultMappingTerms.ORGANISATION_ID, List.of("https://ror.org/0349vqz63")),
+        pageNumber,
         pageSize);
 
     // Then
@@ -279,7 +290,7 @@ class ElasticSearchRepositoryIT {
 
     // When
     var responseReceived = repository.getAggregations(
-        Map.of(SOURCE_SYSTEM_NAME.fullName(), List.of(anotherSourceSystemName)),
+        Map.of(SOURCE_SYSTEM_NAME, List.of(anotherSourceSystemName)),
         getAggregationSet(),
         false);
 
@@ -287,6 +298,63 @@ class ElasticSearchRepositoryIT {
     assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
     assertThat(responseReceived.get("sourceSystemName")).containsEntry(anotherSourceSystemName, 5L);
     assertThat(responseReceived.get("sourceSystemName").get(SOURCE_SYSTEM_NAME)).isNull();
+  }
+
+  @Test
+  void testGetAggregations() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i);
+      specimenTestRecords.add(specimen);
+    }
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.getAggregations(
+        Map.of(),
+        getAggregationSet(),
+        false);
+
+    // Then
+    assertThat(responseReceived.get("midsLevel")).containsEntry("0", 10L);
+    assertThat(responseReceived.get("missingData")).containsEntry("noCountry", 0L);
+    assertThat(responseReceived.get("missingData")).containsEntry("noGenus", 10L);
+  }
+
+  @Test
+  void testGetAggregationsTaxonomy() throws IOException {
+    // Given
+    List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      var kingdom = i < 5 ? "Fungi" : "Plantae";
+      var specimen = givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + i)
+          .withOdsHasIdentifications(
+              List.of(
+                  new Identification()
+                      .withOdsHasTaxonIdentifications(
+                          List.of(
+                              new TaxonIdentification()
+                                  .withDwcKingdom(kingdom)
+                          )
+                      )
+              )
+          );
+      specimenTestRecords.add(specimen);
+    }
+    specimenTestRecords.add(givenDigitalSpecimenWrapper(DOI + PREFIX + "/" + 10));
+    postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
+
+    // When
+    var responseReceived = repository.getAggregations(
+        Map.of(),
+        Set.of(TaxonMappingTerms.KINGDOM),
+        true);
+
+    // Then
+    assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
+    assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
+    assertThat(responseReceived).doesNotContainKey("missingData");
   }
 
   @Test
@@ -342,6 +410,7 @@ class ElasticSearchRepositoryIT {
     // Then
     assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
     assertThat(responseReceived.get("sourceSystemID")).doesNotContainKey(SOURCE_SYSTEM_ID_1);
+    assertThat(responseReceived).doesNotContainKey("missingData");
   }
 
   @Test
