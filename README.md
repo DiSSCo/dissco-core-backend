@@ -114,6 +114,7 @@ mongo.database=# Database name of MongoDB
 
 #Feign clients
 feign.annotations=# Path to annotation proccessor endpoint
+feign.mas=# Path to MAS endpoint
 
 #Endpoints
 endpoint.handle-endpoint=# Endpoint to handle API

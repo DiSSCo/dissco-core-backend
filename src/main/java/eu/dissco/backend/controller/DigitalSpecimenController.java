@@ -280,6 +280,7 @@ public class DigitalSpecimenController extends BaseController {
           * basisOfRecord
           * livingOrPreserved
           * habitat
+          * virtualCollectionId
           
           2. Use the q parameter for a full-text search across various fields
           
