@@ -33,6 +33,7 @@ public enum DefaultMappingTerms implements MappingTerm {
   LIVING_OR_PRESERVED("livingOrPreserved", "ods:livingOrPreserved"),
   TOPIC_DISCIPLINE("topicDiscipline", "ods:topicDiscipline"),
   HABITAT("habitat", "ods:hasEvents.dwc:habitat.keyword"),
+  VIRTUAL_COLLECTION_ID("virtualCollectionID", "ods:hasEntityRelationships.ods:relatedResourceURI.keyword"),
   QUERY("q", "q");
 
 
@@ -101,6 +102,7 @@ public enum DefaultMappingTerms implements MappingTerm {
     paramMap.put(IDENTIFIED_BY.requestName, IDENTIFIED_BY);
     paramMap.put(COLLECTION_ID.requestName, COLLECTION_ID);
     paramMap.put(HABITAT.requestName, HABITAT);
+    paramMap.put(VIRTUAL_COLLECTION_ID.requestName, VIRTUAL_COLLECTION_ID);
     paramMap.put(QUERY.requestName, QUERY);
     paramMap.putAll(TaxonMappingTerms.getTaxonMapping());
     paramMap.putAll(MissingMappingTerms.getMissingMapping());
