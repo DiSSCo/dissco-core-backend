@@ -6,9 +6,9 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,7 +35,9 @@ public class FeignConfiguration {
           .build();
       return sslContext.getSocketFactory();
     } catch (Exception e) {
-      log.error("An exception occurred when pushing annotationRequests to annotationRequests-processor", e);
+      log.error(
+          "An exception occurred when pushing annotationRequests to annotationRequests-processor",
+          e);
     }
     return null;
   }
