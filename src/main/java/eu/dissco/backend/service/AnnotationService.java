@@ -20,6 +20,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -30,6 +31,8 @@ import eu.dissco.backend.schema.Annotation.OaMotivation;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.utils.JsonApiUtils;
 import eu.dissco.backend.utils.ProxyUtils;
+import feign.FeignException;
+import feign.FeignException.BadRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -82,9 +85,23 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent, String path) throws JsonProcessingException {
+      Agent agent, String path) throws JsonProcessingException, InvalidAnnotationRequestException {
     var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
-    var response = annotationClient.postAnnotation(annotation);
+    JsonNode response;
+    try {
+      response = annotationClient.postAnnotation(annotation);
+    } catch (FeignException e) {
+      if (e instanceof BadRequest badRequest) {
+        var message = (badRequest).contentUTF8();
+        var error = mapper.readTree(message);
+        if (error.has("detail")) {
+          message = error.get("detail").asText();
+        }
+        log.warn("Received invalid annotation request, {}", message);
+        throw new InvalidAnnotationRequestException(message);
+      }
+      throw e;
+    }
     return formatResponse(response, path);
   }
 

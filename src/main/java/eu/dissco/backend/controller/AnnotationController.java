@@ -141,7 +141,7 @@ public class AnnotationController extends BaseController {
               schema = @Schema(implementation = AnnotationRequest.class)))
       Authentication authentication,
       @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException {
+      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
     var annotation = getAnnotationFromRequest(requestBody);
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     log.info("Received new annotationRequests from agent: {}", agent.getId());
