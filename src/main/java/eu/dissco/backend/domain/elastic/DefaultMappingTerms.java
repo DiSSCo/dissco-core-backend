@@ -59,19 +59,15 @@ public enum DefaultMappingTerms implements MappingTerm {
   private static Set<MappingTerm> fillAggregationList() {
     var aggregationTerms = new HashSet<MappingTerm>();
     aggregationTerms.add(COUNTRY);
-    aggregationTerms.add(MIDS_LEVEL);
     aggregationTerms.add(TYPE_STATUS);
     aggregationTerms.add(LICENSE);
-    aggregationTerms.add(HAS_MEDIA);
     aggregationTerms.add(ORGANISATION_NAME);
     aggregationTerms.add(ORGANISATION_ID);
     aggregationTerms.add(SOURCE_SYSTEM_NAME);
     aggregationTerms.add(DATASET_NAME);
     aggregationTerms.add(KINGDOM);
-    aggregationTerms.add(LIVING_OR_PRESERVED);
     aggregationTerms.add(TOPIC_DISCIPLINE);
     aggregationTerms.add(COLLECTION_CODE);
-    aggregationTerms.add(IDENTIFIED_BY);
     aggregationTerms.add(COLLECTION_ID);
     return aggregationTerms;
   }

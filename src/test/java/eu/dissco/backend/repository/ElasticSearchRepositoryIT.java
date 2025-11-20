@@ -273,7 +273,7 @@ class ElasticSearchRepositoryIT {
         Map.of(SOURCE_SYSTEM_NAME, List.of(anotherSourceSystemName)), getAggregationSet(), false);
 
     // Then
-    assertThat(responseReceived.get("midsLevel")).containsEntry("0", 5L);
+    assertThat(responseReceived.get("country")).containsEntry("Scotland", 5L);
     assertThat(responseReceived.get("sourceSystemName")).containsEntry(anotherSourceSystemName, 5L);
     assertThat(responseReceived.get("sourceSystemName").get(SOURCE_SYSTEM_NAME)).isNull();
   }
@@ -292,9 +292,7 @@ class ElasticSearchRepositoryIT {
     var responseReceived = repository.getAggregations(Map.of(), getAggregationSet(), false);
 
     // Then
-    assertThat(responseReceived.get("midsLevel")).containsEntry("0", 10L);
-    assertThat(responseReceived.get("missingData")).containsEntry("noCountry", 0L);
-    assertThat(responseReceived.get("missingData")).containsEntry("noGenus", 10L);
+    assertThat(responseReceived.get("country")).containsEntry("Scotland", 10L);
   }
 
   @Test
