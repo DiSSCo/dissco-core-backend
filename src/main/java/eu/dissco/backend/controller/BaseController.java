@@ -59,7 +59,7 @@ public abstract class BaseController {
         }
         fullName.append(claims.get("family_name"));
       }
-      var id = (String) claims.get(ORCID);
+      var id = retrieveOrcid(claims);
       return new Agent()
           .withType(Type.SCHEMA_PERSON)
           .withId(id)
@@ -82,6 +82,15 @@ public abstract class BaseController {
     } else {
       log.error("Missing ORCID in token");
       throw new ForbiddenException("Missing ORCID in token");
+    }
+  }
+
+  private static String retrieveOrcid(Map<String, Object> claims) {
+    var orcid = (String) claims.get(ORCID);
+    if (!orcid.startsWith("https://orcid.org/")) {
+      return "https://orcid.org/" + orcid;
+    } else {
+      return orcid;
     }
   }
 

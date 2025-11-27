@@ -53,6 +53,7 @@ public class TestUtils {
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final Instant UPDATED = Instant.parse("2025-07-16T10:00:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
+  public static final String BARE_ORCID = "0000-0002-XXXX-XXXX";
   public static final String ORCID = "https://orcid.org/0000-0002-XXXX-XXXX";
   public static final UUID BATCH_ID = UUID.fromString("f43e4ec6-ca1c-4a88-9aac-08f6da4b0b1c");
 
@@ -92,7 +93,7 @@ public class TestUtils {
 
   public static Map<String, Object> givenClaims() {
     return Map.of(
-        "orcid", ORCID,
+        "orcid", BARE_ORCID,
         "given_name", "Sam",
         "family_name", "Leeflang"
     );
