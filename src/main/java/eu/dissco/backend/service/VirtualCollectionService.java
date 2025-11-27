@@ -93,7 +93,7 @@ public class VirtualCollectionService {
   private void publishCreateEvent(VirtualCollection virtualCollection, Agent agent)
       throws ProcessingFailedException {
     try {
-      rabbitMqPublisherService.publishCreateEvent(mapper.valueToTree(virtualCollection), agent);
+      rabbitMqPublisherService.publishCreateEvent(virtualCollection, agent);
     } catch (JsonProcessingException e) {
       log.error("Unable to publish message to RabbitMQ", e);
       rollbackVirtualCollection(virtualCollection);
@@ -213,8 +213,8 @@ public class VirtualCollectionService {
   private void publishTombstoneEvent(Agent agent, VirtualCollection virtualCollection,
       VirtualCollection tombstoneVirtualCollection) {
     try {
-      rabbitMqPublisherService.publishTombstoneEvent(mapper.valueToTree(tombstoneVirtualCollection),
-          mapper.valueToTree(virtualCollection), agent);
+      rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection,
+          agent);
     } catch (JsonProcessingException e) {
       log.error("Unable to publish tombstone event to provenance service", e);
       throw new ProcessingFailedException(
@@ -283,8 +283,8 @@ public class VirtualCollectionService {
     } else {
       checkHandleUpdate(currentVirtualCollection, virtualCollection);
       repository.updateVirtualCollection(virtualCollection);
-      rabbitMqPublisherService.publishUpdateEvent(mapper.valueToTree(virtualCollection),
-          mapper.valueToTree(currentVirtualCollection), agent);
+      rabbitMqPublisherService.publishUpdateEvent(virtualCollection, currentVirtualCollection,
+          agent);
       var dataNode = new JsonApiData(virtualCollection.getId(),
           FdoType.VIRTUAL_COLLECTION.getName(), mapper.valueToTree(virtualCollection));
       return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
