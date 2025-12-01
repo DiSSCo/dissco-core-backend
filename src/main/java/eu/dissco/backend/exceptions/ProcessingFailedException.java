@@ -1,6 +1,6 @@
 package eu.dissco.backend.exceptions;
 
-public class ProcessingFailedException extends RuntimeException {
+public class ProcessingFailedException extends Exception {
 
   public ProcessingFailedException(String message, Throwable cause) {
     super(message, cause);

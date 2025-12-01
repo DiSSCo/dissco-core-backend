@@ -55,7 +55,7 @@ public class VirtualCollectionService {
   }
 
   public JsonApiWrapper persistVirtualCollection(VirtualCollectionRequest virtualCollectionRequest,
-      Agent agent, String path) {
+      Agent agent, String path) throws ProcessingFailedException {
     log.info("Requesting handle for Virtual Collection: {}",
         virtualCollectionRequest.getLtcCollectionName());
     String handle = postHandle(virtualCollectionRequest);
@@ -80,7 +80,8 @@ public class VirtualCollectionService {
     }
   }
 
-  private String postHandle(VirtualCollectionRequest virtualCollectionRequest) {
+  private String postHandle(VirtualCollectionRequest virtualCollectionRequest)
+      throws ProcessingFailedException {
     try {
       return handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
     } catch (PidException e) {
@@ -94,7 +95,7 @@ public class VirtualCollectionService {
       throws ProcessingFailedException {
     try {
       rabbitMqPublisherService.publishCreateEvent(virtualCollection, agent);
-    } catch (JsonProcessingException e) {
+    } catch (ProcessingFailedException e) {
       log.error("Unable to publish message to RabbitMQ", e);
       rollbackVirtualCollection(virtualCollection);
       throw new ProcessingFailedException("Failed to create new virtual collection", e);
@@ -182,7 +183,7 @@ public class VirtualCollectionService {
   }
 
   public boolean tombstoneVirtualCollection(String prefix, String suffix, Agent agent,
-      boolean isAdmin) throws NotFoundException {
+      boolean isAdmin) throws NotFoundException, ProcessingFailedException {
     var id = prefix + "/" + suffix;
     var result = getActiveVirtualCollection(agent, isAdmin, id);
     if (result.isPresent()) {
@@ -199,27 +200,16 @@ public class VirtualCollectionService {
   }
 
   private boolean tombstoneActiveVirtualCollection(Agent agent, VirtualCollection virtualCollection,
-      String id) {
+      String id) throws ProcessingFailedException {
     tombstoneHandle(id);
     var timestamp = Instant.now();
     var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent,
         timestamp);
     repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
-    publishTombstoneEvent(agent, virtualCollection, tombstoneVirtualCollection);
+    rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection,
+        agent);
     publishVirtualCollectionEvent(new VirtualCollectionEvent(DELETE, tombstoneVirtualCollection));
     return true;
-  }
-
-  private void publishTombstoneEvent(Agent agent, VirtualCollection virtualCollection,
-      VirtualCollection tombstoneVirtualCollection) {
-    try {
-      rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection,
-          agent);
-    } catch (JsonProcessingException e) {
-      log.error("Unable to publish tombstone event to provenance service", e);
-      throw new ProcessingFailedException(
-          "Unable to publish tombstone event to provenance service", e);
-    }
   }
 
   private void tombstoneHandle(String handle) throws ProcessingFailedException {
@@ -267,7 +257,7 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper updateVirtualCollection(String id,
       VirtualCollectionRequest virtualCollectionRequest, Agent agent, String path)
-      throws NotFoundException, JsonProcessingException, ForbiddenException {
+      throws NotFoundException, JsonProcessingException, ForbiddenException, ProcessingFailedException {
     var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
     if (currentVirtualCollectionOptional.isEmpty()) {
       log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
@@ -292,7 +282,7 @@ public class VirtualCollectionService {
   }
 
   private void checkHandleUpdate(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) {
+      VirtualCollection virtualCollection) throws ProcessingFailedException {
     if (!Objects.equals(currentVirtualCollection.getLtcCollectionName(),
         virtualCollection.getLtcCollectionName()) ||
         !Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),

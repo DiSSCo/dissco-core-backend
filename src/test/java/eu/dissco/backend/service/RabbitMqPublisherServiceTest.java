@@ -8,11 +8,14 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.VirtualCollectionAction;
 import eu.dissco.backend.domain.VirtualCollectionEvent;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.properties.RabbitMqProperties;
 import eu.dissco.backend.schema.CreateUpdateTombstoneEvent;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.VirtualCollection;
@@ -26,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.RabbitMQContainer;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,15 +85,7 @@ class RabbitMqPublisherServiceTest {
   @BeforeEach
   void setup() {
     rabbitMqPublisherService = new RabbitMqPublisherService(MAPPER, rabbitTemplate,
-        provenanceService);
-    ReflectionTestUtils.setField(rabbitMqPublisherService, "provenanceExchange",
-        PROVENANCE + "-exchange");
-    ReflectionTestUtils.setField(rabbitMqPublisherService, "provenanceRoutingKey",
-        PROVENANCE);
-    ReflectionTestUtils.setField(rabbitMqPublisherService, "virtualCollectionExchange",
-        VIRTUAL_COLLECTION + "-exchange");
-    ReflectionTestUtils.setField(rabbitMqPublisherService, "virtualCollectionRoutingKey",
-        VIRTUAL_COLLECTION);
+        provenanceService, new RabbitMqProperties());
   }
 
   @Test
@@ -109,7 +103,7 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testPublishCreateEvent() throws JsonProcessingException {
+  void testPublishCreateEvent() throws JsonProcessingException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var jsonNode = MAPPER.valueToTree(virtualCollection);
@@ -126,7 +120,19 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testPublishUpdateEvent() throws JsonProcessingException {
+  void testPublishCreateEventInvalidObject() {
+    // Given
+    var object = MAPPER.createObjectNode();
+    given(provenanceService.generateCreateEvent(object, givenAgent())).willReturn(
+        new CreateUpdateTombstoneEvent().withId(ID));
+
+    // When / Then
+    assertThrows(ProcessingFailedException.class,
+        () -> rabbitMqPublisherService.publishCreateEvent(object, givenAgent()));
+  }
+
+  @Test
+  void testPublishUpdateEvent() throws JsonProcessingException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var unequalVirtualCollection = new VirtualCollection();
