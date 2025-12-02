@@ -27,7 +27,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.VirtualCollectionAction;
@@ -193,7 +192,8 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void persistVirtualCollection() throws JsonProcessingException, PidException {
+  void persistVirtualCollection()
+      throws JsonProcessingException, PidException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -207,8 +207,7 @@ class VirtualCollectionServiceTest {
 
     // Then
     then(repository).should().createVirtualCollection(virtualCollection);
-    then(rabbitMqPublisherService).should()
-        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), agent);
+    then(rabbitMqPublisherService).should().publishCreateEvent(virtualCollection, agent);
     then(rabbitMqPublisherService).should()
         .publishVirtualCollectionEvent(
             new VirtualCollectionEvent(VirtualCollectionAction.CREATE, virtualCollection));
@@ -216,14 +215,14 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void persistVirtualCollectionRollback() throws JsonProcessingException, PidException {
+  void persistVirtualCollectionRollback() throws PidException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
     given(handleComponent.postHandleVirtualCollection(request)).willReturn(ID);
-    doThrow(new JsonParseException("Failed to parse")).when(rabbitMqPublisherService)
-        .publishCreateEvent(MAPPER.valueToTree(virtualCollection), agent);
+    doThrow(new ProcessingFailedException("Failed to parse")).when(rabbitMqPublisherService)
+        .publishCreateEvent(virtualCollection, agent);
 
     // When
     assertThrows(
@@ -238,7 +237,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testTombstoneVirtualCollection()
-      throws PidException, JsonProcessingException, NotFoundException {
+      throws PidException, JsonProcessingException, NotFoundException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
@@ -253,8 +252,7 @@ class VirtualCollectionServiceTest {
     then(handleComponent).should().tombstoneHandle(ID);
     then(repository).should().tombstoneVirtualCollection(tombstoneVirtualCollection);
     then(rabbitMqPublisherService).should()
-        .publishTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
-            MAPPER.valueToTree(virtualCollection), agent);
+        .publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection, agent);
     then(rabbitMqPublisherService).should()
         .publishVirtualCollectionEvent(new VirtualCollectionEvent(
             DELETE, tombstoneVirtualCollection));
@@ -300,16 +298,16 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testTombstoneVirtualCollectionRabbitException()
-      throws PidException, JsonProcessingException {
+      throws PidException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
     var tombstoneVirtualCollection = givenTombstoneVirtualCollection();
     given(repository.getActiveVirtualCollection(ID, null)).willReturn(
         Optional.of(virtualCollection));
-    doThrow(new JsonParseException("Handle tombstoning failed")).when(rabbitMqPublisherService)
-        .publishTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
-            MAPPER.valueToTree(virtualCollection), agent);
+    doThrow(new ProcessingFailedException("Handle tombstoning failed")).when(
+            rabbitMqPublisherService)
+        .publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection, agent);
 
     // When
     assertThrows(ProcessingFailedException.class,
@@ -341,8 +339,8 @@ class VirtualCollectionServiceTest {
     then(handleComponent).should().updateHandle(updatedVirtualCollection);
     then(repository).should().updateVirtualCollection(updatedVirtualCollection);
     then(rabbitMqPublisherService).should()
-        .publishUpdateEvent(MAPPER.valueToTree(updatedVirtualCollection),
-            MAPPER.valueToTree(virtualCollection), givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
+        .publishUpdateEvent(updatedVirtualCollection, virtualCollection,
+            givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
     assertThat(result).isEqualTo(expected);
   }
 
@@ -367,7 +365,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testUpdateVirtualCollectionEqual()
-      throws JsonProcessingException, NotFoundException, ForbiddenException {
+      throws JsonProcessingException, NotFoundException, ForbiddenException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var virtualCollectionRequest = givenVirtualCollectionRequest();

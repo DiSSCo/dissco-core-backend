@@ -22,6 +22,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -106,7 +107,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) throws JsonProcessingException {
+      String path) throws JsonProcessingException, ProcessingFailedException {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), agent,
         false)
         .withOdsPlaceInBatch(1);

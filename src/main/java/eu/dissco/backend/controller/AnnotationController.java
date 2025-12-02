@@ -21,6 +21,7 @@ import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
@@ -199,7 +200,7 @@ public class AnnotationController extends BaseController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BatchAnnotationRequest.class)))
       @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
+      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException, ProcessingFailedException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);

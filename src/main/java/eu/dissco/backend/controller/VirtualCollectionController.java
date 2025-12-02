@@ -13,6 +13,7 @@ import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResp
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionResponseSingle;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.VirtualCollectionRequest;
 import eu.dissco.backend.service.VirtualCollectionService;
@@ -169,7 +170,7 @@ public class VirtualCollectionController extends BaseController {
       Authentication authentication,
       @RequestBody eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest requestBody,
       HttpServletRequest request)
-      throws ForbiddenException {
+      throws ForbiddenException, ProcessingFailedException {
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);
     var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     log.info("Received new virtualCollectionRequests from agent: {}", agent.getId());
@@ -201,7 +202,7 @@ public class VirtualCollectionController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
-      throws NotFoundException, JsonProcessingException, ForbiddenException {
+      throws NotFoundException, JsonProcessingException, ForbiddenException, ProcessingFailedException {
     var id = prefix + '/' + suffix;
     var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);
@@ -227,7 +228,7 @@ public class VirtualCollectionController extends BaseController {
   public ResponseEntity<Void> tombstoneVirtualCollection(Authentication authentication,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for virtualCollection: {} from user: {}", (prefix + '/' + suffix),

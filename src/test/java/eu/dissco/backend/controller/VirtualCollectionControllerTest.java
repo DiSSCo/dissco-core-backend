@@ -31,6 +31,7 @@ import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequ
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest.VirtualCollectionRequestData;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.VirtualCollectionRequest.LtcBasisOfScheme;
 import eu.dissco.backend.service.VirtualCollectionService;
@@ -220,7 +221,7 @@ class VirtualCollectionControllerTest {
   @ParameterizedTest
   @MethodSource("sourceTestTombstoneVirtualCollection")
   void testTombstoneVirtualCollection(boolean success, ResponseEntity<Object> expectedResponse)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     // Given
     givenAuthentication(authentication, givenClaims());
     given(service.tombstoneVirtualCollection(PREFIX, SUFFIX,
@@ -237,14 +238,15 @@ class VirtualCollectionControllerTest {
   @ParameterizedTest
   @MethodSource("sourceTestUpdateVirtualCollection")
   void testUpdateVirtualCollection(JsonApiWrapper response, ResponseEntity<Object> expectedResponse)
-      throws NotFoundException, ForbiddenException, JsonProcessingException {
+      throws NotFoundException, ForbiddenException, JsonProcessingException, ProcessingFailedException {
     // Given
     givenAuthentication(authentication, givenClaims());
     var virtualCollection = givenVirtualCollectionRequest();
     var request = new VirtualCollectionRequest(
         new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION,
             givenVirtualCollectionRequest()));
-    given(service.updateVirtualCollection(ID, virtualCollection, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+    given(service.updateVirtualCollection(ID, virtualCollection,
+        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
         VIRTUAL_COLLECTION_PATH)).willReturn(response);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 

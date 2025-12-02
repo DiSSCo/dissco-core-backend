@@ -34,10 +34,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MasJobRecordService {
 
+  private static final Integer TTL = 86400;
   private final MasJobRecordRepository masJobRecordRepository;
   private final HandleComponent handleComponent;
   private final ObjectMapper mapper;
-  private static final Integer TTL = 86400;
 
   public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {
@@ -64,7 +64,8 @@ public class MasJobRecordService {
       int pageNum, int pageSize, JobState state) {
     int pageSizeToCheckNext = pageSize + 1;
     List<MasJobRecordFull> masJobRecordsPlusOne;
-    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId, state, pageNum, pageSizeToCheckNext);
+    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId, state,
+        pageNum, pageSizeToCheckNext);
     return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
   }
 
@@ -87,7 +88,7 @@ public class MasJobRecordService {
   public Map<String, MasJobRecord> createMasJobRecord(
       Set<MachineAnnotationService> masRecords,
       String targetId, String orcid, MjrTargetType targetType,
-      Map<String, MasJobRequest> masRequests) {
+      Map<String, MasJobRequest> masRequests) throws ProcessingFailedException {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = postHandleMjr(masRecords);
     var handleItr = handles.iterator();
@@ -111,16 +112,18 @@ public class MasJobRecordService {
         .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
   }
 
-  private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords) {
+  private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords)
+      throws ProcessingFailedException {
     try {
-     return handleComponent.postHandleMjr(masRecords.size());
+      return handleComponent.postHandleMjr(masRecords.size());
     } catch (PidException e) {
       log.error("Failed to create handles for MJR records: {}", masRecords, e);
       throw new ProcessingFailedException("Failed to create handles for MJR records", e);
     }
   }
 
-  public String createJobRecordForDisscover(Annotation annotation, String orcid) {
+  public String createJobRecordForDisscover(Annotation annotation, String orcid)
+      throws ProcessingFailedException {
     var handle = postHandleMjr();
     var mjr = new MasJobRecord(
         handle,
@@ -136,7 +139,7 @@ public class MasJobRecordService {
     return handle;
   }
 
-  private String postHandleMjr() {
+  private String postHandleMjr() throws ProcessingFailedException {
     try {
       return handleComponent.postHandleMjr(1).getFirst();
     } catch (PidException e) {
@@ -151,9 +154,9 @@ public class MasJobRecordService {
     }
   }
 
-  private MjrTargetType getMjrTargetType(Annotation annotation){
+  private MjrTargetType getMjrTargetType(Annotation annotation) {
     var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsFdoType());
-    if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)){
+    if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)) {
       return MjrTargetType.DIGITAL_SPECIMEN;
     }
     return MjrTargetType.MEDIA_OBJECT;
