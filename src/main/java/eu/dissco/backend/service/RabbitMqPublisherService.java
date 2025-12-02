@@ -43,7 +43,7 @@ public class RabbitMqPublisherService {
           assembleRoutingKey(object), mapper.writeValueAsString(event));
     } catch (JsonProcessingException e) {
       log.error(SERIALISATION_ERROR, event, e);
-      throw new ProcessingFailedException("Failed to serialize tombstone event", e);
+      throw new ProcessingFailedException("Failed to serialize create event", e);
     }
   }
 
@@ -57,7 +57,7 @@ public class RabbitMqPublisherService {
           assembleRoutingKey(object), mapper.writeValueAsString(event));
     } catch (JsonProcessingException e) {
       log.error(SERIALISATION_ERROR, event, e);
-      throw new ProcessingFailedException("Failed to serialize tombstone event", e);
+      throw new ProcessingFailedException("Failed to serialize update event", e);
     }
   }
 
