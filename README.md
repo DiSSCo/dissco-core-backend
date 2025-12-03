@@ -29,8 +29,9 @@ This data storage is used for displaying previous versions of the data.
 
 ## API documentation
 The APIs are documented through code-generated OpenAPI v3 and Swagger.
-- The swagger endpoint is: https://sandbox.dissco.tech/api/swagger-ui/index.html#/
-- The OpenAPI endpoint is: https://sandbox.dissco.tech/api/v3/api-docs
+
+- The swagger endpoint is: https://disscover.dissco.eu/api/docs/swagger-ui/index.html
+- The OpenAPI endpoint is: https://disscover.dissco.eu/api/docs/api-docs
 
 ### Digital Specimens
 For Digital Specimen, we only provide search and read functionality through the APIs.
