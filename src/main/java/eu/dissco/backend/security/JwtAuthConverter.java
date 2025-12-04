@@ -1,10 +1,12 @@
 package eu.dissco.backend.security;
 
+import eu.dissco.backend.properties.SecurityProperties;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,7 +16,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+
+  private final SecurityProperties securityProperties;
 
   @Override
   public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
@@ -24,20 +29,23 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
   private Set<GrantedAuthority> extractRoles(Jwt jwt) {
     Set<GrantedAuthority> authorities = new HashSet<>();
     if (jwt.getClaims().containsKey("resource_access")) {
-      ((Map<String, Object>) jwt.getClaims().get("resource_access")).forEach((k, v) -> {
-        Map<String, Object> resourceAccess = (Map<String, Object>) v;
-        resourceAccess.forEach((k1, v1) -> {
-          if (k1.equals("roles")) {
-            ((Collection<String>) v1).forEach(
-                role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
-          }
-        });
-      });
+      ((Map<String, Object>) jwt.getClaims().get("resource_access")).forEach(
+          (clientName, properties) -> {
+            if (clientName.equals(securityProperties.getClientId())) {
+              Map<String, Object> resourceAccess = (Map<String, Object>) properties;
+              resourceAccess.forEach((propertyName, value) -> {
+                if (propertyName.equals("roles")) {
+                  ((Collection<String>) value).forEach(
+                      role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
+                }
+              });
+            }
+          });
     }
     if (jwt.getClaims().containsKey("realm_access")) {
-      ((Map<String, Object>) jwt.getClaims().get("realm_access")).forEach((k, v) -> {
-        if (k.equals("roles")) {
-          ((Collection<String>) v).forEach(
+      ((Map<String, Object>) jwt.getClaims().get("realm_access")).forEach((propertyName, value) -> {
+        if (propertyName.equals("roles")) {
+          ((Collection<String>) value).forEach(
               role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
         }
       });
