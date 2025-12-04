@@ -2,6 +2,7 @@ package eu.dissco.backend.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.dissco.backend.properties.SecurityProperties;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ class JwtAuthConverterTest {
 
   @BeforeEach
   void setup() {
-    converter = new JwtAuthConverter();
+    converter = new JwtAuthConverter(new SecurityProperties());
   }
 
   @Test
@@ -44,7 +45,8 @@ class JwtAuthConverterTest {
         Map.of("kid", "SomeRandom", "typ", "JWT", "alg", "RS256"),
         Map.of("sub", "adf294ba-bb03-4962-8042-a37f1648458e",
             "realm_access", Map.of("roles", List.of("virtual-collection-admin")),
-            "resource_access", Map.of("orchestration-service", Map.of("roles", List.of("orchestration-admin")))));
+            "resource_access",
+            Map.of("dissco-backend", Map.of("roles", List.of("dissco-web-batch-annotations")))));
 
     // When
     var token = converter.convert(jwt);
@@ -61,7 +63,8 @@ class JwtAuthConverterTest {
     var jwt = new Jwt("SomeRandomStringWithTheFullValue", Instant.now(), Instant.now(),
         Map.of("kid", "SomeRandom", "typ", "JWT", "alg", "RS256"),
         Map.of("sub", "adf294ba-bb03-4962-8042-a37f1648458e",
-            "resource_access", Map.of("orchestration-service", Map.of("no-roles", List.of("I am not here")))));
+            "resource_access",
+            Map.of("orchestration-service", Map.of("no-roles", List.of("I am not here")))));
 
     // When
     var token = converter.convert(jwt);
