@@ -64,7 +64,8 @@ class JwtAuthConverterTest {
         Map.of("kid", "SomeRandom", "typ", "JWT", "alg", "RS256"),
         Map.of("sub", "adf294ba-bb03-4962-8042-a37f1648458e",
             "resource_access",
-            Map.of("orchestration-service", Map.of("no-roles", List.of("I am not here")))));
+            Map.of("orchestration-service", Map.of("roles", List.of("An orestration role")),
+                "dissco-backend", Map.of("not_roles", List.of("this should be ignored")))));
 
     // When
     var token = converter.convert(jwt);
