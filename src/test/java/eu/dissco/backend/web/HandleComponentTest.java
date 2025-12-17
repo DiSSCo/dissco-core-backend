@@ -36,8 +36,6 @@ class HandleComponentTest {
 
   private static MockWebServer mockHandleServer;
   @Mock
-  private TokenAuthenticator tokenAuthenticator;
-  @Mock
   private FdoRecordComponent fdoRecordComponent;
   private HandleComponent handleComponent;
 
@@ -56,7 +54,7 @@ class HandleComponentTest {
   void setup() {
     WebClient webClient = WebClient.create(
         String.format("http://%s:%s", mockHandleServer.getHostName(), mockHandleServer.getPort()));
-    handleComponent = new HandleComponent(webClient, tokenAuthenticator, fdoRecordComponent);
+    handleComponent = new HandleComponent(webClient, fdoRecordComponent);
   }
 
   @Test

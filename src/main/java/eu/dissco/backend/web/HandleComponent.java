@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -31,11 +30,10 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Slf4j
 public class HandleComponent {
+
   private static final String ERROR_MESSAGE = "Error occurred while creating PID: {}";
 
-  @Qualifier("handleClient")
   private final WebClient handleClient;
-  private final TokenAuthenticator tokenAuthenticator;
   private final FdoRecordComponent fdoRecordComponent;
 
   public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection)
@@ -76,12 +74,10 @@ public class HandleComponent {
 
   private <T> Mono<JsonNode> sendRequest(HttpMethod httpMethod,
       BodyInserter<T, ReactiveHttpOutputMessage> requestBody, String endpoint) throws PidException {
-    var token = "Bearer " + tokenAuthenticator.getToken();
     return handleClient
         .method(httpMethod)
         .uri(uriBuilder -> uriBuilder.path(endpoint).build())
         .body(requestBody)
-        .header("Authorization", token)
         .acceptCharset(StandardCharsets.UTF_8)
         .retrieve()
         .onStatus(HttpStatus.UNAUTHORIZED::equals,
