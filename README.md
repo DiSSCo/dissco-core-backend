@@ -99,9 +99,10 @@ elasticsearch.port=# The port of the Elasticsearch cluster
 #Oauth properties
 spring.security.oauth2.resourceserver.jwt.issuer-uri=# The URI to the JWT issuer
 spring.security.oauth2.authorizationserver.endpoint.jwk-set-uri=# The URI to the JWT OpenId certifications 
-token.secret=# Keycloak secret
-token.id=# Keycloak client id
-token.grant-type= # Keycloak grant type
+spring.security.oauth2.client.registration.keycloak.client-id=# The client id to use for Oauth
+spring.security.oauth2.client.registration.keycloak.client-secret=# The client secret to use for Oauth
+spring.security.oauth2.client.registration.keycloak.grant-type=# The grant type to use for Oauth
+spring.security.oauth2.client.provider.keycloak.token-uri=# The token URI to use for Oauth
 
 #RabbitMQ properties
 rabbitmq.mas-exchange-name=# Default value is mas-exchange, can be overwritten
@@ -119,7 +120,6 @@ feign.mas=# Path to MAS endpoint
 
 #Endpoints
 endpoint.handle-endpoint=# Endpoint to handle API
-endpoint.token-endpoint=# Endpoint to keycloak authenticator
 
 #Application Properties
 application.base-url=# The url of the application (used to build JsonApiLinks objects)
