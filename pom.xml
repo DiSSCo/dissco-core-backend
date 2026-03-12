@@ -255,6 +255,18 @@
     <defaultGoal>clean verify</defaultGoal>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
@@ -297,14 +309,30 @@
         <configuration>
           <mainClass>eu.dissco.backend.maven.MavenRunner</mainClass>
           <arguments>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/digital-specimen/0.4.0/digital-specimen.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.4.0/digital-media.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.1.0/virtual-collection.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.4.0/machine-annotation-service.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/annotation/0.4.0/annotation.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/developer-schema/annotation/0.4.0/annotation-processing-request.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/create-update-tombstone-event/0.4.0/create-update-tombstone-event.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.1.0/virtual-collection-request.json</argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/digital-specimen/0.4.0/digital-specimen.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.4.0/digital-media.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.1.0/virtual-collection.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.4.0/machine-annotation-service.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/annotation/0.4.0/annotation.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/developer-schema/annotation/0.4.0/annotation-processing-request.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/create-update-tombstone-event/0.4.0/create-update-tombstone-event.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.1.0/virtual-collection-request.json
+            </argument>
           </arguments>
         </configuration>
       </plugin>
