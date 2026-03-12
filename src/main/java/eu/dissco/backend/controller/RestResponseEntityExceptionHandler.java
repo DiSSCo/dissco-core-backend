@@ -1,6 +1,5 @@
 package eu.dissco.backend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.jsonapi.ExceptionResponseWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
@@ -16,19 +15,20 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tools.jackson.core.JacksonException;
 
 @ControllerAdvice(assignableTypes = BaseController.class)
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-  @ExceptionHandler(JsonProcessingException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handleJsonException(JsonProcessingException e) {
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+  @ExceptionHandler(JacksonException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleJsonException(JacksonException e) {
     var exceptionResponse = new ExceptionResponseWrapper(
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        HttpStatus.UNPROCESSABLE_CONTENT,
         "Json Processing Exception",
         e.getMessage()
     );
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
   }
 
   @ResponseStatus(HttpStatus.BAD_GATEWAY)
@@ -43,15 +43,15 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(exceptionResponse);
   }
 
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
   @ExceptionHandler(PidException.class)
   public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidException e) {
     var exceptionResponse = new ExceptionResponseWrapper(
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        HttpStatus.UNPROCESSABLE_CONTENT,
         "PidCreationException",
         e.getMessage()
     );
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exceptionResponse);
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
   }
 
   @ResponseStatus(HttpStatus.CONFLICT)

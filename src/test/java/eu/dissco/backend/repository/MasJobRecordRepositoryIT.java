@@ -11,7 +11,6 @@ import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullCom
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasJobRecord;
@@ -39,7 +38,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordByMasId() throws JsonProcessingException {
+  void testGetMasJobRecordByMasId() {
     // Given
     var expected = givenMasJobRecordFullScheduled();
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
@@ -52,7 +51,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordByCreatorId() throws JsonProcessingException {
+  void testGetMasJobRecordByCreatorId() {
     // Given
     var expected = givenMasJobRecordFullScheduled();
     postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
@@ -65,7 +64,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordByCreatorIdAll() throws JsonProcessingException {
+  void testGetMasJobRecordByCreatorIdAll() {
     // Given
     var expected = List.of(givenMasJobRecordFullScheduled(), givenMasJobRecordFullCompleted());
     postMasJobRecordFull(expected);
@@ -78,7 +77,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordByIdCompleted() throws JsonProcessingException {
+  void testGetMasJobRecordByIdCompleted() {
     // Given
     var expected = givenMasJobRecordFullCompleted();
     postMasJobRecordFull(List.of(expected));
@@ -91,7 +90,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasJobRecordByIdNotPresent() throws JsonProcessingException {
+  void testGetMasJobRecordByIdNotPresent() {
     // Given
     postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
 
@@ -119,7 +118,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testMarkMasJobRecordAsRunning() throws Exception {
+  void testMarkMasJobRecordAsRunning() {
     // Given
     postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
 
@@ -136,7 +135,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testMarkMasJobRecordAsRunningCompleted() throws Exception {
+  void testMarkMasJobRecordAsRunningCompleted() {
     // Given
     postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
 
@@ -151,7 +150,7 @@ class MasJobRecordRepositoryIT extends BaseRepositoryIT {
     assertThat(result).isEmpty();
   }
 
-  private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) throws JsonProcessingException {
+  private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) {
     ArrayList<Query> queryList = new ArrayList<>();
     for (var mjr : mjrList) {
       var dataNode = mjr.annotations() != null ?

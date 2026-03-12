@@ -4,10 +4,7 @@ import static eu.dissco.backend.schema.Agent.Type.PROV_PERSON;
 import static eu.dissco.backend.schema.Agent.Type.PROV_SOFTWARE_AGENT;
 import static eu.dissco.backend.utils.AgentUtils.createAgent;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.diff.JsonDiff;
+import com.flipkart.zjsonpatch.Jackson3JsonDiff;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.CreateUpdateTombstoneEvent;
@@ -25,12 +22,15 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
 public class ProvenanceService {
 
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final ApplicationProperties properties;
 
   private static String getRdfsComment(ProvActivity.Type activityType) {
@@ -63,7 +63,7 @@ public class ProvenanceService {
   private CreateUpdateTombstoneEvent generateCreateUpdateTombStoneEvent(
       JsonNode digitalObject, ProvActivity.Type activityType, JsonNode jsonPatch, Agent agent) {
     var entityID =
-        digitalObject.get("@id").asText() + "/" + digitalObject.get("schema:version").asText();
+        digitalObject.get("@id").asString() + "/" + digitalObject.get("schema:version").asString();
     var activityID = UUID.randomUUID().toString();
     return new CreateUpdateTombstoneEvent()
         .withId(entityID)
@@ -89,7 +89,7 @@ public class ProvenanceService {
             .withRdfsComment(getRdfsComment(activityType)))
         .withProvEntity(new ProvEntity()
             .withId(entityID)
-            .withType(digitalObject.get("@type").textValue())
+            .withType(digitalObject.get("@type").asString())
             .withProvValue(mapEntityToProvValue(digitalObject))
             .withProvWasGeneratedBy(activityID))
         .withOdsHasAgents(
@@ -125,6 +125,6 @@ public class ProvenanceService {
   }
 
   private JsonNode createJsonPatch(JsonNode digitalObject, JsonNode currentDigitalObject) {
-    return JsonDiff.asJson(currentDigitalObject, digitalObject);
+    return Jackson3JsonDiff.asJson(currentDigitalObject, digitalObject);
   }
 }

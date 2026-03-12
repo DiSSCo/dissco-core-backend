@@ -1,10 +1,10 @@
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM eclipse-temurin:25-alpine AS builder
 WORKDIR application
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-alpine
 RUN adduser --disabled-password -u 1000 java
 WORKDIR application
 COPY --chown=java:java --from=builder application/dependencies/ ./

@@ -4,8 +4,6 @@ import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
@@ -41,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -50,7 +49,7 @@ public class VirtualCollectionController extends BaseController {
 
   private final VirtualCollectionService service;
 
-  public VirtualCollectionController(ObjectMapper mapper,
+  public VirtualCollectionController(JsonMapper mapper,
       ApplicationProperties applicationProperties, VirtualCollectionService service) {
     super(mapper, applicationProperties);
     this.service = service;
@@ -124,7 +123,7 @@ public class VirtualCollectionController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var id = HANDLE_PROXY + prefix + '/' + suffix;
     log.info("Received get request for virtual collection: {} with version: {}", id, version);
     var annotation = service.getVirtualCollectionByVersion(id, version, getPath(request));
@@ -202,7 +201,7 @@ public class VirtualCollectionController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
-      throws NotFoundException, JsonProcessingException, ForbiddenException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var id = prefix + '/' + suffix;
     var agent = getAgent(authentication, ROLE_NAME_VIRTUAL_COLLECTION);
     var virtualCollection = getVirtualCollectionFromRequest(requestBody);

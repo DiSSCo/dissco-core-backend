@@ -2,12 +2,12 @@ package eu.dissco.backend.utils;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Collections;
+import tools.jackson.databind.JsonNode;
 
 public class HandleUtils {
 
-  public static JsonNode givenPostHandleRequest() throws Exception {
+  public static JsonNode givenPostHandleRequest() {
     return MAPPER.readTree("""
         {
           "data" : {

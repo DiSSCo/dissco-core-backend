@@ -1,6 +1,5 @@
 package eu.dissco.backend.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.FdoType;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @Slf4j
@@ -37,7 +37,7 @@ public class MasJobRecordService {
   private static final Integer TTL = 86400;
   private final MasJobRecordRepository masJobRecordRepository;
   private final HandleComponent handleComponent;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
       throws NotFoundException {

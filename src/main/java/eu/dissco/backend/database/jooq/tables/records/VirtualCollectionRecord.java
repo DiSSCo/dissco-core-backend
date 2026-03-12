@@ -6,9 +6,7 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 import eu.dissco.backend.database.jooq.enums.CollectionType;
 import eu.dissco.backend.database.jooq.tables.VirtualCollection;
-
 import java.time.Instant;
-
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;

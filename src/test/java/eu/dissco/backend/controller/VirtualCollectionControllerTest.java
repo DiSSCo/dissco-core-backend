@@ -24,7 +24,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.virtual_collection.VirtualCollectionRequest;
@@ -119,7 +118,7 @@ class VirtualCollectionControllerTest {
   }
 
   @Test
-  void testGetVirtualCollectionVersion() throws NotFoundException, JsonProcessingException {
+  void testGetVirtualCollectionVersion() throws NotFoundException {
     // Given
     var version = 1;
     var expectedResponse = ResponseEntity.ok(
@@ -238,7 +237,7 @@ class VirtualCollectionControllerTest {
   @ParameterizedTest
   @MethodSource("sourceTestUpdateVirtualCollection")
   void testUpdateVirtualCollection(JsonApiWrapper response, ResponseEntity<Object> expectedResponse)
-      throws NotFoundException, ForbiddenException, JsonProcessingException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     // Given
     givenAuthentication(authentication, givenClaims());
     var virtualCollection = givenVirtualCollectionRequest();

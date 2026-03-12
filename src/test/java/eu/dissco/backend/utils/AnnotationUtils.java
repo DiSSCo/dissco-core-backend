@@ -9,7 +9,6 @@ import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.TestUtils.givenCreator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
@@ -233,7 +232,7 @@ public class AnnotationUtils {
     );
   }
 
-  public static BatchAnnotationCountRequest givenAnnotationCountRequest() throws JsonProcessingException {
+  public static BatchAnnotationCountRequest givenAnnotationCountRequest() {
     return MAPPER.readValue("""
         {
           "data": {

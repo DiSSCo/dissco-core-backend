@@ -11,7 +11,6 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtu
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.schema.VirtualCollection;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +135,7 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testUpdateVirtualCollection() throws JsonProcessingException {
+  void testUpdateVirtualCollection() {
     // Given
     populateTable();
     var updatedRecord = givenVirtualCollection(HANDLE + ID, ORCID, "An updated name", 2);

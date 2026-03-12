@@ -5,9 +5,6 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
@@ -45,6 +42,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -57,7 +56,7 @@ public class AnnotationService {
   private final AnnotationClient annotationClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final MasJobRecordService masJobRecordService;
 
   public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
@@ -72,7 +71,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException {
     var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.ANNOTATION);
     validateAnnotationNode(eventNode);
     var dataNode = new JsonApiData(id, ANNOTATION.getName(), eventNode);
@@ -86,7 +85,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent, String path) throws JsonProcessingException, InvalidAnnotationRequestException {
+      Agent agent, String path) throws InvalidAnnotationRequestException {
     var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
     JsonNode response;
     try {
@@ -96,7 +95,7 @@ public class AnnotationService {
         var message = (badRequest).contentUTF8();
         var error = mapper.readTree(message);
         if (error.has("detail")) {
-          message = error.get("detail").asText();
+          message = error.get("detail").asString();
         }
         log.warn("Received invalid annotation request, {}", message);
         throw new InvalidAnnotationRequestException(message);
@@ -107,7 +106,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) throws JsonProcessingException, ProcessingFailedException {
+      String path) throws ProcessingFailedException {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), agent,
         false)
         .withOdsPlaceInBatch(1);
@@ -121,8 +120,7 @@ public class AnnotationService {
     return formatResponse(response, path);
   }
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path)
-      throws JsonProcessingException {
+  public JsonApiWrapper formatResponse(JsonNode response, String path) {
     if (response != null) {
       var annotationResponse = parseToAnnotation(response);
       var dataNode = new JsonApiData(annotationResponse.getId(), ANNOTATION.getName(),
@@ -164,7 +162,7 @@ public class AnnotationService {
     return annotation;
   }
 
-  private Annotation parseToAnnotation(JsonNode response) throws JsonProcessingException {
+  private Annotation parseToAnnotation(JsonNode response) {
     return mapper.treeToValue(response, Annotation.class);
   }
 
@@ -172,7 +170,7 @@ public class AnnotationService {
       AnnotationProcessingRequest annotationProcessingRequest,
       Agent agent,
       String path, String prefix, String suffix)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException {
     var result = repository.getActiveAnnotation(id, agent.getId());
     if (result.isPresent()) {
       if (annotationProcessingRequest.getDctermsIdentifier() == null) {
@@ -257,7 +255,7 @@ public class AnnotationService {
   }
 
   // Response Constructors
-  private void validateAnnotationNode(JsonNode annotationNode) throws JsonProcessingException {
+  private void validateAnnotationNode(JsonNode annotationNode) {
     mapper.treeToValue(annotationNode.get(ANNOTATION.getName()), Annotation.class);
   }
 

@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.VirtualCollectionAction;
 import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
@@ -89,7 +88,7 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testSendObjectToQueue() throws JsonProcessingException {
+  void testSendObjectToQueue() {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
 
@@ -103,7 +102,7 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testPublishCreateEvent() throws JsonProcessingException, ProcessingFailedException {
+  void testPublishCreateEvent() throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var jsonNode = MAPPER.valueToTree(virtualCollection);
@@ -132,7 +131,7 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testPublishUpdateEvent() throws JsonProcessingException, ProcessingFailedException {
+  void testPublishUpdateEvent() throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var unequalVirtualCollection = new VirtualCollection();
@@ -172,7 +171,7 @@ class RabbitMqPublisherServiceTest {
   }
 
   @Test
-  void testPublishVirtualCollectionEvent() throws JsonProcessingException {
+  void testPublishVirtualCollectionEvent() {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var virtualCollectionEvent = new VirtualCollectionEvent(

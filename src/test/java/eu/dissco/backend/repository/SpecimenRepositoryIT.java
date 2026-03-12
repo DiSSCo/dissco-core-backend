@@ -9,7 +9,6 @@ import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetSpecimenById() throws JsonProcessingException {
+  void testGetSpecimenById() {
     // Given
     populateSpecimenTable();
 
@@ -46,7 +45,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetOriginalSpecimenData() throws JsonProcessingException{
+  void testGetOriginalSpecimenData() {
     // Given
     var expected = MAPPER.createObjectNode()
             .put("originalData", "yep");
@@ -72,7 +71,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     assertThat(result).isNull();
   }
 
-  private void populateSpecimenTable() throws JsonProcessingException {
+  private void populateSpecimenTable() {
     var specimens = new ArrayList<DigitalSpecimen>();
     for (int i = 0; i < 22; i++) {
       specimens.add(givenDigitalSpecimenWrapper("20.5000.1025/ABC-123-XY" + i));
@@ -80,8 +79,7 @@ class SpecimenRepositoryIT extends BaseRepositoryIT {
     insertIntoDatabase(specimens);
   }
 
-  private void insertIntoDatabase(List<DigitalSpecimen> specimens)
-      throws JsonProcessingException {
+  private void insertIntoDatabase(List<DigitalSpecimen> specimens) {
     for (var specimenWrapper : specimens) {
       context.insertInto(DIGITAL_SPECIMEN)
           .set(DIGITAL_SPECIMEN.ID, specimenWrapper.getDctermsIdentifier())

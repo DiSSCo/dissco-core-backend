@@ -30,7 +30,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
@@ -269,33 +268,28 @@ class AnnotationServiceTest {
     given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(),
         AnnotationTargetType.DIGITAL_SPECIMEN))
         .willReturn(10L);
-    MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
-    var expected = MAPPER.readTree("""
-        {
-          "data": {
-            "type": "batchAnnotationCount",
-            "attributes": {
-              "objectAffected": 10,
-              "batchMetadata": {
-                "searchParams": [
-                  {
-                    "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
-                    "inputValue": "Netherlands"
-                  }
-                ],
-                "placeInBatch":1
-              }
-            }
-          }
-        }
-        """);
-
+    var expected1 = MAPPER.createObjectNode()
+        .set("data", MAPPER.createObjectNode()
+            .put("type", "batchAnnotationCount")
+            .set("attributes", MAPPER.createObjectNode()
+                .put("objectAffected", 10L)
+                .set("batchMetadata", MAPPER.readTree("""
+                    {
+                      "searchParams": [
+                        {
+                          "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
+                          "inputValue": "Netherlands"
+                        }
+                      ],
+                      "placeInBatch": 1
+                    }
+                    """
+                ))));
     // When
     var result = service.getCountForBatchAnnotations(givenAnnotationCountRequest());
 
     // Then
-    assertThat(result).isEqualTo(expected);
-    MAPPER.configure(DeserializationFeature.USE_LONG_FOR_INTS, false);
+    assertThat(result).isEqualTo(expected1);
   }
 
   @Test

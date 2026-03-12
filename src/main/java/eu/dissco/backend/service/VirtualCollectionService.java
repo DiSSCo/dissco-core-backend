@@ -6,8 +6,6 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.VirtualCollectionAction;
@@ -36,6 +34,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -48,7 +47,7 @@ public class VirtualCollectionService {
   private final RabbitMqPublisherService rabbitMqPublisherService;
   private final MongoRepository mongoRepository;
   private final HandleComponent handleComponent;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   private static LtcBasisOfScheme getLtcBasisOfScheme(VirtualCollectionRequest virtualCollection) {
     return LtcBasisOfScheme.fromValue(virtualCollection.getLtcBasisOfScheme().value());
@@ -71,13 +70,7 @@ public class VirtualCollectionService {
   }
 
   private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
-    try {
       rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
-    } catch (JsonProcessingException e) {
-      log.error(
-          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manual action required",
-          e);
-    }
   }
 
   private String postHandle(VirtualCollectionRequest virtualCollectionRequest)
@@ -168,7 +161,7 @@ public class VirtualCollectionService {
   }
 
   public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException {
     var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.VIRTUAL_COLLECTION);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -257,7 +250,7 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper updateVirtualCollection(String id,
       VirtualCollectionRequest virtualCollectionRequest, Agent agent, String path)
-      throws NotFoundException, JsonProcessingException, ForbiddenException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
     if (currentVirtualCollectionOptional.isEmpty()) {
       log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);

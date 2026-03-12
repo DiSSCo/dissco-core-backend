@@ -8,10 +8,8 @@ import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.enums.CollectionType;
 import eu.dissco.backend.database.jooq.tables.records.VirtualCollectionRecord;
-
 import java.time.Instant;
 import java.util.Collection;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.JSONB;

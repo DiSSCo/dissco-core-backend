@@ -18,7 +18,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.client.MasClient;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasScheduleJobRequest;
@@ -71,7 +70,7 @@ class MachineAnnotationServiceServiceTest {
   }
 
   @Test
-  void testGetMassForObject() throws JsonProcessingException {
+  void testGetMassForObject() {
     // Given
     var masRecord = givenMas(givenFiltersDigitalMedia(false));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
@@ -85,8 +84,7 @@ class MachineAnnotationServiceServiceTest {
 
   @ParameterizedTest
   @MethodSource("provideFilters")
-  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters)
-      throws JsonProcessingException {
+  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters) {
     // Given
     var masRecord = givenMas(givenFiltersDigitalMedia(filters));
     given(repository.getAllMas()).willReturn(List.of(masRecord));

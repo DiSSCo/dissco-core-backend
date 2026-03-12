@@ -2,7 +2,6 @@ package eu.dissco.backend.web;
 
 import static org.springframework.http.HttpMethod.POST;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.schema.VirtualCollection;
@@ -25,6 +24,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import tools.jackson.databind.JsonNode;
 
 @Component
 @RequiredArgsConstructor
@@ -43,8 +43,8 @@ public class HandleComponent {
     var response = sendRequest(POST, requestBody, "");
     var result = validateResponse(response);
     try {
-      return result.get("data").get(0).get("id").asText();
-    } catch (NullPointerException e) {
+      return result.get("data").get(0).get("id").asString();
+    } catch (NullPointerException _) {
       log.error(ERROR_MESSAGE, result);
       throw new PidException("Unexpected response from Handle API");
     }
@@ -63,10 +63,10 @@ public class HandleComponent {
       }
       var handles = new ArrayList<String>();
       for (var node : dataNode) {
-        handles.add(node.get("id").asText());
+        handles.add(node.get("id").asString());
       }
       return handles;
-    } catch (NullPointerException e) {
+    } catch (NullPointerException _) {
       log.error(ERROR_MESSAGE, result);
       throw new PidException("Unexpected response from Handle API");
     }
@@ -94,7 +94,7 @@ public class HandleComponent {
   private JsonNode validateResponse(Mono<JsonNode> response) throws PidException {
     try {
       return response.toFuture().get();
-    } catch (InterruptedException e) {
+    } catch (InterruptedException _) {
       Thread.currentThread().interrupt();
       log.error("Interrupted exception has occurred.");
       throw new PidException(

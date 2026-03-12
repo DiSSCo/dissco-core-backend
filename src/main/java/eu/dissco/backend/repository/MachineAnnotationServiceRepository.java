@@ -2,8 +2,6 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.utils.ProxyUtils;
@@ -14,13 +12,15 @@ import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @RequiredArgsConstructor
 public class MachineAnnotationServiceRepository {
 
   private final DSLContext context;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public List<MachineAnnotationService> getAllMas() {
     return context.select(MACHINE_ANNOTATION_SERVICE.DATA)
@@ -33,7 +33,7 @@ public class MachineAnnotationServiceRepository {
     try {
       return mapper.readValue(record1.get(MACHINE_ANNOTATION_SERVICE.DATA).data(),
           MachineAnnotationService.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException("Unable to convert jsonb to machine annotation service",
           e);
     }

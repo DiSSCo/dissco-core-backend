@@ -2,11 +2,11 @@ package eu.dissco.backend.repository;
 
 import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import org.jooq.Record;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public class RepositoryUtils {
 
@@ -25,11 +25,11 @@ public class RepositoryUtils {
   }
 
 
-  public static JsonNode mapOriginalDataToJson(Record result, ObjectMapper mapper) {
+  public static JsonNode mapOriginalDataToJson(Record result, JsonMapper mapper) {
     var originalData = result.get(DIGITAL_SPECIMEN.ORIGINAL_DATA);
     try {
       return mapper.readTree(originalData.data());
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException(
           "Failed to parse jsonb field to json: " + originalData.data(), e);
     }

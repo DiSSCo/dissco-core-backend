@@ -4,8 +4,6 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -42,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -52,7 +51,7 @@ public class DigitalMediaController extends BaseController {
   private final DigitalMediaService service;
 
   public DigitalMediaController(ApplicationProperties applicationProperties,
-      ObjectMapper mapper, DigitalMediaService service) {
+      JsonMapper mapper, DigitalMediaService service) {
     super(mapper, applicationProperties);
     this.service = service;
   }
@@ -141,7 +140,7 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for digital media: {} with version: {}", id, version);
     var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));

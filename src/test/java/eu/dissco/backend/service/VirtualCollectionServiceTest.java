@@ -27,7 +27,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.VirtualCollectionAction;
 import eu.dissco.backend.domain.VirtualCollectionEvent;
@@ -152,7 +151,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testGetVirtualCollectionByVersion() throws NotFoundException, JsonProcessingException {
+  void testGetVirtualCollectionByVersion() throws NotFoundException {
     // Given
     var version = 2;
     var virtualCollectionNode = MAPPER.valueToTree(
@@ -193,7 +192,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void persistVirtualCollection()
-      throws JsonProcessingException, PidException, ProcessingFailedException {
+      throws PidException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -236,8 +235,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testTombstoneVirtualCollection()
-      throws PidException, JsonProcessingException, NotFoundException, ProcessingFailedException {
+  void testTombstoneVirtualCollection() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
@@ -365,7 +363,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testUpdateVirtualCollectionEqual()
-      throws JsonProcessingException, NotFoundException, ForbiddenException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var virtualCollectionRequest = givenVirtualCollectionRequest();

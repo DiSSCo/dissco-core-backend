@@ -3,8 +3,6 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -47,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -56,7 +55,7 @@ public class DigitalSpecimenController extends BaseController {
 
   private final DigitalSpecimenService service;
 
-  public DigitalSpecimenController(ApplicationProperties applicationProperties, ObjectMapper mapper,
+  public DigitalSpecimenController(ApplicationProperties applicationProperties, JsonMapper mapper,
       DigitalSpecimenService service) {
     super(mapper, applicationProperties);
     this.service = service;
@@ -149,7 +148,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @PathVariable("version") int version,
-      HttpServletRequest request) throws NotFoundException, JsonProcessingException {
+      HttpServletRequest request) throws NotFoundException {
     var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for full specimen with id: {} and version: {}", id, version);
     var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
@@ -168,7 +167,7 @@ public class DigitalSpecimenController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var id = DOI_PROXY + prefix + '/' + suffix;
     log.info("Received get request for specimen with id and version: {}", id);
     var specimen = service.getSpecimenByVersion(id, version, getPath(request));

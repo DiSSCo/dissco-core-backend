@@ -2,7 +2,6 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.schema.Identifier.OdsGupriLevel.GLOBALLY_UNIQUE_STABLE_PERSISTENT_RESOLVABLE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.exceptions.ConflictException;
@@ -22,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
+import tools.jackson.databind.json.JsonMapper;
 
 @Controller
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public abstract class BaseController {
   protected static final String DEFAULT_PAGE_NUM = "1";
   protected static final String DEFAULT_PAGE_SIZE = "10";
   private static final String ORCID = "orcid";
-  protected final ObjectMapper mapper;
+  protected final JsonMapper mapper;
   private final ApplicationProperties applicationProperties;
 
   // OpenAPI Messages
@@ -99,7 +99,7 @@ public abstract class BaseController {
       var claims = ((Jwt) authentication.getPrincipal()).getClaims();
       var roles = ((Map<String, List<String>>) claims.get("realm_access")).get("roles");
       return (roles.contains("dissco-admin"));
-    } catch (NullPointerException e) {
+    } catch (NullPointerException _) {
       return false;
     } catch (ClassCastException e) {
       log.warn("Unable to read claims", e);

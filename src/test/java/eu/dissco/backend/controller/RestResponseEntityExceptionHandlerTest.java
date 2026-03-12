@@ -68,7 +68,7 @@ class RestResponseEntityExceptionHandlerTest {
     var result = exceptionHandler.handlePidCreationException(new PidException(""));
 
     // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
   }
 
   @Test

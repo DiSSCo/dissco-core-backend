@@ -2,7 +2,6 @@ package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -38,7 +38,7 @@ public class MasJobRecordController extends BaseController {
 
   private final MasJobRecordService service;
 
-  public MasJobRecordController(ObjectMapper mapper,
+  public MasJobRecordController(JsonMapper mapper,
       ApplicationProperties applicationProperties, MasJobRecordService service) {
     super(mapper, applicationProperties);
     this.service = service;

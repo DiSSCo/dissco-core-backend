@@ -1,7 +1,5 @@
 package eu.dissco.backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.VirtualCollectionEvent;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.RabbitMqProperties;
@@ -12,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -20,14 +20,13 @@ public class RabbitMqPublisherService {
 
   private static final String SERIALISATION_ERROR = "Failed to serialize tombstone event: {}";
 
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final RabbitTemplate rabbitTemplate;
   private final ProvenanceService provenanceService;
   private final RabbitMqProperties rabbitMqProperties;
 
 
-  public void publishMasRequestEvent(String routingKey, Object object)
-      throws JsonProcessingException {
+  public void publishMasRequestEvent(String routingKey, Object object) {
     log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey,
         object);
     rabbitTemplate.convertAndSend(rabbitMqProperties.getMasExchangeName(), routingKey,
@@ -41,7 +40,7 @@ public class RabbitMqPublisherService {
     try {
       rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
           assembleRoutingKey(object), mapper.writeValueAsString(event));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error(SERIALISATION_ERROR, event, e);
       throw new ProcessingFailedException("Failed to serialize create event", e);
     }
@@ -55,7 +54,7 @@ public class RabbitMqPublisherService {
     try {
       rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
           assembleRoutingKey(object), mapper.writeValueAsString(event));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error(SERIALISATION_ERROR, event, e);
       throw new ProcessingFailedException("Failed to serialize update event", e);
     }
@@ -69,14 +68,13 @@ public class RabbitMqPublisherService {
     try {
       rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
           assembleRoutingKey(tombstoneObject), mapper.writeValueAsString(event));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error(SERIALISATION_ERROR, event, e);
       throw new ProcessingFailedException("Failed to serialize tombstone event", e);
     }
   }
 
-  public void publishVirtualCollectionEvent(VirtualCollectionEvent event)
-      throws JsonProcessingException {
+  public void publishVirtualCollectionEvent(VirtualCollectionEvent event) {
     log.info("Publishing {} virtual-collection to queue", event.action());
     rabbitTemplate.convertAndSend(rabbitMqProperties.getVirtualCollectionExchange(),
         rabbitMqProperties.getVirtualCollectionRoutingKey(),

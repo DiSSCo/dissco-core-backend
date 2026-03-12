@@ -1,9 +1,9 @@
 package eu.dissco.backend.domain.openapi.specimen;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import tools.jackson.databind.JsonNode;
 
 @Schema
 public record AggregationResponse(

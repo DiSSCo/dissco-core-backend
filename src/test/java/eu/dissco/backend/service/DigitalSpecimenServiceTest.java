@@ -34,8 +34,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
@@ -68,6 +66,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.util.MultiValueMapAdapter;
+import tools.jackson.databind.JsonNode;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalSpecimenServiceTest {
@@ -631,7 +630,7 @@ class DigitalSpecimenServiceTest {
   }
 
   @Test
-  void testGetOriginalDataForSpecimen() throws JsonProcessingException, NotFoundException {
+  void testGetOriginalDataForSpecimen() throws NotFoundException {
     // Given
     var expectedJson = givenMongoDBResponse();
     var expected = new JsonApiWrapper(
@@ -655,7 +654,7 @@ class DigitalSpecimenServiceTest {
         () -> service.getOriginalDataForSpecimen(ID, SPECIMEN_PATH));
   }
 
-  private JsonNode givenMongoDBResponse() throws JsonProcessingException {
+  private JsonNode givenMongoDBResponse() {
     return MAPPER.readValue("""
         {
                "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",

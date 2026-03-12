@@ -27,8 +27,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.FdoType;
@@ -55,6 +53,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.JsonNode;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaServiceTest {
@@ -189,7 +188,7 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetDigitalMediaByVersion() throws NotFoundException, JsonProcessingException {
+  void testGetDigitalMediaByVersion() throws NotFoundException {
     // Given
     int version = 1;
     var mongoResponse = givenMongoDBMediaResponse();
@@ -311,7 +310,7 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetOriginalDataForMedia() throws JsonProcessingException, NotFoundException {
+  void testGetOriginalDataForMedia() throws NotFoundException {
     // Given
     var expectedJson = givenMongoDBMediaResponse();
     var expected = new JsonApiWrapper(
@@ -336,7 +335,7 @@ class DigitalMediaServiceTest {
   }
 
 
-  private JsonNode givenMongoDBMediaResponse() throws JsonProcessingException {
+  private JsonNode givenMongoDBMediaResponse() {
     return MAPPER.readValue(
         """ 
             {

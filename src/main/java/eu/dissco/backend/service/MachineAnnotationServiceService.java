@@ -2,10 +2,6 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import eu.dissco.backend.client.MasClient;
@@ -28,6 +24,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 public class MachineAnnotationServiceService {
 
   private final MachineAnnotationServiceRepository repository;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final MasClient masClient;
 
   private boolean checkIfMasComplies(JsonNode jsonNode,
@@ -58,7 +58,7 @@ public class MachineAnnotationServiceService {
             && !allowedValues.contains("*"))) {
           complies = false;
         }
-      } catch (PathNotFoundException e) {
+      } catch (PathNotFoundException _) {
         log.warn("Key: {} not found in json: {}", fieldKey, jsonNode);
         complies = false;
       }
@@ -102,8 +102,8 @@ public class MachineAnnotationServiceService {
       log.error("An error has occurred with MAS Scheduler Client", e);
       var msg = e.contentUTF8().isBlank() ? e.getMessage() : e.contentUTF8();
       throw new MasSchedulingException(msg);
-    } catch (JsonProcessingException e) {
-      log.error("Unable to read response from mas scheduler");
+    } catch (JacksonException e) {
+      log.error("Unable to read response from mas scheduler", e);
       throw new MasSchedulingException("Unable to read response from mas scheduler");
     }
   }

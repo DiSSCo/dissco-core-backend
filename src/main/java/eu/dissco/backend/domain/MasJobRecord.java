@@ -12,7 +12,7 @@ public record MasJobRecord(
     MjrTargetType targetType,
     @JsonAlias("agentId")
     String orcid,
-    boolean batchingRequested,
+    Boolean batchingRequested,
     Integer timeToLive) {
 
 }

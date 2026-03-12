@@ -1,7 +1,6 @@
 package eu.dissco.backend.client;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.schema.Annotation;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import tools.jackson.databind.JsonNode;
 
 @FeignClient(name = "annotations", url = "${feign.annotations}")
 public interface AnnotationClient {

@@ -1,6 +1,5 @@
 package eu.dissco.backend.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +16,14 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebClientConfiguration {
 
   private final WebConnectionProperties properties;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   @Bean
   public OAuth2AuthorizedClientManager authorizedClientManager(
