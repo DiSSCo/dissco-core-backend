@@ -44,6 +44,7 @@ import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.Identification;
 import eu.dissco.backend.schema.TaxonIdentification;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -80,7 +81,7 @@ class ElasticSearchRepositoryIT {
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
   private static final ElasticsearchContainer container = new ElasticsearchContainer(
-      ELASTIC_IMAGE).withPassword(ELASTICSEARCH_PASSWORD);
+      ELASTIC_IMAGE).withPassword(ELASTICSEARCH_PASSWORD).withStartupTimeout(Duration.ofMinutes(2));
   private static ElasticsearchClient client;
   private static Rest5Client restClient;
   private final ElasticSearchProperties properties = new ElasticSearchProperties();
