@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 import tools.jackson.databind.JsonNode;
 
 @Slf4j
-public class WebClientErrorHandlingConfiguration {
+public class WebClientErrorHandling {
 
-  private WebClientErrorHandlingConfiguration() {
+  private WebClientErrorHandling() {
   }
 
   public static Mono<ClientResponse> exchangeFilterResponseProcessor(ClientResponse response) {

@@ -49,7 +49,7 @@ public class WebClientConfiguration {
   public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
     // Error Exchange filtering
     ExchangeFilterFunction errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(WebClientErrorHandlingConfiguration::exchangeFilterResponseProcessor);
+        .ofResponseProcessor(WebClientErrorHandling::exchangeFilterResponseProcessor);
     // Set up Oauth2
     var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
         authorizedClientManager);

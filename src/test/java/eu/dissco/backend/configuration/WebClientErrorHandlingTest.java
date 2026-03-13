@@ -1,9 +1,8 @@
-package eu.dissco.backend.web;
+package eu.dissco.backend.configuration;
 
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.configuration.WebClientErrorHandlingConfiguration;
 import eu.dissco.backend.exceptions.PidAuthorizationException;
 import eu.dissco.backend.exceptions.PidException;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,7 @@ import reactor.test.StepVerifier;
 import tools.jackson.databind.JsonNode;
 
 @ExtendWith(MockitoExtension.class)
-class WebClientErrorHandlingConfigurationTest {
+class WebClientErrorHandlingTest {
 
   @Mock
   private ClientResponse clientResponse;
@@ -34,7 +33,7 @@ class WebClientErrorHandlingConfigurationTest {
         Mono.just(MAPPER.createObjectNode()));
 
     // When
-    var result = WebClientErrorHandlingConfiguration.exchangeFilterResponseProcessor(
+    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
         clientResponse);
 
     // Then
@@ -51,7 +50,7 @@ class WebClientErrorHandlingConfigurationTest {
         Mono.just(MAPPER.createObjectNode()));
 
     // When
-    var result = WebClientErrorHandlingConfiguration.exchangeFilterResponseProcessor(
+    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
         clientResponse);
 
     // Then
@@ -66,7 +65,7 @@ class WebClientErrorHandlingConfigurationTest {
     given(clientResponse.statusCode()).willReturn(HttpStatus.OK);
 
     // When
-    var result = WebClientErrorHandlingConfiguration.exchangeFilterResponseProcessor(
+    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
         clientResponse);
 
     // Then

@@ -7,7 +7,8 @@ CVE-2025-48976
 CVE-2026-25646
 
 # March 13, 2026
-# Issue with zlip, alpine image needs to update
+# Issue with zlib, alpine image needs to update
+CVE-2026-22184
 
 # March 13, 2026
 # Issue with Jackson 2, spring boot needs to update
@@ -16,4 +17,4 @@ GHSA-72hv-8253-57qq
 # March 13, 2026
 # Issue with Jackson 3, spring boot needs to update
 CVE-2026-29062
-GHSA-72hv-8253-57qq │
+GHSA-72hv-8253-57qq
