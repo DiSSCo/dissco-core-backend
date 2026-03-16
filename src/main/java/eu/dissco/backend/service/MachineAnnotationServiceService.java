@@ -17,14 +17,12 @@ import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import eu.dissco.backend.schema.MachineAnnotationService;
-import feign.FeignException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -98,13 +96,16 @@ public class MachineAnnotationServiceService {
       var result = masClient.scheduleMas(masScheduleJobRequests);
       return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
       }), path);
-    } catch (FeignException e) {
+    } catch (Exception e) {
+      /*
       log.error("An error has occurred with MAS Scheduler Client", e);
       var msg = e.contentUTF8().isBlank() ? e.getMessage() : e.contentUTF8();
       throw new MasSchedulingException(msg);
     } catch (JacksonException e) {
       log.error("Unable to read response from mas scheduler", e);
       throw new MasSchedulingException("Unable to read response from mas scheduler");
+    } */
+      throw e;
     }
   }
 

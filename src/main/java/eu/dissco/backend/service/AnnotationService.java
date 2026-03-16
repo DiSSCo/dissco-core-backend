@@ -29,8 +29,6 @@ import eu.dissco.backend.schema.Annotation.OaMotivation;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.utils.JsonApiUtils;
 import eu.dissco.backend.utils.ProxyUtils;
-import feign.FeignException;
-import feign.FeignException.BadRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -90,7 +88,8 @@ public class AnnotationService {
     JsonNode response;
     try {
       response = annotationClient.postAnnotation(annotation);
-    } catch (FeignException e) {
+    } catch (RuntimeException e) {
+      /*
       if (e instanceof BadRequest badRequest) {
         var message = (badRequest).contentUTF8();
         var error = mapper.readTree(message);
@@ -100,6 +99,7 @@ public class AnnotationService {
         log.warn("Received invalid annotation request, {}", message);
         throw new InvalidAnnotationRequestException(message);
       }
+      throw e; */
       throw e;
     }
     return formatResponse(response, path);

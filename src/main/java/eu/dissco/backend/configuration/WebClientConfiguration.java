@@ -1,6 +1,8 @@
 package eu.dissco.backend.configuration;
 
+import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.HandleClient;
+import eu.dissco.backend.client.MasClient;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
@@ -71,16 +73,33 @@ public class WebClientConfiguration {
   }
 
   @Bean
-  public WebClient handleClient1(OAuth2AuthorizedClientManager authorizedClientManager) {
-    var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-        authorizedClientManager);
-    oauth2Client.setDefaultClientRegistrationId("dissco");
-    return WebClient.builder()
-        .apply(oauth2Client.oauth2Configuration())
+  public AnnotationClient annotationClient() {
+    var webClient = WebClient.builder()
         .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
         .baseUrl(properties.getHandleEndpoint())
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
+    // Create factory for client proxies
+    var proxyFactory = HttpServiceProxyFactory.builder()
+        .exchangeAdapter(WebClientAdapter.create(webClient))
+        .build();
+    // Create client proxy
+    return proxyFactory.createClient(AnnotationClient.class);
+  }
+
+  @Bean
+  public MasClient masClient() {
+    var webClient = WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
+        .baseUrl(properties.getHandleEndpoint())
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .build();
+    // Create factory for client proxies
+    var proxyFactory = HttpServiceProxyFactory.builder()
+        .exchangeAdapter(WebClientAdapter.create(webClient))
+        .build();
+    // Create client proxy
+    return proxyFactory.createClient(MasClient.class);
   }
 
   @Bean(name = "fdoRecordBuilder")
