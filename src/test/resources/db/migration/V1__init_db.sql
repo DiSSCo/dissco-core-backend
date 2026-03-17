@@ -1,34 +1,37 @@
 CREATE TABLE public.user
 (
     id           text        NOT NULL,
-    first_name   text        NULL,
-    last_name    text        NULL,
-    email        text        NULL,
-    orcid        text        NULL,
-    organization text        NULL,
+    first_name   text NULL,
+    last_name    text NULL,
+    email        text NULL,
+    orcid        text NULL,
+    organization text NULL,
     created      timestamptz NOT NULL,
     updated      timestamptz NOT NULL,
     CONSTRAINT user_pkey PRIMARY KEY (id)
 );
 
+create type annotation_status_enum as enum('ACCEPTED', 'REJECTED', 'PENDING', 'MERGED');
+
 create table annotation
 (
-    id              text                     not null
+    id                text                     not null
         constraint new_annotation_pk
             primary key,
-    version         integer                  not null,
-    type            text                     not null,
-    annotation_hash uuid,
-    motivation      text                     not null,
-    mjr_job_id      text,
-    batch_id        uuid,
-    creator      text                     not null,
-    created         timestamp with time zone not null,
-    modified        timestamp with time zone not null,
-    last_checked    timestamp with time zone not null,
-    tombstoned   timestamp with time zone,
-    target_id       text                     not null,
-    data            jsonb
+    version           integer                  not null,
+    type              text                     not null,
+    annotation_hash   uuid,
+    motivation        text                     not null,
+    mjr_job_id        text,
+    batch_id          uuid,
+    creator           text                     not null,
+    created           timestamp with time zone not null,
+    modified          timestamp with time zone not null,
+    last_checked      timestamp with time zone not null,
+    tombstoned        timestamp with time zone,
+    target_id         text                     not null,
+    data              jsonb,
+    annotation_status annotation_status_enum
 );
 
 create index annotation_hash on annotation (annotation_hash);
@@ -37,17 +40,17 @@ create index annotation_id_target_id_index on annotation (target_id);
 
 create table digital_media_object
 (
-    id                  text                     not null
+    id            text                     not null
         constraint digital_media_object_pk
             primary key,
-    version             integer                  not null,
-    type                text,
-    media_url           text                     not null,
-    created             timestamp with time zone not null,
-    last_checked        timestamp with time zone not null,
-    deleted             timestamp with time zone,
-    data                jsonb                    not null,
-    original_data jsonb not null,
+    version       integer                  not null,
+    type          text,
+    media_url     text                     not null,
+    created       timestamp with time zone not null,
+    last_checked  timestamp with time zone not null,
+    deleted       timestamp with time zone,
+    data          jsonb                    not null,
+    original_data jsonb                    not null,
     modified      timestamp with time zone
 );
 
@@ -91,9 +94,9 @@ create table machine_annotation_service
         primary key,
     version                integer                  not null,
     name                   varchar                  not null,
-    created           timestamp with time zone not null,
-    modified          timestamp with time zone not null,
-    tombstoned        timestamp with time zone,
+    created    timestamp with time zone not null,
+    modified   timestamp with time zone not null,
+    tombstoned timestamp with time zone,
     creator                text                     not null,
     container_image        text                     not null,
     container_image_tag    text                     not null,
