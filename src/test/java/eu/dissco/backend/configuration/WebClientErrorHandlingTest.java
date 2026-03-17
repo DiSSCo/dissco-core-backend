@@ -3,8 +3,8 @@ package eu.dissco.backend.configuration;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static org.mockito.BDDMockito.given;
 
-import eu.dissco.backend.exceptions.PidAuthorizationException;
-import eu.dissco.backend.exceptions.PidException;
+import eu.dissco.backend.exceptions.WebAuthenticationException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -34,11 +34,11 @@ class WebClientErrorHandlingTest {
 
     // When
     var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse);
+        clientResponse, "Handle");
 
     // Then
     StepVerifier.create(result)
-        .expectError(PidAuthorizationException.class)
+        .expectError(WebAuthenticationException.class)
         .verify();
   }
 
@@ -51,11 +51,11 @@ class WebClientErrorHandlingTest {
 
     // When
     var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse);
+        clientResponse, "Annotation");
 
     // Then
     StepVerifier.create(result)
-        .expectError(PidException.class)
+        .expectError(WebProcessingFailedException.class)
         .verify();
   }
 
@@ -66,7 +66,7 @@ class WebClientErrorHandlingTest {
 
     // When
     var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse);
+        clientResponse, "Mas Scheduler");
 
     // Then
     StepVerifier.create(result)

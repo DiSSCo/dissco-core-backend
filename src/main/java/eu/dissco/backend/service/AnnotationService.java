@@ -17,9 +17,9 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
-import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -83,31 +83,16 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent, String path) throws InvalidAnnotationRequestException {
+      Agent agent, String path) throws WebProcessingFailedException {
     var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
     JsonNode response;
-    try {
-      response = annotationClient.postAnnotation(annotation);
-    } catch (RuntimeException e) {
-      /*
-      if (e instanceof BadRequest badRequest) {
-        var message = (badRequest).contentUTF8();
-        var error = mapper.readTree(message);
-        if (error.has("detail")) {
-          message = error.get("detail").asString();
-        }
-        log.warn("Received invalid annotation request, {}", message);
-        throw new InvalidAnnotationRequestException(message);
-      }
-      throw e; */
-      throw e;
-    }
+    response = annotationClient.postAnnotation(annotation);
     return formatResponse(response, path);
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
       String path) throws ProcessingFailedException {
-    var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().get(0), agent,
+    var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent,
         false)
         .withOdsPlaceInBatch(1);
     String jobId = null;
@@ -170,7 +155,7 @@ public class AnnotationService {
       AnnotationProcessingRequest annotationProcessingRequest,
       Agent agent,
       String path, String prefix, String suffix)
-      throws NotFoundException {
+      throws NotFoundException, WebProcessingFailedException {
     var result = repository.getActiveAnnotation(id, agent.getId());
     if (result.isPresent()) {
       if (annotationProcessingRequest.getDctermsIdentifier() == null) {
@@ -207,7 +192,7 @@ public class AnnotationService {
   }
 
   public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent, boolean isAdmin)
-      throws NotFoundException {
+      throws NotFoundException, WebProcessingFailedException {
     var id = prefix + "/" + suffix;
     Optional<Annotation> result;
     if (isAdmin) {

@@ -4,9 +4,7 @@ import eu.dissco.backend.domain.jsonapi.ExceptionResponseWrapper;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
@@ -41,17 +39,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         "A connection error has occurred. Please try again later"
     );
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(exceptionResponse);
-  }
-
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
-  @ExceptionHandler(PidException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handlePidCreationException(PidException e) {
-    var exceptionResponse = new ExceptionResponseWrapper(
-        HttpStatus.UNPROCESSABLE_CONTENT,
-        "PidCreationException",
-        e.getMessage()
-    );
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
   }
 
   @ResponseStatus(HttpStatus.CONFLICT)
@@ -108,17 +95,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.BAD_REQUEST,
         "Unknown Parameter",
-        e.getMessage()
-    );
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(MasSchedulingException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handleException(MasSchedulingException e) {
-    var exceptionResponse = new ExceptionResponseWrapper(
-        HttpStatus.BAD_REQUEST,
-        "MAS Scheduling exception",
         e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);

@@ -13,8 +13,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
-import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.MachineAnnotationService;
@@ -88,7 +87,7 @@ public class MasJobRecordService {
   public Map<String, MasJobRecord> createMasJobRecord(
       Set<MachineAnnotationService> masRecords,
       String targetId, String orcid, MjrTargetType targetType,
-      Map<String, MasJobRequest> masRequests) throws ProcessingFailedException {
+      Map<String, MasJobRequest> masRequests) throws WebProcessingFailedException {
     log.info("Requesting {} handles from API", masRecords.size());
     var handles = postHandleMjr(masRecords);
     var handleItr = handles.iterator();
@@ -113,17 +112,12 @@ public class MasJobRecordService {
   }
 
   private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords)
-      throws ProcessingFailedException {
-    try {
-      return handleComponent.postHandleMjr(masRecords.size());
-    } catch (PidException e) {
-      log.error("Failed to create handles for MJR records: {}", masRecords, e);
-      throw new ProcessingFailedException("Failed to create handles for MJR records", e);
-    }
+      throws WebProcessingFailedException {
+    return handleComponent.postHandleMjr(masRecords.size());
   }
 
   public String createJobRecordForDisscover(Annotation annotation, String orcid)
-      throws ProcessingFailedException {
+      throws WebProcessingFailedException {
     var handle = postHandleMjr();
     var mjr = new MasJobRecord(
         handle,
@@ -139,13 +133,8 @@ public class MasJobRecordService {
     return handle;
   }
 
-  private String postHandleMjr() throws ProcessingFailedException {
-    try {
-      return handleComponent.postHandleMjr(1).getFirst();
-    } catch (PidException e) {
-      log.error("Failed to create handles for Job record Disscover", e);
-      throw new ProcessingFailedException("Failed to create handles for Job record Disscover", e);
-    }
+  private String postHandleMjr() throws WebProcessingFailedException {
+    return handleComponent.postHandleMjr(1).getFirst();
   }
 
   public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {

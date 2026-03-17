@@ -29,6 +29,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -124,6 +125,13 @@ public class Annotation extends TableImpl<AnnotationRecord> {
      */
     public final TableField<AnnotationRecord, JSONB> DATA = createField(DSL.name("data"), SQLDataType.JSONB, this, "");
 
+  /**
+   * The column <code>public.annotation.annotation_status</code>.
+   */
+  public final TableField<AnnotationRecord, Object> ANNOTATION_STATUS = createField(
+      DSL.name("annotation_status"),
+      DefaultDataType.getDefaultDataType("\"public\".\"annotation_status_enum\""), this, "");
+
     private Annotation(Name alias, Table<AnnotationRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -160,7 +168,8 @@ public class Annotation extends TableImpl<AnnotationRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.ANNOTATION_HASH, Indexes.ANNOTATION_ID_CREATOR_ID_INDEX, Indexes.ANNOTATION_ID_TARGET_ID_INDEX);
+      return Arrays.asList(Indexes.ANNOTATION_HASH_IDX, Indexes.ANNOTATION_ID_CREATOR_ID_INDEX,
+          Indexes.ANNOTATION_ID_TARGET_ID_INDEX, Indexes.ANNOTATION_STATUS_INDEX);
     }
 
     @Override

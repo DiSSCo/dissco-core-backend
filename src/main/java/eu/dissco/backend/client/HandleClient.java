@@ -1,6 +1,6 @@
 package eu.dissco.backend.client;
 
-import eu.dissco.backend.exceptions.PidException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,20 +13,21 @@ import tools.jackson.databind.JsonNode;
 public interface HandleClient {
 
   @PostExchange("")
-  JsonNode postHandle(@RequestBody JsonNode handleRequest) throws PidException;
+  JsonNode postHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
 
   @PostExchange("batch")
-  JsonNode postHandles(@RequestBody List<JsonNode> handleRequest) throws PidException;
+  JsonNode postHandles(@RequestBody List<JsonNode> handleRequest)
+      throws WebProcessingFailedException;
 
   @PatchExchange("{pid}")
-  void updateHandle(@RequestBody JsonNode handleRequest) throws PidException;
+  void updateHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
 
   @PutExchange("{pid}")
   void tombstoneHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
-      throws PidException;
+      throws WebProcessingFailedException;
 
   @DeleteExchange("rollback/create")
-  void rollbackHandle(@RequestBody JsonNode handleRequest) throws PidException;
+  void rollbackHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
 
 
 }

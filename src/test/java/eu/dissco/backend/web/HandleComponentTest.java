@@ -17,7 +17,7 @@ import static org.mockito.BDDMockito.then;
 
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.component.FdoRecordComponent;
-import eu.dissco.backend.exceptions.PidException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +69,7 @@ class HandleComponentTest {
   }
 
   @Test
-  void testRollbackHandleVirtualCollection() throws PidException {
+  void testRollbackHandleVirtualCollection() throws Exception {
     // Given
     given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
         givenVirtualCollectionHandleRollbackRequest());
@@ -88,7 +88,7 @@ class HandleComponentTest {
     responseBody.set("data", MAPPER.createArrayNode());
 
     // When / Then
-    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
+    assertThrows(WebProcessingFailedException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test

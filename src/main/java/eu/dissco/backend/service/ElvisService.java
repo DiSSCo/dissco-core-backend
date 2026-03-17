@@ -114,7 +114,7 @@ public class ElvisService {
   private static List<TaxonIdentification> getBestTaxonIdentification(
       DigitalSpecimen digitalSpecimen) {
     if (digitalSpecimen.getOdsHasIdentifications().isEmpty()
-        || digitalSpecimen.getOdsHasIdentifications().get(0).getOdsHasTaxonIdentifications()
+        || digitalSpecimen.getOdsHasIdentifications().getFirst().getOdsHasTaxonIdentifications()
         .isEmpty()) {
       return List.of();
     }
@@ -129,7 +129,7 @@ public class ElvisService {
       }
     }
     // If no accepted id, take the first
-    return digitalSpecimen.getOdsHasIdentifications().get(0).getOdsHasTaxonIdentifications();
+    return digitalSpecimen.getOdsHasIdentifications().getFirst().getOdsHasTaxonIdentifications();
   }
 
 

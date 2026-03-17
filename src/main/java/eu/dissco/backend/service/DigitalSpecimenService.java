@@ -22,8 +22,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -343,7 +343,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
-      String orcid, String path) throws MasSchedulingException {
+      String orcid, String path) throws ProcessingFailedException {
     return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN, path);
   }
 

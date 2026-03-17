@@ -7,10 +7,16 @@ import org.springframework.validation.annotation.Validated;
 
 @Data
 @Validated
-@ConfigurationProperties("endpoint")
+@ConfigurationProperties("web")
 public class WebConnectionProperties {
 
   @NotBlank
   private String handleEndpoint;
+
+  @NotBlank
+  String annotationEndpoint;
+
+  @NotBlank
+  String masEndpoint;
 
 }

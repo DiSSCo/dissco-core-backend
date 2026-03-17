@@ -141,7 +141,7 @@ public class AnnotationController extends BaseController {
               schema = @Schema(implementation = AnnotationRequest.class)))
       Authentication authentication,
       @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, InvalidAnnotationRequestException {
+      throws ForbiddenException, ProcessingFailedException {
     var annotation = getAnnotationFromRequest(requestBody);
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     log.info("Received new annotationRequests from agent: {}", agent.getId());
@@ -233,7 +233,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var id = prefix + '/' + suffix;
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var annotation = getAnnotationFromRequest(requestBody);
@@ -296,7 +296,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix),

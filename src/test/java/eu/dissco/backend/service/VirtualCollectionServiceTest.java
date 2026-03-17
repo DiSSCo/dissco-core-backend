@@ -35,8 +35,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.OdsHasPredicate;
@@ -192,7 +192,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void persistVirtualCollection()
-      throws PidException, ProcessingFailedException {
+      throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -214,7 +214,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void persistVirtualCollectionRollback() throws PidException, ProcessingFailedException {
+  void persistVirtualCollectionRollback() throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -275,13 +275,12 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testTombstoneVirtualCollectionHandleException()
-      throws PidException {
+  void testTombstoneVirtualCollectionHandleException() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     given(repository.getActiveVirtualCollection(ID, null)).willReturn(
         Optional.of(virtualCollection));
-    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+    doThrow(new WebProcessingFailedException("Handle tombstoning failed")).when(handleComponent)
         .tombstoneHandle(ID);
     var agent = givenAgent();
 
@@ -296,7 +295,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testTombstoneVirtualCollectionRabbitException()
-      throws PidException, ProcessingFailedException {
+      throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
@@ -403,7 +402,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testUpdateVirtualCollectionHandleFails() throws PidException {
+  void testUpdateVirtualCollectionHandleFails() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
@@ -411,7 +410,7 @@ class VirtualCollectionServiceTest {
     var updatedVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "Updated Name", 2);
     given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
         Optional.of(virtualCollection));
-    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+    doThrow(new WebProcessingFailedException("Handle tombstoning failed")).when(handleComponent)
         .updateHandle(updatedVirtualCollection);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
 

@@ -14,8 +14,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -174,7 +174,7 @@ public class DigitalMediaService {
 
   public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
       String path, String orcid)
-      throws NotFoundException, MasSchedulingException {
+      throws NotFoundException, WebProcessingFailedException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     if (digitalMedia == null) {
       log.error("Unable to find media with id {}", id);

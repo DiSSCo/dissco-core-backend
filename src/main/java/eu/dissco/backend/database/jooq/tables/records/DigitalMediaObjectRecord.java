@@ -159,6 +159,20 @@ public class DigitalMediaObjectRecord extends UpdatableRecordImpl<DigitalMediaOb
         return (Instant) get(9);
     }
 
+  /**
+   * Setter for <code>public.digital_media_object.source_system_id</code>.
+   */
+  public void setSourceSystemId(String value) {
+    set(10, value);
+  }
+
+  /**
+   * Getter for <code>public.digital_media_object.source_system_id</code>.
+   */
+  public String getSourceSystemId() {
+    return (String) get(10);
+  }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -182,8 +196,10 @@ public class DigitalMediaObjectRecord extends UpdatableRecordImpl<DigitalMediaOb
     /**
      * Create a detached, initialised DigitalMediaObjectRecord
      */
-    public DigitalMediaObjectRecord(String id, Integer version, String type, String mediaUrl, Instant created, Instant lastChecked, Instant deleted, JSONB data, JSONB originalData, Instant modified) {
-        super(DigitalMediaObject.DIGITAL_MEDIA_OBJECT);
+    public DigitalMediaObjectRecord(String id, Integer version, String type, String mediaUrl,
+        Instant created, Instant lastChecked, Instant deleted, JSONB data, JSONB originalData,
+        Instant modified, String sourceSystemId) {
+      super(DigitalMediaObject.DIGITAL_MEDIA_OBJECT);
 
         setId(id);
         setVersion(version);
@@ -195,6 +211,7 @@ public class DigitalMediaObjectRecord extends UpdatableRecordImpl<DigitalMediaOb
         setData(data);
         setOriginalData(originalData);
         setModified(modified);
-        resetChangedOnNotNull();
+      setSourceSystemId(sourceSystemId);
+      resetTouchedOnNotNull();
     }
 }

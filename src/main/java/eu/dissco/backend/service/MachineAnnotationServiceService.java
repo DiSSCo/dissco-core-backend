@@ -14,7 +14,7 @@ import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.exceptions.MasSchedulingException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import eu.dissco.backend.schema.MachineAnnotationService;
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ public class MachineAnnotationServiceService {
   public JsonApiListResponseWrapper scheduleMas(String targetId, List<MasJobRequest> masRequests,
       String orcid,
       MjrTargetType targetType, String path)
-      throws MasSchedulingException {
+      throws WebProcessingFailedException {
     var masScheduleJobRequests = masRequests.stream()
         .map(masRequest -> new MasScheduleJobRequest(
             masRequest.masId(),
@@ -92,21 +92,9 @@ public class MachineAnnotationServiceService {
             orcid,
             targetType
         )).collect(Collectors.toSet());
-    try {
-      var result = masClient.scheduleMas(masScheduleJobRequests);
-      return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
-      }), path);
-    } catch (Exception e) {
-      /*
-      log.error("An error has occurred with MAS Scheduler Client", e);
-      var msg = e.contentUTF8().isBlank() ? e.getMessage() : e.contentUTF8();
-      throw new MasSchedulingException(msg);
-    } catch (JacksonException e) {
-      log.error("Unable to read response from mas scheduler", e);
-      throw new MasSchedulingException("Unable to read response from mas scheduler");
-    } */
-      throw e;
-    }
+    var result = masClient.scheduleMas(masScheduleJobRequests);
+    return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
+    }), path);
   }
 
   private JsonApiListResponseWrapper formatMasScheduleResponse(List<MasJobRecord> masJobRecords,

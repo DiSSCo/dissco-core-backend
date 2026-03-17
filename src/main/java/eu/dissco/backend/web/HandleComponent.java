@@ -2,7 +2,7 @@ package eu.dissco.backend.web;
 
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.component.FdoRecordComponent;
-import eu.dissco.backend.exceptions.PidException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollectionRequest;
 import java.util.ArrayList;
@@ -24,18 +24,18 @@ public class HandleComponent {
   private final FdoRecordComponent fdoRecordComponent;
 
   public String postHandleVirtualCollection(VirtualCollectionRequest virtualCollection)
-      throws PidException {
+      throws WebProcessingFailedException {
     var request = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollection);
     var response = handleClient.postHandle(request);
     try {
       return response.get("data").get(0).get("id").asString();
     } catch (NullPointerException _) {
       log.error(ERROR_MESSAGE, response);
-      throw new PidException("Unexpected response from Handle API");
+      throw new WebProcessingFailedException("Unexpected response from Handle API");
     }
   }
 
-  public List<String> postHandleMjr(int n) throws PidException {
+  public List<String> postHandleMjr(int n) throws WebProcessingFailedException {
     var request = Collections.nCopies(n, fdoRecordComponent.getPostRequestMjr());
     var response = handleClient.postHandles(request);
     try {
@@ -47,21 +47,22 @@ public class HandleComponent {
       return handles;
     } catch (NullPointerException _) {
       log.error(ERROR_MESSAGE, response);
-      throw new PidException("Unexpected response from Handle API");
+      throw new WebProcessingFailedException("Unexpected response from Handle API");
     }
   }
 
-  public void tombstoneHandle(String handle) throws PidException {
+  public void tombstoneHandle(String handle) throws WebProcessingFailedException {
     var request = fdoRecordComponent.getTombstoneRequest(handle);
     handleClient.tombstoneHandle(handle, request);
   }
 
-  public void updateHandle(VirtualCollection virtualCollection) throws PidException {
+  public void updateHandle(VirtualCollection virtualCollection)
+      throws WebProcessingFailedException {
     var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
     handleClient.updateHandle(request);
   }
 
-  public void rollbackVirtualCollection(String id) throws PidException {
+  public void rollbackVirtualCollection(String id) throws WebProcessingFailedException {
     var request = fdoRecordComponent.getRollbackCreateRequest(id);
     handleClient.rollbackHandle(request);
   }

@@ -17,8 +17,8 @@ import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseList;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseSingle;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
@@ -457,7 +457,7 @@ public class DigitalSpecimenController extends BaseController {
       @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, MasSchedulingException {
+      throws ConflictException, ForbiddenException, ProcessingFailedException {
     var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;

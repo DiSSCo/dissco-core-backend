@@ -15,8 +15,8 @@ import eu.dissco.backend.domain.openapi.shared.MjrResponseList;
 import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -237,7 +237,7 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
       @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
       HttpServletRequest request)
-      throws ConflictException, ForbiddenException, NotFoundException, MasSchedulingException {
+      throws ConflictException, ForbiddenException, NotFoundException, WebProcessingFailedException {
     var path = getPath(request);
     var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
     var id = prefix + '/' + suffix;

@@ -181,6 +181,6 @@ public class VirtualCollectionRecord extends UpdatableRecordImpl<VirtualCollecti
         setTombstoned(tombstoned);
         setCreator(creator);
         setData(data);
-        resetChangedOnNotNull();
+      resetTouchedOnNotNull();
     }
 }

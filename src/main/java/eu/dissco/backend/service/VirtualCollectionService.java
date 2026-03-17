@@ -16,8 +16,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.Agent;
@@ -70,14 +70,14 @@ public class VirtualCollectionService {
   }
 
   private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
-      rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+    rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
   }
 
   private String postHandle(VirtualCollectionRequest virtualCollectionRequest)
       throws ProcessingFailedException {
     try {
       return handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
-    } catch (PidException e) {
+    } catch (WebProcessingFailedException e) {
       log.error("Failed to create handle for virtual collection request: {}",
           virtualCollectionRequest, e);
       throw new ProcessingFailedException("Failed to create new virtual collection", e);
@@ -98,7 +98,7 @@ public class VirtualCollectionService {
   private void rollbackVirtualCollection(VirtualCollection virtualCollection) {
     try {
       handleComponent.rollbackVirtualCollection(virtualCollection.getId());
-    } catch (PidException e) {
+    } catch (WebProcessingFailedException e) {
       log.error(
           "Unable to rollback handle creation for virtual collection. Manually delete the following handle: {}. Cause of error: ",
           virtualCollection.getId(), e);
@@ -205,13 +205,8 @@ public class VirtualCollectionService {
     return true;
   }
 
-  private void tombstoneHandle(String handle) throws ProcessingFailedException {
-    try {
-      handleComponent.tombstoneHandle(handle);
-    } catch (PidException e) {
-      log.error("Unable to tombstone handle {}", handle, e);
-      throw new ProcessingFailedException("Unable to tombstone handle", e);
-    }
+  private void tombstoneHandle(String handle) throws WebProcessingFailedException {
+    handleComponent.tombstoneHandle(handle);
   }
 
   private VirtualCollection buildTombstoneVirtualCollection(VirtualCollection virtualCollection,
@@ -275,22 +270,14 @@ public class VirtualCollectionService {
   }
 
   private void checkHandleUpdate(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) throws ProcessingFailedException {
+      VirtualCollection virtualCollection) throws WebProcessingFailedException {
     if (!Objects.equals(currentVirtualCollection.getLtcCollectionName(),
         virtualCollection.getLtcCollectionName()) ||
         !Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
             virtualCollection.getLtcBasisOfScheme())) {
       log.info("Handle update is required for virtual collection with id {}",
           currentVirtualCollection.getId());
-      try {
-        handleComponent.updateHandle(virtualCollection);
-      } catch (PidException e) {
-        log.error("Failed to update handle for virtual collection with id {}",
-            currentVirtualCollection.getId(), e);
-        throw new ProcessingFailedException(
-            "Failed to update handle for virtual collection with id "
-                + currentVirtualCollection.getId(), e);
-      }
+      handleComponent.updateHandle(virtualCollection);
     }
   }
 

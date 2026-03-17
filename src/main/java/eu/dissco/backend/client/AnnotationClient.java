@@ -3,6 +3,7 @@ package eu.dissco.backend.client;
 
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.schema.Annotation;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,16 +15,18 @@ import tools.jackson.databind.JsonNode;
 public interface AnnotationClient {
 
   @PostExchange(value = "")
-  JsonNode postAnnotation(@RequestBody Annotation annotation);
+  JsonNode postAnnotation(@RequestBody Annotation annotation) throws WebProcessingFailedException;
 
   @PostExchange(value = "/batch")
-  JsonNode postAnnotationBatch(@RequestBody AnnotationEvent event);
+  JsonNode postAnnotationBatch(@RequestBody AnnotationEvent event)
+      throws WebProcessingFailedException;
 
   @PutExchange(value = "/{prefix}/{suffix}")
-  JsonNode updateAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, @RequestBody Annotation annotation);
+  JsonNode updateAnnotation(@PathVariable String prefix, @PathVariable String suffix,
+      @RequestBody Annotation annotation) throws WebProcessingFailedException;
 
   @DeleteExchange(value = "/{prefix}/{suffix}")
-  void tombstoneAnnotation(@PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix, @RequestBody AnnotationTombstoneWrapper annotationTombstoneWrapper);
+  void tombstoneAnnotation(@PathVariable String prefix, @PathVariable String suffix,
+      @RequestBody AnnotationTombstoneWrapper annotationTombstoneWrapper)
+      throws WebProcessingFailedException;
 }

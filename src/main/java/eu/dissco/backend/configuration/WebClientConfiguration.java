@@ -3,7 +3,6 @@ package eu.dissco.backend.configuration;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.client.MasClient;
-import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,14 +21,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.support.WebClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import reactor.netty.http.client.HttpClient;
-import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebClientConfiguration {
 
   private final WebConnectionProperties properties;
-  private final JsonMapper mapper;
 
   @Bean
   public OAuth2AuthorizedClientManager authorizedClientManager(
@@ -50,8 +47,9 @@ public class WebClientConfiguration {
   @Bean
   public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
     // Error Exchange filtering
-    ExchangeFilterFunction errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(WebClientErrorHandling::exchangeFilterResponseProcessor);
+    var errorResponseFilter = ExchangeFilterFunction
+        .ofResponseProcessor(
+            response -> WebClientErrorHandling.exchangeFilterResponseProcessor(response, "Handle"));
     // Set up Oauth2
     var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
         authorizedClientManager);
@@ -74,9 +72,13 @@ public class WebClientConfiguration {
 
   @Bean
   public AnnotationClient annotationClient() {
+    var errorResponseFilter = ExchangeFilterFunction
+        .ofResponseProcessor(
+            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "Annotation"));
     var webClient = WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
-        .baseUrl(properties.getHandleEndpoint())
+        .filter(errorResponseFilter)
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+        .baseUrl(properties.getAnnotationEndpoint())
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
     // Create factory for client proxies
@@ -89,9 +91,13 @@ public class WebClientConfiguration {
 
   @Bean
   public MasClient masClient() {
+    var errorResponseFilter = ExchangeFilterFunction
+        .ofResponseProcessor(
+            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "MAS Scheduler"));
     var webClient = WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
-        .baseUrl(properties.getHandleEndpoint())
+        .filter(errorResponseFilter)
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+        .baseUrl(properties.getMasEndpoint())
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
     // Create factory for client proxies
@@ -100,11 +106,6 @@ public class WebClientConfiguration {
         .build();
     // Create client proxy
     return proxyFactory.createClient(MasClient.class);
-  }
-
-  @Bean(name = "fdoRecordBuilder")
-  public FdoRecordComponent fdoRecordBuilder() {
-    return new FdoRecordComponent(mapper);
   }
 
 }
