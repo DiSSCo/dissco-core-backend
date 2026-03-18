@@ -16,6 +16,7 @@ import eu.dissco.backend.domain.openapi.shared.VersionResponse;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
@@ -220,11 +221,31 @@ public class DigitalMediaController extends BaseController {
   }
 
   @Operation(
+      summary = "Get digital media derivative",
+      description = """
+          DiSSCo tries to stores media derivatives of all images.
+          This will retrieve the derivative image for the specified Digital Media Object.
+          """
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Derivative Image successfully retrieved", content = {
+          @Content(mediaType = "image/jpeg")
+      })
+  })
+  @GetMapping(value = "/{prefix}/{suffix}/derivative", produces = MediaType.IMAGE_JPEG_VALUE)
+  public ResponseEntity<byte[]> getMediaDerivative(
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+      throws NotFoundException, ProcessingFailedException {
+    return ResponseEntity.ok(service.getImageDerivative(suffix));
+  }
+
+  @Operation(
       summary = "Schedule Machine Annotation Services",
       description = """
-         Schedules applicable MASs on a given digital media.
-         Only users who have provided their ORCID may schedule MASs.
-         """
+          Schedules applicable MASs on a given digital media.
+          Only users who have provided their ORCID may schedule MASs.
+          """
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "202", description = "MAS successfully scheduled", content = {
