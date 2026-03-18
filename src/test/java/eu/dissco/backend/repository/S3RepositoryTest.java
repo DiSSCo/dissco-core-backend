@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
-class S3RepositoryIT {
+class S3RepositoryTest {
 
   @Mock
   private S3AsyncClient s3AsyncClient;
@@ -70,7 +70,7 @@ class S3RepositoryIT {
 
   @ParameterizedTest
   @MethodSource("provideExceptions")
-  void testRetrieveMediaDerivativeNotFound(int statusCode, Class<Throwable> exceptionClass) {
+  void testRetrieveMediaDerivativeException(int statusCode, Class<Throwable> exceptionClass) {
     // Given
     var bucketName = "test-bucket";
     given(s3Properties.getBucketName()).willReturn(bucketName);

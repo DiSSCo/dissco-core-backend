@@ -223,7 +223,7 @@ public class DigitalMediaController extends BaseController {
   @Operation(
       summary = "Get digital media derivative",
       description = """
-          DiSSCo tries to stores media derivatives of all images.
+          DiSSCo tries to store media derivatives of all images.
           This will retrieve the derivative image for the specified Digital Media Object.
           """
   )
