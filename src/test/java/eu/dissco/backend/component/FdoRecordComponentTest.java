@@ -29,7 +29,7 @@ class FdoRecordComponentTest {
   }
 
   @Test
-  void testGetRequestMjr() throws Exception {
+  void testGetRequestMjr() {
     // Given
 
     // When

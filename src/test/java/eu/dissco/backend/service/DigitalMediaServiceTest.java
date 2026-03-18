@@ -9,6 +9,7 @@ import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
+import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenJsonApiLinksFull;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
@@ -36,9 +37,11 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.repository.S3Repository;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.EntityRelationship;
 import java.util.Collections;
@@ -70,6 +73,8 @@ class DigitalMediaServiceTest {
   private DigitalSpecimenRepository digitalSpecimenRepository;
   @Mock
   private MasJobRecordService masJobRecordService;
+  @Mock
+  private S3Repository s3Repository;
 
   private DigitalMediaService service;
 
@@ -82,7 +87,7 @@ class DigitalMediaServiceTest {
   @BeforeEach
   void setup() {
     service = new DigitalMediaService(repository, annotationService, digitalSpecimenRepository,
-        masService, mongoRepository, MAPPER, masJobRecordService);
+        masService, mongoRepository, MAPPER, masJobRecordService, s3Repository);
   }
 
   @ParameterizedTest
@@ -332,6 +337,19 @@ class DigitalMediaServiceTest {
     // When / then
     assertThrows(NotFoundException.class,
         () -> service.getOriginalDataForMedia(ID, ANNOTATION_PATH));
+  }
+
+  @Test
+  void testGetImageDerivative() throws NotFoundException, ProcessingFailedException {
+    // Given
+    var bytea = new byte[]{0x1, 0x2, 0x3};
+    given(s3Repository.retrieveMediaDerivative(SUFFIX)).willReturn(bytea);
+
+    // When
+    var result = service.getImageDerivative(SUFFIX);
+
+    // Then
+    assertThat(result).isEqualTo(bytea);
   }
 
 

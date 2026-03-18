@@ -28,6 +28,7 @@ import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulin
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData.MasSchedulingAttributes;
 import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalMediaService;
 import java.util.Collections;
@@ -193,6 +194,16 @@ class DigitalMediaControllerTest {
     var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
 
     // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
+    // When
+    var result = controller.getMediaDerivative(PREFIX, SUFFIX);
+
+    // Then
+    then(service).should().getImageDerivative(SUFFIX);
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 

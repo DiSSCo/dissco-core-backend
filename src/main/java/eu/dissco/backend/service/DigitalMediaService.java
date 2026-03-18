@@ -15,10 +15,12 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
+import eu.dissco.backend.repository.S3Repository;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.List;
@@ -41,6 +43,7 @@ public class DigitalMediaService {
   private final MongoRepository mongoRepository;
   private final JsonMapper mapper;
   private final MasJobRecordService masJobRecordService;
+  private final S3Repository s3Repository;
 
   // Controller Functions
   public JsonApiListResponseWrapper getDigitalMediaObjects(int pageNumber, int pageSize,
@@ -190,4 +193,9 @@ public class DigitalMediaService {
         id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT, path);
   }
 
+  public byte[] getImageDerivative(String suffix)
+      throws NotFoundException, ProcessingFailedException {
+    log.info("Received request to retrieve derivative for media: {}", suffix);
+    return s3Repository.retrieveMediaDerivative(suffix);
+  }
 }
