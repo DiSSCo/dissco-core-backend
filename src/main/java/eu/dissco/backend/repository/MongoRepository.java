@@ -3,9 +3,6 @@ package eu.dissco.backend.repository;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoDatabase;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.exceptions.NotFoundException;
@@ -14,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,10 +22,10 @@ public class MongoRepository {
   private static final String PROV_VALUE = "prov:value";
 
   private final MongoDatabase database;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public JsonNode getByVersion(String id, int version, MongoCollection mongoCollection)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var collection = database.getCollection(mongoCollection.getCollectionName());
     var versionId = id + '/' + version;
     var result = collection.find(eq("_id", versionId));

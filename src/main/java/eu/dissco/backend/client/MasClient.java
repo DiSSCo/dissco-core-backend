@@ -1,16 +1,16 @@
 package eu.dissco.backend.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MasScheduleJobRequest;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import java.util.Set;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.PostExchange;
+import tools.jackson.databind.JsonNode;
 
-@FeignClient(name = "mas", url = "${feign.mas}")
 public interface MasClient {
 
-  @PostMapping(value = "/")
-  JsonNode scheduleMas(@RequestBody Set<MasScheduleJobRequest> masJobRequest);
+  @PostExchange(value = "/")
+  JsonNode scheduleMas(@RequestBody Set<MasScheduleJobRequest> masJobRequest)
+      throws WebProcessingFailedException;
 
 }

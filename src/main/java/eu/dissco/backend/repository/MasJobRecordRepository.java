@@ -4,9 +4,6 @@ import static eu.dissco.backend.database.jooq.Tables.MAS_JOB_RECORD;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
@@ -20,13 +17,16 @@ import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @RequiredArgsConstructor
 public class MasJobRecordRepository {
 
   private final DSLContext context;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public Optional<MasJobRecordFull> getMasJobRecordById(String masJobRecordHandle) {
     return context.select(MAS_JOB_RECORD.asterisk())
@@ -116,7 +116,7 @@ public class MasJobRecordRepository {
           Math.toIntExact(ttl),
           dbRecord.get(MAS_JOB_RECORD.ERROR)
       );
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException("Unable to parse annotationRequests from MAS job record", e);
     }
 

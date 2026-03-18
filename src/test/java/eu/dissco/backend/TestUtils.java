@@ -1,10 +1,12 @@
 package eu.dissco.backend;
 
+import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonSetter.Value;
+import com.fasterxml.jackson.annotation.Nulls;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.schema.Agent;
@@ -18,13 +20,18 @@ import eu.dissco.backend.schema.Identifier.OdsIdentifierStatus;
 import eu.dissco.backend.schema.Location;
 import eu.dissco.backend.schema.OdsHasRole;
 import eu.dissco.backend.schema.TombstoneMetadata;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TestUtils {
 
@@ -49,7 +56,17 @@ public class TestUtils {
   public static final String SPECIMEN_NAME = "Abyssothyris Thomson, 1927";
   public static final String SPECIMEN_NAME_2 = "Aackia Yosii, 1966";
 
-  public static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
+  public static final JsonMapper MAPPER = JsonMapper.builder()
+      .findAndAddModules()
+      .defaultDateFormat(new SimpleDateFormat(DATE_STRING))
+      .defaultTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC))
+      .withConfigOverride(List.class, cfg ->
+          cfg.setNullHandling(Value.forValueNulls(Nulls.AS_EMPTY)))
+      .withConfigOverride(Map.class, cfg ->
+          cfg.setNullHandling(Value.forValueNulls(Nulls.AS_EMPTY)))
+      .withConfigOverride(Set.class, cfg ->
+          cfg.setNullHandling(Value.forValueNulls(Nulls.AS_EMPTY)))
+      .build();
   public static final Instant CREATED = Instant.parse("2022-11-01T09:59:24.00Z");
   public static final Instant UPDATED = Instant.parse("2025-07-16T10:00:24.00Z");
   public static final String SANDBOX_URI = "https://sandbox.dissco.tech";
@@ -85,7 +102,8 @@ public class TestUtils {
   }
 
   // Token
-  public static void givenAuthentication(Authentication authentication, Map<String, Object> claims) {
+  public static void givenAuthentication(Authentication authentication,
+      Map<String, Object> claims) {
     var principal = mock(Jwt.class);
     given(authentication.getPrincipal()).willReturn(principal);
     given(principal.getClaims()).willReturn(claims);

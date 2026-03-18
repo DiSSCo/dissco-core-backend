@@ -5,9 +5,7 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
-
 import java.time.Instant;
-
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -231,6 +229,20 @@ public class DigitalSpecimenRecord extends UpdatableRecordImpl<DigitalSpecimenRe
         return (Instant) get(14);
     }
 
+  /**
+   * Setter for <code>public.digital_specimen.col_id</code>.
+   */
+  public void setColId(String value) {
+    set(15, value);
+  }
+
+  /**
+   * Getter for <code>public.digital_specimen.col_id</code>.
+   */
+  public String getColId() {
+    return (String) get(15);
+  }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -254,8 +266,11 @@ public class DigitalSpecimenRecord extends UpdatableRecordImpl<DigitalSpecimenRe
     /**
      * Create a detached, initialised DigitalSpecimenRecord
      */
-    public DigitalSpecimenRecord(String id, Integer version, String type, Short midslevel, String physicalSpecimenId, String physicalSpecimenType, String specimenName, String organizationId, String sourceSystemId, Instant created, Instant lastChecked, Instant deleted, JSONB data, JSONB originalData, Instant modified) {
-        super(DigitalSpecimen.DIGITAL_SPECIMEN);
+    public DigitalSpecimenRecord(String id, Integer version, String type, Short midslevel,
+        String physicalSpecimenId, String physicalSpecimenType, String specimenName,
+        String organizationId, String sourceSystemId, Instant created, Instant lastChecked,
+        Instant deleted, JSONB data, JSONB originalData, Instant modified, String colId) {
+      super(DigitalSpecimen.DIGITAL_SPECIMEN);
 
         setId(id);
         setVersion(version);
@@ -272,6 +287,7 @@ public class DigitalSpecimenRecord extends UpdatableRecordImpl<DigitalSpecimenRe
         setData(data);
         setOriginalData(originalData);
         setModified(modified);
-        resetChangedOnNotNull();
+      setColId(colId);
+      resetTouchedOnNotNull();
     }
 }

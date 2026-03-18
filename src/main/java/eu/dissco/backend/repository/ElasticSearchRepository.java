@@ -18,9 +18,6 @@ import co.elastic.clients.elasticsearch.core.CountRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.util.NamedValue;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
@@ -42,6 +39,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @Slf4j
@@ -50,7 +50,7 @@ public class ElasticSearchRepository {
 
   private static final String FIELD_CREATED = "dcterms:created";
   private final ElasticsearchClient client;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final ElasticSearchProperties properties;
 
   private static Builder getTerm(String field, Builder t, boolean sort) {
@@ -117,18 +117,18 @@ public class ElasticSearchRepository {
     return getDigitalSpecimenSearchResults(searchRequest);
   }
 
-  private Annotation mapToAnnotationResponse(ObjectNode annotationNode) {
+  private Annotation mapToAnnotationResponse(JsonNode annotationNode) {
     try {
       return mapper.treeToValue(annotationNode, Annotation.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DiSSCoElasticMappingException(e);
     }
   }
 
-  private DigitalSpecimen mapToDigitalSpecimen(ObjectNode json) {
+  private DigitalSpecimen mapToDigitalSpecimen(JsonNode json) {
     try {
       return mapper.treeToValue(json, DigitalSpecimen.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Unable to parse digital specimen to json: {}", json);
       throw new DiSSCoElasticMappingException(e);
     }
@@ -149,7 +149,7 @@ public class ElasticSearchRepository {
             .trackTotalHits(t -> t.enabled(Boolean.TRUE))
             .from(offset)
             .size(pageSizePlusOne));
-    var searchResult = client.search(searchRequest, ObjectNode.class);
+    var searchResult = client.search(searchRequest, JsonNode.class);
     if (searchResult.hits().total() != null) {
       var totalHits = searchResult.hits().total().value();
       var annotations = searchResult.hits().hits().stream().map(Hit::source)
@@ -203,7 +203,7 @@ public class ElasticSearchRepository {
 
   private Pair<Long, List<DigitalSpecimen>> getDigitalSpecimenSearchResults(
       SearchRequest searchRequest) throws IOException {
-    var searchResult = client.search(searchRequest, ObjectNode.class);
+    var searchResult = client.search(searchRequest, JsonNode.class);
     var specimens = searchResult.hits().hits().stream()
         .map(Hit::source)
         .map(this::mapToDigitalSpecimen).toList();
@@ -233,7 +233,7 @@ public class ElasticSearchRepository {
         .size(0)
         .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .aggregations(aggregationQueries).build();
-    var aggregations = client.search(aggregationRequest, ObjectNode.class).aggregations();
+    var aggregations = client.search(aggregationRequest, JsonNode.class).aggregations();
     return collectResult(aggregations);
   }
 
@@ -266,7 +266,7 @@ public class ElasticSearchRepository {
             AggregationBuilders.terms().field(mappingTerm.fullName()).build()._toAggregation())
         .size(0)
         .build();
-    var aggregation = client.search(aggregationRequest, ObjectNode.class);
+    var aggregation = client.search(aggregationRequest, JsonNode.class);
     var totalRecords = aggregation.hits().total().value();
     var aggregationResult = collectResult(aggregation.aggregations());
     return Pair.of(totalRecords, aggregationResult);
@@ -282,7 +282,7 @@ public class ElasticSearchRepository {
         .size(0)
         .trackTotalHits(t -> t.enabled(Boolean.FALSE))
         .build();
-    var aggregation = client.search(searchQuery, ObjectNode.class);
+    var aggregation = client.search(searchQuery, JsonNode.class);
     return collectResult(aggregation.aggregations());
   }
 

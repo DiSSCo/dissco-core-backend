@@ -6,10 +6,6 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static java.util.Comparator.comparing;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
@@ -26,8 +22,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
@@ -44,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -54,7 +52,7 @@ public class DigitalSpecimenService {
   private static final String DEFAULT_PAGE_SIZE = "10";
   private static final String AGGREGATIONS_TYPE = "aggregations";
   private static final String SPECIMEN_NOT_FOUND = "Unable to find specimen {}";
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final DigitalSpecimenRepository repository;
   private final ElasticSearchRepository elasticRepository;
   private final DigitalMediaService digitalMediaService;
@@ -125,7 +123,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiWrapper getSpecimenByVersionFull(String id, int version, String path)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_SPECIMEN);
     if (specimenNode != null) {
       var specimen = mapResultToSpecimen(specimenNode);
@@ -165,7 +163,7 @@ public class DigitalSpecimenService {
   }
 
   public JsonApiWrapper getSpecimenByVersion(String id, int version, String path)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var specimenNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_SPECIMEN);
     var specimen = mapResultToSpecimen(specimenNode);
     var dataNode = new JsonApiData(specimen.getDctermsIdentifier(),
@@ -201,8 +199,7 @@ public class DigitalSpecimenService {
     return new JsonApiListResponseWrapper(dataNodes, new JsonApiLinksFull(path));
   }
 
-  private DigitalSpecimen mapResultToSpecimen(JsonNode result)
-      throws JsonProcessingException {
+  private DigitalSpecimen mapResultToSpecimen(JsonNode result) {
     return mapper.treeToValue(result, DigitalSpecimen.class);
   }
 
@@ -342,13 +339,12 @@ public class DigitalSpecimenService {
   }
 
   private JsonNode flattenAttributes(DigitalSpecimen digitalSpecimen) {
-    return mapper.convertValue(digitalSpecimen, ObjectNode.class);
+    return mapper.valueToTree(digitalSpecimen);
   }
 
   public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
-      String orcid, String path) throws MasSchedulingException {
+      String orcid, String path) throws ProcessingFailedException {
     return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN, path);
   }
-
 
 }

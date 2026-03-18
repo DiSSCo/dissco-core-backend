@@ -6,8 +6,6 @@ import static eu.dissco.backend.TestUtils.MAPPER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
@@ -18,10 +16,11 @@ import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.node.ObjectNode;
 
 @Testcontainers
 class MongoRepositoryIT {
@@ -49,7 +48,7 @@ class MongoRepositoryIT {
   }
 
   @Test
-  void testGetVersion() throws JsonProcessingException, NotFoundException {
+  void testGetVersion() throws NotFoundException {
     // Given
     populateMongoDB();
     var expected = givenExpectedSpecimen(4);
@@ -75,7 +74,7 @@ class MongoRepositoryIT {
 
 
   @Test
-  void testGetVersions() throws JsonProcessingException, NotFoundException {
+  void testGetVersions() throws NotFoundException {
     // Given
     populateMongoDB();
     var expected = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -99,7 +98,7 @@ class MongoRepositoryIT {
     assertThat(exception).isInstanceOf(NotFoundException.class);
   }
 
-  private ObjectNode givenExpectedSpecimen(int version) throws JsonProcessingException {
+  private ObjectNode givenExpectedSpecimen(int version) {
     return MAPPER.readValue(
         """
             {
@@ -166,7 +165,7 @@ class MongoRepositoryIT {
     );
   }
 
-  private void populateMongoDB() throws JsonProcessingException {
+  private void populateMongoDB() {
     var collection = database.getCollection("digital_specimen_provenance");
     for (int i = 1; i < 11; i++) {
       var specimen = givenExpectedSpecimen(i);

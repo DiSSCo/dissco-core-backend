@@ -2,10 +2,6 @@ package eu.dissco.backend.component;
 
 import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollectionRequest;
@@ -13,6 +9,10 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Getter
 @Component
@@ -24,7 +24,7 @@ public class FdoRecordComponent {
   private static final String DATA = "data";
   private static final String ID = "id";
 
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public JsonNode getPostRequestMjr() {
     return mapper.createObjectNode()

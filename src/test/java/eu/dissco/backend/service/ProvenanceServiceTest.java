@@ -16,7 +16,6 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollect
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Agent.Type;
@@ -30,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.type.TypeReference;
 
 @ExtendWith(MockitoExtension.class)
 class ProvenanceServiceTest {
@@ -109,7 +109,8 @@ class ProvenanceServiceTest {
     // Then
     assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
     assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object updated");
-    assertThat(event.getProvActivity().getOdsChangeValue()).isEqualTo(givenChangeValueUpdate());
+    assertThat(event.getProvActivity().getOdsChangeValue()).hasSameElementsAs(
+        givenChangeValueUpdate());
     assertThat(event.getProvEntity().getProvValue()).isNotNull();
     assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
   }

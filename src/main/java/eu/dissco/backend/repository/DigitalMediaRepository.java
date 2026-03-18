@@ -6,9 +6,6 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.DigitalMedia;
 import java.util.Date;
@@ -18,13 +15,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class DigitalMediaRepository {
 
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final DSLContext context;
 
   public List<DigitalMedia> getDigitalMediaObjects(int pageNumber, int pageSize) {
@@ -65,7 +65,7 @@ public class DigitalMediaRepository {
           .withOdsFdoType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException(
           "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
           e);

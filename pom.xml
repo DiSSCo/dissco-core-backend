@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.8</version>
+    <version>4.0.3</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>eu.dissco</groupId>
@@ -15,22 +15,19 @@
   <name>backend</name>
   <description>Backend for DiSSCo frontend</description>
   <properties>
-    <java.version>21</java.version>
+    <java.version>25</java.version>
     <elasticsearch.version>9.2.0</elasticsearch.version>
-    <feign-okhttp.version>13.6</feign-okhttp.version>
     <jakarta.json.version>2.1.3</jakarta.json.version>
     <jooq.version>3.20.8</jooq.version>
     <json-path.version>2.9.0</json-path.version>
-    <json-patch.version>1.13</json-patch.version>
+    <json-patch.version>0.6.2</json-patch.version>
     <json-schema-validator.version>1.5.9</json-schema-validator.version>
-    <mongodb-driver.version>5.6.1</mongodb-driver.version>
+    <mongodb-driver.version>5.6.3</mongodb-driver.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
-    <spring-cloud-starter-openfeign.version>4.3.0</spring-cloud-starter-openfeign.version>
     <spring-cloud.version>2025.0.0</spring-cloud.version>
-    <springdoc.version>2.8.13</springdoc.version>
-    <testcontainers.version>1.21.3</testcontainers.version>
+    <springdoc.version>2.8.14</springdoc.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
     <sonar.organization>dissco</sonar.organization>
-    <okhttp.version>5.2.1</okhttp.version>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.coverage.jacoco.xmlReportPaths>../app-it/target/site/jacoco-aggregate/jacoco.xml
     </sonar.coverage.jacoco.xmlReportPaths>
@@ -111,8 +108,20 @@
       <artifactId>spring-boot-starter-amqp</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-oauth2-client</artifactId>
+      <artifactId>spring-security-oauth2-authorization-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -129,28 +138,9 @@
       <version>${jakarta.json.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-openfeign</artifactId>
-      <version>${spring-cloud-starter-openfeign.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.github.openfeign</groupId>
-      <artifactId>feign-okhttp</artifactId>
-      <version>${feign-okhttp.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
       <version>${json-schema-validator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.java-json-tools</groupId>
-      <artifactId>json-patch</artifactId>
-      <version>${json-patch.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mongodb</groupId>
@@ -161,10 +151,6 @@
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
       <version>${mongodb-driver.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -180,6 +166,11 @@
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
       <version>${json-path.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.vishwakarma</groupId>
+      <artifactId>zjsonpatch</artifactId>
+      <version>${json-patch.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -198,39 +189,32 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
+      <artifactId>testcontainers-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>rabbitmq</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
-      <version>${okhttp.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>mockwebserver</artifactId>
-      <version>${okhttp.version}</version>
+      <artifactId>testcontainers-rabbitmq</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>elasticsearch</artifactId>
+      <artifactId>testcontainers-elasticsearch</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>mongodb</artifactId>
+      <artifactId>testcontainers-mongodb</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -254,6 +238,18 @@
   <build>
     <defaultGoal>clean verify</defaultGoal>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
@@ -297,14 +293,30 @@
         <configuration>
           <mainClass>eu.dissco.backend.maven.MavenRunner</mainClass>
           <arguments>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/digital-specimen/0.4.0/digital-specimen.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.4.0/digital-media.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.1.0/virtual-collection.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.4.0/machine-annotation-service.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/annotation/0.4.0/annotation.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/developer-schema/annotation/0.4.0/annotation-processing-request.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/fdo-type/create-update-tombstone-event/0.4.0/create-update-tombstone-event.json</argument>
-            <argument>https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.1.0/virtual-collection-request.json</argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/digital-specimen/0.4.0/digital-specimen.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.4.0/digital-media.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.1.0/virtual-collection.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.4.0/machine-annotation-service.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/annotation/0.4.0/annotation.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/developer-schema/annotation/0.4.0/annotation-processing-request.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/fdo-type/create-update-tombstone-event/0.4.0/create-update-tombstone-event.json
+            </argument>
+            <argument>
+              https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.1.0/virtual-collection-request.json
+            </argument>
           </arguments>
         </configuration>
       </plugin>

@@ -4,9 +4,6 @@ import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.repository.RepositoryUtils.mapOriginalDataToJson;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.DigitalSpecimen;
@@ -16,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Repository
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository;
 public class DigitalSpecimenRepository {
 
   private final DSLContext context;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public DigitalSpecimen getLatestSpecimenById(String id) {
     return context.select(DIGITAL_SPECIMEN.asterisk())
@@ -49,7 +49,7 @@ public class DigitalSpecimenRepository {
           .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
           .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
           .withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException(
           "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), e);
     }

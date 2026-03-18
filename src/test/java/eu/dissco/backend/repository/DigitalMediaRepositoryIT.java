@@ -11,9 +11,6 @@ import static eu.dissco.backend.database.jooq.Tables.DIGITAL_SPECIMEN;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.schema.DigitalMedia;
 import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.ArrayList;
@@ -32,9 +29,7 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
 
   @BeforeEach
   void setup() {
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    repository = new DigitalMediaRepository(mapper, context);
+    repository = new DigitalMediaRepository(MAPPER, context);
   }
 
   @AfterEach
@@ -44,7 +39,7 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetDigitalMediaObjects() throws JsonProcessingException {
+  void testGetDigitalMediaObjects() {
     // Given
     int pageNum1 = 1;
     int pageNum2 = 2;
@@ -73,7 +68,8 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectById() throws JsonProcessingException {
+  void testGetLatestDigitalMediaObjectById() {
+    // Given
     var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
     var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
 
@@ -88,7 +84,8 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetLatestDigitalMediaObjectsById() throws JsonProcessingException {
+  void testGetLatestDigitalMediaObjectsById() {
+    // Given
     var expected = List.of(givenDigitalMediaObject(DOI + ID, TARGET_ID),
         givenDigitalMediaObject(DOI + ID_ALT, TARGET_ID));
     postMediaObjects(List.of(givenDigitalMediaObject(ID, TARGET_ID),
@@ -102,7 +99,7 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetOriginalMediaData() throws JsonProcessingException {
+  void testGetOriginalMediaData() {
     // Given
     var expected = MAPPER.createObjectNode()
         .put("originalData", "yep");
@@ -119,8 +116,8 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
     assertThat(result).isEqualTo(expected);
   }
 
-  private void postMediaObjects(List<DigitalMedia> mediaObjects)
-      throws JsonProcessingException {
+  private void postMediaObjects(List<DigitalMedia> mediaObjects) {
+    // Given
     List<Query> queryList = new ArrayList<>();
     for (DigitalMedia mediaObject : mediaObjects) {
       var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
@@ -151,8 +148,8 @@ class DigitalMediaRepositoryIT extends BaseRepositoryIT {
     context.batch(queryList).execute();
   }
 
-  private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen)
-      throws JsonProcessingException {
+  private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen) {
+    // Given
     context.insertInto(DIGITAL_SPECIMEN)
         .set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getDctermsIdentifier())
         .set(DIGITAL_SPECIMEN.VERSION, digitalSpecimen.getOdsVersion())

@@ -27,12 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
@@ -46,6 +44,7 @@ import eu.dissco.backend.schema.DigitalSpecimen;
 import eu.dissco.backend.schema.Identification;
 import eu.dissco.backend.schema.TaxonIdentification;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -68,6 +67,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Testcontainers
 class ElasticSearchRepositoryIT {
@@ -80,7 +81,7 @@ class ElasticSearchRepositoryIT {
   private static final String ELASTICSEARCH_PASSWORD = "s3cret";
   private static final String CREATED_ALT = "2022-09-02T09:59:24Z";
   private static final ElasticsearchContainer container = new ElasticsearchContainer(
-      ELASTIC_IMAGE).withPassword(ELASTICSEARCH_PASSWORD);
+      ELASTIC_IMAGE).withPassword(ELASTICSEARCH_PASSWORD).withStartupTimeout(Duration.ofMinutes(2));
   private static ElasticsearchClient client;
   private static Rest5Client restClient;
   private final ElasticSearchProperties properties = new ElasticSearchProperties();
@@ -100,7 +101,7 @@ class ElasticSearchRepositoryIT {
         .setSSLContext(container.createSslContextFromCa()).build();
 
     ElasticsearchTransport transport = new Rest5ClientTransport(restClient,
-        new JacksonJsonpMapper(MAPPER));
+        new Jackson3JsonpMapper(MAPPER));
 
     client = new ElasticsearchClient(transport);
   }
@@ -559,7 +560,7 @@ class ElasticSearchRepositoryIT {
     var bulkRequest = new BulkRequest.Builder();
     for (var digitalSpecimen : digitalSpecimens) {
       bulkRequest.operations(op -> op.index(
-          idx -> idx.index(DIGITAL_SPECIMEN_INDEX).id(digitalSpecimen.get("@id").asText())
+          idx -> idx.index(DIGITAL_SPECIMEN_INDEX).id(digitalSpecimen.get("@id").asString())
               .document(digitalSpecimen)));
     }
     var response = client.bulk(bulkRequest.build());
@@ -575,7 +576,7 @@ class ElasticSearchRepositoryIT {
     var bulkRequest = new BulkRequest.Builder();
     for (var annotation : annotations) {
       bulkRequest.operations(op -> op.index(
-          idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("dcterms:identifier").asText())
+          idx -> idx.index(ANNOTATION_INDEX).id(annotation.get("dcterms:identifier").asString())
               .document(annotation)));
     }
     var response = client.bulk(bulkRequest.build());

@@ -20,14 +20,13 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollect
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseList;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseWrapper;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.VirtualCollectionAction;
 import eu.dissco.backend.domain.VirtualCollectionEvent;
@@ -36,8 +35,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.OdsHasPredicate;
@@ -152,7 +151,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testGetVirtualCollectionByVersion() throws NotFoundException, JsonProcessingException {
+  void testGetVirtualCollectionByVersion() throws NotFoundException {
     // Given
     var version = 2;
     var virtualCollectionNode = MAPPER.valueToTree(
@@ -193,7 +192,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void persistVirtualCollection()
-      throws JsonProcessingException, PidException, ProcessingFailedException {
+      throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -215,7 +214,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void persistVirtualCollectionRollback() throws PidException, ProcessingFailedException {
+  void persistVirtualCollectionRollback() throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var request = givenVirtualCollectionRequest();
@@ -236,8 +235,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testTombstoneVirtualCollection()
-      throws PidException, JsonProcessingException, NotFoundException, ProcessingFailedException {
+  void testTombstoneVirtualCollection() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
@@ -277,13 +275,12 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testTombstoneVirtualCollectionHandleException()
-      throws PidException {
+  void testTombstoneVirtualCollectionHandleException() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     given(repository.getActiveVirtualCollection(ID, null)).willReturn(
         Optional.of(virtualCollection));
-    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+    doThrow(new WebProcessingFailedException("Handle tombstoning failed")).when(handleComponent)
         .tombstoneHandle(ID);
     var agent = givenAgent();
 
@@ -298,7 +295,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testTombstoneVirtualCollectionRabbitException()
-      throws PidException, ProcessingFailedException {
+      throws ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
@@ -365,7 +362,7 @@ class VirtualCollectionServiceTest {
 
   @Test
   void testUpdateVirtualCollectionEqual()
-      throws JsonProcessingException, NotFoundException, ForbiddenException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     var virtualCollectionRequest = givenVirtualCollectionRequest();
@@ -405,7 +402,7 @@ class VirtualCollectionServiceTest {
   }
 
   @Test
-  void testUpdateVirtualCollectionHandleFails() throws PidException {
+  void testUpdateVirtualCollectionHandleFails() throws Exception {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID);
     var virtualCollectionRequest = givenVirtualCollectionRequest("Updated Name",
@@ -413,7 +410,7 @@ class VirtualCollectionServiceTest {
     var updatedVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "Updated Name", 2);
     given(repository.getActiveVirtualCollection(ID, ORCID)).willReturn(
         Optional.of(virtualCollection));
-    doThrow(new PidException("Handle tombstoning failed")).when(handleComponent)
+    doThrow(new WebProcessingFailedException("Handle tombstoning failed")).when(handleComponent)
         .updateHandle(updatedVirtualCollection);
     var agent = givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION);
 

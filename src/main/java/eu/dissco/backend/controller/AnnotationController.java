@@ -4,9 +4,6 @@ import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -50,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -61,7 +60,7 @@ public class AnnotationController extends BaseController {
   private final SchemaValidatorComponent schemaValidator;
 
   public AnnotationController(
-      ApplicationProperties applicationProperties, ObjectMapper mapper, AnnotationService service,
+      ApplicationProperties applicationProperties, JsonMapper mapper, AnnotationService service,
       SchemaValidatorComponent schemaValidator) {
     super(mapper, applicationProperties);
     this.service = service;
@@ -97,7 +96,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
       HttpServletRequest request)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var id = HANDLE_PROXY + prefix + '/' + suffix;
     log.info("Received get request for annotationRequests: {} with version: {}", id, version);
     var annotation = service.getAnnotationByVersion(id, version, getPath(request));
@@ -142,7 +141,7 @@ public class AnnotationController extends BaseController {
               schema = @Schema(implementation = AnnotationRequest.class)))
       Authentication authentication,
       @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException {
+      throws ForbiddenException, ProcessingFailedException {
     var annotation = getAnnotationFromRequest(requestBody);
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     log.info("Received new annotationRequests from agent: {}", agent.getId());
@@ -200,7 +199,7 @@ public class AnnotationController extends BaseController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BatchAnnotationRequest.class)))
       @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws JsonProcessingException, ForbiddenException, InvalidAnnotationRequestException, ProcessingFailedException {
+      throws ForbiddenException, InvalidAnnotationRequestException, ProcessingFailedException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
@@ -234,7 +233,7 @@ public class AnnotationController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
       HttpServletRequest request)
-      throws NotFoundException, JsonProcessingException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var id = prefix + '/' + suffix;
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var annotation = getAnnotationFromRequest(requestBody);
@@ -297,7 +296,7 @@ public class AnnotationController extends BaseController {
   public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
     var isAdmin = isAdmin(authentication);
     log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix),

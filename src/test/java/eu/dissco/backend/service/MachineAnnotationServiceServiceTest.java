@@ -12,20 +12,19 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMas;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.client.MasClient;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.MasScheduleJobRequest;
-import eu.dissco.backend.exceptions.MasSchedulingException;
+import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MachineAnnotationServiceRepository;
 import eu.dissco.backend.schema.OdsHasTargetDigitalObjectFilter;
-import feign.FeignException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -71,7 +70,7 @@ class MachineAnnotationServiceServiceTest {
   }
 
   @Test
-  void testGetMassForObject() throws JsonProcessingException {
+  void testGetMassForObject() {
     // Given
     var masRecord = givenMas(givenFiltersDigitalMedia(false));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
@@ -85,8 +84,7 @@ class MachineAnnotationServiceServiceTest {
 
   @ParameterizedTest
   @MethodSource("provideFilters")
-  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters)
-      throws JsonProcessingException {
+  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters) {
     // Given
     var masRecord = givenMas(givenFiltersDigitalMedia(filters));
     given(repository.getAllMas()).willReturn(List.of(masRecord));
@@ -121,13 +119,13 @@ class MachineAnnotationServiceServiceTest {
   }
 
   @Test
-  void testScheduleMasFailed() {
+  void testScheduleMasFailed() throws ProcessingFailedException {
     // Given
-    doThrow(FeignException.class).when(masClient).scheduleMas(any());
+    doThrow(WebProcessingFailedException.class).when(masClient).scheduleMas(any());
 
     // When / Then
-    assertThrows(
-        MasSchedulingException.class,
+    assertThrowsExactly(
+        WebProcessingFailedException.class,
         () -> service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID,
             MjrTargetType.DIGITAL_SPECIMEN, SANDBOX_URI));
 

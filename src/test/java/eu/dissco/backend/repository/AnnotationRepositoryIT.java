@@ -13,8 +13,6 @@ import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.Annotation;
 import java.util.ArrayList;
@@ -42,7 +40,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotation() throws JsonProcessingException {
+  void testGetAnnotation() {
     // Given
     var expectedAnnotation = givenAnnotationResponse().withOdsBatchID(BATCH_ID);
     postAnnotations(List.of(expectedAnnotation));
@@ -55,7 +53,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotations() throws JsonProcessingException {
+  void testGetAnnotations() {
     // Given
     int pageNumber = 1;
     int pageSize = 10;
@@ -77,7 +75,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAnnotationsForTargets() throws JsonProcessingException {
+  void testGetAnnotationsForTargets() {
     // Given
     var annotations = List.of(givenAnnotationResponse(), givenAnnotationResponse(ID_ALT, ORCID, "2"));
     postAnnotations(annotations);
@@ -90,7 +88,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetActiveAnnotationForUser() throws JsonProcessingException {
+  void testGetActiveAnnotationForUser() {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
         givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
@@ -101,11 +99,11 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var receivedResponse = repository.getActiveAnnotation(ID, ORCID);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
+    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
   }
 
   @Test
-  void testGetActiveAnnotation() throws JsonProcessingException {
+  void testGetActiveAnnotation() {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
         givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
@@ -116,13 +114,12 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     var receivedResponse = repository.getActiveAnnotation(ID, null);
 
     // Then
-    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.get(0)));
+    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
   }
 
   @Test
-  void testGetForTarget() throws JsonProcessingException {
+  void testGetForTarget() {
     // Given
-    MAPPER.setSerializationInclusion(Include.ALWAYS);
     var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, ID_ALT);
     List<Annotation> annotations = List.of(expectedResponse,
         givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
@@ -137,12 +134,14 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testNullResponse() throws Exception {
+  void testNullResponse() {
     // Given
     var annotation = givenAnnotationResponse(ID);
     var badTarget = MAPPER.readTree("""
         {
-          "field":"value"
+          "@id": {
+          "value": "incorrect"
+          }
         }
         """);
     context.insertInto(ANNOTATION)
@@ -164,7 +163,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
     assertThrows(DisscoJsonBMappingException.class, () -> repository.getAnnotation(ID));
   }
 
-  private void postAnnotations(List<Annotation> annotations) throws JsonProcessingException {
+  private void postAnnotations(List<Annotation> annotations) {
     List<Query> queryList = new ArrayList<>();
     for (var annotation : annotations) {
       var query = context.insertInto(ANNOTATION)

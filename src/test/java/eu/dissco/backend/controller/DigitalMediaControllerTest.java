@@ -22,7 +22,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
@@ -105,7 +104,7 @@ class DigitalMediaControllerTest {
   }
 
   @Test
-  void testGetDigitalMediaObjectVersion() throws NotFoundException, JsonProcessingException {
+  void testGetDigitalMediaObjectVersion() throws Exception {
     // Given
     int version = 1;
     given(service.getDigitalMediaObjectByVersion(DOI + ID, version, DIGITAL_MEDIA_PATH)).willReturn(

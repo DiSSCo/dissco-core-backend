@@ -5,9 +5,7 @@ package eu.dissco.backend.database.jooq.tables.records;
 
 
 import eu.dissco.backend.database.jooq.tables.MachineAnnotationService;
-
 import java.time.Instant;
-
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -333,6 +331,6 @@ public class MachineAnnotationServiceRecord extends UpdatableRecordImpl<MachineA
         setBatchingPermitted(batchingPermitted);
         setTimeToLive(timeToLive);
         setData(data);
-        resetChangedOnNotNull();
+      resetTouchedOnNotNull();
     }
 }

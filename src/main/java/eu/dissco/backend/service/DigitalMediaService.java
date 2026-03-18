@@ -3,10 +3,6 @@ package eu.dissco.backend.service;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.ProxyUtils.removeDoiProxy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
@@ -18,8 +14,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.exceptions.MasSchedulingException;
 import eu.dissco.backend.exceptions.NotFoundException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.DigitalMediaRepository;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.MongoRepository;
@@ -29,6 +25,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @Slf4j
 @Service
@@ -40,7 +39,7 @@ public class DigitalMediaService {
   private final DigitalSpecimenRepository digitalSpecimenRepository;
   private final MachineAnnotationServiceService masService;
   private final MongoRepository mongoRepository;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final MasJobRecordService masJobRecordService;
 
   // Controller Functions
@@ -82,7 +81,7 @@ public class DigitalMediaService {
   }
 
   public JsonApiWrapper getDigitalMediaObjectByVersion(String id, int version, String path)
-      throws JsonProcessingException, NotFoundException {
+      throws NotFoundException {
     var digitalMediaNode = mongoRepository.getByVersion(id, version, MongoCollection.DIGITAL_MEDIA);
     var digitalMedia = mapResultToDigitalMedia(digitalMediaNode);
     var dataNode = new JsonApiData(digitalMedia.getDctermsIdentifier(),
@@ -175,7 +174,7 @@ public class DigitalMediaService {
 
   public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests,
       String path, String orcid)
-      throws NotFoundException, MasSchedulingException {
+      throws NotFoundException, WebProcessingFailedException {
     var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
     if (digitalMedia == null) {
       log.error("Unable to find media with id {}", id);

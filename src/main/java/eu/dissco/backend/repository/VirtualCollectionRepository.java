@@ -6,8 +6,6 @@ import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
 import static org.jooq.impl.DSL.noCondition;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.database.jooq.Tables;
 import eu.dissco.backend.database.jooq.enums.CollectionType;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
@@ -21,12 +19,14 @@ import org.jooq.DSLContext;
 import org.jooq.JSONB;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Repository
 @RequiredArgsConstructor
 public class VirtualCollectionRepository {
 
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
   private final DSLContext context;
 
   private static CollectionType getLtcBasisOfScheme(VirtualCollection virtualCollection) {
@@ -52,7 +52,7 @@ public class VirtualCollectionRepository {
   private JSONB mapToJSONB(VirtualCollection virtualCollection) {
     try {
       return JSONB.valueOf(mapper.writeValueAsString(virtualCollection));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException("Unable to map virtual collection to jsonb", e);
     }
   }
@@ -73,7 +73,7 @@ public class VirtualCollectionRepository {
   private VirtualCollection mapToVirtualCollection(Record record1) {
     try {
       return mapper.readValue(record1.get(VIRTUAL_COLLECTION.DATA).data(), VirtualCollection.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new DisscoJsonBMappingException("Unable to convert jsonb to virtual collection", e);
     }
   }

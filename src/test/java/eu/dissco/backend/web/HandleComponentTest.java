@@ -5,56 +5,38 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
-import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRollbackRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionTombstoneHandleRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionUpdateHandleRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.component.FdoRecordComponent;
-import eu.dissco.backend.exceptions.PidException;
-import java.io.IOException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import java.util.List;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.WebClient;
-
 @ExtendWith(MockitoExtension.class)
 class HandleComponentTest {
 
-  private static MockWebServer mockHandleServer;
   @Mock
   private FdoRecordComponent fdoRecordComponent;
+  @Mock
+  private HandleClient handleClient;
   private HandleComponent handleComponent;
 
-  @BeforeAll
-  static void init() throws IOException {
-    mockHandleServer = new MockWebServer();
-    mockHandleServer.start();
-  }
-
-  @AfterAll
-  static void destroy() throws IOException {
-    mockHandleServer.shutdown();
-  }
 
   @BeforeEach
   void setup() {
-    WebClient webClient = WebClient.create(
-        String.format("http://%s:%s", mockHandleServer.getHostName(), mockHandleServer.getPort()));
-    handleComponent = new HandleComponent(webClient, fdoRecordComponent);
+    handleComponent = new HandleComponent(handleClient, fdoRecordComponent);
   }
 
   @Test
@@ -63,9 +45,7 @@ class HandleComponentTest {
     int n = 1;
     var responseBody = givenPostHandleResponse(n);
     var expected = List.of(ID);
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
+    given(handleClient.postHandles(any())).willReturn(responseBody);
 
     // When
     var response = handleComponent.postHandleMjr(n);
@@ -77,13 +57,9 @@ class HandleComponentTest {
   @Test
   void testPostHandleVirtualCollection() throws Exception {
     // Given
-    var responseBody = givenPostHandleResponse(1);
+    var clientResponse = givenPostHandleResponse(1);
     var virtualCollectionRequest = givenVirtualCollectionRequest();
-    given(fdoRecordComponent.getPostRequestVirtualCollection(virtualCollectionRequest)).willReturn(
-        givenVirtualCollectionHandleRequest());
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
+    given(handleClient.postHandle(any())).willReturn(clientResponse);
 
     // When
     var response = handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
@@ -93,84 +69,26 @@ class HandleComponentTest {
   }
 
   @Test
-  void testRollbackHandleVirtualCollection() throws PidException {
+  void testRollbackHandleVirtualCollection() throws Exception {
     // Given
     given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
         givenVirtualCollectionHandleRollbackRequest());
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value()));
 
     // When
     handleComponent.rollbackVirtualCollection(HANDLE + ID);
 
     // Then
-    then(fdoRecordComponent).should().getRollbackCreateRequest(HANDLE + ID);
+    then(handleClient).should().rollbackHandle(givenVirtualCollectionHandleRollbackRequest());
   }
 
   @Test
-  void testUnauthorized() {
-    // Given
-
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.UNAUTHORIZED.value())
-        .addHeader("Content-Type", "application/json"));
-
-    // Then
-    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
-  }
-
-  @Test
-  void testBadRequest() {
-    // Given
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
-        .addHeader("Content-Type", "application/json"));
-
-    // Then
-    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
-  }
-
-  @Test
-  void testRetriesFail() {
-    // Given
-    int requestCount = mockHandleServer.getRequestCount();
-
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(501));
-
-    // Then
-    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
-    assertThat(mockHandleServer.getRequestCount() - requestCount).isEqualTo(4);
-  }
-
-  @Test
-  void testInterruptedException() throws Exception {
-    // Given
-    var responseBody = givenPostHandleResponse(1);
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
-
-    Thread.currentThread().interrupt();
-
-    // When
-    var response = assertThrows(PidException.class,
-        () -> handleComponent.postHandleMjr(1));
-
-    // Then
-    assertThat(response).hasMessage(
-        "Interrupted execution: A connection error has occurred in creating a jobId.");
-  }
-
-  @Test
-  void testDataNodeNotArray() throws Exception {
+  void testDataNodeNotReadable() {
     // Given
     var responseBody = MAPPER.createObjectNode();
-    responseBody.put("data", "val");
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(responseBody))
-        .addHeader("Content-Type", "application/json"));
-    // Then
-    assertThrows(PidException.class, () -> handleComponent.postHandleMjr(1));
+    responseBody.set("data", MAPPER.createArrayNode());
+
+    // When / Then
+    assertThrows(WebProcessingFailedException.class, () -> handleComponent.postHandleMjr(1));
   }
 
   @Test
@@ -178,15 +96,12 @@ class HandleComponentTest {
     // Given
     var request = givenVirtualCollectionTombstoneHandleRequest();
     given(fdoRecordComponent.getTombstoneRequest(ID)).willReturn(request);
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(request))
-        .addHeader("Content-Type", "application/json"));
 
     // When
     handleComponent.tombstoneHandle(ID);
 
     // Then
-    then(fdoRecordComponent).should().getTombstoneRequest(ID);
+    then(handleClient).should().tombstoneHandle(ID, request);
   }
 
   @Test
@@ -194,14 +109,11 @@ class HandleComponentTest {
     // Given
     var virtualCollection = givenVirtualCollection(HANDLE + ID);
     given(fdoRecordComponent.getPatchHandleRequest(virtualCollection)).willReturn(givenVirtualCollectionUpdateHandleRequest());
-    mockHandleServer.enqueue(new MockResponse().setResponseCode(HttpStatus.OK.value())
-        .setBody(MAPPER.writeValueAsString(virtualCollection))
-        .addHeader("Content-Type", "application/json"));
 
     // When
     handleComponent.updateHandle(virtualCollection);
 
     // Then
-    then(fdoRecordComponent).should().getPatchHandleRequest(virtualCollection);
+    then(handleClient).should().updateHandle(givenVirtualCollectionUpdateHandleRequest());
   }
 }

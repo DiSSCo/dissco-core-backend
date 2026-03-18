@@ -6,8 +6,6 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.VirtualCollectionAction;
@@ -18,8 +16,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.PidException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.Agent;
@@ -36,6 +34,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -48,7 +47,7 @@ public class VirtualCollectionService {
   private final RabbitMqPublisherService rabbitMqPublisherService;
   private final MongoRepository mongoRepository;
   private final HandleComponent handleComponent;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   private static LtcBasisOfScheme getLtcBasisOfScheme(VirtualCollectionRequest virtualCollection) {
     return LtcBasisOfScheme.fromValue(virtualCollection.getLtcBasisOfScheme().value());
@@ -71,20 +70,14 @@ public class VirtualCollectionService {
   }
 
   private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
-    try {
-      rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
-    } catch (JsonProcessingException e) {
-      log.error(
-          "Fatal exception, unable to publish virtual collection event to RabbitMQ. Manual action required",
-          e);
-    }
+    rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
   }
 
   private String postHandle(VirtualCollectionRequest virtualCollectionRequest)
       throws ProcessingFailedException {
     try {
       return handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
-    } catch (PidException e) {
+    } catch (WebProcessingFailedException e) {
       log.error("Failed to create handle for virtual collection request: {}",
           virtualCollectionRequest, e);
       throw new ProcessingFailedException("Failed to create new virtual collection", e);
@@ -105,7 +98,7 @@ public class VirtualCollectionService {
   private void rollbackVirtualCollection(VirtualCollection virtualCollection) {
     try {
       handleComponent.rollbackVirtualCollection(virtualCollection.getId());
-    } catch (PidException e) {
+    } catch (WebProcessingFailedException e) {
       log.error(
           "Unable to rollback handle creation for virtual collection. Manually delete the following handle: {}. Cause of error: ",
           virtualCollection.getId(), e);
@@ -168,7 +161,7 @@ public class VirtualCollectionService {
   }
 
   public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)
-      throws NotFoundException, JsonProcessingException {
+      throws NotFoundException {
     var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.VIRTUAL_COLLECTION);
     var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
     return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -212,13 +205,8 @@ public class VirtualCollectionService {
     return true;
   }
 
-  private void tombstoneHandle(String handle) throws ProcessingFailedException {
-    try {
-      handleComponent.tombstoneHandle(handle);
-    } catch (PidException e) {
-      log.error("Unable to tombstone handle {}", handle, e);
-      throw new ProcessingFailedException("Unable to tombstone handle", e);
-    }
+  private void tombstoneHandle(String handle) throws WebProcessingFailedException {
+    handleComponent.tombstoneHandle(handle);
   }
 
   private VirtualCollection buildTombstoneVirtualCollection(VirtualCollection virtualCollection,
@@ -257,7 +245,7 @@ public class VirtualCollectionService {
 
   public JsonApiWrapper updateVirtualCollection(String id,
       VirtualCollectionRequest virtualCollectionRequest, Agent agent, String path)
-      throws NotFoundException, JsonProcessingException, ForbiddenException, ProcessingFailedException {
+      throws NotFoundException, ForbiddenException, ProcessingFailedException {
     var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
     if (currentVirtualCollectionOptional.isEmpty()) {
       log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
@@ -282,22 +270,14 @@ public class VirtualCollectionService {
   }
 
   private void checkHandleUpdate(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) throws ProcessingFailedException {
+      VirtualCollection virtualCollection) throws WebProcessingFailedException {
     if (!Objects.equals(currentVirtualCollection.getLtcCollectionName(),
         virtualCollection.getLtcCollectionName()) ||
         !Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
             virtualCollection.getLtcBasisOfScheme())) {
       log.info("Handle update is required for virtual collection with id {}",
           currentVirtualCollection.getId());
-      try {
-        handleComponent.updateHandle(virtualCollection);
-      } catch (PidException e) {
-        log.error("Failed to update handle for virtual collection with id {}",
-            currentVirtualCollection.getId(), e);
-        throw new ProcessingFailedException(
-            "Failed to update handle for virtual collection with id "
-                + currentVirtualCollection.getId(), e);
-      }
+      handleComponent.updateHandle(virtualCollection);
     }
   }
 

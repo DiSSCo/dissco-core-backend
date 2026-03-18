@@ -7,8 +7,6 @@ import static eu.dissco.backend.TestUtils.MAS_ID;
 import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
@@ -27,6 +25,7 @@ import eu.dissco.backend.schema.TombstoneMetadata;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public class MachineAnnotationServiceUtils {
 
@@ -128,7 +127,7 @@ public class MachineAnnotationServiceUtils {
     return mas;
   }
 
-  public static JsonNode givenFlattenedDigitalMedia() throws JsonProcessingException {
+  public static JsonNode givenFlattenedDigitalMedia() {
     return MAPPER.readValue(
         """
                 {
@@ -186,7 +185,7 @@ public class MachineAnnotationServiceUtils {
     );
   }
 
-  public static JsonNode givenFlattenedDigitalSpecimen() throws JsonProcessingException {
+  public static JsonNode givenFlattenedDigitalSpecimen() {
     return MAPPER.readValue(
         """
                 {
@@ -230,6 +229,5 @@ public class MachineAnnotationServiceUtils {
             """, JsonNode.class
     );
   }
-
 
 }

@@ -4,8 +4,6 @@ import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
 import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
 import eu.dissco.backend.schema.Annotation;
 import java.util.List;
@@ -15,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Repository
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Repository;
 public class AnnotationRepository {
 
   private final DSLContext context;
-  private final ObjectMapper mapper;
+  private final JsonMapper mapper;
 
   public Annotation getAnnotation(String id) {
     return context.select(ANNOTATION.DATA)
@@ -72,7 +72,7 @@ public class AnnotationRepository {
     try {
       return mapper.readValue(dbRecord.get(ANNOTATION.DATA).data(),
           Annotation.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Failed to get data from database, Unable to parse JSONB to JSON", e);
       throw new DisscoJsonBMappingException("Unable to convert jsonb to annotation", e);
     }

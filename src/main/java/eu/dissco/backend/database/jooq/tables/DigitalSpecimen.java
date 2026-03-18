@@ -8,12 +8,10 @@ import eu.dissco.backend.database.jooq.Indexes;
 import eu.dissco.backend.database.jooq.Keys;
 import eu.dissco.backend.database.jooq.Public;
 import eu.dissco.backend.database.jooq.tables.records.DigitalSpecimenRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Index;
@@ -130,6 +128,12 @@ public class DigitalSpecimen extends TableImpl<DigitalSpecimenRecord> {
      */
     public final TableField<DigitalSpecimenRecord, Instant> MODIFIED = createField(DSL.name("modified"), SQLDataType.INSTANT, this, "");
 
+  /**
+   * The column <code>public.digital_specimen.col_id</code>.
+   */
+  public final TableField<DigitalSpecimenRecord, String> COL_ID = createField(DSL.name("col_id"),
+      SQLDataType.CLOB, this, "");
+
     private DigitalSpecimen(Name alias, Table<DigitalSpecimenRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -166,7 +170,9 @@ public class DigitalSpecimen extends TableImpl<DigitalSpecimenRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.DIGITAL_SPECIMEN_CREATED_IDX, Indexes.DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_IDX);
+      return Arrays.asList(Indexes.DIGITAL_SPECIMEN_CREATED_IDX,
+          Indexes.DIGITAL_SPECIMEN_PHYSICAL_SPECIMEN_ID_IDX,
+          Indexes.DIGITAL_SPECIMEN_SOURCE_SYSTEM_ID_INDEX);
     }
 
     @Override

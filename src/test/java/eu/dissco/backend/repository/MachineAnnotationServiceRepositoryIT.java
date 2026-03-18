@@ -7,7 +7,6 @@ import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.database.jooq.Tables.MACHINE_ANNOTATION_SERVICE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetAllMas() throws JsonProcessingException {
+  void testGetAllMas() {
     // Given
     var expected = populateDatabase();
 
@@ -45,7 +44,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
   }
 
   @Test
-  void testGetMasRecords() throws JsonProcessingException {
+  void testGetMasRecords() {
     // Given
     populateDatabase();
 
@@ -56,7 +55,8 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     assertThat(result).hasSize(2);
   }
 
-  private List<MachineAnnotationService> populateDatabase() throws JsonProcessingException {
+  private List<MachineAnnotationService> populateDatabase() {
+    // Given
     var expectedRecords = new ArrayList<MachineAnnotationService>();
     for (int i = 0; i < 26; i++) {
       MachineAnnotationService masRecord;
@@ -72,7 +72,8 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
     return expectedRecords;
   }
 
-  private void createRecord(MachineAnnotationService mas) throws JsonProcessingException {
+  private void createRecord(MachineAnnotationService mas) {
+    // Given
     context.insertInto(MACHINE_ANNOTATION_SERVICE)
         .set(MACHINE_ANNOTATION_SERVICE.ID, mas.getId().replace(HANDLE, ""))
         .set(MACHINE_ANNOTATION_SERVICE.VERSION, mas.getSchemaVersion())
@@ -99,7 +100,7 @@ class MachineAnnotationServiceRepositoryIT extends BaseRepositoryIT {
         .execute();
   }
 
-  private JSONB mapToJSONB(MachineAnnotationService mas) throws JsonProcessingException {
+  private JSONB mapToJSONB(MachineAnnotationService mas) {
     return JSONB.valueOf(MAPPER.writeValueAsString(mas));
   }
 

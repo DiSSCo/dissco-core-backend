@@ -1,8 +1,8 @@
 package eu.dissco.backend.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public record DigitalSpecimenJsonLD(
     @JsonProperty("@id") String id,

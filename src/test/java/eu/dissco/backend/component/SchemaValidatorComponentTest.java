@@ -3,8 +3,8 @@ package eu.dissco.backend.component;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenBatchMetadata;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;

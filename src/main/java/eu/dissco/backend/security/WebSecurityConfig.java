@@ -1,8 +1,8 @@
 package eu.dissco.backend.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,7 @@ public class WebSecurityConfig {
   private final JwtAuthConverter jwtAuthConverter;
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
         .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
         .requestMatchers(HttpMethod.GET, "/mjr/v1/creator").authenticated()
