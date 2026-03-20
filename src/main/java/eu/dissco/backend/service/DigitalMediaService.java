@@ -193,9 +193,15 @@ public class DigitalMediaService {
         id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT, path);
   }
 
-  public byte[] getImageDerivative(String suffix)
+  public byte[] getMediaDerivative(String suffix)
       throws NotFoundException, ProcessingFailedException {
     log.info("Received request to retrieve derivative for media: {}", suffix);
-    return s3Repository.retrieveMediaDerivative(suffix);
+    return s3Repository.retrieveMediaFromStorage(suffix, false);
+  }
+
+  public byte[] getMediaThumbnail(String suffix)
+      throws NotFoundException, ProcessingFailedException {
+    log.info("Received request to retrieve thumbnail for media: {}", suffix);
+    return s3Repository.retrieveMediaFromStorage(suffix, true);
   }
 }

@@ -203,7 +203,17 @@ class DigitalMediaControllerTest {
     var result = controller.getMediaDerivative(PREFIX, SUFFIX);
 
     // Then
-    then(service).should().getImageDerivative(SUFFIX);
+    then(service).should().getMediaDerivative(SUFFIX);
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
+    // When
+    var result = controller.getMediaThumbnail(PREFIX, SUFFIX);
+
+    // Then
+    then(service).should().getMediaThumbnail(SUFFIX);
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 

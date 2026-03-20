@@ -340,18 +340,30 @@ class DigitalMediaServiceTest {
   }
 
   @Test
-  void testGetImageDerivative() throws NotFoundException, ProcessingFailedException {
+  void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
     // Given
     var bytea = new byte[]{0x1, 0x2, 0x3};
-    given(s3Repository.retrieveMediaDerivative(SUFFIX)).willReturn(bytea);
+    given(s3Repository.retrieveMediaFromStorage(SUFFIX, false)).willReturn(bytea);
 
     // When
-    var result = service.getImageDerivative(SUFFIX);
+    var result = service.getMediaDerivative(SUFFIX);
 
     // Then
     assertThat(result).isEqualTo(bytea);
   }
 
+  @Test
+  void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
+    // Given
+    var bytea = new byte[]{0x1, 0x2, 0x3};
+    given(s3Repository.retrieveMediaFromStorage(SUFFIX, true)).willReturn(bytea);
+
+    // When
+    var result = service.getMediaThumbnail(SUFFIX);
+
+    // Then
+    assertThat(result).isEqualTo(bytea);
+  }
 
   private JsonNode givenMongoDBMediaResponse() {
     return MAPPER.readValue(
