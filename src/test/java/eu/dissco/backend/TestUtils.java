@@ -37,10 +37,11 @@ public class TestUtils {
 
   public static final String APP_NAME = "dissco-core-backend";
   public static final String APP_HANDLE = "https://hdl.handle.net/TEST/123-123-123";
-  public static final String USER_ID_TOKEN = "https://orcid.org/0000-0002-5669-2769";
   public static final String USER_NAME = "Sam Leeflang";
+
+	public static final String ORCID_ALT = "https://orcid.org/0000-0002-5669-2769";
   public static final String FORBIDDEN_MESSAGE =
-      "User: " + USER_ID_TOKEN + " is not allowed to perform this action";
+			"User: " + ORCID_ALT + " is not allowed to perform this action";
   public static final String HANDLE = "https://hdl.handle.net/";
   public static final String DOI = "https://doi.org/";
   public static final String PREFIX = "20.5000.1025";

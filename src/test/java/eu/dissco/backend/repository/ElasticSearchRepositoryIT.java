@@ -6,13 +6,13 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.PHYSICAL_ID;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME_2;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenAltCountry;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
@@ -468,16 +468,16 @@ class ElasticSearchRepositoryIT {
     for (long i = 0; i < totalHits; i++) {
       String id = HANDLE + PREFIX + "/" + i;
       if (i <= pageSize) {
-        expected.add(givenAnnotationResponse(id, USER_ID_TOKEN));
+			expected.add(givenAnnotationResponse(id, ORCID_ALT));
       }
-      givenAnnotations.add(givenAnnotationResponse(id, USER_ID_TOKEN));
+		givenAnnotations.add(givenAnnotationResponse(id, ORCID_ALT));
       givenAnnotations.add(
           givenAnnotationResponse(id + "1", "https://orcid.org/0000-1112-5669-2769"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
     // When
-    var responseReceived = repository.getAnnotationsForCreator(USER_ID_TOKEN, pageNumber, pageSize);
+	var responseReceived = repository.getAnnotationsForCreator(ORCID_ALT, pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived.getLeft()).isEqualTo(totalHits);
