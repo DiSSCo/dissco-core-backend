@@ -237,7 +237,27 @@ public class DigitalMediaController extends BaseController {
       @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
       @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
       throws NotFoundException, ProcessingFailedException {
-    return ResponseEntity.ok(service.getImageDerivative(suffix));
+    return ResponseEntity.ok(service.getMediaDerivative(suffix));
+  }
+
+  @Operation(
+      summary = "Get digital media thumbnail",
+      description = """
+          DiSSCo tries to store media thumbnails of all images.
+          This will retrieve the thumbnail image for the specified Digital Media Object.
+          """
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Thumbnail Image successfully retrieved", content = {
+          @Content(mediaType = "image/jpeg")
+      })
+  })
+  @GetMapping(value = "/{prefix}/{suffix}/thumbnail", produces = MediaType.IMAGE_JPEG_VALUE)
+  public ResponseEntity<byte[]> getMediaThumbnail(
+      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+      throws NotFoundException, ProcessingFailedException {
+    return ResponseEntity.ok(service.getMediaThumbnail(suffix));
   }
 
   @Operation(

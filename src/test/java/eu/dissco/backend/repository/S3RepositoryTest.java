@@ -14,11 +14,11 @@ import eu.dissco.backend.properties.S3Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -49,20 +49,24 @@ class S3RepositoryTest {
     this.s3Repository = new S3Repository(s3AsyncClient, s3Properties);
   }
 
-  @Test
-  void testRetrieveMediaDerivative() throws NotFoundException, ProcessingFailedException {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testRetrieveMediaFromStorage(boolean isThumbnail)
+      throws NotFoundException, ProcessingFailedException {
     // Given
     var bytea = "test-image".getBytes();
     var bucketName = "test-bucket";
+    var fileName =
+        SUFFIX + "/" + SUFFIX + "-" + (isThumbnail ? "thumbnail" : "derivative") + ".jpeg";
     given(s3Properties.getBucketName()).willReturn(bucketName);
     var getObjectRequest = GetObjectRequest.builder().bucket(bucketName)
-        .key(SUFFIX + "/" + SUFFIX + ".derivative").build();
+        .key(fileName).build();
     given(s3AsyncClient.getObject(eq(getObjectRequest),
         any(AsyncResponseTransformer.class))).willReturn(
         CompletableFuture.completedFuture(ResponseBytes.fromByteArray(Object.class, bytea)));
 
     // When
-    var result = s3Repository.retrieveMediaDerivative(SUFFIX);
+    var result = s3Repository.retrieveMediaFromStorage(SUFFIX, isThumbnail);
 
     // Then
     assertThat(result).isEqualTo(bytea);
@@ -70,19 +74,19 @@ class S3RepositoryTest {
 
   @ParameterizedTest
   @MethodSource("provideExceptions")
-  void testRetrieveMediaDerivativeException(int statusCode, Class<Throwable> exceptionClass) {
+  void testRetrieveMediaFromStorageException(int statusCode, Class<Throwable> exceptionClass) {
     // Given
     var bucketName = "test-bucket";
     given(s3Properties.getBucketName()).willReturn(bucketName);
     var getObjectRequest = GetObjectRequest.builder().bucket(bucketName)
-        .key(SUFFIX + "/" + SUFFIX + ".derivative").build();
+        .key(SUFFIX + "/" + SUFFIX + "-derivative.jpeg").build();
     given(s3AsyncClient.getObject(eq(getObjectRequest), any(AsyncResponseTransformer.class)))
         .willReturn(
             CompletableFuture.failedFuture(S3Exception.builder().statusCode(statusCode).build()));
 
     // When  / Then
     assertThrows(exceptionClass,
-        () -> s3Repository.retrieveMediaDerivative(SUFFIX));
+        () -> s3Repository.retrieveMediaFromStorage(SUFFIX, false));
   }
 
 }
