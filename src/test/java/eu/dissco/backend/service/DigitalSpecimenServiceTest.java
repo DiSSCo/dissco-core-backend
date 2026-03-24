@@ -5,10 +5,10 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.SANDBOX_URI;
 import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
 import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAggregationMap;
 import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
 import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
@@ -230,7 +230,7 @@ class DigitalSpecimenServiceTest {
     // Given
     var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
     var digitalMedia = List.of(new DigitalMediaFull(givenDigitalMediaObject(ID), List.of()));
-    var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
+	var annotations = List.of(givenAnnotationResponse(ORCID_ALT, ID));
     given(repository.getLatestSpecimenById(ID)).willReturn(digitalSpecimen);
     given(digitalMediaService.getFullDigitalMediaFromSpecimen(digitalSpecimen)).willReturn(
         digitalMedia);
@@ -257,7 +257,7 @@ class DigitalSpecimenServiceTest {
     var specimen = givenMongoDBResponse();
     var digitalMedia = List.of(
         new DigitalMediaFull(givenDigitalMediaObject(DOI + ID), List.of()));
-    var annotations = List.of(givenAnnotationResponse(USER_ID_TOKEN, ID));
+	var annotations = List.of(givenAnnotationResponse(ORCID_ALT, ID));
     given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_SPECIMEN)).willReturn(
         specimen);
     given(digitalMediaService.getFullDigitalMediaFromSpecimen(any())).willReturn(digitalMedia);

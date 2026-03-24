@@ -4,9 +4,9 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAdminClaims;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
@@ -120,7 +120,7 @@ class AnnotationControllerTest {
     int pageSize = 11;
 
     var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
-        USER_ID_TOKEN, ID, true);
+			ORCID_ALT, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");

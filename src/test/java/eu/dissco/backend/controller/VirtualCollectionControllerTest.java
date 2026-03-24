@@ -4,9 +4,9 @@ import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
@@ -142,7 +142,7 @@ class VirtualCollectionControllerTest {
     int pageSize = 11;
     var expectedJson = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, pageNumber,
         pageSize,
-        USER_ID_TOKEN, ID, true);
+			ORCID_ALT, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH)).willReturn(
         expectedJson);

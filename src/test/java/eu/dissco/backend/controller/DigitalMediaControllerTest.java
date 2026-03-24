@@ -3,9 +3,9 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.TestUtils.DOI;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.TestUtils.givenClaims;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
 import static eu.dissco.backend.utils.DigitalMediaObjectUtils.DIGITAL_MEDIA_PATH;
@@ -123,7 +123,7 @@ class DigitalMediaControllerTest {
   @Test
   void testGetAnnotationsById() {
     // Given
-    var responseExpected = givenAnnotationJsonResponseNoPagination(USER_ID_TOKEN,
+	var responseExpected = givenAnnotationJsonResponseNoPagination(ORCID_ALT,
         List.of("1", "2"));
     given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(
         responseExpected);

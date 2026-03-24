@@ -5,9 +5,9 @@ import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.ID_ALT;
 import static eu.dissco.backend.TestUtils.MAPPER;
 import static eu.dissco.backend.TestUtils.ORCID;
+import static eu.dissco.backend.TestUtils.ORCID_ALT;
 import static eu.dissco.backend.TestUtils.PREFIX;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
-import static eu.dissco.backend.TestUtils.USER_ID_TOKEN;
 import static eu.dissco.backend.database.jooq.Tables.ANNOTATION;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,8 +91,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   void testGetActiveAnnotationForUser() {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
-        givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponse(USER_ID_TOKEN, "JamesBond", PREFIX + "/TAR-GET-007"));
+			givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
+			givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
     postAnnotations(annotations);
 
     // When
@@ -106,8 +106,8 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   void testGetActiveAnnotation() {
     // Given
     var annotations = List.of(givenAnnotationResponse(ID),
-        givenAnnotationResponse(USER_ID_TOKEN, "AnotherUser", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponse(USER_ID_TOKEN, "JamesBond", PREFIX + "/TAR-GET-007"));
+			givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
+			givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
     postAnnotations(annotations);
 
     // When
@@ -120,7 +120,7 @@ class AnnotationRepositoryIT extends BaseRepositoryIT {
   @Test
   void testGetForTarget() {
     // Given
-    var expectedResponse = givenAnnotationResponse(ID, USER_ID_TOKEN, ID_ALT);
+	var expectedResponse = givenAnnotationResponse(ID, ORCID_ALT, ID_ALT);
     List<Annotation> annotations = List.of(expectedResponse,
         givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
         givenAnnotationResponse(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
