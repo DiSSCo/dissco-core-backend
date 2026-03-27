@@ -65,7 +65,7 @@ public class Public extends SchemaImpl {
      * No further instances allowed
      */
     private Public() {
-      super(DSL.name("public"), null, DSL.comment("standard public schema"));
+        super(DSL.name("public"), null, DSL.comment("standard public schema"));
     }
 
 

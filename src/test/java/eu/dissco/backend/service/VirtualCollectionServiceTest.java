@@ -10,6 +10,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.domain.VirtualCollectionAction.DELETE;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.COUNTRIES;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
@@ -129,7 +130,23 @@ class VirtualCollectionServiceTest {
         givenVirtualCollectionResponseList(ID, 115));
 
     // When
-    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH);
+    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH, null);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void testGetVirtualCollectionsForCountries() {
+    // Given
+    var expected = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, 1, 15, ORCID, ID,
+        true);
+    given(repository.getVirtualCollectionsForCountries(1, 15, COUNTRIES)).willReturn(
+        givenVirtualCollectionResponseList(ID, 115));
+
+    // When
+    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH,
+        COUNTRIES);
 
     // Then
     assertThat(result).isEqualTo(expected);

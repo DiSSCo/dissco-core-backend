@@ -35,6 +35,7 @@ import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.VirtualCollectionRequest.LtcBasisOfScheme;
 import eu.dissco.backend.service.VirtualCollectionService;
 import eu.dissco.backend.utils.VirtualCollectionUtils;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,12 +145,13 @@ class VirtualCollectionControllerTest {
         pageSize,
 			ORCID_ALT, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH)).willReturn(
-        expectedJson);
+    given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH,
+        List.of("Netherlands"))).willReturn(expectedJson);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
     // When
-    var receivedResponse = controller.getVirtualCollections(pageNumber, pageSize, mockRequest);
+    var receivedResponse = controller.getVirtualCollections(List.of("Netherlands"), pageNumber,
+        pageSize, mockRequest);
 
     // Then
     assertThat(receivedResponse).isEqualTo(expectedResponse);

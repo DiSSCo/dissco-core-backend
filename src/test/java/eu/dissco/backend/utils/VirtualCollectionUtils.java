@@ -16,6 +16,8 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.schema.LtcHasGeographicContext;
+import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.OdsHasPredicate;
 import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
 import eu.dissco.backend.schema.TargetDigitalObjectFilter;
@@ -36,6 +38,7 @@ public class VirtualCollectionUtils {
   public static final String VIRTUAL_COLLECTION_NAME = "Butterflies of the World";
   public static final String VIRTUAL_COLLECTION_DESCRIPTION =
       "A collection of butterflies from around the world";
+  public static final List<String> COUNTRIES = List.of("Netherlands", "Belgium");
 
   private VirtualCollectionUtils() {
   }
@@ -69,6 +72,8 @@ public class VirtualCollectionUtils {
         .withSchemaDateCreated(Date.from(CREATED))
         .withSchemaDateModified(Date.from(CREATED))
         .withSchemaCreator(givenAgent(userId, ROLE_NAME_VIRTUAL_COLLECTION))
+        .withLtcHasGeographicContext(List.of(new LtcHasGeographicContext__1("Netherlands"),
+            new LtcHasGeographicContext__1("Belgium")))
         .withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
   }
 
@@ -92,6 +97,8 @@ public class VirtualCollectionUtils {
         .withLtcCollectionName(name)
         .withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
         .withLtcBasisOfScheme(ltcBasisOfScheme)
+        .withLtcHasGeographicContext(List.of(new LtcHasGeographicContext("Netherlands"),
+            new LtcHasGeographicContext("Belgium")))
         .withOdsHasTargetDigitalObjectFilter(targetFilter);
   }
 
@@ -144,7 +151,8 @@ public class VirtualCollectionUtils {
 
   public static VirtualCollection givenTombstoneVirtualCollection() {
     return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
-        .withOdsHasTombstoneMetadata(givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION)))
+        .withOdsHasTombstoneMetadata(
+            givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION)))
         .withOdsStatus(OdsStatus.TOMBSTONE)
         .withSchemaDateModified(Date.from(CREATED));
   }

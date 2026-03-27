@@ -112,6 +112,31 @@
       "description": "Contains the filters that the collection uses",
       "$ref": "https://schemas.dissco.tech/schemas/fdo-type/shared-model/0.4.0/target-digital-object-filter.json"
     },
+    "ltc:hasGeographicContext": {
+      "type": "array",
+      "description": "Contains the geographic context of the virtual collection, for example the country or region that the collection focuses on. Included from Latimer Core http://rs.tdwg.org/ltc/terms/hasGeographicContext",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dwc:country": {
+            "type": "string",
+            "description": "The country that is part of the geographic context of the virtual collection, following https://dwc.tdwg.org/terms/#dwc:country",
+            "examples": [
+              "Netherlands",
+              "Italy"
+            ]
+          }
+        }
+      }
+    },
+    "ods:hasEntityRelationships": {
+      "type": "array",
+      "description": "Contains relationships to external resources that provide further information about the virtual collection, for example references to non DiSSCo specimen or publications",
+      "items": {
+        "type": "object",
+        "$ref": "https://schemas.dissco.tech/schemas/fdo-type/shared-model/0.4.0/entity-relationship.json"
+      }
+    },
     "ods:hasTombstoneMetadata": {
       "type": "object",
       "description": "Object containing the tombstone metadata of the object. Only present when ods:status is ods:Tombstone",
