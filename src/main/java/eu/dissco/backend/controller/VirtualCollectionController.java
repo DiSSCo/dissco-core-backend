@@ -71,8 +71,8 @@ public class VirtualCollectionController extends BaseController {
       HttpServletRequest request) {
     log.info("Received get request for virtual collections with specific countries: {}, page number: {} and page size: {}",
         countries, pageNumber, pageSize);
-    var specimen = service.getVirtualCollections(pageNumber, pageSize, getPath(request), countries);
-    return ResponseEntity.ok(specimen);
+    var virtualCollection = service.getVirtualCollections(pageNumber, pageSize, getPath(request), countries);
+    return ResponseEntity.ok(virtualCollection);
   }
 
   @Operation(summary = "Get latest virtual collection by id")

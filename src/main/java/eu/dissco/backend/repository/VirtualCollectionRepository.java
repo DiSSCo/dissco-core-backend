@@ -38,7 +38,7 @@ public class VirtualCollectionRepository {
   }
 
   public void createVirtualCollection(VirtualCollection virtualCollection) {
-    var countryArray = new String[virtualCollection.getLtcHasGeographicContext().size()];
+    var countries = extractCountries(virtualCollection);
     context.insertInto(VIRTUAL_COLLECTION)
         .set(VIRTUAL_COLLECTION.ID, removeHandleProxy(virtualCollection.getId()))
         .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
@@ -47,10 +47,18 @@ public class VirtualCollectionRepository {
         .set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
         .set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
         .set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
-        .set(VIRTUAL_COLLECTION.COUNTRIES, virtualCollection.getLtcHasGeographicContext().stream().map(
-            LtcHasGeographicContext__1::getDwcCountry).toList().toArray(countryArray))
+        .set(VIRTUAL_COLLECTION.COUNTRIES, countries)
         .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
         .execute();
+  }
+
+  private static String[] extractCountries(VirtualCollection virtualCollection) {
+    if (virtualCollection.getLtcHasGeographicContext() == null) {
+      return new String[0];
+    } else {
+      return virtualCollection.getLtcHasGeographicContext().stream().map(
+          LtcHasGeographicContext__1::getDwcCountry).toList().toArray(new String[virtualCollection.getLtcHasGeographicContext().size()]);
+    }
   }
 
   private JSONB mapToJSONB(VirtualCollection virtualCollection) {
