@@ -6,6 +6,7 @@ import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
 
 import eu.dissco.backend.client.AnnotationClient;
+import eu.dissco.backend.client.ProcessorClient;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
@@ -52,6 +53,7 @@ public class AnnotationService {
   private static final String DATA = "data";
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
+  private final ProcessorClient processorClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final JsonMapper mapper;
@@ -128,6 +130,22 @@ public class AnnotationService {
                 .put("objectAffected", count)
                 .set("batchMetadata", mapper.valueToTree(annotationCountRequest.data().attributes()
                     .batchMetadata()))));
+  }
+
+  public void acceptAnnotations(String id) throws NotFoundException, WebProcessingFailedException {
+    var annotation = repository.getAnnotation(id);
+    if (annotation == null) {
+      log.warn("Unable to find annotation {}", id);
+      throw new NotFoundException("Unable to find annotation " + id);
+    }
+    if (!annotation.getOaHasTarget().getType().equals(FdoType.DIGITAL_SPECIMEN.getPid())) {
+      log.error("Accepting annotations is only supported for annotations on specimens");
+      throw new UnsupportedOperationException();
+    }
+    processorClient.acceptAnnotation(annotation);
+    log.info("Successfully updated target");
+
+
   }
 
   private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest,

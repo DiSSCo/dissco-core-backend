@@ -3,6 +3,7 @@ package eu.dissco.backend.configuration;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.client.MasClient;
+import eu.dissco.backend.client.ProcessorClient;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -72,40 +73,39 @@ public class WebClientConfiguration {
 
   @Bean
   public AnnotationClient annotationClient() {
-    var errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(
-            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "Annotation"));
-    var webClient = WebClient.builder()
-        .filter(errorResponseFilter)
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-        .baseUrl(properties.getAnnotationEndpoint())
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build();
-    // Create factory for client proxies
-    var proxyFactory = HttpServiceProxyFactory.builder()
-        .exchangeAdapter(WebClientAdapter.create(webClient))
-        .build();
+    var proxyFactory = createProxyFactory("Annotation", properties.getAnnotationEndpoint());
     // Create client proxy
     return proxyFactory.createClient(AnnotationClient.class);
   }
 
   @Bean
   public MasClient masClient() {
+    var proxyFactory = createProxyFactory("MAS Scheduler", properties.getMasEndpoint());
+    // Create client proxy
+    return proxyFactory.createClient(MasClient.class);
+  }
+
+  @Bean
+  public ProcessorClient processorClient() {
+    var proxyFactory = createProxyFactory("Processing", properties.getProcessorEndpoint());
+    // Create client proxy
+    return proxyFactory.createClient(ProcessorClient.class);
+  }
+
+  private HttpServiceProxyFactory createProxyFactory(String serviceName, String endpoint) {
     var errorResponseFilter = ExchangeFilterFunction
         .ofResponseProcessor(
-            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "MAS Scheduler"));
+            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, serviceName));
     var webClient = WebClient.builder()
         .filter(errorResponseFilter)
         .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-        .baseUrl(properties.getMasEndpoint())
+        .baseUrl(endpoint)
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
     // Create factory for client proxies
-    var proxyFactory = HttpServiceProxyFactory.builder()
+    return HttpServiceProxyFactory.builder()
         .exchangeAdapter(WebClientAdapter.create(webClient))
         .build();
-    // Create client proxy
-    return proxyFactory.createClient(MasClient.class);
   }
 
 }

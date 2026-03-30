@@ -309,6 +309,21 @@ public class AnnotationController extends BaseController {
     }
   }
 
+  @Operation(summary = "Accept an annotation",
+      description = """
+          Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation. 
+          """)
+  public ResponseEntity<Void> acceptAnnotation(
+      Authentication authentication,
+      @Parameter(description = PREFIX_OAS) String prefix,
+      @Parameter(description = SUFFIX_OAS) String suffix
+  ) {
+    if (isAdmin(authentication)) {
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+  }
+
   private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
     if (!requestBody.data().type().equals(ANNOTATION)) {
       throw new IllegalArgumentException(

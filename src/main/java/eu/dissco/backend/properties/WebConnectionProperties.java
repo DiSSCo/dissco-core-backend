@@ -19,4 +19,7 @@ public class WebConnectionProperties {
   @NotBlank
   String masEndpoint;
 
+  @NotBlank
+  String processorEndpoint;
+
 }
