@@ -6,6 +6,7 @@ import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,25 +14,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tools.jackson.core.JacksonException;
 
 @ControllerAdvice(assignableTypes = BaseController.class)
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
-  @ExceptionHandler(JacksonException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handleJsonException(JacksonException e) {
-    var exceptionResponse = new ExceptionResponseWrapper(
-        HttpStatus.UNPROCESSABLE_CONTENT,
-        "Json Processing Exception",
-        e.getMessage()
-    );
-    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
-  }
-
   @ResponseStatus(HttpStatus.BAD_GATEWAY)
   @ExceptionHandler(IOException.class)
-  public ResponseEntity<ExceptionResponseWrapper> handleIOException(java.io.IOException e){
+  public ResponseEntity<ExceptionResponseWrapper> handleIOException(java.io.IOException e) {
     logger.error("An IOException has occurred.", e);
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.BAD_GATEWAY,
@@ -110,6 +99,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+  }
+
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+  @ExceptionHandler(WebProcessingFailedException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleException(WebProcessingFailedException e) {
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "Unable to communicate with external service",
+        e.getMessage()
+    );
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
   }
 
 }

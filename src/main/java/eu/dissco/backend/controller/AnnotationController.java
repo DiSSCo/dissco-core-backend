@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
@@ -19,6 +20,7 @@ import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
@@ -311,17 +313,20 @@ public class AnnotationController extends BaseController {
 
   @Operation(summary = "Accept an annotation",
       description = """
-          Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation. 
+          Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation.
+          Currently, only accepting specimens is supported.
           """)
   public ResponseEntity<Void> acceptAnnotation(
       Authentication authentication,
       @Parameter(description = PREFIX_OAS) String prefix,
       @Parameter(description = SUFFIX_OAS) String suffix
-  ) {
-    if (isAdmin(authentication)) {
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  ) throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
+    if (!isAdmin(authentication)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
+    service.acceptAnnotation(prefix, suffix, agent);
+    return ResponseEntity.ok().build();
   }
 
   private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {

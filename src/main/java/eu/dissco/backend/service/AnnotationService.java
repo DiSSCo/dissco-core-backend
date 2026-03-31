@@ -2,6 +2,7 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
 
@@ -18,15 +19,18 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
+import eu.dissco.backend.schema.Annotation.OdsMergingDecisionStatus;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.utils.JsonApiUtils;
 import eu.dissco.backend.utils.ProxyUtils;
@@ -58,6 +62,7 @@ public class AnnotationService {
   private final MongoRepository mongoRepository;
   private final JsonMapper mapper;
   private final MasJobRecordService masJobRecordService;
+  private final ApplicationProperties properties;
 
   public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
     var annotation = repository.getAnnotation(id);
@@ -132,20 +137,20 @@ public class AnnotationService {
                     .batchMetadata()))));
   }
 
-  public void acceptAnnotations(String id) throws NotFoundException, WebProcessingFailedException {
-    var annotation = repository.getAnnotation(id);
-    if (annotation == null) {
-      log.warn("Unable to find annotation {}", id);
-      throw new NotFoundException("Unable to find annotation " + id);
+  public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
+      throws WebProcessingFailedException, InvalidAnnotationRequestException {
+    var annotation = annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+        OdsMergingDecisionStatus.APPROVED, acceptingAgent);
+    try {
+      processorClient.acceptAnnotation(annotation);
+    } catch (WebProcessingFailedException e) {
+      log.error("Unable to accept annotation. Rolling back accepted status", e);
+      annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+          OdsMergingDecisionStatus.PENDING, createServiceAgent(properties));
+      throw new InvalidAnnotationRequestException("Unable to accept annotation");
     }
-    if (!annotation.getOaHasTarget().getType().equals(FdoType.DIGITAL_SPECIMEN.getPid())) {
-      log.error("Accepting annotations is only supported for annotations on specimens");
-      throw new UnsupportedOperationException();
-    }
-    processorClient.acceptAnnotation(annotation);
-    log.info("Successfully updated target");
-
-
+    log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),
+        annotation.getOaHasTarget().getDctermsIdentifier());
   }
 
   private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest,

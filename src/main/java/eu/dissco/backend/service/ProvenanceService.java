@@ -1,14 +1,13 @@
 package eu.dissco.backend.service;
 
 import static eu.dissco.backend.schema.Agent.Type.PROV_PERSON;
-import static eu.dissco.backend.schema.Agent.Type.PROV_SOFTWARE_AGENT;
 import static eu.dissco.backend.utils.AgentUtils.createAgent;
+import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 
 import com.flipkart.zjsonpatch.Jackson3JsonDiff;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.CreateUpdateTombstoneEvent;
-import eu.dissco.backend.schema.Identifier.DctermsType;
 import eu.dissco.backend.schema.OdsChangeValue;
 import eu.dissco.backend.schema.ProvActivity;
 import eu.dissco.backend.schema.ProvEntity;
@@ -95,8 +94,7 @@ public class ProvenanceService {
         .withOdsHasAgents(
             List.of(
                 createAgent(agent.getSchemaName(), agent.getId(), "creator", "orcid", PROV_PERSON),
-                createAgent(properties.getName(), properties.getPid(),
-                    "dissco-backend", DctermsType.DOI.value(), PROV_SOFTWARE_AGENT)));
+                createServiceAgent(properties)));
   }
 
   private List<OdsChangeValue> mapJsonPatch(JsonNode jsonPatch) {
