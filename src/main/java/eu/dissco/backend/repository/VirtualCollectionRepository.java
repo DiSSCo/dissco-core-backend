@@ -9,7 +9,6 @@ import static org.jooq.impl.DSL.noCondition;
 import eu.dissco.backend.database.jooq.Tables;
 import eu.dissco.backend.database.jooq.enums.CollectionType;
 import eu.dissco.backend.exceptions.DisscoJsonBMappingException;
-import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollection.LtcBasisOfScheme;
 import java.util.List;
@@ -53,11 +52,10 @@ public class VirtualCollectionRepository {
   }
 
   private static String[] extractCountries(VirtualCollection virtualCollection) {
-    if (virtualCollection.getLtcHasGeographicContext() == null) {
+    if (virtualCollection.getOdsSignificanceForCountries() == null) {
       return new String[0];
     } else {
-      return virtualCollection.getLtcHasGeographicContext().stream().map(
-          LtcHasGeographicContext__1::getDwcCountry).toList().toArray(new String[virtualCollection.getLtcHasGeographicContext().size()]);
+      return virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]);
     }
   }
 
@@ -94,7 +92,8 @@ public class VirtualCollectionRepository {
     return virtualCollectionQuery(pageNumber, pageSize, List.of(noCondition()));
   }
 
-  private List<VirtualCollection> virtualCollectionQuery(int pageNumber, int pageSize, List<Condition> conditions) {
+  private List<VirtualCollection> virtualCollectionQuery(int pageNumber, int pageSize,
+      List<Condition> conditions) {
     int offset = getOffset(pageNumber, pageSize);
     var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
     return context.select(VIRTUAL_COLLECTION.DATA)
@@ -126,8 +125,11 @@ public class VirtualCollectionRepository {
 
   public void tombstoneVirtualCollection(VirtualCollection tombstoneVirtualCollection) {
     context.update(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.TOMBSTONED, tombstoneVirtualCollection.getOdsHasTombstoneMetadata().getOdsTombstoneDate().toInstant())
-        .set(VIRTUAL_COLLECTION.MODIFIED, tombstoneVirtualCollection.getSchemaDateModified().toInstant())
+        .set(VIRTUAL_COLLECTION.TOMBSTONED,
+            tombstoneVirtualCollection.getOdsHasTombstoneMetadata().getOdsTombstoneDate()
+                .toInstant())
+        .set(VIRTUAL_COLLECTION.MODIFIED,
+            tombstoneVirtualCollection.getSchemaDateModified().toInstant())
         .set(VIRTUAL_COLLECTION.VERSION, tombstoneVirtualCollection.getSchemaVersion())
         .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(tombstoneVirtualCollection))
         .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombstoneVirtualCollection.getId())))
@@ -135,7 +137,6 @@ public class VirtualCollectionRepository {
   }
 
   public void updateVirtualCollection(VirtualCollection virtualCollection) {
-    var countryArray = new String[virtualCollection.getLtcHasGeographicContext().size()];
     context.update(VIRTUAL_COLLECTION)
         .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
         .set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
@@ -143,14 +144,15 @@ public class VirtualCollectionRepository {
         .set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
         .set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
         .set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
-        .set(VIRTUAL_COLLECTION.COUNTRIES, virtualCollection.getLtcHasGeographicContext().stream().map(
-            LtcHasGeographicContext__1::getDwcCountry).toList().toArray(countryArray))
+        .set(VIRTUAL_COLLECTION.COUNTRIES,
+            virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]))
         .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
         .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(virtualCollection.getId())))
         .execute();
   }
 
-  public List<VirtualCollection> getVirtualCollectionsForCountries(int pageNumber, int pageSize, List<String> countries) {
+  public List<VirtualCollection> getVirtualCollectionsForCountries(int pageNumber, int pageSize,
+      List<String> countries) {
     var condition = VIRTUAL_COLLECTION.COUNTRIES.contains(countries.toArray(new String[0]));
     return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
   }

@@ -11,7 +11,6 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtu
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.VirtualCollection;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,8 +70,7 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
     // Given
     populateTable();
     var virtualCollectionFinish = givenVirtualCollection(HANDLE + "AAA-111-FIN", ORCID);
-    virtualCollectionFinish.setLtcHasGeographicContext(List.of(
-        new LtcHasGeographicContext__1("Finland")));
+    virtualCollectionFinish.setOdsSignificanceForCountries(List.of("Finland"));
     repository.createVirtualCollection(virtualCollectionFinish);
 
     // When

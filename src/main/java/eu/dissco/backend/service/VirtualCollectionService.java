@@ -21,7 +21,6 @@ import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.Agent;
-import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollection.LtcBasisOfScheme;
 import eu.dissco.backend.schema.VirtualCollection.OdsStatus;
@@ -126,15 +125,10 @@ public class VirtualCollectionService {
         .withSchemaCreator(agent)
         .withOdsHasTargetDigitalObjectFilter(
             virtualCollection.getOdsHasTargetDigitalObjectFilter())
-        .withLtcHasGeographicContext(getLtcHasGeographicContext(virtualCollection))
+        .withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
         .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships());
   }
 
-  private List<LtcHasGeographicContext__1> getLtcHasGeographicContext(
-      VirtualCollectionRequest virtualCollection) {
-    return virtualCollection.getLtcHasGeographicContext().stream()
-        .map(geography -> new LtcHasGeographicContext__1(geography.getDwcCountry())).toList();
-  }
 
   public JsonApiWrapper getVirtualCollectionById(String id, String path) throws NotFoundException {
     var virtualCollection = repository.getVirtualCollectionById(id);
@@ -238,7 +232,7 @@ public class VirtualCollectionService {
         .withSchemaDateCreated(virtualCollection.getSchemaDateCreated())
         .withSchemaDateModified(Date.from(timestamp))
         .withSchemaCreator(tombstoningAgent)
-        .withLtcHasGeographicContext(virtualCollection.getLtcHasGeographicContext())
+        .withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
         .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships())
         .withOdsHasTargetDigitalObjectFilter(
             virtualCollection.getOdsHasTargetDigitalObjectFilter())
