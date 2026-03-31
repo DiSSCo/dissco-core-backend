@@ -107,7 +107,6 @@ public abstract class BaseController {
     }
   }
 
-
   protected String getPath(HttpServletRequest request) {
     var path = applicationProperties.getBaseUrl() + request.getRequestURI();
     var queryString = request.getQueryString();

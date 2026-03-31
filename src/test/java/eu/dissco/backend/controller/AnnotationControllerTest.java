@@ -11,6 +11,7 @@ import static eu.dissco.backend.TestUtils.givenAdminClaims;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
@@ -335,7 +336,31 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
+  @Test
+  void testAcceptAnnotationsForbidden() throws Exception {
+    // Given
+    givenAuthentication(authentication, givenClaims());
 
+    // When
+    var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void testAcceptAnnotations() throws Exception {
+    // Given
+    givenAuthentication(authentication, givenAdminClaims());
+
+    // When
+    var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+
+    // Then
+    then(service).should()
+        .acceptAnnotation(PREFIX, SUFFIX, givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR));
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
 
   public static AnnotationRequest givenAnnotationRequestObject() {
     return new AnnotationRequest(
