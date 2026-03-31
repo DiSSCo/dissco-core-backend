@@ -10,6 +10,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.domain.VirtualCollectionAction.DELETE;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_VIRTUAL_COLLECTION;
+import static eu.dissco.backend.utils.VirtualCollectionUtils.COUNTRIES;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_NAME;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.VIRTUAL_COLLECTION_PATH;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTargetFilter;
@@ -19,8 +20,10 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollect
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionRequest;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseList;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionResponseWrapper;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -50,11 +53,14 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -120,8 +126,10 @@ class VirtualCollectionServiceTest {
         () -> service.getVirtualCollectionById(ID, VIRTUAL_COLLECTION_PATH));
   }
 
-  @Test
-  void testGetVirtualCollections() {
+  @ParameterizedTest
+  @NullSource
+  @MethodSource("emptyCountriesProvider")
+  void testGetVirtualCollections(List<String> countries) {
     // Given
     var expected = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, 1, 15, ORCID, ID,
         true);
@@ -129,7 +137,29 @@ class VirtualCollectionServiceTest {
         givenVirtualCollectionResponseList(ID, 115));
 
     // When
-    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH);
+    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH, countries);
+
+    // Then
+    assertThat(result).isEqualTo(expected);
+  }
+
+  static Stream<Arguments> emptyCountriesProvider() {
+    return Stream.of(
+        arguments(emptyList())
+    );
+  }
+
+  @Test
+  void testGetVirtualCollectionsForCountries() {
+    // Given
+    var expected = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, 1, 15, ORCID, ID,
+        true);
+    given(repository.getVirtualCollectionsForCountries(1, 15, COUNTRIES)).willReturn(
+        givenVirtualCollectionResponseList(ID, 115));
+
+    // When
+    var result = service.getVirtualCollections(1, 15, VIRTUAL_COLLECTION_PATH,
+        COUNTRIES);
 
     // Then
     assertThat(result).isEqualTo(expected);

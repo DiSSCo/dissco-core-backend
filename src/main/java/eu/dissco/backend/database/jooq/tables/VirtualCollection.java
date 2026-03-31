@@ -95,6 +95,11 @@ public class VirtualCollection extends TableImpl<VirtualCollectionRecord> {
      */
     public final TableField<VirtualCollectionRecord, JSONB> DATA = createField(DSL.name("data"), SQLDataType.JSONB.nullable(false), this, "");
 
+    /**
+     * The column <code>public.virtual_collection.countries</code>.
+     */
+    public final TableField<VirtualCollectionRecord, String[]> COUNTRIES = createField(DSL.name("countries"), SQLDataType.CLOB.array(), this, "");
+
     private VirtualCollection(Name alias, Table<VirtualCollectionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

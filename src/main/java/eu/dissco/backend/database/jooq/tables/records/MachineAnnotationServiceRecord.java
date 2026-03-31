@@ -331,6 +331,6 @@ public class MachineAnnotationServiceRecord extends UpdatableRecordImpl<MachineA
         setBatchingPermitted(batchingPermitted);
         setTimeToLive(timeToLive);
         setData(data);
-      resetTouchedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

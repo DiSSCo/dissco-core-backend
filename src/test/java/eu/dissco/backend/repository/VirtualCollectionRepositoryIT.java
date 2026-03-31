@@ -11,6 +11,7 @@ import static eu.dissco.backend.utils.VirtualCollectionUtils.givenTombstoneVirtu
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.VirtualCollection;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,22 @@ class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
 
     // Then
     assertThat(result).containsExactlyInAnyOrderElementsOf(expected.getRight());
+  }
+
+  @Test
+  void testGetVirtualCollectionForCountry() {
+    // Given
+    populateTable();
+    var virtualCollectionFinish = givenVirtualCollection(HANDLE + "AAA-111-FIN", ORCID);
+    virtualCollectionFinish.setLtcHasGeographicContext(List.of(
+        new LtcHasGeographicContext__1("Finland")));
+    repository.createVirtualCollection(virtualCollectionFinish);
+
+    // When
+    var result = repository.getVirtualCollectionsForCountries(1, 5, List.of("Finland"));
+
+    // Then
+    assertThat(result).hasSameElementsAs(List.of(virtualCollectionFinish));
   }
 
   @Test

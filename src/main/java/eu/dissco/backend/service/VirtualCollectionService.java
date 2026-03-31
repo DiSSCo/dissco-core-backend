@@ -21,6 +21,7 @@ import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.repository.VirtualCollectionRepository;
 import eu.dissco.backend.schema.Agent;
+import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.VirtualCollection;
 import eu.dissco.backend.schema.VirtualCollection.LtcBasisOfScheme;
 import eu.dissco.backend.schema.VirtualCollection.OdsStatus;
@@ -124,7 +125,15 @@ public class VirtualCollectionService {
         .withSchemaDateModified(Date.from(Instant.now()))
         .withSchemaCreator(agent)
         .withOdsHasTargetDigitalObjectFilter(
-            virtualCollection.getOdsHasTargetDigitalObjectFilter());
+            virtualCollection.getOdsHasTargetDigitalObjectFilter())
+        .withLtcHasGeographicContext(getLtcHasGeographicContext(virtualCollection))
+        .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships());
+  }
+
+  private List<LtcHasGeographicContext__1> getLtcHasGeographicContext(
+      VirtualCollectionRequest virtualCollection) {
+    return virtualCollection.getLtcHasGeographicContext().stream()
+        .map(geography -> new LtcHasGeographicContext__1(geography.getDwcCountry())).toList();
   }
 
   public JsonApiWrapper getVirtualCollectionById(String id, String path) throws NotFoundException {
@@ -139,8 +148,13 @@ public class VirtualCollectionService {
   }
 
   public JsonApiListResponseWrapper getVirtualCollections(int pageNumber, int pageSize,
-      String path) {
-    var virtualCollections = repository.getVirtualCollections(pageNumber, pageSize);
+      String path, List<String> countries) {
+    List<VirtualCollection> virtualCollections;
+    if (countries == null || countries.isEmpty()){
+      virtualCollections = repository.getVirtualCollections(pageNumber, pageSize);
+    } else {
+      virtualCollections = repository.getVirtualCollectionsForCountries(pageNumber, pageSize, countries);
+    }
     var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
     return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
   }
@@ -224,6 +238,8 @@ public class VirtualCollectionService {
         .withSchemaDateCreated(virtualCollection.getSchemaDateCreated())
         .withSchemaDateModified(Date.from(timestamp))
         .withSchemaCreator(tombstoningAgent)
+        .withLtcHasGeographicContext(virtualCollection.getLtcHasGeographicContext())
+        .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships())
         .withOdsHasTargetDigitalObjectFilter(
             virtualCollection.getOdsHasTargetDigitalObjectFilter())
         .withOdsHasTombstoneMetadata(buildTombstoneMetadata(tombstoningAgent,

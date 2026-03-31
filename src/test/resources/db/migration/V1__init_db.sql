@@ -79,9 +79,9 @@ create table digital_specimen
     last_checked           timestamp with time zone not null,
     deleted                timestamp with time zone,
     data                   jsonb,
-    original_data jsonb,
-    modified      timestamp with time zone,
-    col_id        text
+    original_data          jsonb,
+    modified               timestamp with time zone,
+    col_id                 text
 );
 create index digital_specimen_created_idx
     on digital_specimen (created);
@@ -96,9 +96,9 @@ create table machine_annotation_service
         primary key,
     version                integer                  not null,
     name                   varchar                  not null,
-    created    timestamp with time zone not null,
-    modified   timestamp with time zone not null,
-    tombstoned timestamp with time zone,
+    created                timestamp with time zone not null,
+    modified               timestamp with time zone not null,
+    tombstoned             timestamp with time zone,
     creator                text                     not null,
     container_image        text                     not null,
     container_image_tag    text                     not null,
@@ -133,8 +133,8 @@ create table mas_job_record
     target_type        mjr_target_type,
     batching_requested boolean,
     error              error_code,
-    expires_on    timestamp with time zone not null,
-    error_message text
+    expires_on         timestamp with time zone not null,
+    error_message      text
 );
 
 create type collection_type as enum ('REFERENCE_COLLECTION', 'COMMUNITY_COLLECTION');
@@ -150,5 +150,6 @@ create table virtual_collection
     modified        timestamp with time zone not null,
     tombstoned      timestamp with time zone,
     creator         text                     not null,
+    countries       text[],
     data            jsonb                    not null
 );

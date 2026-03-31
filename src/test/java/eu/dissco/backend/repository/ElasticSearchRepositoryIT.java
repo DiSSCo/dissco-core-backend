@@ -468,16 +468,16 @@ class ElasticSearchRepositoryIT {
     for (long i = 0; i < totalHits; i++) {
       String id = HANDLE + PREFIX + "/" + i;
       if (i <= pageSize) {
-			expected.add(givenAnnotationResponse(id, ORCID_ALT));
+        expected.add(givenAnnotationResponse(id, ORCID_ALT));
       }
-		givenAnnotations.add(givenAnnotationResponse(id, ORCID_ALT));
+      givenAnnotations.add(givenAnnotationResponse(id, ORCID_ALT));
       givenAnnotations.add(
           givenAnnotationResponse(id + "1", "https://orcid.org/0000-1112-5669-2769"));
     }
     postAnnotations(parseAnnotationToElasticFormat(givenAnnotations));
 
     // When
-	var responseReceived = repository.getAnnotationsForCreator(ORCID_ALT, pageNumber, pageSize);
+    var responseReceived = repository.getAnnotationsForCreator(ORCID_ALT, pageNumber, pageSize);
 
     // Then
     assertThat(responseReceived.getLeft()).isEqualTo(totalHits);

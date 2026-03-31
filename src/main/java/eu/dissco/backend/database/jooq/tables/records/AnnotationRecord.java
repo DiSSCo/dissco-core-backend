@@ -216,19 +216,19 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
         return (JSONB) get(13);
     }
 
-  /**
-   * Setter for <code>public.annotation.annotation_status</code>.
-   */
-  public void setAnnotationStatus(Object value) {
-    set(14, value);
-  }
+    /**
+     * Setter for <code>public.annotation.annotation_status</code>.
+     */
+    public void setAnnotationStatus(Object value) {
+        set(14, value);
+    }
 
-  /**
-   * Getter for <code>public.annotation.annotation_status</code>.
-   */
-  public Object getAnnotationStatus() {
-    return get(14);
-  }
+    /**
+     * Getter for <code>public.annotation.annotation_status</code>.
+     */
+    public Object getAnnotationStatus() {
+        return get(14);
+    }
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -253,11 +253,8 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
     /**
      * Create a detached, initialised AnnotationRecord
      */
-    public AnnotationRecord(String id, Integer version, String type, UUID annotationHash,
-        String motivation, String mjrJobId, UUID batchId, String creator, Instant created,
-        Instant modified, Instant lastChecked, Instant tombstoned, String targetId, JSONB data,
-        Object annotationStatus) {
-      super(Annotation.ANNOTATION);
+    public AnnotationRecord(String id, Integer version, String type, UUID annotationHash, String motivation, String mjrJobId, UUID batchId, String creator, Instant created, Instant modified, Instant lastChecked, Instant tombstoned, String targetId, JSONB data, Object annotationStatus) {
+        super(Annotation.ANNOTATION);
 
         setId(id);
         setVersion(version);
@@ -273,7 +270,7 @@ public class AnnotationRecord extends UpdatableRecordImpl<AnnotationRecord> {
         setTombstoned(tombstoned);
         setTargetId(targetId);
         setData(data);
-      setAnnotationStatus(annotationStatus);
-      resetTouchedOnNotNull();
+        setAnnotationStatus(annotationStatus);
+        resetTouchedOnNotNull();
     }
 }

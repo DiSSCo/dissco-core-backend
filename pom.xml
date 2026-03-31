@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.4</version>
+    <version>4.0.5</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>eu.dissco</groupId>
@@ -311,7 +311,7 @@
               https://schemas.dissco.tech/schemas/fdo-type/digital-media/0.4.0/digital-media.json
             </argument>
             <argument>
-              https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.1.0/virtual-collection.json
+              https://schemas.dissco.tech/schemas/fdo-type/virtual-collection/0.2.0/virtual-collection.json
             </argument>
             <argument>
               https://schemas.dissco.tech/schemas/fdo-type/machine-annotation-service/0.4.0/machine-annotation-service.json
@@ -326,7 +326,7 @@
               https://schemas.dissco.tech/schemas/fdo-type/create-update-tombstone-event/0.4.0/create-update-tombstone-event.json
             </argument>
             <argument>
-              https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.1.0/virtual-collection-request.json
+              https://schemas.dissco.tech/schemas/developer-schema/virtual-collection/0.2.0/virtual-collection-request.json
             </argument>
           </arguments>
         </configuration>

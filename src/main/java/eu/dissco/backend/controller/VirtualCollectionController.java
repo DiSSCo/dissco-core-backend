@@ -22,6 +22,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -64,13 +67,15 @@ public class VirtualCollectionController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonApiListResponseWrapper> getVirtualCollections(
+      @Parameter(description = "Requested Countries") @RequestParam(required = false) Optional<List<String>> countriesOptional,
       @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
       @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
       HttpServletRequest request) {
-    log.info("Received get request for virtual collections with page number: {} and page size: {}",
-        pageNumber, pageSize);
-    var specimen = service.getVirtualCollections(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(specimen);
+    var countries = countriesOptional.orElse(List.of());
+    log.info("Received get request for virtual collections with specific countries: {}, page number: {} and page size: {}",
+        countries, pageNumber, pageSize);
+    var virtualCollection = service.getVirtualCollections(pageNumber, pageSize, getPath(request), countries);
+    return ResponseEntity.ok(virtualCollection);
   }
 
   @Operation(summary = "Get latest virtual collection by id")

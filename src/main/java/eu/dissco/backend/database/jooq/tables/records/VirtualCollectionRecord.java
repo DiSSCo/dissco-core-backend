@@ -146,6 +146,20 @@ public class VirtualCollectionRecord extends UpdatableRecordImpl<VirtualCollecti
         return (JSONB) get(8);
     }
 
+    /**
+     * Setter for <code>public.virtual_collection.countries</code>.
+     */
+    public void setCountries(String[] value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>public.virtual_collection.countries</code>.
+     */
+    public String[] getCountries() {
+        return (String[]) get(9);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -169,7 +183,7 @@ public class VirtualCollectionRecord extends UpdatableRecordImpl<VirtualCollecti
     /**
      * Create a detached, initialised VirtualCollectionRecord
      */
-    public VirtualCollectionRecord(String id, Integer version, String name, CollectionType collectionType, Instant created, Instant modified, Instant tombstoned, String creator, JSONB data) {
+    public VirtualCollectionRecord(String id, Integer version, String name, CollectionType collectionType, Instant created, Instant modified, Instant tombstoned, String creator, JSONB data, String[] countries) {
         super(VirtualCollection.VIRTUAL_COLLECTION);
 
         setId(id);
@@ -181,6 +195,7 @@ public class VirtualCollectionRecord extends UpdatableRecordImpl<VirtualCollecti
         setTombstoned(tombstoned);
         setCreator(creator);
         setData(data);
-      resetTouchedOnNotNull();
+        setCountries(countries);
+        resetTouchedOnNotNull();
     }
 }

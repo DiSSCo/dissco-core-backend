@@ -243,6 +243,6 @@ public class MasJobRecordRecord extends UpdatableRecordImpl<MasJobRecordRecord> 
         setError(error);
         setExpiresOn(expiresOn);
         setErrorMessage(errorMessage);
-      resetTouchedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }
