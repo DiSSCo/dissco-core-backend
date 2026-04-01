@@ -16,8 +16,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
-import eu.dissco.backend.schema.LtcHasGeographicContext;
-import eu.dissco.backend.schema.LtcHasGeographicContext__1;
 import eu.dissco.backend.schema.OdsHasPredicate;
 import eu.dissco.backend.schema.OdsHasPredicate.OdsPredicateType;
 import eu.dissco.backend.schema.TargetDigitalObjectFilter;
@@ -72,8 +70,7 @@ public class VirtualCollectionUtils {
         .withSchemaDateCreated(Date.from(CREATED))
         .withSchemaDateModified(Date.from(CREATED))
         .withSchemaCreator(givenAgent(userId, ROLE_NAME_VIRTUAL_COLLECTION))
-        .withLtcHasGeographicContext(List.of(new LtcHasGeographicContext__1("Netherlands"),
-            new LtcHasGeographicContext__1("Belgium")))
+        .withOdsSignificanceForCountries(List.of("Netherlands" ,"Belgium"))
         .withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
   }
 
@@ -97,8 +94,7 @@ public class VirtualCollectionUtils {
         .withLtcCollectionName(name)
         .withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
         .withLtcBasisOfScheme(ltcBasisOfScheme)
-        .withLtcHasGeographicContext(List.of(new LtcHasGeographicContext("Netherlands"),
-            new LtcHasGeographicContext("Belgium")))
+        .withOdsSignificanceForCountries(List.of("Netherlands" ,"Belgium"))
         .withOdsHasTargetDigitalObjectFilter(targetFilter);
   }
 
