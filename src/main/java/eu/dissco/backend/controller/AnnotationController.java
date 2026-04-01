@@ -325,9 +325,6 @@ public class AnnotationController extends BaseController {
     if (!applicationProperties.isAcceptingAnnotations()) {
       throw new UnsupportedOperationException("Accepting annotations is not permitted");
     }
-    if (!isAdmin(authentication)) {
-      throw new ForbiddenException("User is not authorized to accept annotations");
-    }
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
     service.acceptAnnotation(prefix, suffix, agent);
     return ResponseEntity.ok().build();

@@ -23,6 +23,8 @@ public class WebSecurityConfig {
     http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
         .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
         .requestMatchers(HttpMethod.GET, "/mjr/v1/creator").authenticated()
+        .requestMatchers(HttpMethod.POST, "/annotation/v1/{prefix}/{suffix}/accept")
+        .hasRole("dissco-admin")
         .requestMatchers(HttpMethod.GET, "/**").permitAll()
         .anyRequest().authenticated());
 
