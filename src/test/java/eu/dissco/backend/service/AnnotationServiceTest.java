@@ -463,7 +463,7 @@ class AnnotationServiceTest {
   }
 
   @Test
-  void testAcceptAnnotationFails() {
+  void testAcceptAnnotationFailsWebException() {
     // Given
     var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
     given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
@@ -479,5 +479,24 @@ class AnnotationServiceTest {
     assertThrows(InvalidAnnotationRequestException.class,
         () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
   }
+
+  @Test
+  void testAcceptAnnotationFailsRuntimeException() {
+    // Given
+    var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
+    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
+        OdsMergingDecisionStatus.APPROVED, agent))
+        .willReturn(Mono.just(givenAnnotationResponse()));
+    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
+        OdsMergingDecisionStatus.PENDING, createServiceAgent(new ApplicationProperties())))
+        .willReturn(Mono.just(givenAnnotationResponse()));
+    given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
+        .willReturn(Mono.error(new Exception("Failed")));
+
+    // When / Then
+    assertThrows(InvalidAnnotationRequestException.class,
+        () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
+  }
+
 
 }

@@ -16,7 +16,7 @@ public class WebClientUtils {
       if (ex.getCause() != null && ex.getCause() instanceof WebProcessingFailedException wpfe) {
         throw wpfe;
       }
-      throw ex;
+      throw new WebProcessingFailedException(ex.getLocalizedMessage());
     }
   }
 
