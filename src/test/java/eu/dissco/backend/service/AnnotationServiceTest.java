@@ -456,18 +456,18 @@ class AnnotationServiceTest {
     service.acceptAnnotation(PREFIX, SUFFIX, agent);
 
     // Then
-    then(processorClient).should().acceptAnnotation(givenAnnotationResponse());
+    then(processorClient).should().acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()));
   }
 
   @Test
-  void testAcceptAnnotationFails() throws Exception {
+  void testAcceptAnnotationFails() {
     // Given
     var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
     given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
         OdsMergingDecisionStatus.APPROVED, agent))
         .willReturn(givenAnnotationResponse());
     doThrow(WebProcessingFailedException.class).when(processorClient)
-        .acceptAnnotation(givenAnnotationResponse());
+        .acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()));
 
     // When
     assertThrows(InvalidAnnotationRequestException.class,

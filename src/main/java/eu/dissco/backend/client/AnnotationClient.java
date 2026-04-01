@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.annotation.PutExchange;
 import tools.jackson.databind.JsonNode;
@@ -28,7 +29,7 @@ public interface AnnotationClient {
   JsonNode updateAnnotation(@PathVariable String prefix, @PathVariable String suffix,
       @RequestBody Annotation annotation) throws WebProcessingFailedException;
 
-  @PutExchange(value = "/{prefix}/{suffix}")
+  @PatchExchange(value = "/{prefix}/{suffix}")
   Annotation updateAnnotationMergingDecisionStatus(@PathVariable String prefix,
       @PathVariable String suffix,
       @RequestParam OdsMergingDecisionStatus mergingDecisionStatus,

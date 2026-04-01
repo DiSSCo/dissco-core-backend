@@ -121,7 +121,7 @@ class AnnotationControllerTest {
     int pageSize = 11;
 
     var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
-			ORCID_ALT, ID, true);
+        ORCID_ALT, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
@@ -337,21 +337,32 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testAcceptAnnotationsForbidden() throws Exception {
+  void testAcceptAnnotationsForbidden() {
     // Given
     givenAuthentication(authentication, givenClaims());
+    given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
 
-    // When
-    var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+    // When / Then
+    assertThrowsExactly(ForbiddenException.class,
+        () -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
+  }
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  @Test
+  void testAcceptAnnotationsUnsupported() {
+    // Given
+    given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
+
+    // When / Then
+    assertThrowsExactly(
+        UnsupportedOperationException.class,
+        () -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
   }
 
   @Test
   void testAcceptAnnotations() throws Exception {
     // Given
     givenAuthentication(authentication, givenAdminClaims());
+    given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
 
     // When
     var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);

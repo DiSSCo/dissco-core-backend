@@ -21,7 +21,6 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
@@ -98,7 +97,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) throws ProcessingFailedException {
+      String path) {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent,
         false)
         .withOdsPlaceInBatch(1);
@@ -142,7 +141,7 @@ public class AnnotationService {
     var annotation = annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
         OdsMergingDecisionStatus.APPROVED, acceptingAgent);
     try {
-      processorClient.acceptAnnotation(annotation);
+      processorClient.acceptAnnotation(mapper.valueToTree(annotation));
     } catch (WebProcessingFailedException e) {
       log.error("Unable to accept annotation. Rolling back accepted status", e);
       annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,

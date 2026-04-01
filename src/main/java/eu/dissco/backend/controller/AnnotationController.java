@@ -201,7 +201,7 @@ public class AnnotationController extends BaseController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BatchAnnotationRequest.class)))
       @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, InvalidAnnotationRequestException, ProcessingFailedException {
+      throws ForbiddenException, InvalidAnnotationRequestException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
@@ -316,13 +316,17 @@ public class AnnotationController extends BaseController {
           Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation.
           Currently, only accepting specimens is supported.
           """)
+  @PatchMapping(value = "/{prefix}/{suffix}/accept")
   public ResponseEntity<Void> acceptAnnotation(
       Authentication authentication,
-      @Parameter(description = PREFIX_OAS) String prefix,
-      @Parameter(description = SUFFIX_OAS) String suffix
+      @Parameter(description = PREFIX_OAS) @PathVariable String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable String suffix
   ) throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
+    if (!applicationProperties.isAcceptingAnnotations()) {
+      throw new UnsupportedOperationException("Accepting annotations is not permitted");
+    }
     if (!isAdmin(authentication)) {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+      throw new ForbiddenException("User is not authorized to accept annotations");
     }
     var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
     service.acceptAnnotation(prefix, suffix, agent);

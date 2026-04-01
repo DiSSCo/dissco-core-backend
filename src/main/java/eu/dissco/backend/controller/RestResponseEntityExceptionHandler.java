@@ -7,6 +7,7 @@ import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
+import javax.naming.OperationNotSupportedException;
 import org.jooq.exception.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,6 +108,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     var exceptionResponse = new ExceptionResponseWrapper(
         HttpStatus.UNPROCESSABLE_CONTENT,
         "Unable to communicate with external service",
+        e.getMessage()
+    );
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
+  }
+
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ExceptionHandler(OperationNotSupportedException.class)
+  public ResponseEntity<ExceptionResponseWrapper> handleException(
+      OperationNotSupportedException e) {
+    var exceptionResponse = new ExceptionResponseWrapper(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "Operation not supported",
         e.getMessage()
     );
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(exceptionResponse);
