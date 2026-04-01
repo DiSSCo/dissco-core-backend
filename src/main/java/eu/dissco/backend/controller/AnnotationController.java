@@ -201,7 +201,7 @@ public class AnnotationController extends BaseController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BatchAnnotationRequest.class)))
       @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, InvalidAnnotationRequestException {
+      throws ForbiddenException, InvalidAnnotationRequestException, WebProcessingFailedException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);

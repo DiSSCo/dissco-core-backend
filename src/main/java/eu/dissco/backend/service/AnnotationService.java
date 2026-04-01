@@ -5,6 +5,7 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
+import static eu.dissco.backend.utils.WebClientUtils.blockAndUnwrap;
 
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.ProcessorClient;
@@ -97,7 +98,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) {
+      String path) throws WebProcessingFailedException {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent,
         false)
         .withOdsPlaceInBatch(1);
@@ -138,14 +139,15 @@ public class AnnotationService {
 
   public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
       throws WebProcessingFailedException, InvalidAnnotationRequestException {
-    var annotation = annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
-        OdsMergingDecisionStatus.APPROVED, acceptingAgent);
+    var annotation = blockAndUnwrap(
+        annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+            OdsMergingDecisionStatus.APPROVED, acceptingAgent));
     try {
-      processorClient.acceptAnnotation(mapper.valueToTree(annotation));
+      blockAndUnwrap(processorClient.acceptAnnotation(mapper.valueToTree(annotation)));
     } catch (WebProcessingFailedException e) {
       log.error("Unable to accept annotation. Rolling back accepted status", e);
-      annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
-          OdsMergingDecisionStatus.PENDING, createServiceAgent(properties));
+      blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+          OdsMergingDecisionStatus.PENDING, createServiceAgent(properties)));
       throw new InvalidAnnotationRequestException("Unable to accept annotation");
     }
     log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),

@@ -14,6 +14,7 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.annotation.PutExchange;
+import reactor.core.publisher.Mono;
 import tools.jackson.databind.JsonNode;
 
 public interface AnnotationClient {
@@ -30,10 +31,10 @@ public interface AnnotationClient {
       @RequestBody Annotation annotation) throws WebProcessingFailedException;
 
   @PatchExchange(value = "/{prefix}/{suffix}")
-  Annotation updateAnnotationMergingDecisionStatus(@PathVariable String prefix,
+  Mono<Annotation> updateAnnotationMergingDecisionStatus(@PathVariable String prefix,
       @PathVariable String suffix,
       @RequestParam OdsMergingDecisionStatus mergingDecisionStatus,
-      @RequestBody Agent decisionAgent) throws WebProcessingFailedException;
+      @RequestBody Agent decisionAgent);
 
   @DeleteExchange(value = "/{prefix}/{suffix}")
   void tombstoneAnnotation(@PathVariable String prefix, @PathVariable String suffix,

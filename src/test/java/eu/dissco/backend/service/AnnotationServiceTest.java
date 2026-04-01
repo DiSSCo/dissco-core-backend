@@ -13,6 +13,7 @@ import static eu.dissco.backend.TestUtils.SUFFIX;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.controller.BaseController.DATE_STRING;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
+import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationCountRequest;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
@@ -30,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 
 import eu.dissco.backend.client.AnnotationClient;
@@ -50,7 +50,6 @@ import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.Annotation.OdsMergingDecisionStatus;
-import eu.dissco.backend.utils.AgentUtils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -68,6 +67,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 class AnnotationServiceTest {
@@ -450,7 +450,10 @@ class AnnotationServiceTest {
     var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
     given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
         OdsMergingDecisionStatus.APPROVED, agent))
-        .willReturn(givenAnnotationResponse());
+        .willReturn(Mono.just(givenAnnotationResponse()));
+    given(
+        processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()))).willReturn(
+        Mono.empty());
 
     // When
     service.acceptAnnotation(PREFIX, SUFFIX, agent);
@@ -465,18 +468,16 @@ class AnnotationServiceTest {
     var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
     given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
         OdsMergingDecisionStatus.APPROVED, agent))
-        .willReturn(givenAnnotationResponse());
-    doThrow(WebProcessingFailedException.class).when(processorClient)
-        .acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()));
+        .willReturn(Mono.just(givenAnnotationResponse()));
+    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
+        OdsMergingDecisionStatus.PENDING, createServiceAgent(new ApplicationProperties())))
+        .willReturn(Mono.just(givenAnnotationResponse()));
+    given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
+        .willReturn(Mono.error(new WebProcessingFailedException("Failed")));
 
-    // When
+    // When / Then
     assertThrows(InvalidAnnotationRequestException.class,
         () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
-
-    // Then
-    then(annotationClient).should()
-        .updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.PENDING,
-            AgentUtils.createServiceAgent(new ApplicationProperties()));
   }
 
 }
