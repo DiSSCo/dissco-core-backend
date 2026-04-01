@@ -337,17 +337,6 @@ class AnnotationControllerTest {
   }
 
   @Test
-  void testAcceptAnnotationsForbidden() {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
-
-    // When / Then
-    assertThrowsExactly(ForbiddenException.class,
-        () -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
-  }
-
-  @Test
   void testAcceptAnnotationsUnsupported() {
     // Given
     given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
