@@ -1,6 +1,7 @@
 package eu.dissco.backend.controller;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
@@ -19,6 +20,7 @@ import eu.dissco.backend.exceptions.ForbiddenException;
 import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.service.AnnotationService;
@@ -199,7 +201,7 @@ public class AnnotationController extends BaseController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BatchAnnotationRequest.class)))
       @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, InvalidAnnotationRequestException, ProcessingFailedException {
+      throws ForbiddenException, InvalidAnnotationRequestException, WebProcessingFailedException {
     var event = getAnnotationFromRequestEvent(requestBody);
     schemaValidator.validateAnnotationEventRequest(event, true);
     var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
@@ -307,6 +309,25 @@ public class AnnotationController extends BaseController {
     } else {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+  }
+
+  @Operation(summary = "Accept an annotation",
+      description = """
+          Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation.
+          Currently, only accepting specimens is supported.
+          """)
+  @PatchMapping(value = "/{prefix}/{suffix}/accept")
+  public ResponseEntity<Void> acceptAnnotation(
+      Authentication authentication,
+      @Parameter(description = PREFIX_OAS) @PathVariable String prefix,
+      @Parameter(description = SUFFIX_OAS) @PathVariable String suffix
+  ) throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
+    if (!applicationProperties.isAcceptingAnnotations()) {
+      throw new UnsupportedOperationException("Accepting annotations is not permitted");
+    }
+    var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
+    service.acceptAnnotation(prefix, suffix, agent);
+    return ResponseEntity.ok().build();
   }
 
   private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {

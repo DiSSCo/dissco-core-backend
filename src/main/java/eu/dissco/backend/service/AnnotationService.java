@@ -2,10 +2,13 @@ package eu.dissco.backend.service;
 
 import static eu.dissco.backend.domain.FdoType.ANNOTATION;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
+import static eu.dissco.backend.utils.WebClientUtils.blockAndUnwrap;
 
 import eu.dissco.backend.client.AnnotationClient;
+import eu.dissco.backend.client.ProcessorClient;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
@@ -17,15 +20,17 @@ import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.domain.openapi.annotation.BatchAnnotationCountRequest;
+import eu.dissco.backend.exceptions.InvalidAnnotationRequestException;
 import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
+import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.repository.AnnotationRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.Agent;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.Annotation.OaMotivation;
+import eu.dissco.backend.schema.Annotation.OdsMergingDecisionStatus;
 import eu.dissco.backend.schema.AnnotationProcessingRequest;
 import eu.dissco.backend.utils.JsonApiUtils;
 import eu.dissco.backend.utils.ProxyUtils;
@@ -52,10 +57,12 @@ public class AnnotationService {
   private static final String DATA = "data";
   private final AnnotationRepository repository;
   private final AnnotationClient annotationClient;
+  private final ProcessorClient processorClient;
   private final ElasticSearchRepository elasticRepository;
   private final MongoRepository mongoRepository;
   private final JsonMapper mapper;
   private final MasJobRecordService masJobRecordService;
+  private final ApplicationProperties properties;
 
   public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
     var annotation = repository.getAnnotation(id);
@@ -91,7 +98,7 @@ public class AnnotationService {
   }
 
   public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) throws ProcessingFailedException {
+      String path) throws WebProcessingFailedException {
     var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent,
         false)
         .withOdsPlaceInBatch(1);
@@ -128,6 +135,23 @@ public class AnnotationService {
                 .put("objectAffected", count)
                 .set("batchMetadata", mapper.valueToTree(annotationCountRequest.data().attributes()
                     .batchMetadata()))));
+  }
+
+  public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
+      throws WebProcessingFailedException, InvalidAnnotationRequestException {
+    var annotation = blockAndUnwrap(
+        annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+            OdsMergingDecisionStatus.APPROVED, acceptingAgent));
+    try {
+      blockAndUnwrap(processorClient.acceptAnnotation(mapper.valueToTree(annotation)));
+    } catch (WebProcessingFailedException e) {
+      log.error("Unable to accept annotation. Rolling back accepted status", e);
+      blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+          OdsMergingDecisionStatus.PENDING, createServiceAgent(properties)));
+      throw new InvalidAnnotationRequestException("Unable to accept annotation");
+    }
+    log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),
+        annotation.getOaHasTarget().getDctermsIdentifier());
   }
 
   private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest,

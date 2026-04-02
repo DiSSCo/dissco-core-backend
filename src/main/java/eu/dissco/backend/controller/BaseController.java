@@ -33,7 +33,7 @@ public abstract class BaseController {
   protected static final String DEFAULT_PAGE_SIZE = "10";
   private static final String ORCID = "orcid";
   protected final JsonMapper mapper;
-  private final ApplicationProperties applicationProperties;
+  protected final ApplicationProperties applicationProperties;
 
   // OpenAPI Messages
   protected static final String PAGE_NUM_OAS = "Desired page number";
@@ -106,7 +106,6 @@ public abstract class BaseController {
       return false;
     }
   }
-
 
   protected String getPath(HttpServletRequest request) {
     var path = applicationProperties.getBaseUrl() + request.getRequestURI();

@@ -3,6 +3,7 @@ package eu.dissco.backend.configuration;
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.client.MasClient;
+import eu.dissco.backend.client.ProcessorClient;
 import eu.dissco.backend.properties.WebConnectionProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -47,65 +48,61 @@ public class WebClientConfiguration {
   @Bean
   public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
     // Error Exchange filtering
-    var errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(
-            response -> WebClientErrorHandling.exchangeFilterResponseProcessor(response, "Handle"));
-    // Set up Oauth2
-    var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
+    var proxyFactory = createProxyFactory("Handle", properties.getAnnotationEndpoint(),
         authorizedClientManager);
-    oauth2Client.setDefaultClientRegistrationId("dissco");
-    // Build web client
-    var webClient = WebClient.builder()
-        .apply(oauth2Client.oauth2Configuration())
-        .filter(errorResponseFilter)
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
-        .baseUrl(properties.getHandleEndpoint())
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build();
-    // Create factory for client proxies
-    var proxyFactory = HttpServiceProxyFactory.builder()
-        .exchangeAdapter(WebClientAdapter.create(webClient))
-        .build();
     // Create client proxy
     return proxyFactory.createClient(HandleClient.class);
   }
 
   @Bean
   public AnnotationClient annotationClient() {
-    var errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(
-            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "Annotation"));
-    var webClient = WebClient.builder()
-        .filter(errorResponseFilter)
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-        .baseUrl(properties.getAnnotationEndpoint())
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build();
-    // Create factory for client proxies
-    var proxyFactory = HttpServiceProxyFactory.builder()
-        .exchangeAdapter(WebClientAdapter.create(webClient))
-        .build();
+    var proxyFactory = createProxyFactory("Annotation", properties.getAnnotationEndpoint(), null);
     // Create client proxy
     return proxyFactory.createClient(AnnotationClient.class);
   }
 
   @Bean
   public MasClient masClient() {
-    var errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(
-            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, "MAS Scheduler"));
-    var webClient = WebClient.builder()
-        .filter(errorResponseFilter)
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-        .baseUrl(properties.getMasEndpoint())
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build();
-    // Create factory for client proxies
-    var proxyFactory = HttpServiceProxyFactory.builder()
-        .exchangeAdapter(WebClientAdapter.create(webClient))
-        .build();
+    var proxyFactory = createProxyFactory("MAS Scheduler", properties.getMasEndpoint(), null);
     // Create client proxy
     return proxyFactory.createClient(MasClient.class);
+  }
+
+  @Bean
+  public ProcessorClient processorClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+    var proxyFactory = createProxyFactory("Processing", properties.getProcessorEndpoint(),
+        authorizedClientManager);
+    // Create client proxy
+    return proxyFactory.createClient(ProcessorClient.class);
+  }
+
+  private HttpServiceProxyFactory createProxyFactory(String serviceName, String endpoint,
+      OAuth2AuthorizedClientManager authorizedClientManager) {
+    var errorResponseFilter = ExchangeFilterFunction
+        .ofResponseProcessor(
+            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, serviceName));
+    var webClientBuilder = WebClient.builder()
+        .filter(errorResponseFilter)
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
+        .baseUrl(endpoint)
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+    if (authorizedClientManager != null) {
+      webClientBuilder
+          .apply(createOauth2Client(authorizedClientManager).oauth2Configuration());
+    }
+    // Create factory for client proxies
+    return HttpServiceProxyFactory.builder()
+        .exchangeAdapter(WebClientAdapter.create(webClientBuilder.build()))
+        .build();
+  }
+
+  private static ServletOAuth2AuthorizedClientExchangeFilterFunction createOauth2Client(
+      OAuth2AuthorizedClientManager authorizedClientManager) {
+    // Set up Oauth2
+    var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
+        authorizedClientManager);
+    oauth2Client.setDefaultClientRegistrationId("dissco");
+    return oauth2Client;
   }
 
 }

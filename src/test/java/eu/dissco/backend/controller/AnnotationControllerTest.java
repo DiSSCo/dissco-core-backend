@@ -11,6 +11,7 @@ import static eu.dissco.backend.TestUtils.givenAdminClaims;
 import static eu.dissco.backend.TestUtils.givenAgent;
 import static eu.dissco.backend.TestUtils.givenAuthentication;
 import static eu.dissco.backend.TestUtils.givenClaims;
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
 import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_URI;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationEventRequest;
@@ -120,7 +121,7 @@ class AnnotationControllerTest {
     int pageSize = 11;
 
     var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
-			ORCID_ALT, ID, true);
+        ORCID_ALT, ID, true);
     var expectedResponse = ResponseEntity.ok(expectedJson);
     given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
     given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
@@ -335,7 +336,31 @@ class AnnotationControllerTest {
     assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
+  @Test
+  void testAcceptAnnotationsUnsupported() {
+    // Given
+    given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
 
+    // When / Then
+    assertThrowsExactly(
+        UnsupportedOperationException.class,
+        () -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
+  }
+
+  @Test
+  void testAcceptAnnotations() throws Exception {
+    // Given
+    givenAuthentication(authentication, givenAdminClaims());
+    given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
+
+    // When
+    var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+
+    // Then
+    then(service).should()
+        .acceptAnnotation(PREFIX, SUFFIX, givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR));
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
 
   public static AnnotationRequest givenAnnotationRequestObject() {
     return new AnnotationRequest(
