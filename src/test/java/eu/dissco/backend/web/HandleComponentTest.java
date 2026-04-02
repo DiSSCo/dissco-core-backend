@@ -24,96 +24,100 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class HandleComponentTest {
 
-  @Mock
-  private FdoRecordComponent fdoRecordComponent;
-  @Mock
-  private HandleClient handleClient;
-  private HandleComponent handleComponent;
+	@Mock
+	private FdoRecordComponent fdoRecordComponent;
 
+	@Mock
+	private HandleClient handleClient;
 
-  @BeforeEach
-  void setup() {
-    handleComponent = new HandleComponent(handleClient, fdoRecordComponent);
-  }
+	private HandleComponent handleComponent;
 
-  @Test
-  void testPostHandleMjr() throws Exception {
-    // Given
-    int n = 1;
-    var responseBody = givenPostHandleResponse(n);
-    var expected = List.of(ID);
-    given(handleClient.postHandles(any())).willReturn(responseBody);
+	@BeforeEach
+	void setup() {
+		handleComponent = new HandleComponent(handleClient, fdoRecordComponent);
+	}
 
-    // When
-    var response = handleComponent.postHandleMjr(n);
+	@Test
+	void testPostHandleMjr() throws Exception {
+		// Given
+		int n = 1;
+		var responseBody = givenPostHandleResponse(n);
+		var expected = List.of(ID);
+		given(handleClient.postHandles(any())).willReturn(responseBody);
 
-    // Then
-    assertThat(response).isEqualTo(expected);
-  }
+		// When
+		var response = handleComponent.postHandleMjr(n);
 
-  @Test
-  void testPostHandleVirtualCollection() throws Exception {
-    // Given
-    var clientResponse = givenPostHandleResponse(1);
-    var virtualCollectionRequest = givenVirtualCollectionRequest();
-    given(handleClient.postHandle(any())).willReturn(clientResponse);
+		// Then
+		assertThat(response).isEqualTo(expected);
+	}
 
-    // When
-    var response = handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
+	@Test
+	void testPostHandleVirtualCollection() throws Exception {
+		// Given
+		var clientResponse = givenPostHandleResponse(1);
+		var virtualCollectionRequest = givenVirtualCollectionRequest();
+		given(handleClient.postHandle(any())).willReturn(clientResponse);
 
-    // Then
-    assertThat(response).isEqualTo(ID);
-  }
+		// When
+		var response = handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
 
-  @Test
-  void testRollbackHandleVirtualCollection() throws Exception {
-    // Given
-    given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID)).willReturn(
-        givenVirtualCollectionHandleRollbackRequest());
+		// Then
+		assertThat(response).isEqualTo(ID);
+	}
 
-    // When
-    handleComponent.rollbackVirtualCollection(HANDLE + ID);
+	@Test
+	void testRollbackHandleVirtualCollection() throws Exception {
+		// Given
+		given(fdoRecordComponent.getRollbackCreateRequest(HANDLE + ID))
+			.willReturn(givenVirtualCollectionHandleRollbackRequest());
 
-    // Then
-    then(handleClient).should().rollbackHandle(givenVirtualCollectionHandleRollbackRequest());
-  }
+		// When
+		handleComponent.rollbackVirtualCollection(HANDLE + ID);
 
-  @Test
-  void testDataNodeNotReadable() {
-    // Given
-    var responseBody = MAPPER.createObjectNode();
-    responseBody.set("data", MAPPER.createArrayNode());
+		// Then
+		then(handleClient).should().rollbackHandle(givenVirtualCollectionHandleRollbackRequest());
+	}
 
-    // When / Then
-    assertThrows(WebProcessingFailedException.class, () -> handleComponent.postHandleMjr(1));
-  }
+	@Test
+	void testDataNodeNotReadable() {
+		// Given
+		var responseBody = MAPPER.createObjectNode();
+		responseBody.set("data", MAPPER.createArrayNode());
 
-  @Test
-  void testTombstoneHandle() throws Exception {
-    // Given
-    var request = givenVirtualCollectionTombstoneHandleRequest();
-    given(fdoRecordComponent.getTombstoneRequest(ID)).willReturn(request);
+		// When / Then
+		assertThrows(WebProcessingFailedException.class, () -> handleComponent.postHandleMjr(1));
+	}
 
-    // When
-    handleComponent.tombstoneHandle(ID);
+	@Test
+	void testTombstoneHandle() throws Exception {
+		// Given
+		var request = givenVirtualCollectionTombstoneHandleRequest();
+		given(fdoRecordComponent.getTombstoneRequest(ID)).willReturn(request);
 
-    // Then
-    then(handleClient).should().tombstoneHandle(ID, request);
-  }
+		// When
+		handleComponent.tombstoneHandle(ID);
 
-  @Test
-  void testUpdateHandle() throws Exception {
-    // Given
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    given(fdoRecordComponent.getPatchHandleRequest(virtualCollection)).willReturn(givenVirtualCollectionUpdateHandleRequest());
+		// Then
+		then(handleClient).should().tombstoneHandle(ID, request);
+	}
 
-    // When
-    handleComponent.updateHandle(virtualCollection);
+	@Test
+	void testUpdateHandle() throws Exception {
+		// Given
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		given(fdoRecordComponent.getPatchHandleRequest(virtualCollection))
+			.willReturn(givenVirtualCollectionUpdateHandleRequest());
 
-    // Then
-    then(handleClient).should().updateHandle(givenVirtualCollectionUpdateHandleRequest());
-  }
+		// When
+		handleComponent.updateHandle(virtualCollection);
+
+		// Then
+		then(handleClient).should().updateHandle(givenVirtualCollectionUpdateHandleRequest());
+	}
+
 }

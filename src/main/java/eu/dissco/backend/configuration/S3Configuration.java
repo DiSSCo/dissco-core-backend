@@ -13,15 +13,15 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 @RequiredArgsConstructor
 public class S3Configuration {
 
-  private final S3Properties s3Properties;
+	private final S3Properties s3Properties;
 
-  @Bean
-  public S3AsyncClient s3Client() {
-    return S3AsyncClient.crtBuilder()
-        .credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(s3Properties.getAccessKey(),
-                s3Properties.getAccessSecret())))
-        .region(Region.EU_WEST_2)
-        .build();
-  }
+	@Bean
+	public S3AsyncClient s3Client() {
+		return S3AsyncClient.crtBuilder()
+			.credentialsProvider(StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getAccessSecret())))
+			.region(Region.EU_WEST_2)
+			.build();
+	}
+
 }

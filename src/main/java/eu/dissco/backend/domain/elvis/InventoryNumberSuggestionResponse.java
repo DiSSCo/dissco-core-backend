@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema
-public record InventoryNumberSuggestionResponse(
-    @Schema(example = "3")
-    Long total,
-    List<InventoryNumberSuggestion> inventoryNumbers
-) {
+public record InventoryNumberSuggestionResponse(@Schema(example = "3") Long total,
+		List<InventoryNumberSuggestion> inventoryNumbers) {
 
 }

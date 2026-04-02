@@ -19,20 +19,17 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ElasticSearchConfiguration {
 
-  private final ElasticSearchProperties properties;
+	private final ElasticSearchProperties properties;
 
-  @Bean
-  public ElasticsearchClient elasticsearchClient() {
-    var creds = Base64.getEncoder()
-        .encodeToString((properties.getUsername() + ":" + properties.getPassword()).getBytes());
-    Rest5ClientBuilder restClient = Rest5Client
-        .builder(new HttpHost(properties.getHostname(), properties.getPort()))
-        .setDefaultHeaders(new Header[]{
-            new BasicHeader("Authorization", "Basic " + creds)
-        });
-    ElasticsearchTransport transport = new Rest5ClientTransport(restClient.build(),
-        new Jackson3JsonpMapper());
-    return new ElasticsearchClient(transport);
-  }
+	@Bean
+	public ElasticsearchClient elasticsearchClient() {
+		var creds = Base64.getEncoder()
+			.encodeToString((properties.getUsername() + ":" + properties.getPassword()).getBytes());
+		Rest5ClientBuilder restClient = Rest5Client
+			.builder(new HttpHost(properties.getHostname(), properties.getPort()))
+			.setDefaultHeaders(new Header[] { new BasicHeader("Authorization", "Basic " + creds) });
+		ElasticsearchTransport transport = new Rest5ClientTransport(restClient.build(), new Jackson3JsonpMapper());
+		return new ElasticsearchClient(transport);
+	}
 
 }

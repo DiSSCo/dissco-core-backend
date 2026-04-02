@@ -37,174 +37,144 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ElvisServiceTest {
 
-  @Mock
-  private DigitalSpecimenRepository repository;
-  @Mock
-  private ElasticSearchRepository elasticSearchRepository;
+	@Mock
+	private DigitalSpecimenRepository repository;
 
-  private ElvisService elvisService;
+	@Mock
+	private ElasticSearchRepository elasticSearchRepository;
 
-  @BeforeEach
-  void setup() {
-    elvisService = new ElvisService(repository, elasticSearchRepository);
-  }
+	private ElvisService elvisService;
 
-  @ParameterizedTest
-  @MethodSource("specimenWithTaxonomy")
-  void testSearchByDoi(DigitalSpecimen specimen, ElvisSpecimen expected) throws NotFoundException {
-    // Given
-    given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
+	@BeforeEach
+	void setup() {
+		elvisService = new ElvisService(repository, elasticSearchRepository);
+	}
 
-    // When
-    var result = elvisService.searchByDoi(ID);
+	@ParameterizedTest
+	@MethodSource("specimenWithTaxonomy")
+	void testSearchByDoi(DigitalSpecimen specimen, ElvisSpecimen expected) throws NotFoundException {
+		// Given
+		given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// When
+		var result = elvisService.searchByDoi(ID);
 
-  @Test
-  void testSearchByDoiFull() throws Exception {
-    // Given
-    var term = "term";
-    var specimen = givenDigitalSpecimenWrapper(ID)
-        .withDwcCollectionCode(term)
-        .withOdsOrganisationCode(term)
-        .withDwcBasisOfRecord(term)
-        .withOdsSpecimenName(null);
-    var title = "global_id_123123, Royal Botanic Garden Edinburgh Herbarium";
-    var expected = new ElvisSpecimen(
-        ID, title, term, PHYSICAL_ID, term, term, ID, "", "", "", "", "", ""
-    );
-    given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-    // When
-    var result = elvisService.searchByDoi(ID);
+	@Test
+	void testSearchByDoiFull() throws Exception {
+		// Given
+		var term = "term";
+		var specimen = givenDigitalSpecimenWrapper(ID).withDwcCollectionCode(term)
+			.withOdsOrganisationCode(term)
+			.withDwcBasisOfRecord(term)
+			.withOdsSpecimenName(null);
+		var title = "global_id_123123, Royal Botanic Garden Edinburgh Herbarium";
+		var expected = new ElvisSpecimen(ID, title, term, PHYSICAL_ID, term, term, ID, "", "", "", "", "", "");
+		given(repository.getLatestSpecimenById(ID)).willReturn(specimen);
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// When
+		var result = elvisService.searchByDoi(ID);
 
-  @Test
-  void testSearchByDoiNotFound() {
-    // Given
-    given(repository.getLatestSpecimenById(ID)).willReturn(null);
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-    // When / then
-    assertThrows(NotFoundException.class, () -> elvisService.searchByDoi(ID));
-  }
+	@Test
+	void testSearchByDoiNotFound() {
+		// Given
+		given(repository.getLatestSpecimenById(ID)).willReturn(null);
 
-  @Test
-  void testSuggestInventoryNumberNotFound() throws IOException {
-    // Given
-    given(elasticSearchRepository.elvisSearch(anyMap(), anyInt(), anyInt())).willReturn(Pair.of(0L, List.of()));
+		// When / then
+		assertThrows(NotFoundException.class, () -> elvisService.searchByDoi(ID));
+	}
 
-    // When / then
-    assertThrows(NotFoundException.class, () -> elvisService.suggestInventoryNumber(PHYSICAL_ID, 1, 1));
-  }
+	@Test
+	void testSuggestInventoryNumberNotFound() throws IOException {
+		// Given
+		given(elasticSearchRepository.elvisSearch(anyMap(), anyInt(), anyInt())).willReturn(Pair.of(0L, List.of()));
 
-  @Test
-  void testSuggestInventoryNumbers() throws Exception {
-    // Given
-    var expected = MAPPER.readTree(""" 
-        {
-          "total": 1,
-          "inventoryNumbers": [
-          {
-            "catalogNumber":"global_id_123123",
-            "inventoryNumber":"20.5000.1025/ABC-123-XYZ"
-          }
-          ]
-        }
-        """
-    );
-    var paramMap = Map.of(
-        DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + PHYSICAL_ID + "*"),
-        DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + PHYSICAL_ID + "*"));
+		// When / then
+		assertThrows(NotFoundException.class, () -> elvisService.suggestInventoryNumber(PHYSICAL_ID, 1, 1));
+	}
 
-    given(elasticSearchRepository.elvisSearch(eq(paramMap), anyInt(), anyInt())).willReturn(
-        Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));
+	@Test
+	void testSuggestInventoryNumbers() throws Exception {
+		// Given
+		var expected = MAPPER.readTree("""
+				{
+				  "total": 1,
+				  "inventoryNumbers": [
+				  {
+				    "catalogNumber":"global_id_123123",
+				    "inventoryNumber":"20.5000.1025/ABC-123-XYZ"
+				  }
+				  ]
+				}
+				""");
+		var paramMap = Map.of(DefaultMappingTerms.PHYSICAL_SPECIMEN_ID, List.of("*" + PHYSICAL_ID + "*"),
+				DefaultMappingTerms.IDENTIFIER, List.of(DOI + "*" + PHYSICAL_ID + "*"));
 
-    // When
-    var result = elvisService.suggestInventoryNumber(PHYSICAL_ID, 1, 1);
+		given(elasticSearchRepository.elvisSearch(eq(paramMap), anyInt(), anyInt()))
+			.willReturn(Pair.of(1L, List.of(givenDigitalSpecimenWrapper(ID))));
 
-    // Then
-    assertThat(MAPPER.writeValueAsString(result)).isEqualTo(MAPPER.writeValueAsString(expected));
+		// When
+		var result = elvisService.suggestInventoryNumber(PHYSICAL_ID, 1, 1);
 
-  }
+		// Then
+		assertThat(MAPPER.writeValueAsString(result)).isEqualTo(MAPPER.writeValueAsString(expected));
 
-  private static Stream<Arguments> specimenWithTaxonomy() {
-    return Stream.of(
-        Arguments.of(
-            givenDigitalSpecimenWrapper(ID)
-                .withOdsHasIdentifications(List.of(
-                    new Identification()
-                        .withOdsIsVerifiedIdentification(true)
-                        .withOdsHasTaxonIdentifications(List.of(new TaxonIdentification()
-                            .withDwcFamily("family"))))), givenElvisSpecimen(1)
-        ),
-        Arguments.of(
-            givenDigitalSpecimenWrapper(ID)
-                .withOdsHasIdentifications(List.of(
-                    new Identification()
-                        .withOdsIsVerifiedIdentification(false)
-                        .withOdsHasTaxonIdentifications(List.of(new TaxonIdentification()
-                            .withDwcFamily("family"))))), givenElvisSpecimen(1)
-        ),
-        Arguments.of(
-            givenDigitalSpecimenWrapper(ID)
-                .withOdsHasIdentifications(List.of(
-                    new Identification()
-                        .withOdsIsVerifiedIdentification(false)
-                        .withOdsHasTaxonIdentifications(List.of()))), givenElvisSpecimen(0)
-        ),
-        Arguments.of(
-            givenDigitalSpecimenWrapper(ID)
-                .withOdsHasIdentifications(List.of(
-                    new Identification()
-                        .withOdsIsVerifiedIdentification(true)
-                        .withOdsHasTaxonIdentifications(List.of(
-                            new TaxonIdentification()
-                                .withDwcFamily("family"),
-                            new TaxonIdentification()
-                                .withDwcFamily("another family"),
-                            new TaxonIdentification()
-                                .withDwcFamily("another other family")))
-                )), givenElvisSpecimen(3)),
-        Arguments.of(
-            givenDigitalSpecimenWrapper(ID)
-                .withOdsHasIdentifications(List.of(
-                    new Identification()
-                        .withOdsHasTaxonIdentifications(List.of()))), givenElvisSpecimen(0)),
-        Arguments.of(givenDigitalSpecimenWrapper(ID)
-                .withDwcCollectionCode("term")
-                .withOdsOrganisationCode("term")
-                .withDwcBasisOfRecord("term")
-                .withOdsSpecimenName(null),
-            new ElvisSpecimen(
-                ID, "global_id_123123, Royal Botanic Garden Edinburgh Herbarium", "term",
-                PHYSICAL_ID, "term", "term", ID, "", "", "", "", "", ""
-            ))
-    );
-  }
+	}
 
-  private static ElvisSpecimen givenElvisSpecimen(Integer taxonomies) {
-    var title = "Abyssothyris Thomson, 1927 global_id_123123, Royal Botanic Garden Edinburgh Herbarium";
-    if (taxonomies == 0) {
-      return new ElvisSpecimen(
-          ID, title, "", PHYSICAL_ID, "",
-          "", ID, "", "", "", "", "", ""
-      );
-    } else if (taxonomies == 1) {
-      return new ElvisSpecimen(
-          ID, title, "", PHYSICAL_ID, "",
-          "", ID, "", "", "", "family", "", ""
-      );
+	private static Stream<Arguments> specimenWithTaxonomy() {
+		return Stream.of(
+				Arguments.of(givenDigitalSpecimenWrapper(ID)
+					.withOdsHasIdentifications(List.of(new Identification().withOdsIsVerifiedIdentification(true)
+						.withOdsHasTaxonIdentifications(List.of(new TaxonIdentification().withDwcFamily("family"))))),
+						givenElvisSpecimen(1)),
+				Arguments.of(givenDigitalSpecimenWrapper(ID)
+					.withOdsHasIdentifications(List.of(new Identification().withOdsIsVerifiedIdentification(false)
+						.withOdsHasTaxonIdentifications(List.of(new TaxonIdentification().withDwcFamily("family"))))),
+						givenElvisSpecimen(1)),
+				Arguments.of(givenDigitalSpecimenWrapper(ID)
+					.withOdsHasIdentifications(List.of(new Identification().withOdsIsVerifiedIdentification(false)
+						.withOdsHasTaxonIdentifications(List.of()))), givenElvisSpecimen(0)),
+				Arguments.of(
+						givenDigitalSpecimenWrapper(ID).withOdsHasIdentifications(List.of(new Identification()
+							.withOdsIsVerifiedIdentification(true)
+							.withOdsHasTaxonIdentifications(List.of(new TaxonIdentification().withDwcFamily("family"),
+									new TaxonIdentification().withDwcFamily("another family"),
+									new TaxonIdentification().withDwcFamily("another other family"))))),
+						givenElvisSpecimen(3)),
+				Arguments.of(
+						givenDigitalSpecimenWrapper(ID).withOdsHasIdentifications(
+								List.of(new Identification().withOdsHasTaxonIdentifications(List.of()))),
+						givenElvisSpecimen(0)),
+				Arguments.of(
+						givenDigitalSpecimenWrapper(ID).withDwcCollectionCode("term")
+							.withOdsOrganisationCode("term")
+							.withDwcBasisOfRecord("term")
+							.withOdsSpecimenName(null),
+						new ElvisSpecimen(ID, "global_id_123123, Royal Botanic Garden Edinburgh Herbarium", "term",
+								PHYSICAL_ID, "term", "term", ID, "", "", "", "", "", "")));
+	}
 
-    } else {
-      var missing = ", , and 1 more";
-      return new ElvisSpecimen(
-          ID, title, "", PHYSICAL_ID, "", "", ID, missing, missing, missing,
-          "family, another family, and 1 more", missing, missing);
-    }
-  }
+	private static ElvisSpecimen givenElvisSpecimen(Integer taxonomies) {
+		var title = "Abyssothyris Thomson, 1927 global_id_123123, Royal Botanic Garden Edinburgh Herbarium";
+		if (taxonomies == 0) {
+			return new ElvisSpecimen(ID, title, "", PHYSICAL_ID, "", "", ID, "", "", "", "", "", "");
+		}
+		else if (taxonomies == 1) {
+			return new ElvisSpecimen(ID, title, "", PHYSICAL_ID, "", "", ID, "", "", "", "family", "", "");
+
+		}
+		else {
+			var missing = ", , and 1 more";
+			return new ElvisSpecimen(ID, title, "", PHYSICAL_ID, "", "", ID, missing, missing, missing,
+					"family, another family, and 1 more", missing, missing);
+		}
+	}
+
 }

@@ -2,8 +2,8 @@ package eu.dissco.backend.domain.elastic;
 
 public interface MappingTerm {
 
-  String requestName();
+	String requestName();
 
-  String fullName();
+	String fullName();
 
 }

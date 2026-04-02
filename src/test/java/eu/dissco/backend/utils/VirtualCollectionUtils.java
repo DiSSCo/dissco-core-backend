@@ -31,147 +31,137 @@ import tools.jackson.databind.node.ArrayNode;
 
 public class VirtualCollectionUtils {
 
-  public static final String VIRTUAL_COLLECTION_URI = "/api/v1/virtual-collection/";
-  public static final String VIRTUAL_COLLECTION_PATH = SANDBOX_URI + VIRTUAL_COLLECTION_URI;
-  public static final String VIRTUAL_COLLECTION_NAME = "Butterflies of the World";
-  public static final String VIRTUAL_COLLECTION_DESCRIPTION =
-      "A collection of butterflies from around the world";
-  public static final List<String> COUNTRIES = List.of("Netherlands", "Belgium");
+	public static final String VIRTUAL_COLLECTION_URI = "/api/v1/virtual-collection/";
 
-  private VirtualCollectionUtils() {
-  }
+	public static final String VIRTUAL_COLLECTION_PATH = SANDBOX_URI + VIRTUAL_COLLECTION_URI;
 
-  public static List<VirtualCollection> givenVirtualCollectionResponseList(
-      String virtualCollectionID, int n) {
-    return Collections.nCopies(n, givenVirtualCollection(virtualCollectionID));
-  }
+	public static final String VIRTUAL_COLLECTION_NAME = "Butterflies of the World";
 
-  public static VirtualCollection givenVirtualCollection(String virtualCollectionID) {
-    return givenVirtualCollection(virtualCollectionID, ORCID);
-  }
+	public static final String VIRTUAL_COLLECTION_DESCRIPTION = "A collection of butterflies from around the world";
 
-  public static VirtualCollection givenVirtualCollection(String virtualCollectionID,
-      String userId) {
-    return givenVirtualCollection(virtualCollectionID, userId, VIRTUAL_COLLECTION_NAME, 1);
-  }
+	public static final List<String> COUNTRIES = List.of("Netherlands", "Belgium");
 
-  public static VirtualCollection givenVirtualCollection(String virtualCollectionID,
-      String userId, String name, int version) {
-    return new VirtualCollection()
-        .withId(virtualCollectionID)
-        .withDctermsIdentifier(virtualCollectionID)
-        .withType("ods:VirtualCollection")
-        .withSchemaVersion(version)
-        .withOdsFdoType("https://hdl.handle.net/21.T11148/2ac65a933b7a0361b651")
-        .withOdsStatus(OdsStatus.ACTIVE)
-        .withLtcCollectionName(name)
-        .withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
-        .withLtcBasisOfScheme(LtcBasisOfScheme.REFERENCE_COLLECTION)
-        .withSchemaDateCreated(Date.from(CREATED))
-        .withSchemaDateModified(Date.from(CREATED))
-        .withSchemaCreator(givenAgent(userId, ROLE_NAME_VIRTUAL_COLLECTION))
-        .withOdsSignificanceForCountries(List.of("Netherlands" ,"Belgium"))
-        .withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
-  }
+	private VirtualCollectionUtils() {
+	}
 
-  public static TargetDigitalObjectFilter givenTargetFilter() {
-    return new TargetDigitalObjectFilter()
-        .withOdsHasPredicates(List.of(new OdsHasPredicate()
-            .withOdsPredicateType(OdsPredicateType.EQUALS)
-            .withOdsPredicateKey("$['ods:topicDiscipline']")
-            .withOdsPredicateValue("zoology")));
-  }
+	public static List<VirtualCollection> givenVirtualCollectionResponseList(String virtualCollectionID, int n) {
+		return Collections.nCopies(n, givenVirtualCollection(virtualCollectionID));
+	}
 
-  public static VirtualCollectionRequest givenVirtualCollectionRequest() {
-    return givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
-        VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter());
-  }
+	public static VirtualCollection givenVirtualCollection(String virtualCollectionID) {
+		return givenVirtualCollection(virtualCollectionID, ORCID);
+	}
 
-  public static VirtualCollectionRequest givenVirtualCollectionRequest(String name,
-      VirtualCollectionRequest.LtcBasisOfScheme ltcBasisOfScheme,
-      TargetDigitalObjectFilter targetFilter) {
-    return new VirtualCollectionRequest()
-        .withLtcCollectionName(name)
-        .withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
-        .withLtcBasisOfScheme(ltcBasisOfScheme)
-        .withOdsSignificanceForCountries(List.of("Netherlands" ,"Belgium"))
-        .withOdsHasTargetDigitalObjectFilter(targetFilter);
-  }
+	public static VirtualCollection givenVirtualCollection(String virtualCollectionID, String userId) {
+		return givenVirtualCollection(virtualCollectionID, userId, VIRTUAL_COLLECTION_NAME, 1);
+	}
 
-  public static JsonApiWrapper givenVirtualCollectionResponseWrapper(String path) {
-    return givenVirtualCollectionResponseWrapper(path, ORCID);
-  }
+	public static VirtualCollection givenVirtualCollection(String virtualCollectionID, String userId, String name,
+			int version) {
+		return new VirtualCollection().withId(virtualCollectionID)
+			.withDctermsIdentifier(virtualCollectionID)
+			.withType("ods:VirtualCollection")
+			.withSchemaVersion(version)
+			.withOdsFdoType("https://hdl.handle.net/21.T11148/2ac65a933b7a0361b651")
+			.withOdsStatus(OdsStatus.ACTIVE)
+			.withLtcCollectionName(name)
+			.withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
+			.withLtcBasisOfScheme(LtcBasisOfScheme.REFERENCE_COLLECTION)
+			.withSchemaDateCreated(Date.from(CREATED))
+			.withSchemaDateModified(Date.from(CREATED))
+			.withSchemaCreator(givenAgent(userId, ROLE_NAME_VIRTUAL_COLLECTION))
+			.withOdsSignificanceForCountries(List.of("Netherlands", "Belgium"))
+			.withOdsHasTargetDigitalObjectFilter(givenTargetFilter());
+	}
 
-  public static JsonApiWrapper givenVirtualCollectionResponseWrapper(
-      String path, String orcid) {
-    var virtualCollection = givenVirtualCollection(HANDLE + ID, orcid);
-    return givenVirtualCollectionResponseWrapper(path, virtualCollection);
-  }
+	public static TargetDigitalObjectFilter givenTargetFilter() {
+		return new TargetDigitalObjectFilter()
+			.withOdsHasPredicates(List.of(new OdsHasPredicate().withOdsPredicateType(OdsPredicateType.EQUALS)
+				.withOdsPredicateKey("$['ods:topicDiscipline']")
+				.withOdsPredicateValue("zoology")));
+	}
 
-  public static JsonApiWrapper givenVirtualCollectionResponseWrapper(
-      String path, VirtualCollection virtualCollection) {
-    var dataNode = new JsonApiData(HANDLE + ID, "ods:VirtualCollection",
-        MAPPER.valueToTree(virtualCollection));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	public static VirtualCollectionRequest givenVirtualCollectionRequest() {
+		return givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
+				VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter());
+	}
 
-  public static JsonApiListResponseWrapper givenVirtualCollectionJsonResponse(String path,
-      int pageNumber, int pageSize, String userId, String virtualCollectionID,
-      boolean hasNextPage) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
-    var dataNodes = givenVirtualCollectionJsonApiDataList(pageSize, userId, virtualCollectionID);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode, null);
-  }
+	public static VirtualCollectionRequest givenVirtualCollectionRequest(String name,
+			VirtualCollectionRequest.LtcBasisOfScheme ltcBasisOfScheme, TargetDigitalObjectFilter targetFilter) {
+		return new VirtualCollectionRequest().withLtcCollectionName(name)
+			.withLtcDescription(VIRTUAL_COLLECTION_DESCRIPTION)
+			.withLtcBasisOfScheme(ltcBasisOfScheme)
+			.withOdsSignificanceForCountries(List.of("Netherlands", "Belgium"))
+			.withOdsHasTargetDigitalObjectFilter(targetFilter);
+	}
 
-  public static List<JsonApiData> givenVirtualCollectionJsonApiDataList(int pageSize, String userId,
-      String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "ods:VirtualCollection",
-        MAPPER.valueToTree(givenVirtualCollection(annotationId, userId))));
-  }
+	public static JsonApiWrapper givenVirtualCollectionResponseWrapper(String path) {
+		return givenVirtualCollectionResponseWrapper(path, ORCID);
+	}
 
-  public static JsonNode givenVirtualCollectionHandleRequest() {
-    return MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode()
-            .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
-            .set("attributes", MAPPER.createObjectNode()
-                .put("collectionName", VIRTUAL_COLLECTION_NAME)
-                .put("basisOfScheme",
-                    VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
-  }
+	public static JsonApiWrapper givenVirtualCollectionResponseWrapper(String path, String orcid) {
+		var virtualCollection = givenVirtualCollection(HANDLE + ID, orcid);
+		return givenVirtualCollectionResponseWrapper(path, virtualCollection);
+	}
 
-  public static JsonNode givenVirtualCollectionHandleRollbackRequest() {
-    var dataNode = List.of(MAPPER.createObjectNode().put("id", ID));
-    ArrayNode dataArrayNode = MAPPER.valueToTree(dataNode);
-    return MAPPER.createObjectNode().set("data", dataArrayNode);
-  }
+	public static JsonApiWrapper givenVirtualCollectionResponseWrapper(String path,
+			VirtualCollection virtualCollection) {
+		var dataNode = new JsonApiData(HANDLE + ID, "ods:VirtualCollection", MAPPER.valueToTree(virtualCollection));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  public static VirtualCollection givenTombstoneVirtualCollection() {
-    return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
-        .withOdsHasTombstoneMetadata(
-            givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION)))
-        .withOdsStatus(OdsStatus.TOMBSTONE)
-        .withSchemaDateModified(Date.from(CREATED));
-  }
+	public static JsonApiListResponseWrapper givenVirtualCollectionJsonResponse(String path, int pageNumber,
+			int pageSize, String userId, String virtualCollectionID, boolean hasNextPage) {
+		JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
+		var dataNodes = givenVirtualCollectionJsonApiDataList(pageSize, userId, virtualCollectionID);
+		return new JsonApiListResponseWrapper(dataNodes, linksNode, null);
+	}
 
-  public static JsonNode givenVirtualCollectionTombstoneHandleRequest() {
-    return MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode()
-            .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
-            .put("id", ID)
-            .set("attributes", MAPPER.createObjectNode()
-                .put("tombstoneText",
-                    "ods:VirtualCollection tombstoned by agent through the dissco backend")));
-  }
+	public static List<JsonApiData> givenVirtualCollectionJsonApiDataList(int pageSize, String userId,
+			String annotationId) {
+		return Collections.nCopies(pageSize, new JsonApiData(annotationId, "ods:VirtualCollection",
+				MAPPER.valueToTree(givenVirtualCollection(annotationId, userId))));
+	}
 
-  public static JsonNode givenVirtualCollectionUpdateHandleRequest() {
-    return MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode()
-            .put("type", FdoType.VIRTUAL_COLLECTION.getPid())
-            .put("id", ID)
-            .set("attributes", MAPPER.createObjectNode()
-                .put("collectionName", VIRTUAL_COLLECTION_NAME)
-                .put("basisOfScheme",
-                    VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
-  }
+	public static JsonNode givenVirtualCollectionHandleRequest() {
+		return MAPPER.createObjectNode()
+			.set("data", MAPPER.createObjectNode()
+				.put("type", FdoType.VIRTUAL_COLLECTION.getPid())
+				.set("attributes", MAPPER.createObjectNode()
+					.put("collectionName", VIRTUAL_COLLECTION_NAME)
+					.put("basisOfScheme", VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
+	}
+
+	public static JsonNode givenVirtualCollectionHandleRollbackRequest() {
+		var dataNode = List.of(MAPPER.createObjectNode().put("id", ID));
+		ArrayNode dataArrayNode = MAPPER.valueToTree(dataNode);
+		return MAPPER.createObjectNode().set("data", dataArrayNode);
+	}
+
+	public static VirtualCollection givenTombstoneVirtualCollection() {
+		return givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2)
+			.withOdsHasTombstoneMetadata(givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION)))
+			.withOdsStatus(OdsStatus.TOMBSTONE)
+			.withSchemaDateModified(Date.from(CREATED));
+	}
+
+	public static JsonNode givenVirtualCollectionTombstoneHandleRequest() {
+		return MAPPER.createObjectNode()
+			.set("data", MAPPER.createObjectNode()
+				.put("type", FdoType.VIRTUAL_COLLECTION.getPid())
+				.put("id", ID)
+				.set("attributes", MAPPER.createObjectNode()
+					.put("tombstoneText", "ods:VirtualCollection tombstoned by agent through the dissco backend")));
+	}
+
+	public static JsonNode givenVirtualCollectionUpdateHandleRequest() {
+		return MAPPER.createObjectNode()
+			.set("data", MAPPER.createObjectNode()
+				.put("type", FdoType.VIRTUAL_COLLECTION.getPid())
+				.put("id", ID)
+				.set("attributes", MAPPER.createObjectNode()
+					.put("collectionName", VIRTUAL_COLLECTION_NAME)
+					.put("basisOfScheme", VirtualCollectionRequest.LtcBasisOfScheme.REFERENCE_COLLECTION.value())));
+	}
+
 }
-

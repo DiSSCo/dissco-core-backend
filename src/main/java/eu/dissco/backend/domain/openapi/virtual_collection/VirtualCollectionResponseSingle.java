@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema
 public record VirtualCollectionResponseSingle(
-    @Schema(description = "Links object, self-referencing") JsonApiLinks links,
-    VirtualCollectionResponseData data) {
+		@Schema(description = "Links object, self-referencing") JsonApiLinks links,
+		VirtualCollectionResponseData data) {
 
 }

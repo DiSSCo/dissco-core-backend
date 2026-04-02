@@ -32,81 +32,70 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class MachineAnnotationServiceService {
 
-  private final MachineAnnotationServiceRepository repository;
-  private final JsonMapper mapper;
-  private final MasClient masClient;
+	private final MachineAnnotationServiceRepository repository;
 
-  private boolean checkIfMasComplies(JsonNode jsonNode,
-      MachineAnnotationService machineAnnotationService) {
-    var filters = machineAnnotationService.getOdsHasTargetDigitalObjectFilter();
-    var fields = filters.getAdditionalProperties();
-    var complies = true;
-    for (var stringObjectEntry : fields.entrySet()) {
-      var allowedValues = (List<Object>) stringObjectEntry.getValue();
-      var fieldKey = stringObjectEntry.getKey();
-      try {
-        var values = JsonPath.read(jsonNode.toString(), fieldKey);
-        if (values instanceof List<?>) {
-          var valueList = (List<Object>) values;
-          if (valueList.isEmpty() || (!allowedValues.contains("*") && !allowedValues.contains(
-              valueList))) {
-            complies = false;
-          }
-        } else if (values instanceof Object && (!allowedValues.contains(values)
-            && !allowedValues.contains("*"))) {
-          complies = false;
-        }
-      } catch (PathNotFoundException _) {
-        log.warn("Key: {} not found in json: {}", fieldKey, jsonNode);
-        complies = false;
-      }
-    }
-    return complies;
-  }
+	private final JsonMapper mapper;
 
-  public JsonApiListResponseWrapper getMassForObject(JsonNode jsonNode, String path) {
-    var availableMass = new ArrayList<JsonApiData>();
-    var masRecords = repository.getAllMas();
+	private final MasClient masClient;
 
-    for (var masRecord : masRecords) {
-      boolean complies = checkIfMasComplies(jsonNode, masRecord);
-      if (complies) {
-        availableMass.add(
-            new JsonApiData(masRecord.getId(), FdoType.MAS.getName(), masRecord, mapper));
-      }
-    }
-    var links = new JsonApiLinksFull(path);
-    return new JsonApiListResponseWrapper(availableMass, links,
-        new JsonApiMeta(availableMass.size()));
-  }
+	private boolean checkIfMasComplies(JsonNode jsonNode, MachineAnnotationService machineAnnotationService) {
+		var filters = machineAnnotationService.getOdsHasTargetDigitalObjectFilter();
+		var fields = filters.getAdditionalProperties();
+		var complies = true;
+		for (var stringObjectEntry : fields.entrySet()) {
+			var allowedValues = (List<Object>) stringObjectEntry.getValue();
+			var fieldKey = stringObjectEntry.getKey();
+			try {
+				var values = JsonPath.read(jsonNode.toString(), fieldKey);
+				if (values instanceof List<?>) {
+					var valueList = (List<Object>) values;
+					if (valueList.isEmpty() || (!allowedValues.contains("*") && !allowedValues.contains(valueList))) {
+						complies = false;
+					}
+				}
+				else if (values instanceof Object
+						&& (!allowedValues.contains(values) && !allowedValues.contains("*"))) {
+					complies = false;
+				}
+			}
+			catch (PathNotFoundException _) {
+				log.warn("Key: {} not found in json: {}", fieldKey, jsonNode);
+				complies = false;
+			}
+		}
+		return complies;
+	}
 
-  public JsonApiListResponseWrapper scheduleMas(String targetId, List<MasJobRequest> masRequests,
-      String orcid,
-      MjrTargetType targetType, String path)
-      throws WebProcessingFailedException {
-    var masScheduleJobRequests = masRequests.stream()
-        .map(masRequest -> new MasScheduleJobRequest(
-            masRequest.masId(),
-            DOI_PROXY + targetId,
-            masRequest.batching(),
-            orcid,
-            targetType
-        )).collect(Collectors.toSet());
-    var result = masClient.scheduleMas(masScheduleJobRequests);
-    return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
-    }), path);
-  }
+	public JsonApiListResponseWrapper getMassForObject(JsonNode jsonNode, String path) {
+		var availableMass = new ArrayList<JsonApiData>();
+		var masRecords = repository.getAllMas();
 
-  private JsonApiListResponseWrapper formatMasScheduleResponse(List<MasJobRecord> masJobRecords,
-      String path) {
-    var dataNode = masJobRecords.stream().map(
-        mjr -> new JsonApiData(
-            mjr.jobId(),
-            "MachineAnnotationServiceJobRecord",
-            mjr,
-            mapper
-        )).toList();
-    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
-  }
+		for (var masRecord : masRecords) {
+			boolean complies = checkIfMasComplies(jsonNode, masRecord);
+			if (complies) {
+				availableMass.add(new JsonApiData(masRecord.getId(), FdoType.MAS.getName(), masRecord, mapper));
+			}
+		}
+		var links = new JsonApiLinksFull(path);
+		return new JsonApiListResponseWrapper(availableMass, links, new JsonApiMeta(availableMass.size()));
+	}
+
+	public JsonApiListResponseWrapper scheduleMas(String targetId, List<MasJobRequest> masRequests, String orcid,
+			MjrTargetType targetType, String path) throws WebProcessingFailedException {
+		var masScheduleJobRequests = masRequests.stream()
+			.map(masRequest -> new MasScheduleJobRequest(masRequest.masId(), DOI_PROXY + targetId,
+					masRequest.batching(), orcid, targetType))
+			.collect(Collectors.toSet());
+		var result = masClient.scheduleMas(masScheduleJobRequests);
+		return formatMasScheduleResponse(mapper.treeToValue(result, new TypeReference<>() {
+		}), path);
+	}
+
+	private JsonApiListResponseWrapper formatMasScheduleResponse(List<MasJobRecord> masJobRecords, String path) {
+		var dataNode = masJobRecords.stream()
+			.map(mjr -> new JsonApiData(mjr.jobId(), "MachineAnnotationServiceJobRecord", mjr, mapper))
+			.toList();
+		return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+	}
 
 }

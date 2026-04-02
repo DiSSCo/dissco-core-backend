@@ -1,6 +1,5 @@
 package eu.dissco.backend.controller;
 
-
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
@@ -49,243 +48,198 @@ import tools.jackson.databind.json.JsonMapper;
 @RequestMapping("/digital-media/v1")
 public class DigitalMediaController extends BaseController {
 
-  private final DigitalMediaService service;
+	private final DigitalMediaService service;
 
-  public DigitalMediaController(ApplicationProperties applicationProperties,
-      JsonMapper mapper, DigitalMediaService service) {
-    super(mapper, applicationProperties);
-    this.service = service;
-  }
+	public DigitalMediaController(ApplicationProperties applicationProperties, JsonMapper mapper,
+			DigitalMediaService service) {
+		super(mapper, applicationProperties);
+		this.service = service;
+	}
 
-  @Operation(summary = "Get paginated digital media")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalMediaResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjects(
-      @Parameter(description = PREFIX_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = SUFFIX_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) {
-    log.info("Received get request for digital digital medias in json format");
-    var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(digitalMedia);
-  }
+	@Operation(summary = "Get paginated digital media")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalMediaResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getDigitalMediaObjects(
+			@Parameter(description = PREFIX_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = SUFFIX_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) {
+		log.info("Received get request for digital digital medias in json format");
+		var digitalMedia = service.getDigitalMediaObjects(pageNumber, pageSize, getPath(request));
+		return ResponseEntity.ok(digitalMedia);
+	}
 
-  @Operation(summary = "Get digital media by ID")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalMediaResponseSingle.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectById(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for multiMedia with id: {}", id);
-    var multiMedia = service.getDigitalMediaById(id, getPath(request));
-    return ResponseEntity.ok(multiMedia);
-  }
+	@Operation(summary = "Get digital media by ID")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalMediaResponseSingle.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectById(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for multiMedia with id: {}", id);
+		var multiMedia = service.getDigitalMediaById(id, getPath(request));
+		return ResponseEntity.ok(multiMedia);
+	}
 
-  @Operation(summary = "Get annotations for a given digital media")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media annotations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMediaAnnotationsById(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for annotationRequests on digitalMedia with id: {}", id);
-    var annotations = service.getAnnotationsOnDigitalMedia(id, getPath(request));
-    return ResponseEntity.ok(annotations);
-  }
+	@Operation(summary = "Get annotations for a given digital media")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Digital media annotations successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMediaAnnotationsById(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request) {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for annotationRequests on digitalMedia with id: {}", id);
+		var annotations = service.getAnnotationsOnDigitalMedia(id, getPath(request));
+		return ResponseEntity.ok(annotations);
+	}
 
-  @Operation(summary = "Get all versions for a given digital media")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media versions successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = VersionResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getDigitalMediaVersions(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request)
-      throws NotFoundException {
-    var id = DOI_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for versions of digital media with id: {}", id);
-    var versions = service.getDigitalMediaVersions(id, getPath(request));
-    return ResponseEntity.ok(versions);
-  }
+	@Operation(summary = "Get all versions for a given digital media")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Digital media versions successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = VersionResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getDigitalMediaVersions(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = DOI_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for versions of digital media with id: {}", id);
+		var versions = service.getDigitalMediaVersions(id, getPath(request));
+		return ResponseEntity.ok(versions);
+	}
 
-  @Operation(summary = "Get digital media by ID and desired version")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalMediaResponseSingle.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectByVersion(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
-      HttpServletRequest request)
-      throws NotFoundException {
-    var id = DOI_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for digital media: {} with version: {}", id, version);
-    var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));
-    return ResponseEntity.ok(digitalMedia);
-  }
+	@Operation(summary = "Get digital media by ID and desired version")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital media successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalMediaResponseSingle.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getDigitalMediaObjectByVersion(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+			@Parameter(description = VERSION_OAS) @PathVariable("version") int version, HttpServletRequest request)
+			throws NotFoundException {
+		var id = DOI_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for digital media: {} with version: {}", id, version);
+		var digitalMedia = service.getDigitalMediaObjectByVersion(id, version, getPath(request));
+		return ResponseEntity.ok(digitalMedia);
+	}
 
-  @Operation(
-      summary = "Get MASs that may be run on the given digital media",
-      description = """
-          Retrieves a list of Machine Annotation Services (MASs) suitable for processing a given
-          digital media, based on the MASs' respective filter criteria.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media MASs successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalMediaObject(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for mass for digital media: {}", id);
-    var mass = service.getMass(id, getPath(request));
-    return ResponseEntity.ok(mass);
-  }
+	@Operation(summary = "Get MASs that may be run on the given digital media", description = """
+			Retrieves a list of Machine Annotation Services (MASs) suitable for processing a given
+			digital media, based on the MASs' respective filter criteria.
+			""")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Digital media MASs successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalMediaObject(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for mass for digital media: {}", id);
+		var mass = service.getMass(id, getPath(request));
+		return ResponseEntity.ok(mass);
+	}
 
-  @Operation(
-      summary = "Get MAS jobs for digital media",
-      description = """
-          Retrieves a list of Machine Annotation Service Job Records (MJRs).
-          These are scheduled, running, or completed machine annotation service jobs.
-          Pagination is offered.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS Job records successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordForMedia(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) {
-    var path = getPath(request);
-    var id = prefix + '/' + suffix;
-    return ResponseEntity.ok(
-        service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
-  }
+	@Operation(summary = "Get MAS jobs for digital media", description = """
+			Retrieves a list of Machine Annotation Service Job Records (MJRs).
+			These are scheduled, running, or completed machine annotation service jobs.
+			Pagination is offered.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS Job records successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseList.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordForMedia(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+			@Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) {
+		var path = getPath(request);
+		var id = prefix + '/' + suffix;
+		return ResponseEntity.ok(service.getMasJobRecordsForMedia(id, path, state, pageNumber, pageSize));
+	}
 
-  @Operation(
-      summary = "Get original digital media data",
-      description = """
-          DiSSCo provides harmonised data according to the OpenDS specification.
-          This endpoint provides the unharmonised data as it appears in the source system.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Original Data successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = JsonApiWrapper.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getOriginalDataForMedia(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var path = getPath(request);
-    var id = prefix + '/' + suffix;
-    return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));
-  }
+	@Operation(summary = "Get original digital media data", description = """
+			DiSSCo provides harmonised data according to the OpenDS specification.
+			This endpoint provides the unharmonised data as it appears in the source system.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Original Data successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = JsonApiWrapper.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getOriginalDataForMedia(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var path = getPath(request);
+		var id = prefix + '/' + suffix;
+		return ResponseEntity.ok(service.getOriginalDataForMedia(id, path));
+	}
 
-  @Operation(
-      summary = "Get digital media derivative",
-      description = """
-          DiSSCo tries to store media derivatives of all images.
-          This will retrieve the derivative image for the specified Digital Media Object.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Derivative Image successfully retrieved", content = {
-          @Content(mediaType = "image/jpeg")
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/derivative", produces = MediaType.IMAGE_JPEG_VALUE)
-  public ResponseEntity<byte[]> getMediaDerivative(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ProcessingFailedException {
-    return ResponseEntity.ok(service.getMediaDerivative(suffix));
-  }
+	@Operation(summary = "Get digital media derivative", description = """
+			DiSSCo tries to store media derivatives of all images.
+			This will retrieve the derivative image for the specified Digital Media Object.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Derivative Image successfully retrieved",
+			content = { @Content(mediaType = "image/jpeg") }) })
+	@GetMapping(value = "/{prefix}/{suffix}/derivative", produces = MediaType.IMAGE_JPEG_VALUE)
+	public ResponseEntity<byte[]> getMediaDerivative(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+			throws NotFoundException, ProcessingFailedException {
+		return ResponseEntity.ok(service.getMediaDerivative(suffix));
+	}
 
-  @Operation(
-      summary = "Get digital media thumbnail",
-      description = """
-          DiSSCo tries to store media thumbnails of all images.
-          This will retrieve the thumbnail image for the specified Digital Media Object.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Thumbnail Image successfully retrieved", content = {
-          @Content(mediaType = "image/jpeg")
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/thumbnail", produces = MediaType.IMAGE_JPEG_VALUE)
-  public ResponseEntity<byte[]> getMediaThumbnail(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ProcessingFailedException {
-    return ResponseEntity.ok(service.getMediaThumbnail(suffix));
-  }
+	@Operation(summary = "Get digital media thumbnail", description = """
+			DiSSCo tries to store media thumbnails of all images.
+			This will retrieve the thumbnail image for the specified Digital Media Object.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Thumbnail Image successfully retrieved",
+			content = { @Content(mediaType = "image/jpeg") }) })
+	@GetMapping(value = "/{prefix}/{suffix}/thumbnail", produces = MediaType.IMAGE_JPEG_VALUE)
+	public ResponseEntity<byte[]> getMediaThumbnail(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+			throws NotFoundException, ProcessingFailedException {
+		return ResponseEntity.ok(service.getMediaThumbnail(suffix));
+	}
 
-  @Operation(
-      summary = "Schedule Machine Annotation Services",
-      description = """
-          Schedules applicable MASs on a given digital media.
-          Only users who have provided their ORCID may schedule MASs.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "202", description = "MAS successfully scheduled", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
-      })
-  })
-  @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
-      HttpServletRequest request)
-      throws ConflictException, ForbiddenException, NotFoundException, WebProcessingFailedException {
-    var path = getPath(request);
-    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
-    var id = prefix + '/' + suffix;
-    var masRequests = getMassRequestFromRequest(requestBody);
-    log.info("Received request to schedule all relevant MASs of: {} on digital media: {}",
-        masRequests, id);
-    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
-  }
+	@Operation(summary = "Schedule Machine Annotation Services", description = """
+			Schedules applicable MASs on a given digital media.
+			Only users who have provided their ORCID may schedule MASs.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "202", description = "MAS successfully scheduled",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseList.class)) }) })
+	@PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalMediaObject(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
+			@RequestBody MasSchedulingRequest requestBody, Authentication authentication, HttpServletRequest request)
+			throws ConflictException, ForbiddenException, NotFoundException, WebProcessingFailedException {
+		var path = getPath(request);
+		var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
+		var id = prefix + '/' + suffix;
+		var masRequests = getMassRequestFromRequest(requestBody);
+		log.info("Received request to schedule all relevant MASs of: {} on digital media: {}", masRequests, id);
+		return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
+	}
 
 }

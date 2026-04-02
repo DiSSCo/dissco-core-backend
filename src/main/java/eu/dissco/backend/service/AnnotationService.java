@@ -53,236 +53,232 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class AnnotationService {
 
-  private static final String ATTRIBUTES = "attributes";
-  private static final String DATA = "data";
-  private final AnnotationRepository repository;
-  private final AnnotationClient annotationClient;
-  private final ProcessorClient processorClient;
-  private final ElasticSearchRepository elasticRepository;
-  private final MongoRepository mongoRepository;
-  private final JsonMapper mapper;
-  private final MasJobRecordService masJobRecordService;
-  private final ApplicationProperties properties;
+	private static final String ATTRIBUTES = "attributes";
 
-  public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
-    var annotation = repository.getAnnotation(id);
-    if (annotation != null) {
-      var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(),
-          mapper.valueToTree(annotation));
-      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    }
-    log.warn("Unable to find annotation {}", id);
-    throw new NotFoundException("Unable to find annotation " + id);
-  }
+	private static final String DATA = "data";
 
-  public JsonApiWrapper getAnnotationByVersion(String id, int version, String path)
-      throws NotFoundException {
-    var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.ANNOTATION);
-    validateAnnotationNode(eventNode);
-    var dataNode = new JsonApiData(id, ANNOTATION.getName(), eventNode);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	private final AnnotationRepository repository;
 
-  public JsonApiListResponseWrapper getAnnotations(int pageNumber, int pageSize,
-      String path) {
-    var annotationsPlusOne = repository.getAnnotations(pageNumber, pageSize);
-    return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
-  }
+	private final AnnotationClient annotationClient;
 
-  public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent, String path) throws WebProcessingFailedException {
-    var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
-    JsonNode response;
-    response = annotationClient.postAnnotation(annotation);
-    return formatResponse(response, path);
-  }
+	private final ProcessorClient processorClient;
 
-  public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent,
-      String path) throws WebProcessingFailedException {
-    var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent,
-        false)
-        .withOdsPlaceInBatch(1);
-    String jobId = null;
-    if (eventRequest.batchMetadata() != null) {
-      jobId = masJobRecordService.createJobRecordForDisscover(processedAnnotation, agent.getId());
-    }
-    var processedEvent = new AnnotationEvent(List.of(processedAnnotation),
-        eventRequest.batchMetadata(), jobId);
-    var response = annotationClient.postAnnotationBatch(processedEvent);
-    return formatResponse(response, path);
-  }
+	private final ElasticSearchRepository elasticRepository;
 
-  public JsonApiWrapper formatResponse(JsonNode response, String path) {
-    if (response != null) {
-      var annotationResponse = parseToAnnotation(response);
-      var dataNode = new JsonApiData(annotationResponse.getId(), ANNOTATION.getName(),
-          response);
-      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    }
-    return null;
-  }
+	private final MongoRepository mongoRepository;
 
-  public JsonNode getCountForBatchAnnotations(BatchAnnotationCountRequest annotationCountRequest)
-      throws IOException {
-    var count = elasticRepository.getCountForBatchAnnotations(
-        annotationCountRequest.data().attributes()
-            .batchMetadata(),
-        annotationCountRequest.data().attributes().annotationTargetType());
-    return mapper.createObjectNode()
-        .set(DATA, mapper.createObjectNode()
-            .put("type", "batchAnnotationCount")
-            .set(ATTRIBUTES, mapper.createObjectNode()
-                .put("objectAffected", count)
-                .set("batchMetadata", mapper.valueToTree(annotationCountRequest.data().attributes()
-                    .batchMetadata()))));
-  }
+	private final JsonMapper mapper;
 
-  public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
-      throws WebProcessingFailedException, InvalidAnnotationRequestException {
-    var annotation = blockAndUnwrap(
-        annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
-            OdsMergingDecisionStatus.APPROVED, acceptingAgent));
-    try {
-      blockAndUnwrap(processorClient.acceptAnnotation(mapper.valueToTree(annotation)));
-    } catch (WebProcessingFailedException e) {
-      log.error("Unable to accept annotation. Rolling back accepted status", e);
-      blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
-          OdsMergingDecisionStatus.PENDING, createServiceAgent(properties)));
-      throw new InvalidAnnotationRequestException("Unable to accept annotation");
-    }
-    log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),
-        annotation.getOaHasTarget().getDctermsIdentifier());
-  }
+	private final MasJobRecordService masJobRecordService;
 
-  private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent, boolean isUpdate) {
-    var annotation = new Annotation()
-        .withOaMotivation(
-            OaMotivation.fromValue(annotationProcessingRequest.getOaMotivation().value()))
-        .withOaMotivatedBy(annotationProcessingRequest.getOaMotivatedBy())
-        .withOaHasBody(annotationProcessingRequest.getOaHasBody())
-        .withOaHasTarget(annotationProcessingRequest.getOaHasTarget())
-        .withDctermsCreated(Date.from(Instant.now()))
-        .withDctermsCreator(agent);
-    if (isUpdate) {
-      annotation.setId(annotationProcessingRequest.getDctermsIdentifier());
-      annotation.setDctermsIdentifier(annotationProcessingRequest.getDctermsIdentifier());
-    }
-    return annotation;
-  }
+	private final ApplicationProperties properties;
 
-  private Annotation parseToAnnotation(JsonNode response) {
-    return mapper.treeToValue(response, Annotation.class);
-  }
+	public JsonApiWrapper getAnnotation(String id, String path) throws NotFoundException {
+		var annotation = repository.getAnnotation(id);
+		if (annotation != null) {
+			var dataNode = new JsonApiData(id, FdoType.ANNOTATION.getName(), mapper.valueToTree(annotation));
+			return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+		}
+		log.warn("Unable to find annotation {}", id);
+		throw new NotFoundException("Unable to find annotation " + id);
+	}
 
-  public JsonApiWrapper updateAnnotation(String id,
-      AnnotationProcessingRequest annotationProcessingRequest,
-      Agent agent,
-      String path, String prefix, String suffix)
-      throws NotFoundException, WebProcessingFailedException {
-    var result = repository.getActiveAnnotation(id, agent.getId());
-    if (result.isPresent()) {
-      if (annotationProcessingRequest.getDctermsIdentifier() == null) {
-        annotationProcessingRequest.setDctermsIdentifier(id);
-      }
-      var annotation = buildAnnotation(annotationProcessingRequest, agent, true);
-      var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
-      return formatResponse(response, path);
-    } else {
-      log.info("No active annotationRequests with id: {} found for user {}", id,
-          agent.getId());
-      throw new NotFoundException(
-          "No active annotationRequests with id: " + id + " was found for user");
-    }
-  }
+	public JsonApiWrapper getAnnotationByVersion(String id, int version, String path) throws NotFoundException {
+		var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.ANNOTATION);
+		validateAnnotationNode(eventNode);
+		var dataNode = new JsonApiData(id, ANNOTATION.getName(), eventNode);
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  public JsonApiListResponseWrapper getAnnotationsForUser(String orcid, int pageNumber,
-      int pageSize, String path) throws IOException {
-    var elasticSearchResults = elasticRepository.getAnnotationsForCreator(orcid, pageNumber,
-        pageSize);
-    var annotationList = elasticSearchResults.getRight();
-    var dataNodePlusOne = annotationList.stream().map(annotation ->
-        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
-            mapper.valueToTree(annotation))).toList();
-    return JsonApiUtils.wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(),
-        pageSize, pageNumber, path);
-  }
+	public JsonApiListResponseWrapper getAnnotations(int pageNumber, int pageSize, String path) {
+		var annotationsPlusOne = repository.getAnnotations(pageNumber, pageSize);
+		return wrapListResponse(annotationsPlusOne, pageNumber, pageSize, path);
+	}
 
-  public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, MongoCollection.ANNOTATION);
-    var versionsNode = createVersionNode(versions, mapper);
-    var dataNode = new JsonApiData(HANDLE_PROXY + id, "annotationVersions", versionsNode);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	public JsonApiWrapper persistAnnotation(AnnotationProcessingRequest annotationProcessingRequest, Agent agent,
+			String path) throws WebProcessingFailedException {
+		var annotation = buildAnnotation(annotationProcessingRequest, agent, false);
+		JsonNode response;
+		response = annotationClient.postAnnotation(annotation);
+		return formatResponse(response, path);
+	}
 
-  public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent, boolean isAdmin)
-      throws NotFoundException, WebProcessingFailedException {
-    var id = prefix + "/" + suffix;
-    Optional<Annotation> result;
-    if (isAdmin) {
-      log.info("Admin tombstoning annotation {}", id);
-      result = repository.getActiveAnnotation(id, null);
-    } else {
-      log.info("Creator tombstoning annotation {}", id);
-      result = repository.getActiveAnnotation(id, agent.getId());
-    }
-    if (result.isPresent()) {
-      annotationClient.tombstoneAnnotation(prefix, suffix,
-          new AnnotationTombstoneWrapper(result.get(), agent));
-      return true;
-    } else {
-      if (isAdmin) {
-        log.info("No active annotations with id: {}", id);
-      } else {
-        log.info("No active annotations with id: {} found for user: {}", id, agent.getId());
-      }
-      throw new NotFoundException(
-          "No active annotationRequests with id: " + id + " was found");
-    }
-  }
+	public JsonApiWrapper persistAnnotationBatch(AnnotationEventRequest eventRequest, Agent agent, String path)
+			throws WebProcessingFailedException {
+		var processedAnnotation = buildAnnotation(eventRequest.annotationRequests().getFirst(), agent, false)
+			.withOdsPlaceInBatch(1);
+		String jobId = null;
+		if (eventRequest.batchMetadata() != null) {
+			jobId = masJobRecordService.createJobRecordForDisscover(processedAnnotation, agent.getId());
+		}
+		var processedEvent = new AnnotationEvent(List.of(processedAnnotation), eventRequest.batchMetadata(), jobId);
+		var response = annotationClient.postAnnotationBatch(processedEvent);
+		return formatResponse(response, path);
+	}
 
-  // Used by other services
-  public List<Annotation> getAnnotationForTargetObject(String id) {
-    var fullId = getFullId(id);
-    return repository.getForTarget(fullId);
-  }
+	public JsonApiWrapper formatResponse(JsonNode response, String path) {
+		if (response != null) {
+			var annotationResponse = parseToAnnotation(response);
+			var dataNode = new JsonApiData(annotationResponse.getId(), ANNOTATION.getName(), response);
+			return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+		}
+		return null;
+	}
 
-  public Map<String, List<Annotation>> getAnnotationForTargetObjects(List<String> ids) {
-    var annotations = repository.getForTargets(ids.stream().map(ProxyUtils::getFullId).toList());
-    var annotationMap = new HashMap<String, List<Annotation>>();
-    annotations.forEach(
-        annotation -> annotationMap.computeIfAbsent(
-                annotation.getOaHasTarget().getId(), k -> new ArrayList<>())
-            .add(annotation));
-    return annotationMap;
-  }
+	public JsonNode getCountForBatchAnnotations(BatchAnnotationCountRequest annotationCountRequest) throws IOException {
+		var count = elasticRepository.getCountForBatchAnnotations(
+				annotationCountRequest.data().attributes().batchMetadata(),
+				annotationCountRequest.data().attributes().annotationTargetType());
+		return mapper.createObjectNode()
+			.set(DATA,
+					mapper.createObjectNode()
+						.put("type", "batchAnnotationCount")
+						.set(ATTRIBUTES, mapper.createObjectNode()
+							.put("objectAffected", count)
+							.set("batchMetadata",
+									mapper.valueToTree(annotationCountRequest.data().attributes().batchMetadata()))));
+	}
 
-  public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
-    var fullId = getFullId(id);
-    var annotations = repository.getForTarget(fullId);
-    return wrapListResponse(annotations, path);
-  }
+	public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
+			throws WebProcessingFailedException, InvalidAnnotationRequestException {
+		var annotation = blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+				OdsMergingDecisionStatus.APPROVED, acceptingAgent));
+		try {
+			blockAndUnwrap(processorClient.acceptAnnotation(mapper.valueToTree(annotation)));
+		}
+		catch (WebProcessingFailedException e) {
+			log.error("Unable to accept annotation. Rolling back accepted status", e);
+			blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+					OdsMergingDecisionStatus.PENDING, createServiceAgent(properties)));
+			throw new InvalidAnnotationRequestException("Unable to accept annotation");
+		}
+		log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),
+				annotation.getOaHasTarget().getDctermsIdentifier());
+	}
 
-  // Response Constructors
-  private void validateAnnotationNode(JsonNode annotationNode) {
-    mapper.treeToValue(annotationNode.get(ANNOTATION.getName()), Annotation.class);
-  }
+	private Annotation buildAnnotation(AnnotationProcessingRequest annotationProcessingRequest, Agent agent,
+			boolean isUpdate) {
+		var annotation = new Annotation()
+			.withOaMotivation(OaMotivation.fromValue(annotationProcessingRequest.getOaMotivation().value()))
+			.withOaMotivatedBy(annotationProcessingRequest.getOaMotivatedBy())
+			.withOaHasBody(annotationProcessingRequest.getOaHasBody())
+			.withOaHasTarget(annotationProcessingRequest.getOaHasTarget())
+			.withDctermsCreated(Date.from(Instant.now()))
+			.withDctermsCreator(agent);
+		if (isUpdate) {
+			annotation.setId(annotationProcessingRequest.getDctermsIdentifier());
+			annotation.setDctermsIdentifier(annotationProcessingRequest.getDctermsIdentifier());
+		}
+		return annotation;
+	}
 
-  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne,
-      int pageNumber, int pageSize, String path) {
-    List<JsonApiData> dataNodePlusOne = new ArrayList<>();
-    annotationsPlusOne.forEach(annotation -> dataNodePlusOne.add(
-        new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
-            mapper.valueToTree(annotation))));
-    return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
-  }
+	private Annotation parseToAnnotation(JsonNode response) {
+		return mapper.treeToValue(response, Annotation.class);
+	}
 
-  private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotations,
-      String path) {
-    List<JsonApiData> dataNode = new ArrayList<>();
-    annotations.forEach(annotation -> dataNode.add(
-        new JsonApiData(annotation.getId(), ANNOTATION.getName(),
-            mapper.valueToTree(annotation))));
-    return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
-  }
+	public JsonApiWrapper updateAnnotation(String id, AnnotationProcessingRequest annotationProcessingRequest,
+			Agent agent, String path, String prefix, String suffix)
+			throws NotFoundException, WebProcessingFailedException {
+		var result = repository.getActiveAnnotation(id, agent.getId());
+		if (result.isPresent()) {
+			if (annotationProcessingRequest.getDctermsIdentifier() == null) {
+				annotationProcessingRequest.setDctermsIdentifier(id);
+			}
+			var annotation = buildAnnotation(annotationProcessingRequest, agent, true);
+			var response = annotationClient.updateAnnotation(prefix, suffix, annotation);
+			return formatResponse(response, path);
+		}
+		else {
+			log.info("No active annotationRequests with id: {} found for user {}", id, agent.getId());
+			throw new NotFoundException("No active annotationRequests with id: " + id + " was found for user");
+		}
+	}
+
+	public JsonApiListResponseWrapper getAnnotationsForUser(String orcid, int pageNumber, int pageSize, String path)
+			throws IOException {
+		var elasticSearchResults = elasticRepository.getAnnotationsForCreator(orcid, pageNumber, pageSize);
+		var annotationList = elasticSearchResults.getRight();
+		var dataNodePlusOne = annotationList.stream()
+			.map(annotation -> new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(),
+					mapper.valueToTree(annotation)))
+			.toList();
+		return JsonApiUtils.wrapListResponse(dataNodePlusOne, elasticSearchResults.getLeft(), pageSize, pageNumber,
+				path);
+	}
+
+	public JsonApiWrapper getAnnotationVersions(String id, String path) throws NotFoundException {
+		var versions = mongoRepository.getVersions(id, MongoCollection.ANNOTATION);
+		var versionsNode = createVersionNode(versions, mapper);
+		var dataNode = new JsonApiData(HANDLE_PROXY + id, "annotationVersions", versionsNode);
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
+
+	public boolean tombstoneAnnotation(String prefix, String suffix, Agent agent, boolean isAdmin)
+			throws NotFoundException, WebProcessingFailedException {
+		var id = prefix + "/" + suffix;
+		Optional<Annotation> result;
+		if (isAdmin) {
+			log.info("Admin tombstoning annotation {}", id);
+			result = repository.getActiveAnnotation(id, null);
+		}
+		else {
+			log.info("Creator tombstoning annotation {}", id);
+			result = repository.getActiveAnnotation(id, agent.getId());
+		}
+		if (result.isPresent()) {
+			annotationClient.tombstoneAnnotation(prefix, suffix, new AnnotationTombstoneWrapper(result.get(), agent));
+			return true;
+		}
+		else {
+			if (isAdmin) {
+				log.info("No active annotations with id: {}", id);
+			}
+			else {
+				log.info("No active annotations with id: {} found for user: {}", id, agent.getId());
+			}
+			throw new NotFoundException("No active annotationRequests with id: " + id + " was found");
+		}
+	}
+
+	// Used by other services
+	public List<Annotation> getAnnotationForTargetObject(String id) {
+		var fullId = getFullId(id);
+		return repository.getForTarget(fullId);
+	}
+
+	public Map<String, List<Annotation>> getAnnotationForTargetObjects(List<String> ids) {
+		var annotations = repository.getForTargets(ids.stream().map(ProxyUtils::getFullId).toList());
+		var annotationMap = new HashMap<String, List<Annotation>>();
+		annotations.forEach(
+				annotation -> annotationMap.computeIfAbsent(annotation.getOaHasTarget().getId(), k -> new ArrayList<>())
+					.add(annotation));
+		return annotationMap;
+	}
+
+	public JsonApiListResponseWrapper getAnnotationForTarget(String id, String path) {
+		var fullId = getFullId(id);
+		var annotations = repository.getForTarget(fullId);
+		return wrapListResponse(annotations, path);
+	}
+
+	// Response Constructors
+	private void validateAnnotationNode(JsonNode annotationNode) {
+		mapper.treeToValue(annotationNode.get(ANNOTATION.getName()), Annotation.class);
+	}
+
+	private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotationsPlusOne, int pageNumber,
+			int pageSize, String path) {
+		List<JsonApiData> dataNodePlusOne = new ArrayList<>();
+		annotationsPlusOne.forEach(annotation -> dataNodePlusOne
+			.add(new JsonApiData(annotation.getId(), FdoType.ANNOTATION.getName(), mapper.valueToTree(annotation))));
+		return new JsonApiListResponseWrapper(dataNodePlusOne, pageNumber, pageSize, path);
+	}
+
+	private JsonApiListResponseWrapper wrapListResponse(List<Annotation> annotations, String path) {
+		List<JsonApiData> dataNode = new ArrayList<>();
+		annotations.forEach(annotation -> dataNode
+			.add(new JsonApiData(annotation.getId(), ANNOTATION.getName(), mapper.valueToTree(annotation))));
+		return new JsonApiListResponseWrapper(dataNode, new JsonApiLinksFull(path));
+	}
+
 }

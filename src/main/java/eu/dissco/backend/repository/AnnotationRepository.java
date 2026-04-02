@@ -21,61 +21,64 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class AnnotationRepository {
 
-  private final DSLContext context;
-  private final JsonMapper mapper;
+	private final DSLContext context;
 
-  public Annotation getAnnotation(String id) {
-    return context.select(ANNOTATION.DATA)
-        .from(ANNOTATION)
-        .where(ANNOTATION.ID.eq(id))
-        .fetchOne(this::mapToAnnotation);
-  }
+	private final JsonMapper mapper;
 
-  public List<Annotation> getAnnotations(int pageNumber, int pageSize) {
-    var offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(ANNOTATION.asterisk())
-        .from(ANNOTATION)
-        .where(ANNOTATION.TOMBSTONED.isNull())
-        .orderBy(ANNOTATION.CREATED.desc())
-        .limit(pageSizePlusOne).offset(offset).fetch(this::mapToAnnotation);
-  }
+	public Annotation getAnnotation(String id) {
+		return context.select(ANNOTATION.DATA)
+			.from(ANNOTATION)
+			.where(ANNOTATION.ID.eq(id))
+			.fetchOne(this::mapToAnnotation);
+	}
 
-  public Optional<Annotation> getActiveAnnotation(String id, String userId) {
-    var query = context.select(ANNOTATION.asterisk())
-        .from(ANNOTATION)
-        .where(ANNOTATION.ID.eq(id))
-        .and(ANNOTATION.TOMBSTONED.isNull());
-    if (userId != null) {
-      query = query.and(ANNOTATION.CREATOR.eq(userId));
-    }
-    return query.fetchOptional(this::mapToAnnotation);
-  }
+	public List<Annotation> getAnnotations(int pageNumber, int pageSize) {
+		var offset = getOffset(pageNumber, pageSize);
+		var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+		return context.select(ANNOTATION.asterisk())
+			.from(ANNOTATION)
+			.where(ANNOTATION.TOMBSTONED.isNull())
+			.orderBy(ANNOTATION.CREATED.desc())
+			.limit(pageSizePlusOne)
+			.offset(offset)
+			.fetch(this::mapToAnnotation);
+	}
 
-  public List<Annotation> getForTarget(String id) {
-    return context.select(ANNOTATION.DATA)
-        .from(ANNOTATION)
-        .where(ANNOTATION.TARGET_ID.eq(id))
-        .and(ANNOTATION.TOMBSTONED.isNull())
-        .fetch(this::mapToAnnotation);
-  }
+	public Optional<Annotation> getActiveAnnotation(String id, String userId) {
+		var query = context.select(ANNOTATION.asterisk())
+			.from(ANNOTATION)
+			.where(ANNOTATION.ID.eq(id))
+			.and(ANNOTATION.TOMBSTONED.isNull());
+		if (userId != null) {
+			query = query.and(ANNOTATION.CREATOR.eq(userId));
+		}
+		return query.fetchOptional(this::mapToAnnotation);
+	}
 
-  public List<Annotation> getForTargets(List<String> ids){
-    return context.select(ANNOTATION.DATA)
-        .from(ANNOTATION)
-        .where(ANNOTATION.TARGET_ID.in(ids))
-        .and(ANNOTATION.TOMBSTONED.isNull())
-        .fetch(this::mapToAnnotation);
-  }
+	public List<Annotation> getForTarget(String id) {
+		return context.select(ANNOTATION.DATA)
+			.from(ANNOTATION)
+			.where(ANNOTATION.TARGET_ID.eq(id))
+			.and(ANNOTATION.TOMBSTONED.isNull())
+			.fetch(this::mapToAnnotation);
+	}
 
-  private Annotation mapToAnnotation(Record dbRecord) {
-    try {
-      return mapper.readValue(dbRecord.get(ANNOTATION.DATA).data(),
-          Annotation.class);
-    } catch (JacksonException e) {
-      log.error("Failed to get data from database, Unable to parse JSONB to JSON", e);
-      throw new DisscoJsonBMappingException("Unable to convert jsonb to annotation", e);
-    }
-  }
+	public List<Annotation> getForTargets(List<String> ids) {
+		return context.select(ANNOTATION.DATA)
+			.from(ANNOTATION)
+			.where(ANNOTATION.TARGET_ID.in(ids))
+			.and(ANNOTATION.TOMBSTONED.isNull())
+			.fetch(this::mapToAnnotation);
+	}
+
+	private Annotation mapToAnnotation(Record dbRecord) {
+		try {
+			return mapper.readValue(dbRecord.get(ANNOTATION.DATA).data(), Annotation.class);
+		}
+		catch (JacksonException e) {
+			log.error("Failed to get data from database, Unable to parse JSONB to JSON", e);
+			throw new DisscoJsonBMappingException("Unable to convert jsonb to annotation", e);
+		}
+	}
 
 }

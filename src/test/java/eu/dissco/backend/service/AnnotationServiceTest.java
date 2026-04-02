@@ -72,431 +72,406 @@ import reactor.core.publisher.Mono;
 @ExtendWith(MockitoExtension.class)
 class AnnotationServiceTest {
 
-  public DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING)
-      .withZone(ZoneOffset.UTC);
-  @Mock
-  private AnnotationRepository repository;
-  @Mock
-  private AnnotationClient annotationClient;
-  @Mock
-  private ElasticSearchRepository elasticRepository;
-  @Mock
-  private MongoRepository mongoRepository;
-  @Mock
-  private MasJobRecordService masJobRecordService;
-  @Mock
-  private ProcessorClient processorClient;
-
-
-  private MockedStatic<Instant> mockedInstant;
-  private MockedStatic<Clock> mockedClock;
-  private AnnotationService service;
-
-  @BeforeEach
-  void setup() {
-    service = new AnnotationService(repository, annotationClient, processorClient,
-        elasticRepository,
-        mongoRepository, MAPPER, masJobRecordService, new ApplicationProperties());
-    Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
-    Instant instant = Instant.now(clock);
-    mockedInstant = mockStatic(Instant.class);
-    mockedInstant.when(Instant::now).thenReturn(instant);
-    mockedInstant.when(() -> Instant.from(any())).thenReturn(instant);
-    mockedInstant.when(() -> Instant.parse(any())).thenReturn(instant);
-    mockedClock = mockStatic(Clock.class);
-    mockedClock.when(Clock::systemUTC).thenReturn(clock);
-  }
-
-  @AfterEach
-  void destroy() {
-    mockedInstant.close();
-    mockedClock.close();
-  }
-
-  @Test
-  void testGetAnnotationsForUser() throws Exception {
-    // Given
-    String annotationId = "123";
-    int pageNumber = 1;
-    int pageSize = 15;
-    var totalCount = 30L;
-    String path = SANDBOX_URI + "api/v1/annotationRequests/creator/json";
-    var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, annotationId, true);
-    var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
-        new JsonApiMeta(totalCount));
-    given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
-        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
-
-    // When
-    var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationsForUserLastPage() throws Exception {
-    // Given
-    String annotationId = "123";
-    int pageNumber = 2;
-    int pageSize = 15;
-    var totalCount = 30L;
-    String path = SANDBOX_URI + "api/v1/annotationRequests/creator/json";
-    var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, annotationId, false);
-    var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(),
-        new JsonApiMeta(totalCount));
-    given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
-        .willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
-
-    // When
-    var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationForTargetObjects() {
-    // Given
-    var expected = Map.of(
-        ID, List.of(givenAnnotationResponse("1", ORCID, ID)),
-        ID_ALT, List.of(givenAnnotationResponse("2", ORCID, ID_ALT))
-    );
-    given(repository.getForTargets(List.of(DOI + ID, DOI + ID_ALT))).willReturn(List.of(
-        givenAnnotationResponse("1", ORCID, ID),
-        givenAnnotationResponse("2", ORCID, ID_ALT)));
-
-    // When
-    var result = service.getAnnotationForTargetObjects(List.of(ID, ID_ALT));
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationForTargetObject() {
-    // Given
-    var expected = List.of(givenAnnotationResponse());
-    given(repository.getForTarget(DOI + ID)).willReturn(expected);
-
-    // When
-    var result = service.getAnnotationForTargetObject(ID);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationForTarget() {
-    var repositoryResponse = givenAnnotationResponseList(ID, 1);
-    var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
-    given(repository.getForTarget(DOI + ID)).willReturn(repositoryResponse);
-
-    // When
-    var result = service.getAnnotationForTarget(ID, ANNOTATION_PATH);
-
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotation() throws NotFoundException {
-    // Given
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse(ID));
-
-    // When
-    var result = service.getAnnotation(ID, ANNOTATION_PATH);
-
-    // Then
-    assertThat(expected).isEqualTo(result);
-  }
-
-  @Test
-  void testGetAnnotationNotFound() {
-    // Given
-
-    // When / Then
-    assertThrows(NotFoundException.class, () -> service.getAnnotation(ID, ANNOTATION_PATH));
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {1, 2})
-  void testGetAnnotations(int pageNumber) {
-    int pageSize = 15;
-    String annotationId = "123";
-    String path = SANDBOX_URI + "api/v1/annotationRequests/all/json";
-    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, annotationId, true);
-    given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
-        givenAnnotationResponseList(annotationId, pageSize + 1));
-
-    // When
-    var received = service.getAnnotations(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationsJsonResponseLastPage() {
-    int pageNumber = 1;
-    int pageSize = 15;
-    String annotationId = "123";
-    String path = SANDBOX_URI + "api/v1/annotationRequests/all/json";
-    var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize,
-        ORCID, annotationId, false);
-    given(repository.getAnnotations(pageNumber, pageSize)).willReturn(
-        givenAnnotationResponseList(annotationId, pageSize));
-
-    // When
-    var received = service.getAnnotations(pageNumber, pageSize, path);
-
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
-
-  @Test
-  void testPersistAnnotationBatch() throws Exception {
-    // Given
-    var annotationRequest = givenAnnotationRequest();
-    var processingResponse = MAPPER.valueToTree(givenAnnotationResponse());
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(annotationClient.postAnnotation(any())).willReturn(
-        processingResponse);
-
-    //When
-    var responseReceived = service.persistAnnotation(annotationRequest, givenAgent(),
-        ANNOTATION_PATH);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(expected);
-  }
-
-  @Test
-  void testGetAnnotationBatchCount() throws Exception {
-    // Given
-    given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(),
-        AnnotationTargetType.DIGITAL_SPECIMEN))
-        .willReturn(10L);
-    var expected1 = MAPPER.createObjectNode()
-        .set("data", MAPPER.createObjectNode()
-            .put("type", "batchAnnotationCount")
-            .set("attributes", MAPPER.createObjectNode()
-                .put("objectAffected", 10L)
-                .set("batchMetadata", MAPPER.readTree("""
-                    {
-                      "searchParams": [
-                        {
-                          "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
-                          "inputValue": "Netherlands"
-                        }
-                      ],
-                      "placeInBatch": 1
-                    }
-                    """
-                ))));
-    // When
-    var result = service.getCountForBatchAnnotations(givenAnnotationCountRequest());
-
-    // Then
-    assertThat(result).isEqualTo(expected1);
-  }
-
-  @Test
-  void testPersistAnnotationBatchBatch() throws Exception {
-    // Given
-    var event = givenAnnotationEventRequest();
-    var processingResponse = MAPPER.valueToTree(givenAnnotationResponse().withOdsPlaceInBatch(1));
-    var expected = givenAnnotationResponseBatch(ANNOTATION_PATH, ORCID);
-    given(annotationClient.postAnnotationBatch(any())).willReturn(
-        processingResponse);
-
-    //When
-    var responseReceived = service.persistAnnotationBatch(event, givenAgent(),
-        ANNOTATION_PATH);
-
-    // Then
-    assertThat(responseReceived).isEqualTo(expected);
-
-  }
-
-  @Test
-  void testPersistAnnotationBatchIsNull() throws Exception {
-    // Given
-    var annotationRequest = givenAnnotationRequest();
-    given(annotationClient.postAnnotation(any()))
-        .willReturn(null);
-
-    // When
-    var result = service.persistAnnotation(annotationRequest, givenAgent(), ANNOTATION_PATH
-    );
-
-    // Then
-    assertThat(result).isNull();
-
-  }
-
-  @Test
-  void testUpdateAnnotation() throws Exception {
-    // Given
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(
-        Optional.of(givenAnnotationResponse()));
-    var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
-    given(annotationClient.updateAnnotation(any(), any(), any()))
-        .willReturn(kafkaResponse);
-
-    // When
-    var result = service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(),
-        ANNOTATION_PATH,
-        PREFIX, SUFFIX);
-
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
-
-  @Test
-  void testUpdateAnnotationDoesNotExist() {
-    // Given
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
-
-    // Then
-    assertThrowsExactly(NotFoundException.class,
-        () -> service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(),
-            ANNOTATION_PATH, PREFIX, SUFFIX));
-  }
-
-  @Test
-  void testGetAnnotationsByVersion() throws Exception {
-    // Given
-    int version = 1;
-    var annotationNode = MAPPER.valueToTree(givenAnnotationResponse(ID));
-    given(mongoRepository.getByVersion(ID, version, MongoCollection.ANNOTATION)).willReturn(
-        annotationNode);
-    var expected = new JsonApiWrapper(
-        new JsonApiData(ID, "ods:Annotation", annotationNode),
-        new JsonApiLinks(ANNOTATION_PATH));
-
-    // When
-    var result = service.getAnnotationByVersion(ID, version, ANNOTATION_PATH);
-
-    // Then
-    assertThat(expected).isEqualTo(result);
-  }
-
-  @Test
-  void testGetAnnotationVersions() throws NotFoundException {
-    // Given
-    List<Integer> versionsList = List.of(1, 2);
-    var versionsNode = MAPPER.createObjectNode();
-    var arrayNode = versionsNode.putArray("versions");
-    arrayNode.add(1).add(2);
-    var dataNode = new JsonApiData(HANDLE + ID, "annotationVersions", versionsNode);
-    var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
-
-    given(mongoRepository.getVersions(ID, MongoCollection.ANNOTATION)).willReturn(versionsList);
-    try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
-      mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
-          .thenReturn(versionsNode);
-      // When
-      var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
-
-      // Then
-      assertThat(responseReceived).isEqualTo(responseExpected);
-    }
-  }
-
-  @Test
-  void testTombstoneAnnotation() throws Exception {
-    // Given
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(
-        Optional.of(givenAnnotationResponse()));
-
-    // When
-    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false);
-
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  void testTombstoneAnnotationAmin() throws Exception {
-    // Given
-    given(repository.getActiveAnnotation(ID, null)).willReturn(
-        Optional.of(givenAnnotationResponse()));
-
-    // When
-    var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true);
-
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  void testTombstoneAnnotationDoesNotExist() {
-    // Given
-    given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
-
-    // Then
-    assertThrowsExactly(NotFoundException.class,
-        () -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false));
-  }
-
-  @Test
-  void testAcceptAnnotation() throws Exception {
-    // Given
-    var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
-    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
-        OdsMergingDecisionStatus.APPROVED, agent))
-        .willReturn(Mono.just(givenAnnotationResponse()));
-    given(
-        processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()))).willReturn(
-        Mono.empty());
-
-    // When
-    service.acceptAnnotation(PREFIX, SUFFIX, agent);
-
-    // Then
-    then(processorClient).should().acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()));
-  }
-
-  @Test
-  void testAcceptAnnotationFailsWebException() {
-    // Given
-    var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
-    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
-        OdsMergingDecisionStatus.APPROVED, agent))
-        .willReturn(Mono.just(givenAnnotationResponse()));
-    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
-        OdsMergingDecisionStatus.PENDING, createServiceAgent(new ApplicationProperties())))
-        .willReturn(Mono.just(givenAnnotationResponse()));
-    given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
-        .willReturn(Mono.error(new WebProcessingFailedException("Failed")));
-
-    // When / Then
-    assertThrows(InvalidAnnotationRequestException.class,
-        () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
-  }
-
-  @Test
-  void testAcceptAnnotationFailsRuntimeException() {
-    // Given
-    var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
-    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
-        OdsMergingDecisionStatus.APPROVED, agent))
-        .willReturn(Mono.just(givenAnnotationResponse()));
-    given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX,
-        OdsMergingDecisionStatus.PENDING, createServiceAgent(new ApplicationProperties())))
-        .willReturn(Mono.just(givenAnnotationResponse()));
-    given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
-        .willReturn(Mono.error(new Exception("Failed")));
-
-    // When / Then
-    assertThrows(InvalidAnnotationRequestException.class,
-        () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
-  }
-
+	public DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_STRING).withZone(ZoneOffset.UTC);
+
+	@Mock
+	private AnnotationRepository repository;
+
+	@Mock
+	private AnnotationClient annotationClient;
+
+	@Mock
+	private ElasticSearchRepository elasticRepository;
+
+	@Mock
+	private MongoRepository mongoRepository;
+
+	@Mock
+	private MasJobRecordService masJobRecordService;
+
+	@Mock
+	private ProcessorClient processorClient;
+
+	private MockedStatic<Instant> mockedInstant;
+
+	private MockedStatic<Clock> mockedClock;
+
+	private AnnotationService service;
+
+	@BeforeEach
+	void setup() {
+		service = new AnnotationService(repository, annotationClient, processorClient, elasticRepository,
+				mongoRepository, MAPPER, masJobRecordService, new ApplicationProperties());
+		Clock clock = Clock.fixed(CREATED, ZoneOffset.UTC);
+		Instant instant = Instant.now(clock);
+		mockedInstant = mockStatic(Instant.class);
+		mockedInstant.when(Instant::now).thenReturn(instant);
+		mockedInstant.when(() -> Instant.from(any())).thenReturn(instant);
+		mockedInstant.when(() -> Instant.parse(any())).thenReturn(instant);
+		mockedClock = mockStatic(Clock.class);
+		mockedClock.when(Clock::systemUTC).thenReturn(clock);
+	}
+
+	@AfterEach
+	void destroy() {
+		mockedInstant.close();
+		mockedClock.close();
+	}
+
+	@Test
+	void testGetAnnotationsForUser() throws Exception {
+		// Given
+		String annotationId = "123";
+		int pageNumber = 1;
+		int pageSize = 15;
+		var totalCount = 30L;
+		String path = SANDBOX_URI + "api/v1/annotationRequests/creator/json";
+		var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize, ORCID, annotationId, true);
+		var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+		given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
+			.willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize + 1)));
+
+		// When
+		var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
+
+		// Then
+		assertThat(received).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationsForUserLastPage() throws Exception {
+		// Given
+		String annotationId = "123";
+		int pageNumber = 2;
+		int pageSize = 15;
+		var totalCount = 30L;
+		String path = SANDBOX_URI + "api/v1/annotationRequests/creator/json";
+		var tmp = givenAnnotationJsonResponse(path, pageNumber, pageSize, ORCID, annotationId, false);
+		var expected = new JsonApiListResponseWrapper(tmp.getData(), tmp.getLinks(), new JsonApiMeta(totalCount));
+		given(elasticRepository.getAnnotationsForCreator(ORCID, pageNumber, pageSize))
+			.willReturn(Pair.of(totalCount, givenAnnotationResponseList(annotationId, pageSize)));
+
+		// When
+		var received = service.getAnnotationsForUser(ORCID, pageNumber, pageSize, path);
+
+		// Then
+		assertThat(received).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationForTargetObjects() {
+		// Given
+		var expected = Map.of(ID, List.of(givenAnnotationResponse("1", ORCID, ID)), ID_ALT,
+				List.of(givenAnnotationResponse("2", ORCID, ID_ALT)));
+		given(repository.getForTargets(List.of(DOI + ID, DOI + ID_ALT)))
+			.willReturn(List.of(givenAnnotationResponse("1", ORCID, ID), givenAnnotationResponse("2", ORCID, ID_ALT)));
+
+		// When
+		var result = service.getAnnotationForTargetObjects(List.of(ID, ID_ALT));
+
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationForTargetObject() {
+		// Given
+		var expected = List.of(givenAnnotationResponse());
+		given(repository.getForTarget(DOI + ID)).willReturn(expected);
+
+		// When
+		var result = service.getAnnotationForTargetObject(ID);
+
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationForTarget() {
+		var repositoryResponse = givenAnnotationResponseList(ID, 1);
+		var expected = givenAnnotationJsonResponseNoPagination(ANNOTATION_PATH, List.of(ID));
+		given(repository.getForTarget(DOI + ID)).willReturn(repositoryResponse);
+
+		// When
+		var result = service.getAnnotationForTarget(ID, ANNOTATION_PATH);
+
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotation() throws NotFoundException {
+		// Given
+		var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+		given(repository.getAnnotation(ID)).willReturn(givenAnnotationResponse(ID));
+
+		// When
+		var result = service.getAnnotation(ID, ANNOTATION_PATH);
+
+		// Then
+		assertThat(expected).isEqualTo(result);
+	}
+
+	@Test
+	void testGetAnnotationNotFound() {
+		// Given
+
+		// When / Then
+		assertThrows(NotFoundException.class, () -> service.getAnnotation(ID, ANNOTATION_PATH));
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = { 1, 2 })
+	void testGetAnnotations(int pageNumber) {
+		int pageSize = 15;
+		String annotationId = "123";
+		String path = SANDBOX_URI + "api/v1/annotationRequests/all/json";
+		var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize, ORCID, annotationId, true);
+		given(repository.getAnnotations(pageNumber, pageSize))
+			.willReturn(givenAnnotationResponseList(annotationId, pageSize + 1));
+
+		// When
+		var received = service.getAnnotations(pageNumber, pageSize, path);
+
+		// Then
+		assertThat(received).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationsJsonResponseLastPage() {
+		int pageNumber = 1;
+		int pageSize = 15;
+		String annotationId = "123";
+		String path = SANDBOX_URI + "api/v1/annotationRequests/all/json";
+		var expected = givenAnnotationJsonResponse(path, pageNumber, pageSize, ORCID, annotationId, false);
+		given(repository.getAnnotations(pageNumber, pageSize))
+			.willReturn(givenAnnotationResponseList(annotationId, pageSize));
+
+		// When
+		var received = service.getAnnotations(pageNumber, pageSize, path);
+
+		// Then
+		assertThat(received).isEqualTo(expected);
+	}
+
+	@Test
+	void testPersistAnnotationBatch() throws Exception {
+		// Given
+		var annotationRequest = givenAnnotationRequest();
+		var processingResponse = MAPPER.valueToTree(givenAnnotationResponse());
+		var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
+		given(annotationClient.postAnnotation(any())).willReturn(processingResponse);
+
+		// When
+		var responseReceived = service.persistAnnotation(annotationRequest, givenAgent(), ANNOTATION_PATH);
+
+		// Then
+		assertThat(responseReceived).isEqualTo(expected);
+	}
+
+	@Test
+	void testGetAnnotationBatchCount() throws Exception {
+		// Given
+		given(elasticRepository.getCountForBatchAnnotations(givenBatchMetadata(),
+				AnnotationTargetType.DIGITAL_SPECIMEN))
+			.willReturn(10L);
+		var expected1 = MAPPER.createObjectNode()
+			.set("data", MAPPER.createObjectNode()
+				.put("type", "batchAnnotationCount")
+				.set("attributes",
+						MAPPER.createObjectNode().put("objectAffected", 10L).set("batchMetadata", MAPPER.readTree("""
+								{
+								  "searchParams": [
+								    {
+								      "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
+								      "inputValue": "Netherlands"
+								    }
+								  ],
+								  "placeInBatch": 1
+								}
+								"""))));
+		// When
+		var result = service.getCountForBatchAnnotations(givenAnnotationCountRequest());
+
+		// Then
+		assertThat(result).isEqualTo(expected1);
+	}
+
+	@Test
+	void testPersistAnnotationBatchBatch() throws Exception {
+		// Given
+		var event = givenAnnotationEventRequest();
+		var processingResponse = MAPPER.valueToTree(givenAnnotationResponse().withOdsPlaceInBatch(1));
+		var expected = givenAnnotationResponseBatch(ANNOTATION_PATH, ORCID);
+		given(annotationClient.postAnnotationBatch(any())).willReturn(processingResponse);
+
+		// When
+		var responseReceived = service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH);
+
+		// Then
+		assertThat(responseReceived).isEqualTo(expected);
+
+	}
+
+	@Test
+	void testPersistAnnotationBatchIsNull() throws Exception {
+		// Given
+		var annotationRequest = givenAnnotationRequest();
+		given(annotationClient.postAnnotation(any())).willReturn(null);
+
+		// When
+		var result = service.persistAnnotation(annotationRequest, givenAgent(), ANNOTATION_PATH);
+
+		// Then
+		assertThat(result).isNull();
+
+	}
+
+	@Test
+	void testUpdateAnnotation() throws Exception {
+		// Given
+		var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH, ORCID);
+		given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+		var kafkaResponse = MAPPER.valueToTree(givenAnnotationResponse());
+		given(annotationClient.updateAnnotation(any(), any(), any())).willReturn(kafkaResponse);
+
+		// When
+		var result = service.updateAnnotation(ID, givenAnnotationRequest(), givenAgent(), ANNOTATION_PATH, PREFIX,
+				SUFFIX);
+
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@Test
+	void testUpdateAnnotationDoesNotExist() {
+		// Given
+		given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
+
+		// Then
+		assertThrowsExactly(NotFoundException.class, () -> service.updateAnnotation(ID, givenAnnotationRequest(),
+				givenAgent(), ANNOTATION_PATH, PREFIX, SUFFIX));
+	}
+
+	@Test
+	void testGetAnnotationsByVersion() throws Exception {
+		// Given
+		int version = 1;
+		var annotationNode = MAPPER.valueToTree(givenAnnotationResponse(ID));
+		given(mongoRepository.getByVersion(ID, version, MongoCollection.ANNOTATION)).willReturn(annotationNode);
+		var expected = new JsonApiWrapper(new JsonApiData(ID, "ods:Annotation", annotationNode),
+				new JsonApiLinks(ANNOTATION_PATH));
+
+		// When
+		var result = service.getAnnotationByVersion(ID, version, ANNOTATION_PATH);
+
+		// Then
+		assertThat(expected).isEqualTo(result);
+	}
+
+	@Test
+	void testGetAnnotationVersions() throws NotFoundException {
+		// Given
+		List<Integer> versionsList = List.of(1, 2);
+		var versionsNode = MAPPER.createObjectNode();
+		var arrayNode = versionsNode.putArray("versions");
+		arrayNode.add(1).add(2);
+		var dataNode = new JsonApiData(HANDLE + ID, "annotationVersions", versionsNode);
+		var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(ANNOTATION_PATH));
+
+		given(mongoRepository.getVersions(ID, MongoCollection.ANNOTATION)).willReturn(versionsList);
+		try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
+			mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
+				.thenReturn(versionsNode);
+			// When
+			var responseReceived = service.getAnnotationVersions(ID, ANNOTATION_PATH);
+
+			// Then
+			assertThat(responseReceived).isEqualTo(responseExpected);
+		}
+	}
+
+	@Test
+	void testTombstoneAnnotation() throws Exception {
+		// Given
+		given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.of(givenAnnotationResponse()));
+
+		// When
+		var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false);
+
+		// Then
+		assertThat(result).isTrue();
+	}
+
+	@Test
+	void testTombstoneAnnotationAmin() throws Exception {
+		// Given
+		given(repository.getActiveAnnotation(ID, null)).willReturn(Optional.of(givenAnnotationResponse()));
+
+		// When
+		var result = service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true);
+
+		// Then
+		assertThat(result).isTrue();
+	}
+
+	@Test
+	void testTombstoneAnnotationDoesNotExist() {
+		// Given
+		given(repository.getActiveAnnotation(ID, ORCID)).willReturn(Optional.empty());
+
+		// Then
+		assertThrowsExactly(NotFoundException.class,
+				() -> service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false));
+	}
+
+	@Test
+	void testAcceptAnnotation() throws Exception {
+		// Given
+		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
+		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
+				agent))
+			.willReturn(Mono.just(givenAnnotationResponse()));
+		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()))).willReturn(Mono.empty());
+
+		// When
+		service.acceptAnnotation(PREFIX, SUFFIX, agent);
+
+		// Then
+		then(processorClient).should().acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()));
+	}
+
+	@Test
+	void testAcceptAnnotationFailsWebException() {
+		// Given
+		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
+		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
+				agent))
+			.willReturn(Mono.just(givenAnnotationResponse()));
+		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.PENDING,
+				createServiceAgent(new ApplicationProperties())))
+			.willReturn(Mono.just(givenAnnotationResponse()));
+		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
+			.willReturn(Mono.error(new WebProcessingFailedException("Failed")));
+
+		// When / Then
+		assertThrows(InvalidAnnotationRequestException.class, () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
+	}
+
+	@Test
+	void testAcceptAnnotationFailsRuntimeException() {
+		// Given
+		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
+		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
+				agent))
+			.willReturn(Mono.just(givenAnnotationResponse()));
+		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.PENDING,
+				createServiceAgent(new ApplicationProperties())))
+			.willReturn(Mono.just(givenAnnotationResponse()));
+		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
+			.willReturn(Mono.error(new Exception("Failed")));
+
+		// When / Then
+		assertThrows(InvalidAnnotationRequestException.class, () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
+	}
 
 }

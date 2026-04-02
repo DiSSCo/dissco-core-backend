@@ -34,105 +34,98 @@ import tools.jackson.core.type.TypeReference;
 @ExtendWith(MockitoExtension.class)
 class ProvenanceServiceTest {
 
-  @Mock
-  private ApplicationProperties properties;
-  private ProvenanceService service;
+	@Mock
+	private ApplicationProperties properties;
 
-  private static List<Agent> givenExpectedAgents() {
-    return List.of(
-        AgentUtils.createAgent(USER_NAME, ORCID, "creator",
-            "orcid", Type.PROV_PERSON),
-        AgentUtils.createAgent(APP_NAME, APP_HANDLE, "dissco-backend",
-            DctermsType.DOI.value(), Type.PROV_SOFTWARE_AGENT)
-    );
-  }
+	private ProvenanceService service;
 
-  private static List<OdsChangeValue> givenChangeValueTombstone() {
-    return List.of(
-        givenOdsChangeValue("add", "/ods:hasTombstoneMetadata",
-            givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION))),
-        givenOdsChangeValue("replace", "/ods:status", OdsStatus.TOMBSTONE),
-        givenOdsChangeValue("replace", "/schema:version", 2)
-    );
-  }
+	private static List<Agent> givenExpectedAgents() {
+		return List.of(AgentUtils.createAgent(USER_NAME, ORCID, "creator", "orcid", Type.PROV_PERSON), AgentUtils
+			.createAgent(APP_NAME, APP_HANDLE, "dissco-backend", DctermsType.DOI.value(), Type.PROV_SOFTWARE_AGENT));
+	}
 
-  private static List<OdsChangeValue> givenChangeValueUpdate() {
-    return List.of(
-        givenOdsChangeValue("replace", "/ltc:collectionName", VIRTUAL_COLLECTION_NAME),
-        givenOdsChangeValue("replace", "/schema:version", 2)
-    );
-  }
+	private static List<OdsChangeValue> givenChangeValueTombstone() {
+		return List.of(
+				givenOdsChangeValue("add", "/ods:hasTombstoneMetadata",
+						givenTombstoneMetadata(givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION))),
+				givenOdsChangeValue("replace", "/ods:status", OdsStatus.TOMBSTONE),
+				givenOdsChangeValue("replace", "/schema:version", 2));
+	}
 
-  private static OdsChangeValue givenOdsChangeValue(String op, String path, Object value) {
-    return new OdsChangeValue()
-        .withAdditionalProperty("op", op)
-        .withAdditionalProperty("path", path)
-        .withAdditionalProperty("value", MAPPER.convertValue(value, new TypeReference<>() {
-        }));
-  }
+	private static List<OdsChangeValue> givenChangeValueUpdate() {
+		return List.of(givenOdsChangeValue("replace", "/ltc:collectionName", VIRTUAL_COLLECTION_NAME),
+				givenOdsChangeValue("replace", "/schema:version", 2));
+	}
 
-  @BeforeEach
-  void setup() {
-    this.service = new ProvenanceService(MAPPER, properties);
-  }
+	private static OdsChangeValue givenOdsChangeValue(String op, String path, Object value) {
+		return new OdsChangeValue().withAdditionalProperty("op", op)
+			.withAdditionalProperty("path", path)
+			.withAdditionalProperty("value", MAPPER.convertValue(value, new TypeReference<>() {
+			}));
+	}
 
-  @Test
-  void testGenerateCreateEvent() {
-    // Given
-    given(properties.getName()).willReturn(APP_NAME);
-    given(properties.getPid()).willReturn(APP_HANDLE);
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
+	@BeforeEach
+	void setup() {
+		this.service = new ProvenanceService(MAPPER, properties);
+	}
 
-    // When
-    var event = service.generateCreateEvent(MAPPER.valueToTree(virtualCollection), givenAgent());
+	@Test
+	void testGenerateCreateEvent() {
+		// Given
+		given(properties.getName()).willReturn(APP_NAME);
+		given(properties.getPid()).willReturn(APP_HANDLE);
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
 
-    // Then
-    assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "1");
-    assertThat(event.getProvActivity().getOdsChangeValue()).isNull();
-    assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object newly created");
-    assertThat(event.getProvEntity().getProvValue()).isNotNull();
-    assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
-  }
+		// When
+		var event = service.generateCreateEvent(MAPPER.valueToTree(virtualCollection), givenAgent());
 
-  @Test
-  void testGenerateUpdateEvent() {
-    // Given
-    given(properties.getName()).willReturn(APP_NAME);
-    given(properties.getPid()).willReturn(APP_HANDLE);
-    var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2);
-    var previousVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "An old name", 1);
+		// Then
+		assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "1");
+		assertThat(event.getProvActivity().getOdsChangeValue()).isNull();
+		assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object newly created");
+		assertThat(event.getProvEntity().getProvValue()).isNotNull();
+		assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
+	}
 
-    // When
-    var event = service.generateUpdateEvent(MAPPER.valueToTree(virtualCollection),
-        MAPPER.valueToTree(previousVirtualCollection), givenAgent());
+	@Test
+	void testGenerateUpdateEvent() {
+		// Given
+		given(properties.getName()).willReturn(APP_NAME);
+		given(properties.getPid()).willReturn(APP_HANDLE);
+		var virtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, VIRTUAL_COLLECTION_NAME, 2);
+		var previousVirtualCollection = givenVirtualCollection(HANDLE + ID, ORCID, "An old name", 1);
 
-    // Then
-    assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
-    assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object updated");
-    assertThat(event.getProvActivity().getOdsChangeValue()).hasSameElementsAs(
-        givenChangeValueUpdate());
-    assertThat(event.getProvEntity().getProvValue()).isNotNull();
-    assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
-  }
+		// When
+		var event = service.generateUpdateEvent(MAPPER.valueToTree(virtualCollection),
+				MAPPER.valueToTree(previousVirtualCollection), givenAgent());
 
-  @Test
-  void testGenerateTombstoneEventVirtualCollection() {
-    // Given
-    given(properties.getName()).willReturn(APP_NAME);
-    given(properties.getPid()).willReturn(APP_HANDLE);
-    var originalMas = MAPPER.valueToTree(givenVirtualCollection(HANDLE + ID));
-    var tombstoneMas = MAPPER.valueToTree(givenTombstoneVirtualCollection());
+		// Then
+		assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
+		assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object updated");
+		assertThat(event.getProvActivity().getOdsChangeValue()).hasSameElementsAs(givenChangeValueUpdate());
+		assertThat(event.getProvEntity().getProvValue()).isNotNull();
+		assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
+	}
 
-    // When
-    var event = service.generateTombstoneEvent(tombstoneMas, originalMas,
-        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
+	@Test
+	void testGenerateTombstoneEventVirtualCollection() {
+		// Given
+		given(properties.getName()).willReturn(APP_NAME);
+		given(properties.getPid()).willReturn(APP_HANDLE);
+		var originalMas = MAPPER.valueToTree(givenVirtualCollection(HANDLE + ID));
+		var tombstoneMas = MAPPER.valueToTree(givenTombstoneVirtualCollection());
 
-    // Then
-    assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
-    assertThat(event.getProvActivity().getOdsChangeValue()).containsExactlyInAnyOrderElementsOf(
-        givenChangeValueTombstone());
-    assertThat(event.getProvEntity().getProvValue()).isNotNull();
-    assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object tombstoned");
-    assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
-  }
+		// When
+		var event = service.generateTombstoneEvent(tombstoneMas, originalMas,
+				givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION));
+
+		// Then
+		assertThat(event.getDctermsIdentifier()).isEqualTo(HANDLE + ID + "/" + "2");
+		assertThat(event.getProvActivity().getOdsChangeValue())
+			.containsExactlyInAnyOrderElementsOf(givenChangeValueTombstone());
+		assertThat(event.getProvEntity().getProvValue()).isNotNull();
+		assertThat(event.getProvActivity().getRdfsComment()).isEqualTo("Object tombstoned");
+		assertThat(event.getOdsHasAgents()).isEqualTo(givenExpectedAgents());
+	}
+
 }

@@ -35,223 +35,201 @@ import java.util.List;
 
 public class AnnotationUtils {
 
-  public static final String ANNOTATION_URI = "/api/v1/annotationRequests/";
-  public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
+	public static final String ANNOTATION_URI = "/api/v1/annotationRequests/";
 
-  private AnnotationUtils() {
-  }
+	public static final String ANNOTATION_PATH = SANDBOX_URI + ANNOTATION_URI;
 
-  public static List<Annotation> givenAnnotationResponseList(String annotationId, int n) {
-    return Collections.nCopies(n, givenAnnotationResponse(annotationId));
-  }
+	private AnnotationUtils() {
+	}
 
-  public static Annotation givenAnnotationResponse() {
-    return givenAnnotationResponse(ID, ORCID, TARGET_ID);
-  }
+	public static List<Annotation> givenAnnotationResponseList(String annotationId, int n) {
+		return Collections.nCopies(n, givenAnnotationResponse(annotationId));
+	}
 
-  public static Annotation givenAnnotationResponse(String annotationId) {
-    return givenAnnotationResponse(annotationId, ORCID, TARGET_ID);
-  }
+	public static Annotation givenAnnotationResponse() {
+		return givenAnnotationResponse(ID, ORCID, TARGET_ID);
+	}
 
-  public static Annotation givenAnnotationResponse(String annotationId, String userId) {
-    return givenAnnotationResponse(annotationId, userId, TARGET_ID);
-  }
+	public static Annotation givenAnnotationResponse(String annotationId) {
+		return givenAnnotationResponse(annotationId, ORCID, TARGET_ID);
+	}
 
-  public static Annotation givenAnnotationResponse(String annotationId, String userId,
-      String targetId) {
-    return new Annotation()
-        .withId(annotationId)
-        .withDctermsIdentifier(annotationId)
-        .withType("ods:Annotation")
-        .withOdsVersion(1)
-        .withOaHasBody(givenOaBodyAnnotation())
-        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57g151764e")
-        .withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
-        .withDctermsCreator(givenCreator(userId))
-        .withOaHasTarget(givenOaTargetAnnotation(targetId))
-        .withDctermsCreated(Date.from(CREATED))
-        .withDctermsModified(Date.from(CREATED))
-        .withDctermsIssued(Date.from(CREATED))
-        .withAsGenerator(givenGenerator())
-        .withOdsHasAggregateRating(givenAggregationRating());
-  }
+	public static Annotation givenAnnotationResponse(String annotationId, String userId) {
+		return givenAnnotationResponse(annotationId, userId, TARGET_ID);
+	}
 
-  public static Annotation givenAnnotationProcessingRequest(boolean isUpdate) {
-    var annotation = new Annotation()
-        .withOaHasBody(givenOaBodyAnnotation())
-        .withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
-        .withDctermsCreator(givenCreator(ORCID))
-        .withOaHasTarget(givenOaTargetAnnotation(TARGET_ID))
-        .withDctermsCreated(Date.from(CREATED));
-    if (isUpdate) {
-      annotation.withId(HANDLE + ID)
-          .withDctermsIdentifier(HANDLE + ID);
-    }
-    return annotation;
-  }
+	public static Annotation givenAnnotationResponse(String annotationId, String userId, String targetId) {
+		return new Annotation().withId(annotationId)
+			.withDctermsIdentifier(annotationId)
+			.withType("ods:Annotation")
+			.withOdsVersion(1)
+			.withOaHasBody(givenOaBodyAnnotation())
+			.withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57g151764e")
+			.withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
+			.withDctermsCreator(givenCreator(userId))
+			.withOaHasTarget(givenOaTargetAnnotation(targetId))
+			.withDctermsCreated(Date.from(CREATED))
+			.withDctermsModified(Date.from(CREATED))
+			.withDctermsIssued(Date.from(CREATED))
+			.withAsGenerator(givenGenerator())
+			.withOdsHasAggregateRating(givenAggregationRating());
+	}
 
-  public static AnnotationProcessingRequest givenAnnotationRequest(String targetId) {
-    return new AnnotationProcessingRequest()
-        .withOaHasBody(givenOaBody())
-        .withOaHasTarget(givenOaTarget(targetId))
-        .withOaMotivation(OaMotivation.OA_COMMENTING);
-  }
+	public static Annotation givenAnnotationProcessingRequest(boolean isUpdate) {
+		var annotation = new Annotation().withOaHasBody(givenOaBodyAnnotation())
+			.withOaMotivation(Annotation.OaMotivation.OA_COMMENTING)
+			.withDctermsCreator(givenCreator(ORCID))
+			.withOaHasTarget(givenOaTargetAnnotation(TARGET_ID))
+			.withDctermsCreated(Date.from(CREATED));
+		if (isUpdate) {
+			annotation.withId(HANDLE + ID).withDctermsIdentifier(HANDLE + ID);
+		}
+		return annotation;
+	}
 
-  public static AnnotationProcessingRequest givenAnnotationRequest() {
-    return givenAnnotationRequest(TARGET_ID);
-  }
+	public static AnnotationProcessingRequest givenAnnotationRequest(String targetId) {
+		return new AnnotationProcessingRequest().withOaHasBody(givenOaBody())
+			.withOaHasTarget(givenOaTarget(targetId))
+			.withOaMotivation(OaMotivation.OA_COMMENTING);
+	}
 
-  public static AnnotationBody givenOaBody() {
-    return new AnnotationBody()
-        .withType("ods:DigitalSpecimen")
-        .withOaValue(new ArrayList<>(List.of("a comment")))
-        .withDctermsReferences(
-            "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
-        .withOdsScore(0.99);
-  }
+	public static AnnotationProcessingRequest givenAnnotationRequest() {
+		return givenAnnotationRequest(TARGET_ID);
+	}
 
-  public static AnnotationBody givenOaBodyAnnotation() {
-    return new AnnotationBody()
-        .withType("ods:DigitalSpecimen")
-        .withOaValue(new ArrayList<>(List.of("a comment")))
-        .withDctermsReferences(
-            "https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
-        .withOdsScore(0.99);
-  }
+	public static AnnotationBody givenOaBody() {
+		return new AnnotationBody().withType("ods:DigitalSpecimen")
+			.withOaValue(new ArrayList<>(List.of("a comment")))
+			.withDctermsReferences("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+			.withOdsScore(0.99);
+	}
 
-  public static AnnotationTarget givenOaTarget(String targetId) {
-    return new AnnotationTarget()
-        .withId(targetId)
-        .withDctermsIdentifier(targetId)
-        .withType("ods:DigitalSpecimen")
-        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
-        .withOaHasSelector(givenSelector());
-  }
+	public static AnnotationBody givenOaBodyAnnotation() {
+		return new AnnotationBody().withType("ods:DigitalSpecimen")
+			.withOaValue(new ArrayList<>(List.of("a comment")))
+			.withDctermsReferences("https://medialib.naturalis.nl/file/id/ZMA.UROCH.P.1555/format/large")
+			.withOdsScore(0.99);
+	}
 
-  public static AnnotationTarget givenOaTargetAnnotation(String targetId) {
-    return new AnnotationTarget()
-        .withId(targetId)
-        .withDctermsIdentifier(targetId)
-        .withType("ods:DigitalSpecimen")
-        .withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
-        .withOaHasSelector(givenSelectorAnnotation());
-  }
+	public static AnnotationTarget givenOaTarget(String targetId) {
+		return new AnnotationTarget().withId(targetId)
+			.withDctermsIdentifier(targetId)
+			.withType("ods:DigitalSpecimen")
+			.withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+			.withOaHasSelector(givenSelector());
+	}
 
-  public static OaHasSelector givenSelector() {
-    return new OaHasSelector()
-        .withAdditionalProperty("@type", "ods:FieldSelector")
-        .withAdditionalProperty("ods:field", "ods:specimenName");
-  }
+	public static AnnotationTarget givenOaTargetAnnotation(String targetId) {
+		return new AnnotationTarget().withId(targetId)
+			.withDctermsIdentifier(targetId)
+			.withType("ods:DigitalSpecimen")
+			.withOdsFdoType("https://doi.org/21.T11148/894b1e6cad57e921764e")
+			.withOaHasSelector(givenSelectorAnnotation());
+	}
 
-  public static OaHasSelector givenSelectorAnnotation() {
-    return new OaHasSelector()
-        .withAdditionalProperty("@type", "ods:FieldSelector")
-        .withAdditionalProperty("field", "ods:specimenName");
-  }
+	public static OaHasSelector givenSelector() {
+		return new OaHasSelector().withAdditionalProperty("@type", "ods:FieldSelector")
+			.withAdditionalProperty("ods:field", "ods:specimenName");
+	}
 
-  public static Agent givenGenerator() {
-    return new Agent()
-        .withSchemaName("DiSSCo backend")
-        .withId("https://sandbox.dissco.tech")
-        .withType(Type.SCHEMA_SOFTWARE_APPLICATION);
-  }
+	public static OaHasSelector givenSelectorAnnotation() {
+		return new OaHasSelector().withAdditionalProperty("@type", "ods:FieldSelector")
+			.withAdditionalProperty("field", "ods:specimenName");
+	}
 
-  public static OdsHasAggregateRating givenAggregationRating() {
-    return new OdsHasAggregateRating()
-        .withType("schema:AggregateRating")
-        .withSchemaRatingValue(0.1)
-        .withSchemaRatingCount(2);
-  }
+	public static Agent givenGenerator() {
+		return new Agent().withSchemaName("DiSSCo backend")
+			.withId("https://sandbox.dissco.tech")
+			.withType(Type.SCHEMA_SOFTWARE_APPLICATION);
+	}
 
-  // JsonApiWrapper
-  public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
-    return givenAnnotationResponseSingleDataNode(path, ORCID);
-  }
+	public static OdsHasAggregateRating givenAggregationRating() {
+		return new OdsHasAggregateRating().withType("schema:AggregateRating")
+			.withSchemaRatingValue(0.1)
+			.withSchemaRatingCount(2);
+	}
 
-  public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
-    var annotation = givenAnnotationResponse(ID, userId);
-    var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	// JsonApiWrapper
+	public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path) {
+		return givenAnnotationResponseSingleDataNode(path, ORCID);
+	}
 
-  public static JsonApiWrapper givenAnnotationResponseBatch(String path, String userId) {
-    var annotation = givenAnnotationResponse(ID, userId).withOdsPlaceInBatch(1);
-    var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	public static JsonApiWrapper givenAnnotationResponseSingleDataNode(String path, String userId) {
+		var annotation = givenAnnotationResponse(ID, userId);
+		var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  // JsonApiListResponseWrapper
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber,
-      int pageSize, String userId, String annotationId, boolean hasNextPage) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
-    var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
+	public static JsonApiWrapper givenAnnotationResponseBatch(String path, String userId) {
+		var annotation = givenAnnotationResponse(ID, userId).withOdsPlaceInBatch(1);
+		var dataNode = new JsonApiData(ID, "ods:Annotation", MAPPER.valueToTree(annotation));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId,
-      String annotationId) {
-    return Collections.nCopies(pageSize, new JsonApiData(annotationId, "ods:Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
-  }
+	// JsonApiListResponseWrapper
+	public static JsonApiListResponseWrapper givenAnnotationJsonResponse(String path, int pageNumber, int pageSize,
+			String userId, String annotationId, boolean hasNextPage) {
+		JsonApiLinksFull linksNode = new JsonApiLinksFull(pageNumber, pageSize, hasNextPage, path);
+		var dataNodes = givenAnnotationJsonApiDataList(pageSize, userId, annotationId);
+		return new JsonApiListResponseWrapper(dataNodes, linksNode);
+	}
 
-  public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path,
-      List<String> annotationIds) {
-    JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
-    List<JsonApiData> dataNodes = new ArrayList<>();
+	public static List<JsonApiData> givenAnnotationJsonApiDataList(int pageSize, String userId, String annotationId) {
+		return Collections.nCopies(pageSize, new JsonApiData(annotationId, "ods:Annotation",
+				MAPPER.valueToTree(givenAnnotationResponse(annotationId, userId, TARGET_ID))));
+	}
 
-    annotationIds.forEach(id -> dataNodes.add(new JsonApiData(id, "ods:Annotation",
-        MAPPER.valueToTree(givenAnnotationResponse(id)))));
-    return new JsonApiListResponseWrapper(dataNodes, linksNode);
-  }
+	public static JsonApiListResponseWrapper givenAnnotationJsonResponseNoPagination(String path,
+			List<String> annotationIds) {
+		JsonApiLinksFull linksNode = new JsonApiLinksFull(path);
+		List<JsonApiData> dataNodes = new ArrayList<>();
 
-  public static AnnotationEventRequest givenAnnotationEventRequest() {
-    return new AnnotationEventRequest(List.of(givenAnnotationRequest()),
-        List.of(new BatchMetadata(List.of(givenSearchParam()))));
-  }
+		annotationIds.forEach(id -> dataNodes
+			.add(new JsonApiData(id, "ods:Annotation", MAPPER.valueToTree(givenAnnotationResponse(id)))));
+		return new JsonApiListResponseWrapper(dataNodes, linksNode);
+	}
 
-  public static AnnotationEvent givenAnnotationEventProcessed() {
-    return new AnnotationEvent(List.of(givenAnnotationProcessingRequest(false)),
-        List.of(new BatchMetadata(List.of(givenSearchParam()))), null);
-  }
+	public static AnnotationEventRequest givenAnnotationEventRequest() {
+		return new AnnotationEventRequest(List.of(givenAnnotationRequest()),
+				List.of(new BatchMetadata(List.of(givenSearchParam()))));
+	}
 
-  public static BatchMetadata givenBatchMetadata() {
-    return new BatchMetadata(List.of(givenSearchParam()));
-  }
+	public static AnnotationEvent givenAnnotationEventProcessed() {
+		return new AnnotationEvent(List.of(givenAnnotationProcessingRequest(false)),
+				List.of(new BatchMetadata(List.of(givenSearchParam()))), null);
+	}
 
-  public static SearchParam givenSearchParam() {
-    return new SearchParam(
-        "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
-        "Netherlands"
-    );
-  }
+	public static BatchMetadata givenBatchMetadata() {
+		return new BatchMetadata(List.of(givenSearchParam()));
+	}
 
-  public static SearchParam givenSearchParam(String country) {
-    return new SearchParam(
-        "ods:hasEvents[*].ods:hasLocation.dwc:country",
-        country
-    );
-  }
+	public static SearchParam givenSearchParam() {
+		return new SearchParam("ods:hasEvents.ods:hasLocation.dwc:country.keyword", "Netherlands");
+	}
 
-  public static BatchAnnotationCountRequest givenAnnotationCountRequest() {
-    return MAPPER.readValue("""
-        {
-          "data": {
-            "type": "batchAnnotationCount",
-            "attributes": {
-              "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
-              "batchMetadata": {
-                "searchParams": [
-                  {
-                    "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
-                    "inputValue": "Netherlands"
-                  }
-                ]
-              }
-            }
-          }
-        }
-        """, BatchAnnotationCountRequest.class);
-  }
+	public static SearchParam givenSearchParam(String country) {
+		return new SearchParam("ods:hasEvents[*].ods:hasLocation.dwc:country", country);
+	}
 
+	public static BatchAnnotationCountRequest givenAnnotationCountRequest() {
+		return MAPPER.readValue("""
+				{
+				  "data": {
+				    "type": "batchAnnotationCount",
+				    "attributes": {
+				      "annotationTargetType": "https://doi.org/21.T11148/894b1e6cad57e921764e",
+				      "batchMetadata": {
+				        "searchParams": [
+				          {
+				            "inputField": "ods:hasEvents.ods:hasLocation.dwc:country.keyword",
+				            "inputValue": "Netherlands"
+				          }
+				        ]
+				      }
+				    }
+				  }
+				}
+				""", BatchAnnotationCountRequest.class);
+	}
 
 }

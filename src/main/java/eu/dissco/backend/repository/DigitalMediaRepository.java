@@ -24,52 +24,54 @@ import tools.jackson.databind.json.JsonMapper;
 @Slf4j
 public class DigitalMediaRepository {
 
-  private final JsonMapper mapper;
-  private final DSLContext context;
+	private final JsonMapper mapper;
 
-  public List<DigitalMedia> getDigitalMediaObjects(int pageNumber, int pageSize) {
-    int offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(DIGITAL_MEDIA_OBJECT)
-        .offset(offset).limit(pageSizePlusOne).fetch(this::mapToMultiMediaObject);
-  }
+	private final DSLContext context;
 
-  public List<DigitalMedia> getLatestDigitalMediaObjectsById(List<String> ids) {
-    return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(DIGITAL_MEDIA_OBJECT)
-        .where(DIGITAL_MEDIA_OBJECT.ID.in(ids))
-        .fetch(this::mapToMultiMediaObject);
-  }
+	public List<DigitalMedia> getDigitalMediaObjects(int pageNumber, int pageSize) {
+		int offset = getOffset(pageNumber, pageSize);
+		var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+		return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
+			.from(DIGITAL_MEDIA_OBJECT)
+			.offset(offset)
+			.limit(pageSizePlusOne)
+			.fetch(this::mapToMultiMediaObject);
+	}
 
-  public DigitalMedia getLatestDigitalMediaObjectById(String id) {
-    return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
-        .from(DIGITAL_MEDIA_OBJECT)
-        .where(DIGITAL_MEDIA_OBJECT.ID.eq(id))
-        .fetchOne(this::mapToMultiMediaObject);
-  }
+	public List<DigitalMedia> getLatestDigitalMediaObjectsById(List<String> ids) {
+		return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
+			.from(DIGITAL_MEDIA_OBJECT)
+			.where(DIGITAL_MEDIA_OBJECT.ID.in(ids))
+			.fetch(this::mapToMultiMediaObject);
+	}
 
-  public JsonNode getMediaOriginalData(String id) {
-    return context.select(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA)
-        .from(DIGITAL_MEDIA_OBJECT)
-        .where(DIGITAL_MEDIA_OBJECT.ID.eq(id))
-        .fetchOne(data -> mapOriginalDataToJson(data, mapper));
-  }
+	public DigitalMedia getLatestDigitalMediaObjectById(String id) {
+		return context.select(DIGITAL_MEDIA_OBJECT.asterisk())
+			.from(DIGITAL_MEDIA_OBJECT)
+			.where(DIGITAL_MEDIA_OBJECT.ID.eq(id))
+			.fetchOne(this::mapToMultiMediaObject);
+	}
 
-  private DigitalMedia mapToMultiMediaObject(Record dbRecord) {
-    try {
-      return mapper.readValue(dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
-              DigitalMedia.class)
-          .withId(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
-          .withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
-          .withOdsFdoType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
-          .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
-          .withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));
-    } catch (JacksonException e) {
-      throw new DisscoJsonBMappingException(
-          "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(),
-          e);
-    }
-  }
+	public JsonNode getMediaOriginalData(String id) {
+		return context.select(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA)
+			.from(DIGITAL_MEDIA_OBJECT)
+			.where(DIGITAL_MEDIA_OBJECT.ID.eq(id))
+			.fetchOne(data -> mapOriginalDataToJson(data, mapper));
+	}
+
+	private DigitalMedia mapToMultiMediaObject(Record dbRecord) {
+		try {
+			return mapper.readValue(dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(), DigitalMedia.class)
+				.withId(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
+				.withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_MEDIA_OBJECT.ID))
+				.withOdsFdoType(dbRecord.get(DIGITAL_MEDIA_OBJECT.TYPE))
+				.withDctermsCreated(Date.from(dbRecord.get(DIGITAL_MEDIA_OBJECT.CREATED)))
+				.withOdsVersion(dbRecord.get(DIGITAL_MEDIA_OBJECT.VERSION));
+		}
+		catch (JacksonException e) {
+			throw new DisscoJsonBMappingException(
+					"Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_MEDIA_OBJECT.DATA).data(), e);
+		}
+	}
 
 }

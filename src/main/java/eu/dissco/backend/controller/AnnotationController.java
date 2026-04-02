@@ -58,294 +58,266 @@ import tools.jackson.databind.json.JsonMapper;
 @RequestMapping("/annotation/v1")
 public class AnnotationController extends BaseController {
 
-  private final AnnotationService service;
-  private final SchemaValidatorComponent schemaValidator;
+	private final AnnotationService service;
 
-  public AnnotationController(
-      ApplicationProperties applicationProperties, JsonMapper mapper, AnnotationService service,
-      SchemaValidatorComponent schemaValidator) {
-    super(mapper, applicationProperties);
-    this.service = service;
-    this.schemaValidator = schemaValidator;
-  }
+	private final SchemaValidatorComponent schemaValidator;
 
-  @Operation(summary = "Get annotation by id")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getAnnotation(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for annotationRequests: {}", id);
-    var annotation = service.getAnnotation(id, getPath(request));
-    return ResponseEntity.ok(annotation);
-  }
+	public AnnotationController(ApplicationProperties applicationProperties, JsonMapper mapper,
+			AnnotationService service, SchemaValidatorComponent schemaValidator) {
+		super(mapper, applicationProperties);
+		this.service = service;
+		this.schemaValidator = schemaValidator;
+	}
 
-  @Operation(summary = "Get annotation by ID and desired version")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = VERSION_OAS) @PathVariable("version") int version,
-      HttpServletRequest request)
-      throws NotFoundException {
-    var id = HANDLE_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for annotationRequests: {} with version: {}", id, version);
-    var annotation = service.getAnnotationByVersion(id, version, getPath(request));
-    return ResponseEntity.ok(annotation);
-  }
+	@Operation(summary = "Get annotation by id")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Annotation retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseSingle.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getAnnotation(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for annotationRequests: {}", id);
+		var annotation = service.getAnnotation(id, getPath(request));
+		return ResponseEntity.ok(annotation);
+	}
 
-  @Operation(summary = "Get annotations, paginated")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotations retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) {
-    log.info(
-        "Received get request for json paginated annotationRequests. Page number: {}, page size {}",
-        pageNumber, pageSize);
-    var annotations = service.getAnnotations(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(annotations);
-  }
+	@Operation(summary = "Get annotation by ID and desired version")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Annotation successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseSingle.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getAnnotationByVersion(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+			@Parameter(description = VERSION_OAS) @PathVariable("version") int version, HttpServletRequest request)
+			throws NotFoundException {
+		var id = HANDLE_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for annotationRequests: {} with version: {}", id, version);
+		var annotation = service.getAnnotationByVersion(id, version, getPath(request));
+		return ResponseEntity.ok(annotation);
+	}
 
-  @Operation(
-      summary = "Create annotation",
-      description = """
-          Create an annotation on a digital specimen or digital media. Only users who have 
-          registered their ORCID may create annotations.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "Annotation successfully created", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> createAnnotation(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Annotation adhering to JSON:API standard",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AnnotationRequest.class)))
-      Authentication authentication,
-      @RequestBody AnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, ProcessingFailedException {
-    var annotation = getAnnotationFromRequest(requestBody);
-    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
-    log.info("Received new annotationRequests from agent: {}", agent.getId());
-    var annotationResponse = service.persistAnnotation(annotation, agent, getPath(request));
-    if (annotationResponse != null) {
-      return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
-    } else {
-      return ResponseEntity.status(HttpStatus.OK).build();
-    }
-  }
+	@Operation(summary = "Get annotations, paginated")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Annotations retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getAnnotations(
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) {
+		log.info("Received get request for json paginated annotationRequests. Page number: {}, page size {}",
+				pageNumber, pageSize);
+		var annotations = service.getAnnotations(pageNumber, pageSize, getPath(request));
+		return ResponseEntity.ok(annotations);
+	}
 
-  @Operation(summary = "Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event",
-      description = """
-          Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event.
-          This is a prerequisite for applying batch annotations. This can only be requested by users with the "batch annotations" permission.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Projected Annotation count calculated", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = BatchAnnotationCountResponse.class))
-      })
-  })
-  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getCountForBatchAnnotations(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Annotation adhering to JSON:API standard",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = BatchAnnotationCountRequest.class)))
-      @RequestBody BatchAnnotationCountRequest request)
-      throws IOException {
-    log.info("Received request for batch annotation count");
-    var result = service.getCountForBatchAnnotations(request);
-    return ResponseEntity.ok(result);
-  }
+	@Operation(summary = "Create annotation", description = """
+			Create an annotation on a digital specimen or digital media. Only users who have
+			registered their ORCID may create annotations.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Annotation successfully created",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseSingle.class)) }) })
+	@ResponseStatus(HttpStatus.CREATED)
+	@PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> createAnnotation(
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(
+					description = "Annotation adhering to JSON:API standard",
+					content = @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationRequest.class))) Authentication authentication,
+			@RequestBody AnnotationRequest requestBody, HttpServletRequest request)
+			throws ForbiddenException, ProcessingFailedException {
+		var annotation = getAnnotationFromRequest(requestBody);
+		var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
+		log.info("Received new annotationRequests from agent: {}", agent.getId());
+		var annotationResponse = service.persistAnnotation(annotation, agent, getPath(request));
+		if (annotationResponse != null) {
+			return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.OK).build();
+		}
+	}
 
-  @Operation(summary = "Apply an annotation to all objects that match a given criteria",
-      description = """
-          Given a set of search parameters, applies an annotation to all objects that match this criteria.
-          The first annotation created, which is the annotation on the provided target, is returned.
-          Subsequent annotations are scheduled. This is only possible for users with the "batch annotations" permission.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "Batching scheduled; initial annotation returned", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
-      })
-  })
-  @PreAuthorize("hasRole('dissco-web-batch-annotations')")
-  @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> createAnnotationBatch(Authentication authentication,
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Annotation batch request",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = BatchAnnotationRequest.class)))
-      @RequestBody BatchAnnotationRequest requestBody, HttpServletRequest request)
-      throws ForbiddenException, InvalidAnnotationRequestException, WebProcessingFailedException {
-    var event = getAnnotationFromRequestEvent(requestBody);
-    schemaValidator.validateAnnotationEventRequest(event, true);
-    var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
-    log.info("Received new batch annotation from user: {}", user);
-    var annotationResponse = service.persistAnnotationBatch(event, user, getPath(request));
-    if (annotationResponse != null) {
-      return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
-    } else {
-      return ResponseEntity.status(HttpStatus.OK).build();
-    }
-  }
+	@Operation(
+			summary = "Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event",
+			description = """
+					Given a set of search parameters, calculates how many objects would be annotated in a batch annotation event.
+					This is a prerequisite for applying batch annotations. This can only be requested by users with the "batch annotations" permission.
+					""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Projected Annotation count calculated",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = BatchAnnotationCountResponse.class)) }) })
+	@PreAuthorize("hasRole('dissco-web-batch-annotations')")
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonNode> getCountForBatchAnnotations(@io.swagger.v3.oas.annotations.parameters.RequestBody(
+			description = "Annotation adhering to JSON:API standard",
+			content = @Content(mediaType = "application/json", schema = @Schema(
+					implementation = BatchAnnotationCountRequest.class))) @RequestBody BatchAnnotationCountRequest request)
+			throws IOException {
+		log.info("Received request for batch annotation count");
+		var result = service.getCountForBatchAnnotations(request);
+		return ResponseEntity.ok(result);
+	}
 
-  @Operation(
-      summary = "Update existing annotation",
-      description = """
-          Update an existing annotation. Users may only update annotations they have created.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation successfully updated", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseSingle.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> updateAnnotation(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody
-          (description = "Annotation adhering to JSON:API standard",
-              content = {
-                  @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationRequest.class))})
-      Authentication authentication, @RequestBody AnnotationRequest requestBody,
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request)
-      throws NotFoundException, ForbiddenException, ProcessingFailedException {
-    var id = prefix + '/' + suffix;
-    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
-    var annotation = getAnnotationFromRequest(requestBody);
-    log.info("Received update for annotationRequests: {} from user: {}", id, agent.getId());
-    var annotationResponse = service.updateAnnotation(id, annotation, agent, getPath(request),
-        prefix, suffix);
-    if (annotationResponse != null) {
-      return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
-    } else {
-      return ResponseEntity.status(HttpStatus.OK).build();
-    }
-  }
+	@Operation(summary = "Apply an annotation to all objects that match a given criteria",
+			description = """
+					Given a set of search parameters, applies an annotation to all objects that match this criteria.
+					The first annotation created, which is the annotation on the provided target, is returned.
+					Subsequent annotations are scheduled. This is only possible for users with the "batch annotations" permission.
+					""")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "201", description = "Batching scheduled; initial annotation returned",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationResponseSingle.class)) }) })
+	@PreAuthorize("hasRole('dissco-web-batch-annotations')")
+	@ResponseStatus(HttpStatus.CREATED)
+	@PostMapping(value = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> createAnnotationBatch(Authentication authentication,
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Annotation batch request",
+					content = @Content(mediaType = "application/json", schema = @Schema(
+							implementation = BatchAnnotationRequest.class))) @RequestBody BatchAnnotationRequest requestBody,
+			HttpServletRequest request)
+			throws ForbiddenException, InvalidAnnotationRequestException, WebProcessingFailedException {
+		var event = getAnnotationFromRequestEvent(requestBody);
+		schemaValidator.validateAnnotationEventRequest(event, true);
+		var user = getAgent(authentication, ROLE_NAME_ANNOTATOR);
+		log.info("Received new batch annotation from user: {}", user);
+		var annotationResponse = service.persistAnnotationBatch(event, user, getPath(request));
+		if (annotationResponse != null) {
+			return ResponseEntity.status(HttpStatus.CREATED).body(annotationResponse);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.OK).build();
+		}
+	}
 
-  @Operation(summary = "Get all annotations for an authenticated user")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request,
-      Authentication authentication) throws IOException, ForbiddenException {
-    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
-    log.info("Received get request to show all annotationRequests for user: {}", orcid);
-    var annotations = service.getAnnotationsForUser(orcid, pageNumber, pageSize,
-        getPath(request));
-    return ResponseEntity.ok(annotations);
-  }
+	@Operation(summary = "Update existing annotation", description = """
+			Update an existing annotation. Users may only update annotations they have created.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Annotation successfully updated",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseSingle.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@PatchMapping(value = "/{prefix}/{suffix}", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> updateAnnotation(
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(
+					description = "Annotation adhering to JSON:API standard",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(
+									implementation = AnnotationRequest.class)) }) Authentication authentication,
+			@RequestBody AnnotationRequest requestBody,
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException, ForbiddenException, ProcessingFailedException {
+		var id = prefix + '/' + suffix;
+		var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
+		var annotation = getAnnotationFromRequest(requestBody);
+		log.info("Received update for annotationRequests: {} from user: {}", id, agent.getId());
+		var annotationResponse = service.updateAnnotation(id, annotation, agent, getPath(request), prefix, suffix);
+		if (annotationResponse != null) {
+			return ResponseEntity.status(HttpStatus.OK).body(annotationResponse);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.OK).build();
+		}
+	}
 
-  @Operation(summary = "Get all versions for a given annotation")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Annotation versions successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = VersionResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getAnnotationVersions(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = HANDLE_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for versions of annotationRequests with id: {}", id);
-    var versions = service.getAnnotationVersions(id, getPath(request));
-    return ResponseEntity.ok(versions);
-  }
+	@Operation(summary = "Get all annotations for an authenticated user")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Annotations successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getAnnotationsForUser(
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request, Authentication authentication) throws IOException, ForbiddenException {
+		var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
+		log.info("Received get request to show all annotationRequests for user: {}", orcid);
+		var annotations = service.getAnnotationsForUser(orcid, pageNumber, pageSize, getPath(request));
+		return ResponseEntity.ok(annotations);
+	}
 
-  @Operation(summary = "Tombstone a given annotation",
-      description = """
-          Tombstone a given annotation. Users may only tombstone annotations they created.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "204", description = "Annotation successfully tombstoned")})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @DeleteMapping(value = "/{prefix}/{suffix}")
-  public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
-      throws NotFoundException, ForbiddenException, ProcessingFailedException {
-    var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
-    var isAdmin = isAdmin(authentication);
-    log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix),
-        agent.getId());
-    var success = service.tombstoneAnnotation(prefix, suffix, agent, isAdmin);
-    if (success) {
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    } else {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
-  }
+	@Operation(summary = "Get all versions for a given annotation")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Annotation versions successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = VersionResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getAnnotationVersions(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = HANDLE_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for versions of annotationRequests with id: {}", id);
+		var versions = service.getAnnotationVersions(id, getPath(request));
+		return ResponseEntity.ok(versions);
+	}
 
-  @Operation(summary = "Accept an annotation",
-      description = """
-          Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation.
-          Currently, only accepting specimens is supported.
-          """)
-  @PatchMapping(value = "/{prefix}/{suffix}/accept")
-  public ResponseEntity<Void> acceptAnnotation(
-      Authentication authentication,
-      @Parameter(description = PREFIX_OAS) @PathVariable String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable String suffix
-  ) throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
-    if (!applicationProperties.isAcceptingAnnotations()) {
-      throw new UnsupportedOperationException("Accepting annotations is not permitted");
-    }
-    var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
-    service.acceptAnnotation(prefix, suffix, agent);
-    return ResponseEntity.ok().build();
-  }
+	@Operation(summary = "Tombstone a given annotation", description = """
+			Tombstone a given annotation. Users may only tombstone annotations they created.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Annotation successfully tombstoned") })
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@DeleteMapping(value = "/{prefix}/{suffix}")
+	public ResponseEntity<Void> tombstoneAnnotation(Authentication authentication,
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
+			throws NotFoundException, ForbiddenException, ProcessingFailedException {
+		var agent = getAgent(authentication, ROLE_NAME_ANNOTATOR);
+		var isAdmin = isAdmin(authentication);
+		log.info("Received delete for annotationRequests: {} from user: {}", (prefix + suffix), agent.getId());
+		var success = service.tombstoneAnnotation(prefix, suffix, agent, isAdmin);
+		if (success) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+	}
 
-  private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
-    if (!requestBody.data().type().equals(ANNOTATION)) {
-      throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION.getPid() + " or " + ANNOTATION.getName()
-              + " but was " + requestBody.data().type());
-    }
-    return requestBody.data().attributes();
-  }
+	@Operation(summary = "Accept an annotation",
+			description = """
+					Accept an annotation. Accepting an annotation will modify the target based on the motivation and body of the annotation.
+					Currently, only accepting specimens is supported.
+					""")
+	@PatchMapping(value = "/{prefix}/{suffix}/accept")
+	public ResponseEntity<Void> acceptAnnotation(Authentication authentication,
+			@Parameter(description = PREFIX_OAS) @PathVariable String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable String suffix)
+			throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
+		if (!applicationProperties.isAcceptingAnnotations()) {
+			throw new UnsupportedOperationException("Accepting annotations is not permitted");
+		}
+		var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);
+		service.acceptAnnotation(prefix, suffix, agent);
+		return ResponseEntity.ok().build();
+	}
 
-  private AnnotationEventRequest getAnnotationFromRequestEvent(BatchAnnotationRequest requestBody) {
-    if (!requestBody.data().type().equals(ANNOTATION)) {
-      throw new IllegalArgumentException(
-          "Invalid type. Type must be " + ANNOTATION.getPid() + " or " + ANNOTATION.getName()
-              + " but was " + requestBody.data().type());
-    }
-    return requestBody.data().attributes();
-  }
+	private AnnotationProcessingRequest getAnnotationFromRequest(AnnotationRequest requestBody) {
+		if (!requestBody.data().type().equals(ANNOTATION)) {
+			throw new IllegalArgumentException("Invalid type. Type must be " + ANNOTATION.getPid() + " or "
+					+ ANNOTATION.getName() + " but was " + requestBody.data().type());
+		}
+		return requestBody.data().attributes();
+	}
+
+	private AnnotationEventRequest getAnnotationFromRequestEvent(BatchAnnotationRequest requestBody) {
+		if (!requestBody.data().type().equals(ANNOTATION)) {
+			throw new IllegalArgumentException("Invalid type. Type must be " + ANNOTATION.getPid() + " or "
+					+ ANNOTATION.getName() + " but was " + requestBody.data().type());
+		}
+		return requestBody.data().attributes();
+	}
 
 }

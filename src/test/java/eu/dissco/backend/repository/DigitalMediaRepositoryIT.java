@@ -25,152 +25,139 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 class DigitalMediaRepositoryIT extends BaseRepositoryIT {
 
-  private DigitalMediaRepository repository;
+	private DigitalMediaRepository repository;
 
-  @BeforeEach
-  void setup() {
-    repository = new DigitalMediaRepository(MAPPER, context);
-  }
+	@BeforeEach
+	void setup() {
+		repository = new DigitalMediaRepository(MAPPER, context);
+	}
 
-  @AfterEach
-  void destroy() {
-    context.truncate(DIGITAL_SPECIMEN).execute();
-    context.truncate(DIGITAL_MEDIA_OBJECT).execute();
-  }
+	@AfterEach
+	void destroy() {
+		context.truncate(DIGITAL_SPECIMEN).execute();
+		context.truncate(DIGITAL_MEDIA_OBJECT).execute();
+	}
 
-  @Test
-  void testGetDigitalMediaObjects() {
-    // Given
-    int pageNum1 = 1;
-    int pageNum2 = 2;
-    int pageSize = 10;
-    String specimenId = ID_ALT;
-    var specimen = givenDigitalSpecimenWrapper(specimenId);
-    postDigitalSpecimen(specimen);
-    List<DigitalMedia> mediaObjectsAll = new ArrayList<>();
-    for (int i = 0; i < pageSize * 2; i++) {
-      mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i), specimenId));
-    }
-    postMediaObjects(mediaObjectsAll);
-    List<DigitalMedia> mediaObjectsReceived = new ArrayList<>();
+	@Test
+	void testGetDigitalMediaObjects() {
+		// Given
+		int pageNum1 = 1;
+		int pageNum2 = 2;
+		int pageSize = 10;
+		String specimenId = ID_ALT;
+		var specimen = givenDigitalSpecimenWrapper(specimenId);
+		postDigitalSpecimen(specimen);
+		List<DigitalMedia> mediaObjectsAll = new ArrayList<>();
+		for (int i = 0; i < pageSize * 2; i++) {
+			mediaObjectsAll.add(givenDigitalMediaObject(String.valueOf(i), specimenId));
+		}
+		postMediaObjects(mediaObjectsAll);
+		List<DigitalMedia> mediaObjectsReceived = new ArrayList<>();
 
-    // When
-    var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
-    var pageTwo = repository.getDigitalMediaObjects(pageNum2, pageSize);
-    mediaObjectsReceived.addAll(pageOne);
-    mediaObjectsReceived.addAll(pageTwo);
+		// When
+		var pageOne = repository.getDigitalMediaObjects(pageNum1, pageSize);
+		var pageTwo = repository.getDigitalMediaObjects(pageNum2, pageSize);
+		mediaObjectsReceived.addAll(pageOne);
+		mediaObjectsReceived.addAll(pageTwo);
 
-    // Then
-    assertThat(pageOne).hasSize(pageSize + 1);
-    assertThat(pageTwo).hasSize(pageSize);
-    assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream().map(
-        media -> givenDigitalMediaObject(DOI + media.getDctermsIdentifier(), specimenId)).toList());
-  }
+		// Then
+		assertThat(pageOne).hasSize(pageSize + 1);
+		assertThat(pageTwo).hasSize(pageSize);
+		assertThat(mediaObjectsReceived).hasSameElementsAs(mediaObjectsAll.stream()
+			.map(media -> givenDigitalMediaObject(DOI + media.getDctermsIdentifier(), specimenId))
+			.toList());
+	}
 
-  @Test
-  void testGetLatestDigitalMediaObjectById() {
-    // Given
-    var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
-    var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
+	@Test
+	void testGetLatestDigitalMediaObjectById() {
+		// Given
+		var firstMediaObject = givenDigitalMediaObject(ID, ID_ALT);
+		var secondMediaObject = givenDigitalMediaObject(ID, ID_ALT, 2);
 
-    postMediaObjects(List.of(firstMediaObject, secondMediaObject));
+		postMediaObjects(List.of(firstMediaObject, secondMediaObject));
 
-    // When
-    var receivedResponse = repository.getLatestDigitalMediaObjectById(ID);
+		// When
+		var receivedResponse = repository.getLatestDigitalMediaObjectById(ID);
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(
-        givenDigitalMediaObject(DOI + ID, ID_ALT, 2));
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(givenDigitalMediaObject(DOI + ID, ID_ALT, 2));
+	}
 
-  @Test
-  void testGetLatestDigitalMediaObjectsById() {
-    // Given
-    var expected = List.of(givenDigitalMediaObject(DOI + ID, TARGET_ID),
-        givenDigitalMediaObject(DOI + ID_ALT, TARGET_ID));
-    postMediaObjects(List.of(givenDigitalMediaObject(ID, TARGET_ID),
-        givenDigitalMediaObject(ID_ALT, TARGET_ID)));
+	@Test
+	void testGetLatestDigitalMediaObjectsById() {
+		// Given
+		var expected = List.of(givenDigitalMediaObject(DOI + ID, TARGET_ID),
+				givenDigitalMediaObject(DOI + ID_ALT, TARGET_ID));
+		postMediaObjects(List.of(givenDigitalMediaObject(ID, TARGET_ID), givenDigitalMediaObject(ID_ALT, TARGET_ID)));
 
-    // When
-    var receivedResponse = repository.getLatestDigitalMediaObjectsById(List.of(ID, ID_ALT));
+		// When
+		var receivedResponse = repository.getLatestDigitalMediaObjectsById(List.of(ID, ID_ALT));
 
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(expected);
-  }
+		// Then
+		assertThat(receivedResponse).hasSameElementsAs(expected);
+	}
 
-  @Test
-  void testGetOriginalMediaData() {
-    // Given
-    var expected = MAPPER.createObjectNode()
-        .put("originalData", "yep");
-    postMediaObjects(List.of(givenDigitalMediaObject(ID)));
-    context.update(DIGITAL_MEDIA_OBJECT)
-        .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.jsonb(MAPPER.writeValueAsString(expected)))
-        .where(DIGITAL_MEDIA_OBJECT.ID.eq(ID))
-        .execute();
+	@Test
+	void testGetOriginalMediaData() {
+		// Given
+		var expected = MAPPER.createObjectNode().put("originalData", "yep");
+		postMediaObjects(List.of(givenDigitalMediaObject(ID)));
+		context.update(DIGITAL_MEDIA_OBJECT)
+			.set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.jsonb(MAPPER.writeValueAsString(expected)))
+			.where(DIGITAL_MEDIA_OBJECT.ID.eq(ID))
+			.execute();
 
-    // When
-    var result = repository.getMediaOriginalData(ID);
+		// When
+		var result = repository.getMediaOriginalData(ID);
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-  private void postMediaObjects(List<DigitalMedia> mediaObjects) {
-    // Given
-    List<Query> queryList = new ArrayList<>();
-    for (DigitalMedia mediaObject : mediaObjects) {
-      var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
-          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
-          .set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
-          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
-          .set(DIGITAL_MEDIA_OBJECT.DATA,
-              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
-          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
-          .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              mediaObject.getDctermsCreated().toInstant())
-          .onConflict(DIGITAL_SPECIMEN.ID).doUpdate()
-          .set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
-          .set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
-          .set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
-          .set(DIGITAL_MEDIA_OBJECT.CREATED,
-              mediaObject.getDctermsCreated().toInstant())
-          .set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
-          .set(DIGITAL_MEDIA_OBJECT.DATA,
-              JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
-          .set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
-          .set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED,
-              mediaObject.getDctermsCreated().toInstant());
-      queryList.add(query);
-    }
-    context.batch(queryList).execute();
-  }
+	private void postMediaObjects(List<DigitalMedia> mediaObjects) {
+		// Given
+		List<Query> queryList = new ArrayList<>();
+		for (DigitalMedia mediaObject : mediaObjects) {
+			var query = context.insertInto(DIGITAL_MEDIA_OBJECT)
+				.set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
+				.set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
+				.set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
+				.set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
+				.set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
+				.set(DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
+				.set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
+				.set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.getDctermsCreated().toInstant())
+				.onConflict(DIGITAL_SPECIMEN.ID)
+				.doUpdate()
+				.set(DIGITAL_MEDIA_OBJECT.ID, mediaObject.getDctermsIdentifier())
+				.set(DIGITAL_MEDIA_OBJECT.VERSION, mediaObject.getOdsVersion())
+				.set(DIGITAL_MEDIA_OBJECT.TYPE, mediaObject.getOdsFdoType())
+				.set(DIGITAL_MEDIA_OBJECT.CREATED, mediaObject.getDctermsCreated().toInstant())
+				.set(DIGITAL_MEDIA_OBJECT.MEDIA_URL, mediaObject.getAcAccessURI())
+				.set(DIGITAL_MEDIA_OBJECT.DATA, JSONB.jsonb(MAPPER.writeValueAsString(mediaObject)))
+				.set(DIGITAL_MEDIA_OBJECT.ORIGINAL_DATA, JSONB.valueOf("{}"))
+				.set(DIGITAL_MEDIA_OBJECT.LAST_CHECKED, mediaObject.getDctermsCreated().toInstant());
+			queryList.add(query);
+		}
+		context.batch(queryList).execute();
+	}
 
-  private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen) {
-    // Given
-    context.insertInto(DIGITAL_SPECIMEN)
-        .set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getDctermsIdentifier())
-        .set(DIGITAL_SPECIMEN.VERSION, digitalSpecimen.getOdsVersion())
-        .set(DIGITAL_SPECIMEN.TYPE, digitalSpecimen.getOdsFdoType())
-        .set(DIGITAL_SPECIMEN.MIDSLEVEL,
-            digitalSpecimen.getOdsMidsLevel().shortValue())
-        .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID,
-            digitalSpecimen.getOdsPhysicalSpecimenID())
-        .set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE,
-            digitalSpecimen.getOdsPhysicalSpecimenIDType().value())
-        .set(DIGITAL_SPECIMEN.SPECIMEN_NAME, digitalSpecimen.getOdsSpecimenName())
-        .set(DIGITAL_SPECIMEN.ORGANIZATION_ID,
-            digitalSpecimen.getOdsOrganisationID())
-        .set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID,
-            digitalSpecimen.getOdsSourceSystemID())
-        .set(DIGITAL_SPECIMEN.CREATED,
-            digitalSpecimen.getDctermsCreated().toInstant())
-        .set(DIGITAL_SPECIMEN.LAST_CHECKED, digitalSpecimen.getDctermsCreated().toInstant())
-        .set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(
-            MAPPER.writeValueAsString(digitalSpecimen)))
-        .execute();
-  }
+	private void postDigitalSpecimen(DigitalSpecimen digitalSpecimen) {
+		// Given
+		context.insertInto(DIGITAL_SPECIMEN)
+			.set(DIGITAL_SPECIMEN.ID, digitalSpecimen.getDctermsIdentifier())
+			.set(DIGITAL_SPECIMEN.VERSION, digitalSpecimen.getOdsVersion())
+			.set(DIGITAL_SPECIMEN.TYPE, digitalSpecimen.getOdsFdoType())
+			.set(DIGITAL_SPECIMEN.MIDSLEVEL, digitalSpecimen.getOdsMidsLevel().shortValue())
+			.set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_ID, digitalSpecimen.getOdsPhysicalSpecimenID())
+			.set(DIGITAL_SPECIMEN.PHYSICAL_SPECIMEN_TYPE, digitalSpecimen.getOdsPhysicalSpecimenIDType().value())
+			.set(DIGITAL_SPECIMEN.SPECIMEN_NAME, digitalSpecimen.getOdsSpecimenName())
+			.set(DIGITAL_SPECIMEN.ORGANIZATION_ID, digitalSpecimen.getOdsOrganisationID())
+			.set(DIGITAL_SPECIMEN.SOURCE_SYSTEM_ID, digitalSpecimen.getOdsSourceSystemID())
+			.set(DIGITAL_SPECIMEN.CREATED, digitalSpecimen.getDctermsCreated().toInstant())
+			.set(DIGITAL_SPECIMEN.LAST_CHECKED, digitalSpecimen.getDctermsCreated().toInstant())
+			.set(DIGITAL_SPECIMEN.DATA, JSONB.jsonb(MAPPER.writeValueAsString(digitalSpecimen)))
+			.execute();
+	}
 
 }

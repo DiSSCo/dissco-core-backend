@@ -19,59 +19,48 @@ import tools.jackson.databind.JsonNode;
 @ExtendWith(MockitoExtension.class)
 class WebClientErrorHandlingTest {
 
-  @Mock
-  private ClientResponse clientResponse;
+	@Mock
+	private ClientResponse clientResponse;
 
-  @Mock
-  WebClientResponseException webClientResponseException;
+	@Mock
+	WebClientResponseException webClientResponseException;
 
-  @Test
-  void testUnauthorizedResponse() {
-    // Given
-    given(clientResponse.statusCode()).willReturn(HttpStatus.UNAUTHORIZED);
-    given(clientResponse.bodyToMono(JsonNode.class)).willReturn(
-        Mono.just(MAPPER.createObjectNode()));
+	@Test
+	void testUnauthorizedResponse() {
+		// Given
+		given(clientResponse.statusCode()).willReturn(HttpStatus.UNAUTHORIZED);
+		given(clientResponse.bodyToMono(JsonNode.class)).willReturn(Mono.just(MAPPER.createObjectNode()));
 
-    // When
-    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse, "Handle");
+		// When
+		var result = WebClientErrorHandling.exchangeFilterResponseProcessor(clientResponse, "Handle");
 
-    // Then
-    StepVerifier.create(result)
-        .expectError(WebAuthenticationException.class)
-        .verify();
-  }
+		// Then
+		StepVerifier.create(result).expectError(WebAuthenticationException.class).verify();
+	}
 
-  @Test
-  void testServerErrorResponse() {
-    // Given
-    given(clientResponse.statusCode()).willReturn(HttpStatus.UNPROCESSABLE_CONTENT);
-    given(clientResponse.bodyToMono(JsonNode.class)).willReturn(
-        Mono.just(MAPPER.createObjectNode()));
+	@Test
+	void testServerErrorResponse() {
+		// Given
+		given(clientResponse.statusCode()).willReturn(HttpStatus.UNPROCESSABLE_CONTENT);
+		given(clientResponse.bodyToMono(JsonNode.class)).willReturn(Mono.just(MAPPER.createObjectNode()));
 
-    // When
-    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse, "Annotation");
+		// When
+		var result = WebClientErrorHandling.exchangeFilterResponseProcessor(clientResponse, "Annotation");
 
-    // Then
-    StepVerifier.create(result)
-        .expectError(WebProcessingFailedException.class)
-        .verify();
-  }
+		// Then
+		StepVerifier.create(result).expectError(WebProcessingFailedException.class).verify();
+	}
 
-  @Test
-  void testOkResponse() {
-    // Given
-    given(clientResponse.statusCode()).willReturn(HttpStatus.OK);
+	@Test
+	void testOkResponse() {
+		// Given
+		given(clientResponse.statusCode()).willReturn(HttpStatus.OK);
 
-    // When
-    var result = WebClientErrorHandling.exchangeFilterResponseProcessor(
-        clientResponse, "Mas Scheduler");
+		// When
+		var result = WebClientErrorHandling.exchangeFilterResponseProcessor(clientResponse, "Mas Scheduler");
 
-    // Then
-    StepVerifier.create(result)
-        .expectNext(clientResponse)
-        .verifyComplete();
-  }
+		// Then
+		StepVerifier.create(result).expectNext(clientResponse).verifyComplete();
+	}
 
 }

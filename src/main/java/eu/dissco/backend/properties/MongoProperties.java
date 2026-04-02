@@ -10,10 +10,10 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "mongo")
 public class MongoProperties {
 
-  @NotBlank
-  private String connectionString;
+	@NotBlank
+	private String connectionString;
 
-  @NotBlank
-  private String database;
+	@NotBlank
+	private String database;
 
 }
