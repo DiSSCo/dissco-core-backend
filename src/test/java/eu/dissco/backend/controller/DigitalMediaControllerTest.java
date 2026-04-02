@@ -46,181 +46,178 @@ import org.springframework.security.oauth2.jwt.Jwt;
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaControllerTest {
 
-  @Mock
-  private DigitalMediaService service;
-  @Mock
-  private ApplicationProperties applicationProperties;
-  @Mock
-  private Authentication authentication;
-  private DigitalMediaController controller;
-  private MockHttpServletRequest mockRequest;
+	@Mock
+	private DigitalMediaService service;
 
-  @BeforeEach
-  void setup() {
-    controller = new DigitalMediaController(applicationProperties, MAPPER, service);
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
-  }
+	@Mock
+	private ApplicationProperties applicationProperties;
 
-  @Test
-  void testGetDigitalMediaObjects() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
-    List<String> mediaIds = Collections.nCopies(pageSize, ID);
-    given(service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH)).willReturn(
-        givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, pageNumber, pageSize,
-            mediaIds));
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Mock
+	private Authentication authentication;
 
-    // When
-    var responseReceived = controller.getDigitalMediaObjects(pageNumber, pageSize,
-        mockRequest);
+	private DigitalMediaController controller;
 
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	private MockHttpServletRequest mockRequest;
 
-  @Test
-  void testGetLatestDigitalMediaObjectById() throws NotFoundException {
-    // Given
-    given(service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH)).willReturn(
-        givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@BeforeEach
+	void setup() {
+		controller = new DigitalMediaController(applicationProperties, MAPPER, service);
+		mockRequest = new MockHttpServletRequest();
+		mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
+	}
 
-    // When
-    var responseReceived = controller.getDigitalMediaObjectById(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetDigitalMediaObjects() {
+		// Given
+		int pageNumber = 1;
+		int pageSize = 10;
+		List<String> mediaIds = Collections.nCopies(pageSize, ID);
+		given(service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH))
+			.willReturn(givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, pageNumber, pageSize, mediaIds));
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// When
+		var responseReceived = controller.getDigitalMediaObjects(pageNumber, pageSize, mockRequest);
 
-  @Test
-  void testGetDigitalMediaVersions() throws NotFoundException {
-    // When
-    var responseReceived = controller.getDigitalMediaVersions(PREFIX, SUFFIX, mockRequest);
+		assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getDigitalMediaVersions(eq(DOI + ID), anyString());
-  }
+	@Test
+	void testGetLatestDigitalMediaObjectById() throws NotFoundException {
+		// Given
+		given(service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH))
+			.willReturn(givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetDigitalMediaObjectVersion() throws Exception {
-    // Given
-    int version = 1;
-    given(service.getDigitalMediaObjectByVersion(DOI + ID, version, DIGITAL_MEDIA_PATH)).willReturn(
-        givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// When
+		var responseReceived = controller.getDigitalMediaObjectById(PREFIX, SUFFIX, mockRequest);
 
-    // When
-    var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, SUFFIX, version,
-        mockRequest);
+		// Then
+		assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetDigitalMediaVersions() throws NotFoundException {
+		// When
+		var responseReceived = controller.getDigitalMediaVersions(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testGetAnnotationsById() {
-    // Given
-	var responseExpected = givenAnnotationJsonResponseNoPagination(ORCID_ALT,
-        List.of("1", "2"));
-    given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(
-        responseExpected);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// Then
+		assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getDigitalMediaVersions(eq(DOI + ID), anyString());
+	}
 
-    // When
-    var responseReceived = controller.getMediaAnnotationsById(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetDigitalMediaObjectVersion() throws Exception {
+		// Given
+		int version = 1;
+		given(service.getDigitalMediaObjectByVersion(DOI + ID, version, DIGITAL_MEDIA_PATH))
+			.willReturn(givenDigitalMediaJsonResponse(DIGITAL_MEDIA_PATH, ID));
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(responseReceived.getBody()).isEqualTo(responseExpected);
-  }
+		// When
+		var responseReceived = controller.getDigitalMediaObjectByVersion(PREFIX, SUFFIX, version, mockRequest);
 
-  @Test
-  void testGetMasJobRecordForMedia() {
-    // When
-    var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, JobState.SCHEDULED, 1, 1,
-        mockRequest);
+		// Then
+		assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetAnnotationsById() {
+		// Given
+		var responseExpected = givenAnnotationJsonResponseNoPagination(ORCID_ALT, List.of("1", "2"));
+		given(service.getAnnotationsOnDigitalMedia(ID, DIGITAL_MEDIA_PATH)).willReturn(responseExpected);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetMas() throws NotFoundException {
-    // Given
-    var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
-    given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// When
+		var responseReceived = controller.getMediaAnnotationsById(PREFIX, SUFFIX, mockRequest);
 
-    // When
-    var result = controller.getMassForDigitalMediaObject(PREFIX, SUFFIX, mockRequest);
+		// Then
+		assertThat(responseReceived.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(responseReceived.getBody()).isEqualTo(responseExpected);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isEqualTo(expectedResponse);
-  }
+	@Test
+	void testGetMasJobRecordForMedia() {
+		// When
+		var result = controller.getMasJobRecordForMedia(PREFIX, SUFFIX, JobState.SCHEDULED, 1, 1, mockRequest);
 
-  @Test
-  void testScheduleMas() throws Exception {
-    // Given
-    givenAuthentication();
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, givenMasRequest(),
-        authentication, mockRequest);
+	@Test
+	void testGetMas() throws NotFoundException {
+		// Given
+		var expectedResponse = givenMasResponse(DIGITAL_MEDIA_PATH);
+		given(service.getMass(ID, DIGITAL_MEDIA_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-  }
+		// When
+		var result = controller.getMassForDigitalMediaObject(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testScheduleMasInvalidType() {
-    // Given
-    var request = new MasSchedulingRequest(new MasSchedulingData("Invalid type",
-        new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
-    givenAuthentication();
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).isEqualTo(expectedResponse);
+	}
 
-    // When / Then
-    assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, request, authentication,
-            mockRequest));
-  }
+	@Test
+	void testScheduleMas() throws Exception {
+		// Given
+		givenAuthentication();
 
-  @Test
-  void testGetOriginalDataForMediaForSpecimenForMedia() throws NotFoundException {
-    // When
-    var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
+		// When
+		var result = controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX, givenMasRequest(), authentication,
+				mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+	}
 
-  @Test
-  void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
-    // When
-    var result = controller.getMediaDerivative(PREFIX, SUFFIX);
+	@Test
+	void testScheduleMasInvalidType() {
+		// Given
+		var request = new MasSchedulingRequest(
+				new MasSchedulingData("Invalid type", new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
+		givenAuthentication();
 
-    // Then
-    then(service).should().getMediaDerivative(SUFFIX);
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// When / Then
+		assertThrowsExactly(ConflictException.class, () -> controller.scheduleMassForDigitalMediaObject(PREFIX, SUFFIX,
+				request, authentication, mockRequest));
+	}
 
-  @Test
-  void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
-    // When
-    var result = controller.getMediaThumbnail(PREFIX, SUFFIX);
+	@Test
+	void testGetOriginalDataForMediaForSpecimenForMedia() throws NotFoundException {
+		// When
+		var result = controller.getOriginalDataForMedia(PREFIX, SUFFIX, mockRequest);
 
-    // Then
-    then(service).should().getMediaThumbnail(SUFFIX);
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  private void givenAuthentication() {
-    var principal = mock(Jwt.class);
-    given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(givenClaims());
-  }
+	@Test
+	void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
+		// When
+		var result = controller.getMediaDerivative(PREFIX, SUFFIX);
+
+		// Then
+		then(service).should().getMediaDerivative(SUFFIX);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
+		// When
+		var result = controller.getMediaThumbnail(PREFIX, SUFFIX);
+
+		// Then
+		then(service).should().getMediaThumbnail(SUFFIX);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	private void givenAuthentication() {
+		var principal = mock(Jwt.class);
+		given(authentication.getPrincipal()).willReturn(principal);
+		given(principal.getClaims()).willReturn(givenClaims());
+	}
 
 }

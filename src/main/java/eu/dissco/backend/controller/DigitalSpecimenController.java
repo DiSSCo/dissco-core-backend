@@ -53,420 +53,354 @@ import tools.jackson.databind.json.JsonMapper;
 @RequestMapping("/digital-specimen/v1")
 public class DigitalSpecimenController extends BaseController {
 
-  private final DigitalSpecimenService service;
+	private final DigitalSpecimenService service;
 
-  public DigitalSpecimenController(ApplicationProperties applicationProperties, JsonMapper mapper,
-      DigitalSpecimenService service) {
-    super(mapper, applicationProperties);
-    this.service = service;
-  }
+	public DigitalSpecimenController(ApplicationProperties applicationProperties, JsonMapper mapper,
+			DigitalSpecimenService service) {
+		super(mapper, applicationProperties);
+		this.service = service;
+	}
 
-  @Operation(summary = "Get paginated digital specimen")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimens successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getSpecimen(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) throws IOException {
-    log.info("Received get request for specimen");
-    var specimen = service.getSpecimen(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Get paginated digital specimen")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimens successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getSpecimen(
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) throws IOException {
+		log.info("Received get request for specimen");
+		var specimen = service.getSpecimen(pageNumber, pageSize, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(summary = "Get latest paginated digital specimens")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimens successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseList.class))
-      })
-  })
-  @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) throws IOException {
-    log.info("Received get request for latest digital specimen");
-    var specimens = service.getLatestSpecimen(pageNumber, pageSize, getPath(request));
-    return ResponseEntity.ok(specimens);
-  }
+	@Operation(summary = "Get latest paginated digital specimens")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimens successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseList.class)) }) })
+	@GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getLatestSpecimen(
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) throws IOException {
+		log.info("Received get request for latest digital specimen");
+		var specimens = service.getLatestSpecimen(pageNumber, pageSize, getPath(request));
+		return ResponseEntity.ok(specimens);
+	}
 
-  @Operation(summary = "Get digital specimen by ID")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseSingle.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenById(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for specimen with id: {}", id);
-    var specimen = service.getSpecimenById(id, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Get digital specimen by ID")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseSingle.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getSpecimenById(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for specimen with id: {}", id);
+		var specimen = service.getSpecimenById(id, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(summary = "Get full digital specimen by ID",
-      description = """
-          Returns full version of a given digital specimen, including digital media associated with the specimen and annotations.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseFull.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenByIdFull(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for full specimen with id: {}", id);
-    var specimen = service.getSpecimenByIdFull(id, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Get full digital specimen by ID",
+			description = """
+					Returns full version of a given digital specimen, including digital media associated with the specimen and annotations.
+					""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseFull.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/full", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getSpecimenByIdFull(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for full specimen with id: {}", id);
+		var specimen = service.getSpecimenByIdFull(id, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(summary = "Get full digital specimen by ID and version",
-      description = """
-          Returns full version of a given digital specimen, including digital media associated with the specimen and annotations.
-          """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseFull.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/{version}/full", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenByVersionFull(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      @PathVariable("version") int version,
-      HttpServletRequest request) throws NotFoundException {
-    var id = DOI_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for full specimen with id: {} and version: {}", id, version);
-    var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Get full digital specimen by ID and version",
+			description = """
+					Returns full version of a given digital specimen, including digital media associated with the specimen and annotations.
+					""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseFull.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/{version}/full", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getSpecimenByVersionFull(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
+			@PathVariable("version") int version, HttpServletRequest request) throws NotFoundException {
+		var id = DOI_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for full specimen with id: {} and version: {}", id, version);
+		var specimen = service.getSpecimenByVersionFull(id, version, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(summary = "Get digital specimen by ID and version")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseSingle.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
-      @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("version") int version,
-      HttpServletRequest request)
-      throws NotFoundException {
-    var id = DOI_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for specimen with id and version: {}", id);
-    var specimen = service.getSpecimenByVersion(id, version, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Get digital specimen by ID and version")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Digital specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseSingle.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/{version}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getSpecimenByVersion(@PathVariable("prefix") String prefix,
+			@Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("version") int version, HttpServletRequest request)
+			throws NotFoundException {
+		var id = DOI_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for specimen with id and version: {}", id);
+		var specimen = service.getSpecimenByVersion(id, version, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(summary = "Get all versions for a given digital specimen")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen versions successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = VersionResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getSpecimenVersions(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = DOI_PROXY + prefix + '/' + suffix;
-    log.info("Received get request for specimen with id and version: {}", id);
-    var versions = service.getSpecimenVersions(id, getPath(request));
-    return ResponseEntity.ok(versions);
-  }
+	@Operation(summary = "Get all versions for a given digital specimen")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Digital specimen versions successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = VersionResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/versions", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getSpecimenVersions(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = DOI_PROXY + prefix + '/' + suffix;
+		log.info("Received get request for specimen with id and version: {}", id);
+		var versions = service.getSpecimenVersions(id, getPath(request));
+		return ResponseEntity.ok(versions);
+	}
 
-  @Operation(summary = "Get annotations for a given digital specimen")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen annotations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getSpecimenAnnotations(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for annotationRequests of specimen with id: {}", id);
-    var annotations = service.getAnnotations(id, getPath(request));
-    return ResponseEntity.ok(annotations);
-  }
+	@Operation(summary = "Get annotations for a given digital specimen")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Digital specimen annotations successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/annotations", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getSpecimenAnnotations(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for annotationRequests of specimen with id: {}", id);
+		var annotations = service.getAnnotations(id, getPath(request));
+		return ResponseEntity.ok(annotations);
+	}
 
-  @Operation(summary = "Get digital media for a given digital specimen")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital specimen media successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalMediaResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/digital-media", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for digital media of specimen with id: {}", id);
-    var digitalMedia = service.getDigitalMedia(id, getPath(request));
-    return ResponseEntity.ok(digitalMedia);
-  }
+	@Operation(summary = "Get digital media for a given digital specimen")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Digital specimen media successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = DigitalMediaResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/digital-media", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getSpecimenDigitalMedia(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = PREFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for digital media of specimen with id: {}", id);
+		var digitalMedia = service.getDigitalMedia(id, getPath(request));
+		return ResponseEntity.ok(digitalMedia);
+	}
 
-  @Operation(
-      summary = "Get MAS jobs for digital media",
-      description = """
-          Retrieves a list of Machine Annotation Service Job Records (MJRs).
-          These are scheduled, running, or completed machine annotation service jobs.
-          Pagination is offered.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS Job records successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForSpecimen(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      HttpServletRequest request) {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for MAS Job records for specimen {}", id);
-    String path = getPath(request);
-    return ResponseEntity.ok(
-        service.getMasJobRecordsForSpecimen(id, state, path, pageNumber, pageSize));
-  }
+	@Operation(summary = "Get MAS jobs for digital media", description = """
+			Retrieves a list of Machine Annotation Service Job Records (MJRs).
+			These are scheduled, running, or completed machine annotation service jobs.
+			Pagination is offered.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS Job records successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/{prefix}/{suffix}/mjr", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForSpecimen(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
+			@Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			HttpServletRequest request) {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for MAS Job records for specimen {}", id);
+		String path = getPath(request);
+		return ResponseEntity.ok(service.getMasJobRecordsForSpecimen(id, state, path, pageNumber, pageSize));
+	}
 
-  @Operation(
-      summary = "Search for digital specimen",
-      description = """
-          The Specimen Search endpoint allows for comprehensive filtering using standard key-value pairs, a free-text search, and field existence checks.
-          
-          `1. Search for exact matches (with optional wildcard * support) using the following parameters:
-          * country
-          * countryCode
-          * midsLevel
-          * physicalSpecimenID
-          * typeStatus
-          * organisatonID
-          * organisationName
-          * sourceSystemID
-          * sourceSystemName
-          * specimenName
-          * datasetName
-          * collectionCode
-          * identifiedBy
-          * basisOfRecord
-          * livingOrPreserved
-          * habitat
-          * virtualCollectionId
-          
-          2. Use the q parameter for a full-text search across various fields
-          
-          3. Filter results based on whether a specific field exists (true) or does not exist (false) on a specimen record
-          * hasLongitude
-          * hasKingdom
-          * hasGenus
-          * hasLocality
-          * hasFamily
-          * hasSpecies
-          * hasOrder
-          * hasClass
-          * hasLatitude
-          * hasPhylum
-          * hasCountry
-          
-          An example of all three types of queries: /search?q=Sabellaria+bellis&topicDiscipline=Zoology&midsLevel=1&hasCountry=true
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Search results successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = DigitalSpecimenResponseList.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> search(
-      @Parameter(description = "Search parameters") @RequestParam MultiValueMap<String, String> params,
-      HttpServletRequest request) throws IOException, UnknownParameterException {
-    log.info("Received request params: {}", params);
-    var specimen = service.search(params, getPath(request));
-    return ResponseEntity.ok(specimen);
-  }
+	@Operation(summary = "Search for digital specimen",
+			description = """
+					The Specimen Search endpoint allows for comprehensive filtering using standard key-value pairs, a free-text search, and field existence checks.
 
-  @Operation(
-      summary = "Aggregate digital specimens",
-      description = """
-          Accepts key-value pairs of terns to aggregate on. If no aggregation terms are set, returns 
-          aggregations on all aggregatable terms.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AggregationResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> aggregation(
-      @Parameter(description = "Aggregation terms") @RequestParam MultiValueMap<String, String> params,
-      HttpServletRequest request) throws IOException, UnknownParameterException {
-    log.info("Request for aggregations");
-    var aggregations = service.aggregations(params, getPath(request));
-    return ResponseEntity.ok(aggregations);
-  }
+					`1. Search for exact matches (with optional wildcard * support) using the following parameters:
+					* country
+					* countryCode
+					* midsLevel
+					* physicalSpecimenID
+					* typeStatus
+					* organisatonID
+					* organisationName
+					* sourceSystemID
+					* sourceSystemName
+					* specimenName
+					* datasetName
+					* collectionCode
+					* identifiedBy
+					* basisOfRecord
+					* livingOrPreserved
+					* habitat
+					* virtualCollectionId
 
-  @Operation(
-      summary = "Aggregate digital specimens on taxonomy",
-      description = """
-          Accepts key-value pairs of terns to aggregate on.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Taxonomic aggregations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AggregationResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "taxonomy/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> taxonAggregation(
-      @Parameter(description = "Taxonomic aggregation terms") @RequestParam MultiValueMap<String, String> params,
-      HttpServletRequest request) throws IOException, UnknownParameterException {
-    log.info("Request for taxonomy aggregations");
-    var aggregations = service.taxonAggregations(params, getPath(request));
-    return ResponseEntity.ok(aggregations);
-  }
+					2. Use the q parameter for a full-text search across various fields
 
+					3. Filter results based on whether a specific field exists (true) or does not exist (false) on a specimen record
+					* hasLongitude
+					* hasKingdom
+					* hasGenus
+					* hasLocality
+					* hasFamily
+					* hasSpecies
+					* hasOrder
+					* hasClass
+					* hasLatitude
+					* hasPhylum
+					* hasCountry
 
-  @Operation(
-      summary = "Aggregate digital specimens on topic discipline"
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AggregationResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/discipline", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> discipline(HttpServletRequest request) throws IOException {
-    log.info("Request for discipline aggregations");
-    var aggregations = service.discipline(getPath(request));
-    return ResponseEntity.ok(aggregations);
-  }
+					An example of all three types of queries: /search?q=Sabellaria+bellis&topicDiscipline=Zoology&midsLevel=1&hasCountry=true
+					""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Search results successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = DigitalSpecimenResponseList.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> search(
+			@Parameter(description = "Search parameters") @RequestParam MultiValueMap<String, String> params,
+			HttpServletRequest request) throws IOException, UnknownParameterException {
+		log.info("Received request params: {}", params);
+		var specimen = service.search(params, getPath(request));
+		return ResponseEntity.ok(specimen);
+	}
 
-  @Operation(
-      summary = "Aggregate digital specimens using search terms"
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AggregationResponse.class))
-      })
-  })
-  @ResponseStatus(HttpStatus.OK)
-  @GetMapping(value = "/searchTermValue", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> searchTermValue(
-      @Parameter(description = "Term to search on") @RequestParam String term,
-      @Parameter(description = "Value of term") @RequestParam String value,
-      @Parameter(description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
-      HttpServletRequest request)
-      throws IOException, UnknownParameterException {
-    log.info("Request text search for term value of term: {} with value: {}", term, value);
-    var result = service.searchTermValue(term, value, getPath(request), sort);
-    return ResponseEntity.ok(result);
-  }
+	@Operation(summary = "Aggregate digital specimens", description = """
+			Accepts key-value pairs of terns to aggregate on. If no aggregation terms are set, returns
+			aggregations on all aggregatable terms.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AggregationResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> aggregation(
+			@Parameter(description = "Aggregation terms") @RequestParam MultiValueMap<String, String> params,
+			HttpServletRequest request) throws IOException, UnknownParameterException {
+		log.info("Request for aggregations");
+		var aggregations = service.aggregations(params, getPath(request));
+		return ResponseEntity.ok(aggregations);
+	}
 
-  @Operation(
-      summary = "Get MASs that may be run on the given digital specimen",
-      description = """
-          Retrieves a list of Machine Annotation Services (MASs) suitable for processing a given
-          digital specimen, based on the MASs' respective filter criteria.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Digital media MASs successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = AnnotationResponseList.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalSpecimen(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var id = prefix + '/' + suffix;
-    log.info("Received get request for mass for digital specimen: {}", id);
-    var mass = service.getMass(id, getPath(request));
-    return ResponseEntity.ok(mass);
-  }
+	@Operation(summary = "Aggregate digital specimens on taxonomy", description = """
+			Accepts key-value pairs of terns to aggregate on.
+			""")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Taxonomic aggregations successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AggregationResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "taxonomy/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> taxonAggregation(
+			@Parameter(description = "Taxonomic aggregation terms") @RequestParam MultiValueMap<String, String> params,
+			HttpServletRequest request) throws IOException, UnknownParameterException {
+		log.info("Request for taxonomy aggregations");
+		var aggregations = service.taxonAggregations(params, getPath(request));
+		return ResponseEntity.ok(aggregations);
+	}
 
-  @Operation(
-      summary = "Get original digital media data",
-      description = """
-          DiSSCo provides harmonised data according to the OpenDS specification.
-          This endpoint provides the unharmonised data as it appears in the source system.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Original Data successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = JsonApiWrapper.class))
-      })
-  })
-  @GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getOriginalDataForSpecimen(
-      @PathVariable("prefix") String prefix,
-      @PathVariable("suffix") String suffix,
-      HttpServletRequest request) throws NotFoundException {
-    var path = getPath(request);
-    var id = prefix + '/' + suffix;
-    return ResponseEntity.ok(service.getOriginalDataForSpecimen(id, path));
-  }
+	@Operation(summary = "Aggregate digital specimens on topic discipline")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AggregationResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/discipline", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> discipline(HttpServletRequest request) throws IOException {
+		log.info("Request for discipline aggregations");
+		var aggregations = service.discipline(getPath(request));
+		return ResponseEntity.ok(aggregations);
+	}
 
-  @Operation(
-      summary = "Schedule Machine Annotation Services",
-      description = """
-          Schedules applicable MASs on a given digital media.
-          Only users who have provided their ORCID may schedule MASs.
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS successfully scheduled", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
-      })
-  })
-  @PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
-      @PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
-      @RequestBody MasSchedulingRequest requestBody, Authentication authentication,
-      HttpServletRequest request)
-      throws ConflictException, ForbiddenException, ProcessingFailedException {
-    var path = getPath(request);
-    var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
-    var id = prefix + '/' + suffix;
-    var masRequests = getMassRequestFromRequest(requestBody);
-    log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}",
-        masRequests, id);
-    return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
-  }
+	@Operation(summary = "Aggregate digital specimens using search terms")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AggregationResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/searchTermValue", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> searchTermValue(
+			@Parameter(description = "Term to search on") @RequestParam String term,
+			@Parameter(description = "Value of term") @RequestParam String value,
+			@Parameter(description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
+			HttpServletRequest request) throws IOException, UnknownParameterException {
+		log.info("Request text search for term value of term: {} with value: {}", term, value);
+		var result = service.searchTermValue(term, value, getPath(request), sort);
+		return ResponseEntity.ok(result);
+	}
+
+	@Operation(summary = "Get MASs that may be run on the given digital specimen", description = """
+			Retrieves a list of Machine Annotation Services (MASs) suitable for processing a given
+			digital specimen, based on the MASs' respective filter criteria.
+			""")
+	@ApiResponses(
+			value = { @ApiResponse(responseCode = "200", description = "Digital media MASs successfully retrieved",
+					content = { @Content(mediaType = "application/json",
+							schema = @Schema(implementation = AnnotationResponseList.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMassForDigitalSpecimen(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix, HttpServletRequest request)
+			throws NotFoundException {
+		var id = prefix + '/' + suffix;
+		log.info("Received get request for mass for digital specimen: {}", id);
+		var mass = service.getMass(id, getPath(request));
+		return ResponseEntity.ok(mass);
+	}
+
+	@Operation(summary = "Get original digital media data", description = """
+			DiSSCo provides harmonised data according to the OpenDS specification.
+			This endpoint provides the unharmonised data as it appears in the source system.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Original Data successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = JsonApiWrapper.class)) }) })
+	@GetMapping(value = "/{prefix}/{suffix}/original-data", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getOriginalDataForSpecimen(@PathVariable("prefix") String prefix,
+			@PathVariable("suffix") String suffix, HttpServletRequest request) throws NotFoundException {
+		var path = getPath(request);
+		var id = prefix + '/' + suffix;
+		return ResponseEntity.ok(service.getOriginalDataForSpecimen(id, path));
+	}
+
+	@Operation(summary = "Schedule Machine Annotation Services", description = """
+			Schedules applicable MASs on a given digital media.
+			Only users who have provided their ORCID may schedule MASs.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS successfully scheduled",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseList.class)) }) })
+	@PostMapping(value = "/{prefix}/{suffix}/mas", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> scheduleMassForDigitalSpecimen(
+			@PathVariable("prefix") String prefix, @PathVariable("suffix") String suffix,
+			@RequestBody MasSchedulingRequest requestBody, Authentication authentication, HttpServletRequest request)
+			throws ConflictException, ForbiddenException, ProcessingFailedException {
+		var path = getPath(request);
+		var orcid = getAgent(authentication, ROLE_NAME_ANNOTATOR).getId();
+		var id = prefix + '/' + suffix;
+		var masRequests = getMassRequestFromRequest(requestBody);
+		log.info("Received request to schedule all relevant MASs for: {} on digital specimen: {}", masRequests, id);
+		return ResponseEntity.accepted().body(service.scheduleMass(id, masRequests, orcid, path));
+	}
 
 }
-
-

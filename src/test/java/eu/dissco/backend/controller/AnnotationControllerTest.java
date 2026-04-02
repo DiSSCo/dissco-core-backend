@@ -63,313 +63,291 @@ import org.springframework.security.oauth2.jwt.Jwt;
 @ExtendWith(MockitoExtension.class)
 class AnnotationControllerTest {
 
-  @Mock
-  private AnnotationService service;
-  @Mock
-  private Authentication authentication;
-  @Mock
-  private ApplicationProperties applicationProperties;
-  @Mock
-  private SchemaValidatorComponent validatorComponent;
-  private AnnotationController controller;
+	@Mock
+	private AnnotationService service;
 
-  private MockHttpServletRequest mockRequest;
+	@Mock
+	private Authentication authentication;
 
-  @BeforeEach
-  void setup() {
-    controller = new AnnotationController(applicationProperties, MAPPER, service,
-        validatorComponent);
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(ANNOTATION_URI);
-  }
+	@Mock
+	private ApplicationProperties applicationProperties;
 
-  @Test
-  void testGetAnnotation() throws NotFoundException {
-    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Mock
+	private SchemaValidatorComponent validatorComponent;
 
-    // When
-    var receivedResponse = controller.getAnnotation(PREFIX, SUFFIX, mockRequest);
+	private AnnotationController controller;
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
+	private MockHttpServletRequest mockRequest;
 
-  @Test
-  void testGetAnnotationVersion() throws Exception {
-    // Given
-    int version = 1;
-    var expectedResponse = ResponseEntity.ok(
-        givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
-    given(service.getAnnotationByVersion(HANDLE + ID, version, ANNOTATION_PATH)).willReturn(
-        expectedResponse.getBody());
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@BeforeEach
+	void setup() {
+		controller = new AnnotationController(applicationProperties, MAPPER, service, validatorComponent);
+		mockRequest = new MockHttpServletRequest();
+		mockRequest.setRequestURI(ANNOTATION_URI);
+	}
 
-    // When
-    var receivedResponse = controller.getAnnotationByVersion(PREFIX, SUFFIX, version, mockRequest);
+	@Test
+	void testGetAnnotation() throws NotFoundException {
+		var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+		given(service.getAnnotation(ID, ANNOTATION_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+		// When
+		var receivedResponse = controller.getAnnotation(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testGetAnnotations() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 11;
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+	}
 
-    var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize,
-        ORCID_ALT, ID, true);
-    var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Test
+	void testGetAnnotationVersion() throws Exception {
+		// Given
+		int version = 1;
+		var expectedResponse = ResponseEntity.ok(givenAnnotationResponseSingleDataNode(ANNOTATION_PATH));
+		given(service.getAnnotationByVersion(HANDLE + ID, version, ANNOTATION_PATH))
+			.willReturn(expectedResponse.getBody());
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // When
-    var receivedResponse = controller.getAnnotations(pageNumber, pageSize, mockRequest);
+		// When
+		var receivedResponse = controller.getAnnotationByVersion(PREFIX, SUFFIX, version, mockRequest);
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
 
-  @Test
-  void testCreateAnnotation() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var annotation = givenAnnotationRequest();
+	@Test
+	void testGetAnnotations() {
+		// Given
+		int pageNumber = 1;
+		int pageSize = 11;
 
-    var request = givenAnnotationRequestObject();
-    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotation(annotation, givenAgent(), ANNOTATION_PATH))
-        .willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		var expectedJson = givenAnnotationJsonResponse(ANNOTATION_PATH, pageNumber, pageSize, ORCID_ALT, ID, true);
+		var expectedResponse = ResponseEntity.ok(expectedJson);
+		given(service.getAnnotations(pageNumber, pageSize, ANNOTATION_PATH)).willReturn(expectedJson);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // When
-    var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
+		// When
+		var receivedResponse = controller.getAnnotations(pageNumber, pageSize, mockRequest);
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
 
-  @Test
-  void testPersistAnnotationMissingOrcid() {
-    // given
-    var principal = mock(Jwt.class);
-    given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(Map.of(
-        "client-id", "demo-api-client"
-    ));
-    var request = givenAnnotationRequestObject();
+	@Test
+	void testCreateAnnotation() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var annotation = givenAnnotationRequest();
 
-    // When / Then
-    assertThrowsExactly(ForbiddenException.class,
-        () -> controller.createAnnotation(authentication, request, mockRequest));
-  }
+		var request = givenAnnotationRequestObject();
+		var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+		given(service.persistAnnotation(annotation, givenAgent(), ANNOTATION_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetBatchConfirmation() throws Exception {
-    // When
-    var result = controller.getCountForBatchAnnotations(new BatchAnnotationCountRequest(
-        new BatchAnnotationCountRequestData(
-            "atchAnnotationCountRequest",
-            new BatchAnnotationCountRequestAttributes(
-                givenBatchMetadata(), AnnotationTargetType.DIGITAL_SPECIMEN
-            ))));
+		// When
+		var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+	}
 
-  @Test
-  void testCreateAnnotationBatch() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var event = givenAnnotationEventRequest();
-    var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
-        .willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Test
+	void testPersistAnnotationMissingOrcid() {
+		// given
+		var principal = mock(Jwt.class);
+		given(authentication.getPrincipal()).willReturn(principal);
+		given(principal.getClaims()).willReturn(Map.of("client-id", "demo-api-client"));
+		var request = givenAnnotationRequestObject();
 
-    // When
-    var receivedResponse = controller.createAnnotationBatch(authentication,
-        givenBatchAnnotationRequestObject(), mockRequest);
+		// When / Then
+		assertThrowsExactly(ForbiddenException.class,
+				() -> controller.createAnnotation(authentication, request, mockRequest));
+	}
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
+	@Test
+	void testGetBatchConfirmation() throws Exception {
+		// When
+		var result = controller.getCountForBatchAnnotations(
+				new BatchAnnotationCountRequest(new BatchAnnotationCountRequestData("atchAnnotationCountRequest",
+						new BatchAnnotationCountRequestAttributes(givenBatchMetadata(),
+								AnnotationTargetType.DIGITAL_SPECIMEN))));
 
-  @Test
-  void testCreateAnnotationNullResponse() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var request = givenAnnotationRequestObject();
-    given(
-        service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(
-        null);
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
+	@Test
+	void testCreateAnnotationBatch() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var event = givenAnnotationEventRequest();
+		var expectedResponse = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+		given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// When
+		var receivedResponse = controller.createAnnotationBatch(authentication, givenBatchAnnotationRequestObject(),
+				mockRequest);
 
-  @Test
-  void testCreateAnnotationBatchNullResponse() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var event = givenAnnotationEventRequest();
-    given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH))
-        .willReturn(null);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+	}
 
-    // When
-    var receivedResponse = controller.createAnnotationBatch(authentication,
-        givenBatchAnnotationRequestObject(), mockRequest);
+	@Test
+	void testCreateAnnotationNullResponse() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var request = givenAnnotationRequestObject();
+		given(service.persistAnnotation(any(AnnotationProcessingRequest.class), any(), any())).willReturn(null);
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// When
+		var receivedResponse = controller.createAnnotation(authentication, request, mockRequest);
 
-  @Test
-  void testUpdateAnnotation() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var annotation = givenAnnotationRequest();
-    var requestBody = givenAnnotationRequestObject();
-    var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
-    given(service.updateAnnotation(ID, annotation, givenAgent(), ANNOTATION_PATH, PREFIX,
-        SUFFIX)).willReturn(
-        expected);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX,
-        mockRequest);
+	@Test
+	void testCreateAnnotationBatchNullResponse() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var event = givenAnnotationEventRequest();
+		given(service.persistAnnotationBatch(event, givenAgent(), ANNOTATION_PATH)).willReturn(null);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isEqualTo(expected);
-  }
+		// When
+		var receivedResponse = controller.createAnnotationBatch(authentication, givenBatchAnnotationRequestObject(),
+				mockRequest);
 
-  @Test
-  void testGetAnnotationsForUserJsonResponse() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest,
-        authentication);
+	@Test
+	void testUpdateAnnotation() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var annotation = givenAnnotationRequest();
+		var requestBody = givenAnnotationRequestObject();
+		var expected = givenAnnotationResponseSingleDataNode(ANNOTATION_PATH);
+		given(service.updateAnnotation(ID, annotation, givenAgent(), ANNOTATION_PATH, PREFIX, SUFFIX))
+			.willReturn(expected);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// When
+		var result = controller.updateAnnotation(authentication, requestBody, PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testGetAnnotationsByVersion() throws NotFoundException {
-    // Given
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).isEqualTo(expected);
+	}
 
-    // When
-    var receivedResponse = controller.getAnnotationVersions(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetAnnotationsForUserJsonResponse() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getAnnotationVersions(eq(HANDLE + ID), anyString());
-  }
+		// When
+		var receivedResponse = controller.getAnnotationsForUser(1, 1, mockRequest, authentication);
 
-  @ParameterizedTest
-  @MethodSource("nonValidAdminClaims")
-  void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims)
-      throws Exception {
-    // Given
-    givenAuthentication(authentication, claims);
-    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
+	@Test
+	void testGetAnnotationsByVersion() throws NotFoundException {
+		// Given
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-  }
+		// When
+		var receivedResponse = controller.getAnnotationVersions(PREFIX, SUFFIX, mockRequest);
 
-  private static Stream<Arguments> nonValidAdminClaims() {
-    return Stream.of(
-        Arguments.of(givenClaims()),
-        Arguments.of(Map.of(
-            "orcid", ORCID,
-            "given_name", "Sam",
-            "family_name", "Leeflang",
-            "realm_access", Map.of("roles", List.of("dissco-user")))),
-        Arguments.of(Map.of(
-            "orcid", ORCID,
-            "given_name", "Sam",
-            "family_name", "Leeflang",
-            "realm_access", Map.of("roles", "dissco-admin"))));
-  }
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getAnnotationVersions(eq(HANDLE + ID), anyString());
+	}
 
-  @Test
-  void testTombstoneAnnotationSuccessAdmin() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenAdminClaims());
-    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true)).willReturn(true);
+	@ParameterizedTest
+	@MethodSource("nonValidAdminClaims")
+	void testTombstoneAnnotationSuccessNonValidAdminClaims(Map<String, Object> claims) throws Exception {
+		// Given
+		givenAuthentication(authentication, claims);
+		given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(true);
 
-    // When
-    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
+		// When
+		var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-  }
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+	}
 
-  @Test
-  void testTombstoneAnnotationFailure() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(false);
+	private static Stream<Arguments> nonValidAdminClaims() {
+		return Stream.of(Arguments.of(givenClaims()),
+				Arguments.of(Map.of("orcid", ORCID, "given_name", "Sam", "family_name", "Leeflang", "realm_access",
+						Map.of("roles", List.of("dissco-user")))),
+				Arguments.of(Map.of("orcid", ORCID, "given_name", "Sam", "family_name", "Leeflang", "realm_access",
+						Map.of("roles", "dissco-admin"))));
+	}
 
-    // When
-    var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
+	@Test
+	void testTombstoneAnnotationSuccessAdmin() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenAdminClaims());
+		given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), true)).willReturn(true);
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-  }
+		// When
+		var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
 
-  @Test
-  void testAcceptAnnotationsUnsupported() {
-    // Given
-    given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+	}
 
-    // When / Then
-    assertThrowsExactly(
-        UnsupportedOperationException.class,
-        () -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
-  }
+	@Test
+	void testTombstoneAnnotationFailure() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		given(service.tombstoneAnnotation(PREFIX, SUFFIX, givenAgent(), false)).willReturn(false);
 
-  @Test
-  void testAcceptAnnotations() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenAdminClaims());
-    given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
+		// When
+		var receivedResponse = controller.tombstoneAnnotation(authentication, PREFIX, SUFFIX);
 
-    // When
-    var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
 
-    // Then
-    then(service).should()
-        .acceptAnnotation(PREFIX, SUFFIX, givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR));
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testAcceptAnnotationsUnsupported() {
+		// Given
+		given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
 
-  public static AnnotationRequest givenAnnotationRequestObject() {
-    return new AnnotationRequest(
-        new AnnotationRequestData(FdoType.ANNOTATION, givenAnnotationRequest()));
-  }
+		// When / Then
+		assertThrowsExactly(UnsupportedOperationException.class,
+				() -> controller.acceptAnnotation(authentication, PREFIX, SUFFIX));
+	}
 
-  public static BatchAnnotationRequest givenBatchAnnotationRequestObject() {
-    return new BatchAnnotationRequest(new BatchAnnotationRequestData(
-        FdoType.ANNOTATION, givenAnnotationEventRequest()));
-  }
+	@Test
+	void testAcceptAnnotations() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenAdminClaims());
+		given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
+
+		// When
+		var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
+
+		// Then
+		then(service).should().acceptAnnotation(PREFIX, SUFFIX, givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR));
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	public static AnnotationRequest givenAnnotationRequestObject() {
+		return new AnnotationRequest(new AnnotationRequestData(FdoType.ANNOTATION, givenAnnotationRequest()));
+	}
+
+	public static BatchAnnotationRequest givenBatchAnnotationRequestObject() {
+		return new BatchAnnotationRequest(
+				new BatchAnnotationRequestData(FdoType.ANNOTATION, givenAnnotationEventRequest()));
+	}
 
 }

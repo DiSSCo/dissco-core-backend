@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("security")
 public class SecurityProperties {
 
-  @NotBlank
-  private String clientId = "dissco-backend";
+	@NotBlank
+	private String clientId = "dissco-backend";
 
 }

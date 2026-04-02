@@ -27,82 +27,74 @@ import reactor.netty.http.client.HttpClient;
 @RequiredArgsConstructor
 public class WebClientConfiguration {
 
-  private final WebConnectionProperties properties;
+	private final WebConnectionProperties properties;
 
-  @Bean
-  public OAuth2AuthorizedClientManager authorizedClientManager(
-      ClientRegistrationRepository clientRegistrationRepository,
-      OAuth2AuthorizedClientService clientService) {
-    var authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder
-        .builder()
-        .refreshToken()
-        .clientCredentials()
-        .build();
-    var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(
-        clientRegistrationRepository, clientService
-    );
-    authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
-    return authorizedClientManager;
-  }
+	@Bean
+	public OAuth2AuthorizedClientManager authorizedClientManager(
+			ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService clientService) {
+		var authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder()
+			.refreshToken()
+			.clientCredentials()
+			.build();
+		var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+				clientRegistrationRepository, clientService);
+		authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+		return authorizedClientManager;
+	}
 
-  @Bean
-  public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
-    // Error Exchange filtering
-    var proxyFactory = createProxyFactory("Handle", properties.getAnnotationEndpoint(),
-        authorizedClientManager);
-    // Create client proxy
-    return proxyFactory.createClient(HandleClient.class);
-  }
+	@Bean
+	public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+		// Error Exchange filtering
+		var proxyFactory = createProxyFactory("Handle", properties.getAnnotationEndpoint(), authorizedClientManager);
+		// Create client proxy
+		return proxyFactory.createClient(HandleClient.class);
+	}
 
-  @Bean
-  public AnnotationClient annotationClient() {
-    var proxyFactory = createProxyFactory("Annotation", properties.getAnnotationEndpoint(), null);
-    // Create client proxy
-    return proxyFactory.createClient(AnnotationClient.class);
-  }
+	@Bean
+	public AnnotationClient annotationClient() {
+		var proxyFactory = createProxyFactory("Annotation", properties.getAnnotationEndpoint(), null);
+		// Create client proxy
+		return proxyFactory.createClient(AnnotationClient.class);
+	}
 
-  @Bean
-  public MasClient masClient() {
-    var proxyFactory = createProxyFactory("MAS Scheduler", properties.getMasEndpoint(), null);
-    // Create client proxy
-    return proxyFactory.createClient(MasClient.class);
-  }
+	@Bean
+	public MasClient masClient() {
+		var proxyFactory = createProxyFactory("MAS Scheduler", properties.getMasEndpoint(), null);
+		// Create client proxy
+		return proxyFactory.createClient(MasClient.class);
+	}
 
-  @Bean
-  public ProcessorClient processorClient(OAuth2AuthorizedClientManager authorizedClientManager) {
-    var proxyFactory = createProxyFactory("Processing", properties.getProcessorEndpoint(),
-        authorizedClientManager);
-    // Create client proxy
-    return proxyFactory.createClient(ProcessorClient.class);
-  }
+	@Bean
+	public ProcessorClient processorClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+		var proxyFactory = createProxyFactory("Processing", properties.getProcessorEndpoint(), authorizedClientManager);
+		// Create client proxy
+		return proxyFactory.createClient(ProcessorClient.class);
+	}
 
-  private HttpServiceProxyFactory createProxyFactory(String serviceName, String endpoint,
-      OAuth2AuthorizedClientManager authorizedClientManager) {
-    var errorResponseFilter = ExchangeFilterFunction
-        .ofResponseProcessor(
-            r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, serviceName));
-    var webClientBuilder = WebClient.builder()
-        .filter(errorResponseFilter)
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
-        .baseUrl(endpoint)
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-    if (authorizedClientManager != null) {
-      webClientBuilder
-          .apply(createOauth2Client(authorizedClientManager).oauth2Configuration());
-    }
-    // Create factory for client proxies
-    return HttpServiceProxyFactory.builder()
-        .exchangeAdapter(WebClientAdapter.create(webClientBuilder.build()))
-        .build();
-  }
+	private HttpServiceProxyFactory createProxyFactory(String serviceName, String endpoint,
+			OAuth2AuthorizedClientManager authorizedClientManager) {
+		var errorResponseFilter = ExchangeFilterFunction
+			.ofResponseProcessor(r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, serviceName));
+		var webClientBuilder = WebClient.builder()
+			.filter(errorResponseFilter)
+			.clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
+			.baseUrl(endpoint)
+			.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+		if (authorizedClientManager != null) {
+			webClientBuilder.apply(createOauth2Client(authorizedClientManager).oauth2Configuration());
+		}
+		// Create factory for client proxies
+		return HttpServiceProxyFactory.builder()
+			.exchangeAdapter(WebClientAdapter.create(webClientBuilder.build()))
+			.build();
+	}
 
-  private static ServletOAuth2AuthorizedClientExchangeFilterFunction createOauth2Client(
-      OAuth2AuthorizedClientManager authorizedClientManager) {
-    // Set up Oauth2
-    var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-        authorizedClientManager);
-    oauth2Client.setDefaultClientRegistrationId("dissco");
-    return oauth2Client;
-  }
+	private static ServletOAuth2AuthorizedClientExchangeFilterFunction createOauth2Client(
+			OAuth2AuthorizedClientManager authorizedClientManager) {
+		// Set up Oauth2
+		var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+		oauth2Client.setDefaultClientRegistrationId("dissco");
+		return oauth2Client;
+	}
 
 }

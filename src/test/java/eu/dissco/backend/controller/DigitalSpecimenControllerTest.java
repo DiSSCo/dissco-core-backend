@@ -51,265 +51,261 @@ import org.springframework.util.MultiValueMapAdapter;
 @ExtendWith(MockitoExtension.class)
 class DigitalSpecimenControllerTest {
 
-  MockHttpServletRequest mockRequest;
-  @Mock
-  Authentication authentication;
-  @Mock
-  private DigitalSpecimenService service;
-  @Mock
-  private ApplicationProperties applicationProperties;
-  private DigitalSpecimenController controller;
+	MockHttpServletRequest mockRequest;
 
-  @BeforeEach
-  void setup() {
-    controller = new DigitalSpecimenController(applicationProperties, MAPPER, service);
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(SPECIMEN_URI);
-  }
+	@Mock
+	Authentication authentication;
 
-  @Test
-  void testGetSpecimen() throws Exception {
-    // When
-    var result = controller.getSpecimen(1, 1, mockRequest);
+	@Mock
+	private DigitalSpecimenService service;
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Mock
+	private ApplicationProperties applicationProperties;
 
-  @Test
-  void testGetLatestSpecimen() throws Exception {
-    var result = controller.getLatestSpecimen(1, 1, mockRequest);
+	private DigitalSpecimenController controller;
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@BeforeEach
+	void setup() {
+		controller = new DigitalSpecimenController(applicationProperties, MAPPER, service);
+		mockRequest = new MockHttpServletRequest();
+		mockRequest.setRequestURI(SPECIMEN_URI);
+	}
 
-  @Test
-  void testGetSpecimenById() throws NotFoundException {
-    // When
-    var result = controller.getSpecimenById(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetSpecimen() throws Exception {
+		// When
+		var result = controller.getSpecimen(1, 1, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  @Test
-  void testGetSpecimenByIdFull() throws NotFoundException {
-    // When
-    var result = controller.getSpecimenByIdFull(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetLatestSpecimen() throws Exception {
+		var result = controller.getLatestSpecimen(1, 1, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  @Test
-  void testGetSpecimenByVersion() throws Exception {
-    // When
-    var result = controller.getSpecimenByVersion(PREFIX, SUFFIX, 1, mockRequest);
+	@Test
+	void testGetSpecimenById() throws NotFoundException {
+		// When
+		var result = controller.getSpecimenById(PREFIX, SUFFIX, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getSpecimenByVersion(eq(DOI + ID), eq(1), anyString());
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  @Test
-  void testGetSpecimenVersions() throws Exception {
-    // When
-    var result = controller.getSpecimenVersions(PREFIX, SUFFIX, mockRequest);
+	@Test
+	void testGetSpecimenByIdFull() throws NotFoundException {
+		// When
+		var result = controller.getSpecimenByIdFull(PREFIX, SUFFIX, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getSpecimenVersions(eq(DOI + ID), anyString());
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  }
+	@Test
+	void testGetSpecimenByVersion() throws Exception {
+		// When
+		var result = controller.getSpecimenByVersion(PREFIX, SUFFIX, 1, mockRequest);
 
-  @Test
-  void testGetSpecimenAnnotations() throws NotFoundException {
-    // When
-    var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getSpecimenByVersion(eq(DOI + ID), eq(1), anyString());
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetSpecimenVersions() throws Exception {
+		// When
+		var result = controller.getSpecimenVersions(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testGetMjrsForSpecimen() {
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getSpecimenVersions(eq(DOI + ID), anyString());
 
-    // When
-    var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, JobState.SCHEDULED,
-        1, 1, mockRequest);
+	}
 
-    // THen
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetSpecimenAnnotations() throws NotFoundException {
+		// When
+		var result = controller.getSpecimenAnnotations(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testGetSpecimenDigitalMedia() throws NotFoundException {
-    // When
-    var result = controller.getSpecimenDigitalMedia(PREFIX, SUFFIX, mockRequest);
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetMjrsForSpecimen() {
 
-  @Test
-  void testSearch() throws Exception {
-    //Given
-    var paramMap = new MultiValueMapAdapter(Map.of("q", List.of("queryString")));
-    given(service.search(eq(paramMap), anyString())).willReturn(
-        new JsonApiListResponseWrapper(givenDigitalSpecimenJsonApiDataList(2), 1, 2, "test"));
+		// When
+		var result = controller.getMasJobRecordsForSpecimen(PREFIX, SUFFIX, JobState.SCHEDULED, 1, 1, mockRequest);
 
-    // When
-    var result = controller.search(paramMap, mockRequest);
+		// THen
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(((JsonApiListResponseWrapper) result.getBody()).getData()).isEqualTo(
-        givenDigitalSpecimenJsonApiDataList(2));
-  }
+	@Test
+	void testGetSpecimenDigitalMedia() throws NotFoundException {
+		// When
+		var result = controller.getSpecimenDigitalMedia(PREFIX, SUFFIX, mockRequest);
 
-  @Test
-  void testAggregation() throws Exception {
-    //Given
-    var paramMap = new MultiValueMapAdapter(Map.of("SourceSystemId", List.of(SOURCE_SYSTEM_ID_1)));
-    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.aggregations(eq(paramMap), anyString())).willReturn(
-        new JsonApiWrapper(data, new JsonApiLinks("test")));
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // When
-    var result = controller.aggregation(paramMap, mockRequest);
+	@Test
+	void testSearch() throws Exception {
+		// Given
+		var paramMap = new MultiValueMapAdapter(Map.of("q", List.of("queryString")));
+		given(service.search(eq(paramMap), anyString()))
+			.willReturn(new JsonApiListResponseWrapper(givenDigitalSpecimenJsonApiDataList(2), 1, 2, "test"));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
-  }
+		// When
+		var result = controller.search(paramMap, mockRequest);
 
-  @Test
-  void testTaxonAggregation() throws Exception {
-    //Given
-    var paramMap = new MultiValueMapAdapter(Map.of("Kingdom", List.of("Animalia")));
-    var data = new JsonApiData("id", "aggregations",
-        MAPPER.valueToTree(givenTaxonAggregationMap()));
-    given(service.taxonAggregations(eq(paramMap), anyString())).willReturn(
-        new JsonApiWrapper(data, new JsonApiLinks("test")));
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(((JsonApiListResponseWrapper) result.getBody()).getData())
+			.isEqualTo(givenDigitalSpecimenJsonApiDataList(2));
+	}
 
-    // When
-    var result = controller.taxonAggregation(paramMap, mockRequest);
+	@Test
+	void testAggregation() throws Exception {
+		// Given
+		var paramMap = new MultiValueMapAdapter(Map.of("SourceSystemId", List.of(SOURCE_SYSTEM_ID_1)));
+		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+		given(service.aggregations(eq(paramMap), anyString()))
+			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
-  }
+		// When
+		var result = controller.aggregation(paramMap, mockRequest);
 
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+	}
 
-  @Test
-  void testDiscipline() throws Exception {
-    //Given
-    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.discipline(anyString())).willReturn(
-        new JsonApiWrapper(data, new JsonApiLinks("test")));
+	@Test
+	void testTaxonAggregation() throws Exception {
+		// Given
+		var paramMap = new MultiValueMapAdapter(Map.of("Kingdom", List.of("Animalia")));
+		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenTaxonAggregationMap()));
+		given(service.taxonAggregations(eq(paramMap), anyString()))
+			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
-    // When
-    var result = controller.discipline(mockRequest);
+		// When
+		var result = controller.taxonAggregation(paramMap, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat((result.getBody()).getData()).isEqualTo(data);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+	}
 
-  @Test
-  void testGetSpecimenByVersionFull() throws Exception {
-    // When
-    var result = controller.getSpecimenByVersionFull(PREFIX, SUFFIX, 1, mockRequest);
+	@Test
+	void testDiscipline() throws Exception {
+		// Given
+		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+		given(service.discipline(anyString())).willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getSpecimenByVersionFull(eq(DOI + ID), eq(1), anyString());
-  }
+		// When
+		var result = controller.discipline(mockRequest);
 
-  @Test
-  void testSearchTermValue() throws Exception {
-    //Given
-    var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-    given(service.searchTermValue(anyString(), anyString(), anyString(), eq(false))).willReturn(
-        new JsonApiWrapper(data, new JsonApiLinks("test")));
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat((result.getBody()).getData()).isEqualTo(data);
+	}
 
-    // When
-    var result = controller.searchTermValue("sourceSystem", "20.500", false, mockRequest);
+	@Test
+	void testGetSpecimenByVersionFull() throws Exception {
+		// When
+		var result = controller.getSpecimenByVersionFull(PREFIX, SUFFIX, 1, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat((result.getBody()).getData()).isEqualTo(data);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getSpecimenByVersionFull(eq(DOI + ID), eq(1), anyString());
+	}
 
-  @Test
-  void testGetMas() throws NotFoundException {
-    // Given
-    var expectedResponse = givenMasResponse(SPECIMEN_PATH);
-    given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Test
+	void testSearchTermValue() throws Exception {
+		// Given
+		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+		given(service.searchTermValue(anyString(), anyString(), anyString(), eq(false)))
+			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
-    // When
-    var result = controller.getMassForDigitalSpecimen(PREFIX, SUFFIX, mockRequest);
+		// When
+		var result = controller.searchTermValue("sourceSystem", "20.500", false, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isEqualTo(expectedResponse);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat((result.getBody()).getData()).isEqualTo(data);
+	}
 
-  @Test
-  void testScheduleMas() throws Exception {
-    // Given
-    var request = givenMasRequest();
-    givenAuthentication();
+	@Test
+	void testGetMas() throws NotFoundException {
+		// Given
+		var expectedResponse = givenMasResponse(SPECIMEN_PATH);
+		given(service.getMass(ID, SPECIMEN_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-    // When
-    var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
-        mockRequest);
+		// When
+		var result = controller.getMassForDigitalSpecimen(PREFIX, SUFFIX, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).isEqualTo(expectedResponse);
+	}
 
-  @Test
-  void testScheduleMasInvalidType() {
-    // Given
-    var request = new MasSchedulingRequest(new MasSchedulingData("Invalid type",
-        new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
-    givenAuthentication();
+	@Test
+	void testScheduleMas() throws Exception {
+		// Given
+		var request = givenMasRequest();
+		givenAuthentication();
 
-    // When / Then
-    assertThrowsExactly(ConflictException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
-            mockRequest));
-  }
+		// When
+		var result = controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication, mockRequest);
 
-  @Test
-  void testScheduleMasNoAttribute() {
-    // Given
-    var request = new MasSchedulingRequest(new MasSchedulingData("MasRequest",
-        new MasSchedulingAttributes(null)));
-    givenAuthentication();
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+	}
 
-    // When / Then
-    assertThrowsExactly(IllegalArgumentException.class,
-        () -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication,
-            mockRequest));
-  }
+	@Test
+	void testScheduleMasInvalidType() {
+		// Given
+		var request = new MasSchedulingRequest(
+				new MasSchedulingData("Invalid type", new MasSchedulingAttributes(List.of(givenMasJobRequest()))));
+		givenAuthentication();
 
-  @Test
-  void testGetOriginalDataForSpecimenForSpecimen() throws NotFoundException {
-    // When
-    var result = controller.getOriginalDataForSpecimen(PREFIX, SUFFIX, mockRequest);
+		// When / Then
+		assertThrowsExactly(ConflictException.class,
+				() -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication, mockRequest));
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testScheduleMasNoAttribute() {
+		// Given
+		var request = new MasSchedulingRequest(new MasSchedulingData("MasRequest", new MasSchedulingAttributes(null)));
+		givenAuthentication();
 
-  private void givenAuthentication() {
-    var principal = mock(Jwt.class);
-    given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(givenClaims());
-  }
+		// When / Then
+		assertThrowsExactly(IllegalArgumentException.class,
+				() -> controller.scheduleMassForDigitalSpecimen(PREFIX, SUFFIX, request, authentication, mockRequest));
+	}
+
+	@Test
+	void testGetOriginalDataForSpecimenForSpecimen() throws NotFoundException {
+		// When
+		var result = controller.getOriginalDataForSpecimen(PREFIX, SUFFIX, mockRequest);
+
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	private void givenAuthentication() {
+		var principal = mock(Jwt.class);
+		given(authentication.getPrincipal()).willReturn(principal);
+		given(principal.getClaims()).willReturn(givenClaims());
+	}
 
 }

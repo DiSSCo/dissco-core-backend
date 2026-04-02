@@ -25,152 +25,153 @@ import org.junit.jupiter.api.Test;
 
 class MasJobRecordRepositoryIT extends BaseRepositoryIT {
 
-  private MasJobRecordRepository masJobRecordRepository;
+	private MasJobRecordRepository masJobRecordRepository;
 
-  @BeforeEach
-  void setup() {
-    masJobRecordRepository = new MasJobRecordRepository(context, MAPPER);
-  }
+	@BeforeEach
+	void setup() {
+		masJobRecordRepository = new MasJobRecordRepository(context, MAPPER);
+	}
 
-  @AfterEach
-  void destroy() {
-    context.truncate(MAS_JOB_RECORD).execute();
-  }
+	@AfterEach
+	void destroy() {
+		context.truncate(MAS_JOB_RECORD).execute();
+	}
 
-  @Test
-  void testGetMasJobRecordByMasId() {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+	@Test
+	void testGetMasJobRecordByMasId() {
+		// Given
+		var expected = givenMasJobRecordFullScheduled();
+		postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
-    // When
-    var result = masJobRecordRepository.getMasJobRecordById(expected.jobHandle());
+		// When
+		var result = masJobRecordRepository.getMasJobRecordById(expected.jobHandle());
 
-    // Then
-    assertThat(result).isPresent().contains(expected);
-  }
+		// Then
+		assertThat(result).isPresent().contains(expected);
+	}
 
-  @Test
-  void testGetMasJobRecordByCreatorId() {
-    // Given
-    var expected = givenMasJobRecordFullScheduled();
-    postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
+	@Test
+	void testGetMasJobRecordByCreatorId() {
+		// Given
+		var expected = givenMasJobRecordFullScheduled();
+		postMasJobRecordFull(List.of(expected, givenMasJobRecordFullCompleted()));
 
-    // When
-    var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, JobState.SCHEDULED, 1, 10);
+		// When
+		var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, JobState.SCHEDULED, 1, 10);
 
-    // Then
-    assertThat(result).isEqualTo(List.of(expected));
-  }
+		// Then
+		assertThat(result).isEqualTo(List.of(expected));
+	}
 
-  @Test
-  void testGetMasJobRecordByCreatorIdAll() {
-    // Given
-    var expected = List.of(givenMasJobRecordFullScheduled(), givenMasJobRecordFullCompleted());
-    postMasJobRecordFull(expected);
+	@Test
+	void testGetMasJobRecordByCreatorIdAll() {
+		// Given
+		var expected = List.of(givenMasJobRecordFullScheduled(), givenMasJobRecordFullCompleted());
+		postMasJobRecordFull(expected);
 
-    // When
-    var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, null, 1, 10);
+		// When
+		var result = masJobRecordRepository.getMasJobRecordsByCreatorId(ORCID, null, 1, 10);
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-  @Test
-  void testGetMasJobRecordByIdCompleted() {
-    // Given
-    var expected = givenMasJobRecordFullCompleted();
-    postMasJobRecordFull(List.of(expected));
+	@Test
+	void testGetMasJobRecordByIdCompleted() {
+		// Given
+		var expected = givenMasJobRecordFullCompleted();
+		postMasJobRecordFull(List.of(expected));
 
-    // When
-    var result = masJobRecordRepository.getMasJobRecordById(expected.jobHandle());
+		// When
+		var result = masJobRecordRepository.getMasJobRecordById(expected.jobHandle());
 
-    // Then
-    assertThat(result).isPresent().contains(expected);
-  }
+		// Then
+		assertThat(result).isPresent().contains(expected);
+	}
 
-  @Test
-  void testGetMasJobRecordByIdNotPresent() {
-    // Given
-    postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
+	@Test
+	void testGetMasJobRecordByIdNotPresent() {
+		// Given
+		postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
 
-    // When
-    var result = masJobRecordRepository.getMasJobRecordById(JOB_ID);
+		// When
+		var result = masJobRecordRepository.getMasJobRecordById(JOB_ID);
 
-    // Then
-    assertThat(result).isEmpty();
-  }
+		// Then
+		assertThat(result).isEmpty();
+	}
 
-  @Test
-  void testCreateNewMasJobRecord() {
-    // Given
-    var mjr = new MasJobRecord(JOB_ID, JobState.SCHEDULED, ID, ID_ALT,
-        MjrTargetType.DIGITAL_SPECIMEN, ORCID, false, TTL_DEFAULT);
+	@Test
+	void testCreateNewMasJobRecord() {
+		// Given
+		var mjr = new MasJobRecord(JOB_ID, JobState.SCHEDULED, ID, ID_ALT, MjrTargetType.DIGITAL_SPECIMEN, ORCID, false,
+				TTL_DEFAULT);
 
-    // When
-    masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
-    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
-        .from(MAS_JOB_RECORD).where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID)).fetchOne();
+		// When
+		masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
+		var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+			.from(MAS_JOB_RECORD)
+			.where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
+			.fetchOne();
 
-    // Then
-    assertThat(result.get(MAS_JOB_RECORD.JOB_ID)).isEqualTo(JOB_ID);
-    assertThat(result.get(MAS_JOB_RECORD.JOB_STATE)).isEqualTo(JobState.SCHEDULED);
-  }
+		// Then
+		assertThat(result.get(MAS_JOB_RECORD.JOB_ID)).isEqualTo(JOB_ID);
+		assertThat(result.get(MAS_JOB_RECORD.JOB_STATE)).isEqualTo(JobState.SCHEDULED);
+	}
 
-  @Test
-  void testMarkMasJobRecordAsRunning() {
-    // Given
-    postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
+	@Test
+	void testMarkMasJobRecordAsRunning() {
+		// Given
+		postMasJobRecordFull(List.of(givenMasJobRecordFullScheduled()));
 
-    // When
-    masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
-    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
-        .fetchSingle();
-    var state = result.get(MAS_JOB_RECORD.JOB_STATE);
+		// When
+		masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
+		var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+			.from(MAS_JOB_RECORD)
+			.where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
+			.fetchSingle();
+		var state = result.get(MAS_JOB_RECORD.JOB_STATE);
 
-    // Then
-    assertThat(state).isEqualTo(JobState.RUNNING);
-  }
+		// Then
+		assertThat(state).isEqualTo(JobState.RUNNING);
+	}
 
-  @Test
-  void testMarkMasJobRecordAsRunningCompleted() {
-    // Given
-    postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
+	@Test
+	void testMarkMasJobRecordAsRunningCompleted() {
+		// Given
+		postMasJobRecordFull(List.of(givenMasJobRecordFullCompleted()));
 
-    // When
-    masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
-    var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
-        .from(MAS_JOB_RECORD)
-        .where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
-        .fetchOptional();
+		// When
+		masJobRecordRepository.markMasJobRecordAsRunning(ID_ALT, JOB_ID);
+		var result = context.select(MAS_JOB_RECORD.JOB_ID, MAS_JOB_RECORD.JOB_STATE)
+			.from(MAS_JOB_RECORD)
+			.where(MAS_JOB_RECORD.JOB_ID.eq(JOB_ID))
+			.fetchOptional();
 
-    // Then
-    assertThat(result).isEmpty();
-  }
+		// Then
+		assertThat(result).isEmpty();
+	}
 
-  private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) {
-    ArrayList<Query> queryList = new ArrayList<>();
-    for (var mjr : mjrList) {
-      var dataNode = mjr.annotations() != null ?
-          JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
-      var ttl = mjr.timeStarted().plusSeconds(mjr.timeToLive());
-      queryList.add(context.insertInto(MAS_JOB_RECORD)
-          .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
-          .set(MAS_JOB_RECORD.JOB_STATE, mjr.state())
-          .set(MAS_JOB_RECORD.MAS_ID, mjr.masId())
-          .set(MAS_JOB_RECORD.TARGET_ID, mjr.targetId())
-          .set(MAS_JOB_RECORD.TARGET_TYPE, mjr.targetType())
-          .set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
-          .set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
-          .set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
-          .set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
-          .set(MAS_JOB_RECORD.CREATOR, mjr.orcid())
-          .set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
-          .set(MAS_JOB_RECORD.EXPIRES_ON, ttl));
-    }
-    context.batch(queryList).execute();
-  }
+	private void postMasJobRecordFull(List<MasJobRecordFull> mjrList) {
+		ArrayList<Query> queryList = new ArrayList<>();
+		for (var mjr : mjrList) {
+			var dataNode = mjr.annotations() != null ? JSONB.jsonb(MAPPER.writeValueAsString(mjr.annotations())) : null;
+			var ttl = mjr.timeStarted().plusSeconds(mjr.timeToLive());
+			queryList.add(context.insertInto(MAS_JOB_RECORD)
+				.set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
+				.set(MAS_JOB_RECORD.JOB_STATE, mjr.state())
+				.set(MAS_JOB_RECORD.MAS_ID, mjr.masId())
+				.set(MAS_JOB_RECORD.TARGET_ID, mjr.targetId())
+				.set(MAS_JOB_RECORD.TARGET_TYPE, mjr.targetType())
+				.set(MAS_JOB_RECORD.JOB_ID, mjr.jobHandle())
+				.set(MAS_JOB_RECORD.TIME_STARTED, mjr.timeStarted())
+				.set(MAS_JOB_RECORD.TIME_COMPLETED, mjr.timeCompleted())
+				.set(MAS_JOB_RECORD.ANNOTATIONS, dataNode)
+				.set(MAS_JOB_RECORD.CREATOR, mjr.orcid())
+				.set(MAS_JOB_RECORD.BATCHING_REQUESTED, mjr.batchingRequested())
+				.set(MAS_JOB_RECORD.EXPIRES_ON, ttl));
+		}
+		context.batch(queryList).execute();
+	}
 
 }

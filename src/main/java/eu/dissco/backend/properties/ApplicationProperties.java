@@ -11,19 +11,19 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("application")
 public class ApplicationProperties {
 
-  @NotBlank
-  private String baseUrl;
+	@NotBlank
+	private String baseUrl;
 
-  @NotBlank
-  private String name = "DiSSCo Backend";
+	@NotBlank
+	private String name = "DiSSCo Backend";
 
-  @NotBlank
-  private String pid = "https://doi.org/10.5281/zenodo.7533418";
+	@NotBlank
+	private String pid = "https://doi.org/10.5281/zenodo.7533418";
 
-  @NotBlank
-  private String createUpdateTombstoneEventType = "https://doi.org/21.T11148/d7570227982f70256af3";
+	@NotBlank
+	private String createUpdateTombstoneEventType = "https://doi.org/21.T11148/d7570227982f70256af3";
 
-  @NotNull
-  private boolean isAcceptingAnnotations = false;
+	@NotNull
+	private boolean isAcceptingAnnotations = false;
 
 }

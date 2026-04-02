@@ -3,7 +3,6 @@
  */
 package eu.dissco.backend.database.jooq;
 
-
 import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
@@ -17,72 +16,66 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
-
 /**
  * standard public schema
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * The reference instance of <code>public</code>
-     */
-    public static final Public PUBLIC = new Public();
+	/**
+	 * The reference instance of <code>public</code>
+	 */
+	public static final Public PUBLIC = new Public();
 
-    /**
-     * The table <code>public.annotation</code>.
-     */
-    public final Annotation ANNOTATION = Annotation.ANNOTATION;
+	/**
+	 * The table <code>public.annotation</code>.
+	 */
+	public final Annotation ANNOTATION = Annotation.ANNOTATION;
 
-    /**
-     * The table <code>public.digital_media_object</code>.
-     */
-    public final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
+	/**
+	 * The table <code>public.digital_media_object</code>.
+	 */
+	public final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
 
-    /**
-     * The table <code>public.digital_specimen</code>.
-     */
-    public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
+	/**
+	 * The table <code>public.digital_specimen</code>.
+	 */
+	public final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
 
-    /**
-     * The table <code>public.machine_annotation_service</code>.
-     */
-    public final MachineAnnotationService MACHINE_ANNOTATION_SERVICE = MachineAnnotationService.MACHINE_ANNOTATION_SERVICE;
+	/**
+	 * The table <code>public.machine_annotation_service</code>.
+	 */
+	public final MachineAnnotationService MACHINE_ANNOTATION_SERVICE = MachineAnnotationService.MACHINE_ANNOTATION_SERVICE;
 
-    /**
-     * The table <code>public.mas_job_record</code>.
-     */
-    public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
+	/**
+	 * The table <code>public.mas_job_record</code>.
+	 */
+	public final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
-    /**
-     * The table <code>public.virtual_collection</code>.
-     */
-    public final VirtualCollection VIRTUAL_COLLECTION = VirtualCollection.VIRTUAL_COLLECTION;
+	/**
+	 * The table <code>public.virtual_collection</code>.
+	 */
+	public final VirtualCollection VIRTUAL_COLLECTION = VirtualCollection.VIRTUAL_COLLECTION;
 
-    /**
-     * No further instances allowed
-     */
-    private Public() {
-        super(DSL.name("public"), null, DSL.comment("standard public schema"));
-    }
+	/**
+	 * No further instances allowed
+	 */
+	private Public() {
+		super(DSL.name("public"), null, DSL.comment("standard public schema"));
+	}
 
+	@Override
+	public Catalog getCatalog() {
+		return DefaultCatalog.DEFAULT_CATALOG;
+	}
 
-    @Override
-    public Catalog getCatalog() {
-        return DefaultCatalog.DEFAULT_CATALOG;
-    }
+	@Override
+	public final List<Table<?>> getTables() {
+		return Arrays.asList(Annotation.ANNOTATION, DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
+				DigitalSpecimen.DIGITAL_SPECIMEN, MachineAnnotationService.MACHINE_ANNOTATION_SERVICE,
+				MasJobRecord.MAS_JOB_RECORD, VirtualCollection.VIRTUAL_COLLECTION);
+	}
 
-    @Override
-    public final List<Table<?>> getTables() {
-        return Arrays.asList(
-            Annotation.ANNOTATION,
-            DigitalMediaObject.DIGITAL_MEDIA_OBJECT,
-            DigitalSpecimen.DIGITAL_SPECIMEN,
-            MachineAnnotationService.MACHINE_ANNOTATION_SERVICE,
-            MasJobRecord.MAS_JOB_RECORD,
-            VirtualCollection.VIRTUAL_COLLECTION
-        );
-    }
 }

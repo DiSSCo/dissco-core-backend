@@ -1,6 +1,5 @@
 package eu.dissco.backend.component;
 
-
 import static eu.dissco.backend.TestUtils.HANDLE;
 import static eu.dissco.backend.TestUtils.ID;
 import static eu.dissco.backend.TestUtils.MAPPER;
@@ -21,67 +20,68 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FdoRecordComponentTest {
 
-  private FdoRecordComponent fdoRecordComponent;
+	private FdoRecordComponent fdoRecordComponent;
 
-  @BeforeEach
-  void setup() {
-    fdoRecordComponent = new FdoRecordComponent(MAPPER);
-  }
+	@BeforeEach
+	void setup() {
+		fdoRecordComponent = new FdoRecordComponent(MAPPER);
+	}
 
-  @Test
-  void testGetRequestMjr() {
-    // Given
+	@Test
+	void testGetRequestMjr() {
+		// Given
 
-    // When
-    var result = fdoRecordComponent.getPostRequestMjr();
+		// When
+		var result = fdoRecordComponent.getPostRequestMjr();
 
-    // Then
-    assertThat(result).isEqualTo(givenPostHandleRequest());
-  }
+		// Then
+		assertThat(result).isEqualTo(givenPostHandleRequest());
+	}
 
-  @Test
-  void testGetPostRequestVirtualCollection() {
-    // Given
-    var virtualCollectionHandleRequest = givenVirtualCollectionRequest();
+	@Test
+	void testGetPostRequestVirtualCollection() {
+		// Given
+		var virtualCollectionHandleRequest = givenVirtualCollectionRequest();
 
-    // When
-    var result = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollectionHandleRequest);
+		// When
+		var result = fdoRecordComponent.getPostRequestVirtualCollection(virtualCollectionHandleRequest);
 
-    // Then
-    assertThat(result).isEqualTo(givenVirtualCollectionHandleRequest());
-  }
+		// Then
+		assertThat(result).isEqualTo(givenVirtualCollectionHandleRequest());
+	}
 
-  @Test
-  void testGetRollbackCreateRequestVirtualCollection() {
-    // Given
-    var handle = HANDLE + ID;
+	@Test
+	void testGetRollbackCreateRequestVirtualCollection() {
+		// Given
+		var handle = HANDLE + ID;
 
-    // When
-    var result = fdoRecordComponent.getRollbackCreateRequest(handle);
+		// When
+		var result = fdoRecordComponent.getRollbackCreateRequest(handle);
 
-    // Then
-    assertThat(result).isEqualTo(givenVirtualCollectionHandleRollbackRequest());
-  }
+		// Then
+		assertThat(result).isEqualTo(givenVirtualCollectionHandleRollbackRequest());
+	}
 
-  @Test
-  void testGetTombstoneRequest() {
-    // Given
+	@Test
+	void testGetTombstoneRequest() {
+		// Given
 
-    // When
-    var result = fdoRecordComponent.getTombstoneRequest(ID);
+		// When
+		var result = fdoRecordComponent.getTombstoneRequest(ID);
 
-    // Then
-    assertThat(result).isEqualTo(givenVirtualCollectionTombstoneHandleRequest());
-  }
+		// Then
+		assertThat(result).isEqualTo(givenVirtualCollectionTombstoneHandleRequest());
+	}
 
-  @Test
-  void testGetUpdateRequest() {
-    // Given
+	@Test
+	void testGetUpdateRequest() {
+		// Given
 
-    // When
-    var result = fdoRecordComponent.getPatchHandleRequest(givenVirtualCollection(HANDLE + ID));
+		// When
+		var result = fdoRecordComponent.getPatchHandleRequest(givenVirtualCollection(HANDLE + ID));
 
-    // Then
-    assertThat(result).isEqualTo(givenVirtualCollectionUpdateHandleRequest());
-  }
+		// Then
+		assertThat(result).isEqualTo(givenVirtualCollectionUpdateHandleRequest());
+	}
+
 }

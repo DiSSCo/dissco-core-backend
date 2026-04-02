@@ -10,14 +10,19 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "rabbitmq")
 public class RabbitMqProperties {
 
-  @NotBlank
-  private String masExchangeName = "mas-exchange";
-  @NotBlank
-  private String provenanceExchange = "provenance-exchange";
-  @NotBlank
-  private String provenanceRoutingPrefix = "provenance";
-  @NotBlank
-  private String virtualCollectionExchange = "virtual-collection-exchange";
-  @NotBlank
-  private String virtualCollectionRoutingKey = "virtual-collection";
+	@NotBlank
+	private String masExchangeName = "mas-exchange";
+
+	@NotBlank
+	private String provenanceExchange = "provenance-exchange";
+
+	@NotBlank
+	private String provenanceRoutingPrefix = "provenance";
+
+	@NotBlank
+	private String virtualCollectionExchange = "virtual-collection-exchange";
+
+	@NotBlank
+	private String virtualCollectionRoutingKey = "virtual-collection";
+
 }

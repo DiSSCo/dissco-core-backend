@@ -18,33 +18,33 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 class ElvisControllerTest {
 
-  @Mock
-  private ElvisService elvisService;
-  private ElvisController elvisController;
+	@Mock
+	private ElvisService elvisService;
 
-  @BeforeEach
-  void setup(){
-    elvisController = new ElvisController(elvisService);
-  }
+	private ElvisController elvisController;
 
-  @Test
-  void testGetSpecimenByDoi() throws Exception {
-    // When
-    var result = elvisController.getSpecimenByDoi(PREFIX, SUFFIX);
+	@BeforeEach
+	void setup() {
+		elvisController = new ElvisController(elvisService);
+	}
 
-    // Then
-    then(elvisService).should().searchByDoi(ID);
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetSpecimenByDoi() throws Exception {
+		// When
+		var result = elvisController.getSpecimenByDoi(PREFIX, SUFFIX);
 
-  @Test
-  void testSuggestInventoryNumber() throws Exception {
-    // When
-    var result = elvisController.suggestInventoryNumber(PHYSICAL_ID, 1, 1);
+		// Then
+		then(elvisService).should().searchByDoi(ID);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testSuggestInventoryNumber() throws Exception {
+		// When
+		var result = elvisController.suggestInventoryNumber(PHYSICAL_ID, 1, 1);
 
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
 }

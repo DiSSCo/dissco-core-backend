@@ -33,156 +33,151 @@ import org.testcontainers.rabbitmq.RabbitMQContainer;
 @ExtendWith(MockitoExtension.class)
 class RabbitMqPublisherServiceTest {
 
-  private static final String ROUTING_KEY = "ABC-123-XYZ";
-  private static final String PROVENANCE = "provenance";
-  private static final String VIRTUAL_COLLECTION = "virtual-collection";
+	private static final String ROUTING_KEY = "ABC-123-XYZ";
 
-  private static RabbitMQContainer container;
-  private static RabbitTemplate rabbitTemplate;
-  private RabbitMqPublisherService rabbitMqPublisherService;
-  @Mock
-  private ProvenanceService provenanceService;
+	private static final String PROVENANCE = "provenance";
 
-  @BeforeAll
-  static void setupContainer() throws IOException, InterruptedException {
-    container = new RabbitMQContainer("rabbitmq:4.0.8-management-alpine");
-    container.start();
-    // Declare the default mas exchange and the specific mas queue and binding
-    declareRabbitResources("mas-exchange", ROUTING_KEY + "-queue",
-        ROUTING_KEY, "direct");
-    declareRabbitResources(PROVENANCE + "-exchange",
-        PROVENANCE + "-queue",
-        PROVENANCE + ".#", "topic");
-    declareRabbitResources(VIRTUAL_COLLECTION + "-exchange",
-        VIRTUAL_COLLECTION + "-queue",
-        VIRTUAL_COLLECTION, "direct");
+	private static final String VIRTUAL_COLLECTION = "virtual-collection";
 
-    CachingConnectionFactory factory = new CachingConnectionFactory(container.getHost());
-    factory.setPort(container.getAmqpPort());
-    factory.setUsername(container.getAdminUsername());
-    factory.setPassword(container.getAdminPassword());
-    rabbitTemplate = new RabbitTemplate(factory);
-    rabbitTemplate.setReceiveTimeout(100L);
-  }
+	private static RabbitMQContainer container;
 
-  private static void declareRabbitResources(String exchangeName, String queueName,
-      String routingKey, String exchangeType)
-      throws IOException, InterruptedException {
-    container.execInContainer("rabbitmqadmin", "declare", "exchange", "name=" + exchangeName,
-        "type=" + exchangeType, "durable=true");
-    container.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queueName,
-        "queue_type=quorum", "durable=true");
-    container.execInContainer("rabbitmqadmin", "declare", "binding", "source=" + exchangeName,
-        "destination_type=queue", "destination=" + queueName, "routing_key=" + routingKey);
-  }
+	private static RabbitTemplate rabbitTemplate;
 
-  @AfterAll
-  static void shutdownContainer() {
-    container.stop();
-  }
+	private RabbitMqPublisherService rabbitMqPublisherService;
 
-  @BeforeEach
-  void setup() {
-    rabbitMqPublisherService = new RabbitMqPublisherService(MAPPER, rabbitTemplate,
-        provenanceService, new RabbitMqProperties());
-  }
+	@Mock
+	private ProvenanceService provenanceService;
 
-  @Test
-  void testSendObjectToQueue() {
-    // Given
-    var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
+	@BeforeAll
+	static void setupContainer() throws IOException, InterruptedException {
+		container = new RabbitMQContainer("rabbitmq:4.0.8-management-alpine");
+		container.start();
+		// Declare the default mas exchange and the specific mas queue and binding
+		declareRabbitResources("mas-exchange", ROUTING_KEY + "-queue", ROUTING_KEY, "direct");
+		declareRabbitResources(PROVENANCE + "-exchange", PROVENANCE + "-queue", PROVENANCE + ".#", "topic");
+		declareRabbitResources(VIRTUAL_COLLECTION + "-exchange", VIRTUAL_COLLECTION + "-queue", VIRTUAL_COLLECTION,
+				"direct");
 
-    // When
-    rabbitMqPublisherService.publishMasRequestEvent(ROUTING_KEY, digitalSpecimen);
+		CachingConnectionFactory factory = new CachingConnectionFactory(container.getHost());
+		factory.setPort(container.getAmqpPort());
+		factory.setUsername(container.getAdminUsername());
+		factory.setPassword(container.getAdminPassword());
+		rabbitTemplate = new RabbitTemplate(factory);
+		rabbitTemplate.setReceiveTimeout(100L);
+	}
 
-    // Then
-    var result = rabbitTemplate.receive(ROUTING_KEY + "-queue");
-    assertThat(MAPPER.readValue(new String(result.getBody()), DigitalSpecimen.class)).isEqualTo(
-        digitalSpecimen);
-  }
+	private static void declareRabbitResources(String exchangeName, String queueName, String routingKey,
+			String exchangeType) throws IOException, InterruptedException {
+		container.execInContainer("rabbitmqadmin", "declare", "exchange", "name=" + exchangeName,
+				"type=" + exchangeType, "durable=true");
+		container.execInContainer("rabbitmqadmin", "declare", "queue", "name=" + queueName, "queue_type=quorum",
+				"durable=true");
+		container.execInContainer("rabbitmqadmin", "declare", "binding", "source=" + exchangeName,
+				"destination_type=queue", "destination=" + queueName, "routing_key=" + routingKey);
+	}
 
-  @Test
-  void testPublishCreateEvent() throws ProcessingFailedException {
-    // Given
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    var jsonNode = MAPPER.valueToTree(virtualCollection);
-    given(provenanceService.generateCreateEvent(jsonNode, givenAgent())).willReturn(
-        new CreateUpdateTombstoneEvent().withId(ID));
+	@AfterAll
+	static void shutdownContainer() {
+		container.stop();
+	}
 
-    // When
-    rabbitMqPublisherService.publishCreateEvent(virtualCollection, givenAgent());
+	@BeforeEach
+	void setup() {
+		rabbitMqPublisherService = new RabbitMqPublisherService(MAPPER, rabbitTemplate, provenanceService,
+				new RabbitMqProperties());
+	}
 
-    // Then
-    var result = rabbitTemplate.receive(PROVENANCE + "-queue");
-    assertThat(MAPPER.readValue(new String(result.getBody()),
-        CreateUpdateTombstoneEvent.class).getId()).isEqualTo(ID);
-  }
+	@Test
+	void testSendObjectToQueue() {
+		// Given
+		var digitalSpecimen = givenDigitalSpecimenWrapper(ID);
 
-  @Test
-  void testPublishCreateEventInvalidObject() {
-    // Given
-    var object = MAPPER.createObjectNode();
-    given(provenanceService.generateCreateEvent(object, givenAgent())).willReturn(
-        new CreateUpdateTombstoneEvent().withId(ID));
+		// When
+		rabbitMqPublisherService.publishMasRequestEvent(ROUTING_KEY, digitalSpecimen);
 
-    // When / Then
-    assertThrows(ProcessingFailedException.class,
-        () -> rabbitMqPublisherService.publishCreateEvent(object, givenAgent()));
-  }
+		// Then
+		var result = rabbitTemplate.receive(ROUTING_KEY + "-queue");
+		assertThat(MAPPER.readValue(new String(result.getBody()), DigitalSpecimen.class)).isEqualTo(digitalSpecimen);
+	}
 
-  @Test
-  void testPublishUpdateEvent() throws ProcessingFailedException {
-    // Given
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    var unequalVirtualCollection = new VirtualCollection();
-    given(provenanceService.generateUpdateEvent(MAPPER.valueToTree(virtualCollection),
-        MAPPER.valueToTree(unequalVirtualCollection),
-        givenAgent()))
-        .willReturn(new CreateUpdateTombstoneEvent().withId(ID));
+	@Test
+	void testPublishCreateEvent() throws ProcessingFailedException {
+		// Given
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		var jsonNode = MAPPER.valueToTree(virtualCollection);
+		given(provenanceService.generateCreateEvent(jsonNode, givenAgent()))
+			.willReturn(new CreateUpdateTombstoneEvent().withId(ID));
 
-    // When
-    rabbitMqPublisherService.publishUpdateEvent(virtualCollection, unequalVirtualCollection,
-        givenAgent());
+		// When
+		rabbitMqPublisherService.publishCreateEvent(virtualCollection, givenAgent());
 
-    // Then
-    var result = rabbitTemplate.receive(PROVENANCE + "-queue");
-    assertThat(MAPPER.readValue(new String(result.getBody()),
-        CreateUpdateTombstoneEvent.class).getId()).isEqualTo(ID);
-  }
+		// Then
+		var result = rabbitTemplate.receive(PROVENANCE + "-queue");
+		assertThat(MAPPER.readValue(new String(result.getBody()), CreateUpdateTombstoneEvent.class).getId())
+			.isEqualTo(ID);
+	}
 
-  @Test
-  void testPublishTombstoneEvent() throws Exception {
-    // Given
-    var tombstoneVirtualCollection = givenTombstoneVirtualCollection();
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    given(provenanceService.generateTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
-        MAPPER.valueToTree(virtualCollection),
-        givenAgent())).willReturn(new
-        CreateUpdateTombstoneEvent().withId(ID));
+	@Test
+	void testPublishCreateEventInvalidObject() {
+		// Given
+		var object = MAPPER.createObjectNode();
+		given(provenanceService.generateCreateEvent(object, givenAgent()))
+			.willReturn(new CreateUpdateTombstoneEvent().withId(ID));
 
-    // When
-    rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection,
-        givenAgent());
+		// When / Then
+		assertThrows(ProcessingFailedException.class,
+				() -> rabbitMqPublisherService.publishCreateEvent(object, givenAgent()));
+	}
 
-    // Then
-    var result = rabbitTemplate.receive(PROVENANCE + "-queue");
-    assertThat(MAPPER.readValue(new String(result.getBody()),
-        CreateUpdateTombstoneEvent.class).getId()).isEqualTo(ID);
-  }
+	@Test
+	void testPublishUpdateEvent() throws ProcessingFailedException {
+		// Given
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		var unequalVirtualCollection = new VirtualCollection();
+		given(provenanceService.generateUpdateEvent(MAPPER.valueToTree(virtualCollection),
+				MAPPER.valueToTree(unequalVirtualCollection), givenAgent()))
+			.willReturn(new CreateUpdateTombstoneEvent().withId(ID));
 
-  @Test
-  void testPublishVirtualCollectionEvent() {
-    // Given
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    var virtualCollectionEvent = new VirtualCollectionEvent(
-        VirtualCollectionAction.CREATE, virtualCollection);
+		// When
+		rabbitMqPublisherService.publishUpdateEvent(virtualCollection, unequalVirtualCollection, givenAgent());
 
-    // When
-    rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+		// Then
+		var result = rabbitTemplate.receive(PROVENANCE + "-queue");
+		assertThat(MAPPER.readValue(new String(result.getBody()), CreateUpdateTombstoneEvent.class).getId())
+			.isEqualTo(ID);
+	}
 
-    // Then
-    var result = rabbitTemplate.receive(VIRTUAL_COLLECTION + "-queue");
-    assertThat(MAPPER.readValue(new String(result.getBody()),
-        VirtualCollectionEvent.class)).isEqualTo(virtualCollectionEvent);
-  }
+	@Test
+	void testPublishTombstoneEvent() throws Exception {
+		// Given
+		var tombstoneVirtualCollection = givenTombstoneVirtualCollection();
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		given(provenanceService.generateTombstoneEvent(MAPPER.valueToTree(tombstoneVirtualCollection),
+				MAPPER.valueToTree(virtualCollection), givenAgent()))
+			.willReturn(new CreateUpdateTombstoneEvent().withId(ID));
+
+		// When
+		rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection, givenAgent());
+
+		// Then
+		var result = rabbitTemplate.receive(PROVENANCE + "-queue");
+		assertThat(MAPPER.readValue(new String(result.getBody()), CreateUpdateTombstoneEvent.class).getId())
+			.isEqualTo(ID);
+	}
+
+	@Test
+	void testPublishVirtualCollectionEvent() {
+		// Given
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		var virtualCollectionEvent = new VirtualCollectionEvent(VirtualCollectionAction.CREATE, virtualCollection);
+
+		// When
+		rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+
+		// Then
+		var result = rabbitTemplate.receive(VIRTUAL_COLLECTION + "-queue");
+		assertThat(MAPPER.readValue(new String(result.getBody()), VirtualCollectionEvent.class))
+			.isEqualTo(virtualCollectionEvent);
+	}
+
 }

@@ -10,16 +10,16 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("web")
 public class WebConnectionProperties {
 
-  @NotBlank
-  private String handleEndpoint;
+	@NotBlank
+	private String handleEndpoint;
 
-  @NotBlank
-  String annotationEndpoint;
+	@NotBlank
+	String annotationEndpoint;
 
-  @NotBlank
-  String masEndpoint;
+	@NotBlank
+	String masEndpoint;
 
-  @NotBlank
-  String processorEndpoint;
+	@NotBlank
+	String processorEndpoint;
 
 }

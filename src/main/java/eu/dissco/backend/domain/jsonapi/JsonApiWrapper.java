@@ -6,20 +6,23 @@ import lombok.Value;
 @Value
 public class JsonApiWrapper {
 
-  JsonApiData data;
-  JsonApiLinks links;
-  JsonApiMeta meta;
+	JsonApiData data;
 
-  @JsonCreator
-  public JsonApiWrapper(JsonApiData data, JsonApiLinks links) {
-    this.data = data;
-    this.links = links;
-    this.meta = null;
-  }
+	JsonApiLinks links;
 
-  public JsonApiWrapper(JsonApiData data, JsonApiLinks links, JsonApiMeta meta) {
-    this.data = data;
-    this.links = links;
-    this.meta = meta;
-  }
+	JsonApiMeta meta;
+
+	@JsonCreator
+	public JsonApiWrapper(JsonApiData data, JsonApiLinks links) {
+		this.data = data;
+		this.links = links;
+		this.meta = null;
+	}
+
+	public JsonApiWrapper(JsonApiData data, JsonApiLinks links, JsonApiMeta meta) {
+		this.data = data;
+		this.links = links;
+		this.meta = meta;
+	}
+
 }

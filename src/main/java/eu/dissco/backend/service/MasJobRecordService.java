@@ -33,122 +33,101 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class MasJobRecordService {
 
-  private static final Integer TTL = 86400;
-  private final MasJobRecordRepository masJobRecordRepository;
-  private final HandleComponent handleComponent;
-  private final JsonMapper mapper;
+	private static final Integer TTL = 86400;
 
-  public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path)
-      throws NotFoundException {
-    var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordHandle);
-    if (masJobRecordOptional.isEmpty()) {
-      throw new NotFoundException(
-          "Unable to find MAS Job Record for job " + masJobRecordHandle);
-    }
-    var masJobRecord = masJobRecordOptional.get();
-    var dataNode = new JsonApiData(masJobRecordHandle, FdoType.MJR.getName(),
-        mapper.valueToTree(masJobRecord));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	private final MasJobRecordRepository masJobRecordRepository;
 
-  public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId,
-      JobState state, String path, int pageNum, int pageSize) {
-    var pageSizePlusOne = pageSize + 1;
-    var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state,
-        pageNum, pageSizePlusOne);
-    return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
-  }
+	private final HandleComponent handleComponent;
 
-  public JsonApiListResponseWrapper getMasJobRecordsByCreatorId(String creatorId, String path,
-      int pageNum, int pageSize, JobState state) {
-    int pageSizeToCheckNext = pageSize + 1;
-    List<MasJobRecordFull> masJobRecordsPlusOne;
-    masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId, state,
-        pageNum, pageSizeToCheckNext);
-    return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
-  }
+	private final JsonMapper mapper;
 
-  private JsonApiListResponseWrapper packageList(List<MasJobRecordFull> masJobRecordListPlusOne,
-      String path, int pageNum, int pageSize) {
-    boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
-    var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
-    List<JsonApiData> dataList = sublist.stream().map(
-            mjr -> new JsonApiData(mjr.jobHandle(), FdoType.MJR.getName(), mapper.valueToTree(mjr)))
-        .toList();
-    JsonApiLinksFull linksNode;
-    if (masJobRecordListPlusOne.isEmpty()) {
-      linksNode = new JsonApiLinksFull(path);
-    } else {
-      linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, path);
-    }
-    return new JsonApiListResponseWrapper(dataList, linksNode);
-  }
+	public JsonApiWrapper getMasJobRecordById(String masJobRecordHandle, String path) throws NotFoundException {
+		var masJobRecordOptional = masJobRecordRepository.getMasJobRecordById(masJobRecordHandle);
+		if (masJobRecordOptional.isEmpty()) {
+			throw new NotFoundException("Unable to find MAS Job Record for job " + masJobRecordHandle);
+		}
+		var masJobRecord = masJobRecordOptional.get();
+		var dataNode = new JsonApiData(masJobRecordHandle, FdoType.MJR.getName(), mapper.valueToTree(masJobRecord));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  public Map<String, MasJobRecord> createMasJobRecord(
-      Set<MachineAnnotationService> masRecords,
-      String targetId, String orcid, MjrTargetType targetType,
-      Map<String, MasJobRequest> masRequests) throws WebProcessingFailedException {
-    log.info("Requesting {} handles from API", masRecords.size());
-    var handles = postHandleMjr(masRecords);
-    var handleItr = handles.iterator();
-    var masJobRecordList = masRecords.stream()
-        .map(masRecord -> {
-          var request = masRequests.get(masRecord.getId());
-          return new MasJobRecord(
-              handleItr.next(),
-              JobState.SCHEDULED,
-              masRecord.getId(),
-              targetId,
-              targetType,
-              orcid,
-              request.batching(),
-              masRecord.getOdsTimeToLive()
-          );
-        })
-        .toList();
-    masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-    return masJobRecordList.stream()
-        .collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
-  }
+	public JsonApiListResponseWrapper getMasJobRecordByTargetId(String targetId, JobState state, String path,
+			int pageNum, int pageSize) {
+		var pageSizePlusOne = pageSize + 1;
+		var masJobRecordListPlusOne = masJobRecordRepository.getMasJobRecordsByTargetId(targetId, state, pageNum,
+				pageSizePlusOne);
+		return packageList(masJobRecordListPlusOne, path, pageNum, pageSize);
+	}
 
-  private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords)
-      throws WebProcessingFailedException {
-    return handleComponent.postHandleMjr(masRecords.size());
-  }
+	public JsonApiListResponseWrapper getMasJobRecordsByCreatorId(String creatorId, String path, int pageNum,
+			int pageSize, JobState state) {
+		int pageSizeToCheckNext = pageSize + 1;
+		List<MasJobRecordFull> masJobRecordsPlusOne;
+		masJobRecordsPlusOne = masJobRecordRepository.getMasJobRecordsByCreatorId(creatorId, state, pageNum,
+				pageSizeToCheckNext);
+		return packageList(masJobRecordsPlusOne, path, pageNum, pageSize);
+	}
 
-  public String createJobRecordForDisscover(Annotation annotation, String orcid)
-      throws WebProcessingFailedException {
-    var handle = postHandleMjr();
-    var mjr = new MasJobRecord(
-        handle,
-        JobState.RUNNING,
-        "DISSCOVER",
-        annotation.getOaHasTarget().getId(),
-        getMjrTargetType(annotation),
-        orcid,
-        true,
-        TTL
-    );
-    masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
-    return handle;
-  }
+	private JsonApiListResponseWrapper packageList(List<MasJobRecordFull> masJobRecordListPlusOne, String path,
+			int pageNum, int pageSize) {
+		boolean hasNext = masJobRecordListPlusOne.size() > pageSize;
+		var sublist = hasNext ? masJobRecordListPlusOne.subList(0, pageSize) : masJobRecordListPlusOne;
+		List<JsonApiData> dataList = sublist.stream()
+			.map(mjr -> new JsonApiData(mjr.jobHandle(), FdoType.MJR.getName(), mapper.valueToTree(mjr)))
+			.toList();
+		JsonApiLinksFull linksNode;
+		if (masJobRecordListPlusOne.isEmpty()) {
+			linksNode = new JsonApiLinksFull(path);
+		}
+		else {
+			linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, path);
+		}
+		return new JsonApiListResponseWrapper(dataList, linksNode);
+	}
 
-  private String postHandleMjr() throws WebProcessingFailedException {
-    return handleComponent.postHandleMjr(1).getFirst();
-  }
+	public Map<String, MasJobRecord> createMasJobRecord(Set<MachineAnnotationService> masRecords, String targetId,
+			String orcid, MjrTargetType targetType, Map<String, MasJobRequest> masRequests)
+			throws WebProcessingFailedException {
+		log.info("Requesting {} handles from API", masRecords.size());
+		var handles = postHandleMjr(masRecords);
+		var handleItr = handles.iterator();
+		var masJobRecordList = masRecords.stream().map(masRecord -> {
+			var request = masRequests.get(masRecord.getId());
+			return new MasJobRecord(handleItr.next(), JobState.SCHEDULED, masRecord.getId(), targetId, targetType,
+					orcid, request.batching(), masRecord.getOdsTimeToLive());
+		}).toList();
+		masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
+		return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
+	}
 
-  public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
-    if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
-      throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
-    }
-  }
+	private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords) throws WebProcessingFailedException {
+		return handleComponent.postHandleMjr(masRecords.size());
+	}
 
-  private MjrTargetType getMjrTargetType(Annotation annotation) {
-    var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsFdoType());
-    if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)) {
-      return MjrTargetType.DIGITAL_SPECIMEN;
-    }
-    return MjrTargetType.MEDIA_OBJECT;
-  }
+	public String createJobRecordForDisscover(Annotation annotation, String orcid) throws WebProcessingFailedException {
+		var handle = postHandleMjr();
+		var mjr = new MasJobRecord(handle, JobState.RUNNING, "DISSCOVER", annotation.getOaHasTarget().getId(),
+				getMjrTargetType(annotation), orcid, true, TTL);
+		masJobRecordRepository.createNewMasJobRecord(List.of(mjr));
+		return handle;
+	}
+
+	private String postHandleMjr() throws WebProcessingFailedException {
+		return handleComponent.postHandleMjr(1).getFirst();
+	}
+
+	public void markMasJobRecordAsRunning(String masId, String jobId) throws NotFoundException {
+		if (masJobRecordRepository.markMasJobRecordAsRunning(masId, jobId) == 0) {
+			throw new NotFoundException("Unable to locate scheduled MAS job with id " + jobId);
+		}
+	}
+
+	private MjrTargetType getMjrTargetType(Annotation annotation) {
+		var targetType = AnnotationTargetType.fromString(annotation.getOaHasTarget().getOdsFdoType());
+		if (AnnotationTargetType.DIGITAL_SPECIMEN.equals(targetType)) {
+			return MjrTargetType.DIGITAL_SPECIMEN;
+		}
+		return MjrTargetType.MEDIA_OBJECT;
+	}
 
 }
