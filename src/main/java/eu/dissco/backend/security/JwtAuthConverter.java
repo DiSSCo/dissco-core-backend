@@ -19,41 +19,41 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-  private final SecurityProperties securityProperties;
+	private final SecurityProperties securityProperties;
 
-  @Override
-  public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
-    return new JwtAuthenticationToken(jwt, extractRoles(jwt), getPrincipalClaimName(jwt));
-  }
+	@Override
+	public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
+		return new JwtAuthenticationToken(jwt, extractRoles(jwt), getPrincipalClaimName(jwt));
+	}
 
-  private Set<GrantedAuthority> extractRoles(Jwt jwt) {
-    Set<GrantedAuthority> authorities = new HashSet<>();
-    if (jwt.getClaims().containsKey("resource_access")) {
-      ((Map<String, Object>) jwt.getClaims().get("resource_access")).forEach(
-          (clientName, properties) -> {
-            if (clientName.equals(securityProperties.getClientId())) {
-              Map<String, Object> resourceAccess = (Map<String, Object>) properties;
-              resourceAccess.forEach((propertyName, value) -> {
-                if (propertyName.equals("roles")) {
-                  ((Collection<String>) value).forEach(
-                      role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
-                }
-              });
-            }
-          });
-    }
-    if (jwt.getClaims().containsKey("realm_access")) {
-      ((Map<String, Object>) jwt.getClaims().get("realm_access")).forEach((propertyName, value) -> {
-        if (propertyName.equals("roles")) {
-          ((Collection<String>) value).forEach(
-              role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
-        }
-      });
-    }
-    return authorities;
-  }
+	private Set<GrantedAuthority> extractRoles(Jwt jwt) {
+		Set<GrantedAuthority> authorities = new HashSet<>();
+		if (jwt.getClaims().containsKey("resource_access")) {
+			((Map<String, Object>) jwt.getClaims().get("resource_access")).forEach((clientName, properties) -> {
+				if (clientName.equals(securityProperties.getClientId())) {
+					Map<String, Object> resourceAccess = (Map<String, Object>) properties;
+					resourceAccess.forEach((propertyName, value) -> {
+						if (propertyName.equals("roles")) {
+							((Collection<String>) value)
+								.forEach(role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
+						}
+					});
+				}
+			});
+		}
+		if (jwt.getClaims().containsKey("realm_access")) {
+			((Map<String, Object>) jwt.getClaims().get("realm_access")).forEach((propertyName, value) -> {
+				if (propertyName.equals("roles")) {
+					((Collection<String>) value)
+						.forEach(role -> authorities.add((GrantedAuthority) () -> "ROLE_" + role));
+				}
+			});
+		}
+		return authorities;
+	}
 
-  private String getPrincipalClaimName(Jwt jwt) {
-    return jwt.getClaim(JwtClaimNames.SUB);
-  }
+	private String getPrincipalClaimName(Jwt jwt) {
+		return jwt.getClaim(JwtClaimNames.SUB);
+	}
+
 }

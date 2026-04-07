@@ -18,98 +18,99 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 class RestResponseEntityExceptionHandlerTest {
 
-  private RestResponseEntityExceptionHandler exceptionHandler;
+	private RestResponseEntityExceptionHandler exceptionHandler;
 
-  @BeforeEach
-  void setup() {
-    exceptionHandler = new RestResponseEntityExceptionHandler();
-  }
+	@BeforeEach
+	void setup() {
+		exceptionHandler = new RestResponseEntityExceptionHandler();
+	}
 
-  @Test
-  void testNotFoundException() {
-    // Given
+	@Test
+	void testNotFoundException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new NotFoundException());
+		// When
+		var result = exceptionHandler.handleException(new NotFoundException());
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
 
-  @Test
-  void testNotFoundExceptionMessage() {
-    // Given
+	@Test
+	void testNotFoundExceptionMessage() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new NotFoundException(""));
+		// When
+		var result = exceptionHandler.handleException(new NotFoundException(""));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
 
-  @Test
-  void testIOExceptionMessage() {
-    // Given
+	@Test
+	void testIOExceptionMessage() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleIOException(new IOException());
+		// When
+		var result = exceptionHandler.handleIOException(new IOException());
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
+	}
 
-  @Test
-  void testForbiddenException() {
-    // Given
+	@Test
+	void testForbiddenException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new ForbiddenException(FORBIDDEN_MESSAGE));
+		// When
+		var result = exceptionHandler.handleException(new ForbiddenException(FORBIDDEN_MESSAGE));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
 
-  @Test
-  void testConflictException() {
-    // Given
+	@Test
+	void testConflictException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new ConflictException());
+		// When
+		var result = exceptionHandler.handleException(new ConflictException());
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+	}
 
-  @Test
-  void testIllegalArgumentException() {
-    // Given
+	@Test
+	void testIllegalArgumentException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new IllegalArgumentException());
+		// When
+		var result = exceptionHandler.handleException(new IllegalArgumentException());
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
 
-  @Test
-  void testUnknownParameterException() {
-    // Given
+	@Test
+	void testUnknownParameterException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new UnknownParameterException(""));
+		// When
+		var result = exceptionHandler.handleException(new UnknownParameterException(""));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
 
-  @Test
-  void testInvalidAnnotationRequestException() {
-    // Given
+	@Test
+	void testInvalidAnnotationRequestException() {
+		// Given
 
-    // When
-    var result = exceptionHandler.handleException(new InvalidAnnotationRequestException(""));
+		// When
+		var result = exceptionHandler.handleException(new InvalidAnnotationRequestException(""));
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
 }

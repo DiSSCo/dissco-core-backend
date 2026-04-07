@@ -27,157 +27,157 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class VirtualCollectionRepositoryIT extends BaseRepositoryIT {
 
-  private VirtualCollectionRepository repository;
+	private VirtualCollectionRepository repository;
 
-  @BeforeEach
-  void setup() {
-    repository = new VirtualCollectionRepository(MAPPER, context);
-  }
+	@BeforeEach
+	void setup() {
+		repository = new VirtualCollectionRepository(MAPPER, context);
+	}
 
-  @AfterEach
-  void destroy() {
-    context.truncate(VIRTUAL_COLLECTION).execute();
-  }
+	@AfterEach
+	void destroy() {
+		context.truncate(VIRTUAL_COLLECTION).execute();
+	}
 
-  @Test
-  void testGetVirtualCollectionById() {
-    // Given
-    var virtualCollection = givenVirtualCollection(HANDLE + ID);
-    populateTable();
+	@Test
+	void testGetVirtualCollectionById() {
+		// Given
+		var virtualCollection = givenVirtualCollection(HANDLE + ID);
+		populateTable();
 
-    // When
-    var result = repository.getVirtualCollectionById(virtualCollection.getId());
+		// When
+		var result = repository.getVirtualCollectionById(virtualCollection.getId());
 
-    // Then
-    assertThat(result).isEqualTo(virtualCollection);
-  }
+		// Then
+		assertThat(result).isEqualTo(virtualCollection);
+	}
 
-  @Test
-  void testGetVirtualCollectionByIdNotFound() {
-    // Given
-    var fullAddedList = populateTable();
-    var expected = Pair.of(11, fullAddedList.subList(0, 6));
+	@Test
+	void testGetVirtualCollectionByIdNotFound() {
+		// Given
+		var fullAddedList = populateTable();
+		var expected = Pair.of(11, fullAddedList.subList(0, 6));
 
-    // When
-    var result = repository.getVirtualCollections(1, 5);
+		// When
+		var result = repository.getVirtualCollections(1, 5);
 
-    // Then
-    assertThat(result).containsExactlyInAnyOrderElementsOf(expected.getRight());
-  }
+		// Then
+		assertThat(result).containsExactlyInAnyOrderElementsOf(expected.getRight());
+	}
 
-  @Test
-  void testGetVirtualCollectionForCountry() {
-    // Given
-    populateTable();
-    var virtualCollectionFinish = givenVirtualCollection(HANDLE + "AAA-111-FIN", ORCID);
-    virtualCollectionFinish.setOdsSignificanceForCountries(List.of("Finland"));
-    repository.createVirtualCollection(virtualCollectionFinish);
+	@Test
+	void testGetVirtualCollectionForCountry() {
+		// Given
+		populateTable();
+		var virtualCollectionFinish = givenVirtualCollection(HANDLE + "AAA-111-FIN", ORCID);
+		virtualCollectionFinish.setOdsSignificanceForCountries(List.of("Finland"));
+		repository.createVirtualCollection(virtualCollectionFinish);
 
-    // When
-    var result = repository.getVirtualCollectionsForCountries(1, 5, List.of("Finland"));
+		// When
+		var result = repository.getVirtualCollectionsForCountries(1, 5, List.of("Finland"));
 
-    // Then
-    assertThat(result).hasSameElementsAs(List.of(virtualCollectionFinish));
-  }
+		// Then
+		assertThat(result).hasSameElementsAs(List.of(virtualCollectionFinish));
+	}
 
-  @Test
-  void testGetVirtualCollectionsForCreator() {
-    // Given
-    populateTable();
-    var virtualCollection = List.of(givenVirtualCollection(HANDLE + ID));
+	@Test
+	void testGetVirtualCollectionsForCreator() {
+		// Given
+		populateTable();
+		var virtualCollection = List.of(givenVirtualCollection(HANDLE + ID));
 
-    // When
-    var result = repository.getVirtualCollectionsForUser(ORCID, 1, 10);
+		// When
+		var result = repository.getVirtualCollectionsForUser(ORCID, 1, 10);
 
-    // Then
-    assertThat(result).hasSize(1).isEqualTo(virtualCollection);
-  }
+		// Then
+		assertThat(result).hasSize(1).isEqualTo(virtualCollection);
+	}
 
-  @Test
-  void testRollbackVirtualCollectionCreate() {
-    // Given
-    populateTable();
+	@Test
+	void testRollbackVirtualCollectionCreate() {
+		// Given
+		populateTable();
 
-    // When
-    repository.rollbackVirtualCollectionCreate(HANDLE + ID);
+		// When
+		repository.rollbackVirtualCollectionCreate(HANDLE + ID);
 
-    // Then
-    var virtualCollection = repository.getVirtualCollectionById(ID);
-    assertThat(virtualCollection).isNull();
-  }
+		// Then
+		var virtualCollection = repository.getVirtualCollectionById(ID);
+		assertThat(virtualCollection).isNull();
+	}
 
-  @ParameterizedTest
-  @ValueSource(strings = {ORCID})
-  @NullSource
-  void testGetActiveVirtualCollection(String userId) {
-    // Given
-    populateTable();
+	@ParameterizedTest
+	@ValueSource(strings = { ORCID })
+	@NullSource
+	void testGetActiveVirtualCollection(String userId) {
+		// Given
+		populateTable();
 
-    // When
-    var result = repository.getActiveVirtualCollection(ID, userId);
+		// When
+		var result = repository.getActiveVirtualCollection(ID, userId);
 
-    // Then
-    assertThat(result).contains(givenVirtualCollection(HANDLE + ID));
-  }
+		// Then
+		assertThat(result).contains(givenVirtualCollection(HANDLE + ID));
+	}
 
-  @Test
-  void testGetActiveVirtualCollection() {
-    // Given
-    populateTable();
+	@Test
+	void testGetActiveVirtualCollection() {
+		// Given
+		populateTable();
 
-    // When
-    var result = repository.getActiveVirtualCollection(ID, "Random username");
+		// When
+		var result = repository.getActiveVirtualCollection(ID, "Random username");
 
-    // Then
-    assertThat(result).isEmpty();
-  }
+		// Then
+		assertThat(result).isEmpty();
+	}
 
-  @Test
-  void testTombstoneVirtualCollection() {
-    // Given
-    var tombStonedvirtualCollection = givenTombstoneVirtualCollection();
-    populateTable();
+	@Test
+	void testTombstoneVirtualCollection() {
+		// Given
+		var tombStonedvirtualCollection = givenTombstoneVirtualCollection();
+		populateTable();
 
-    // When
-    repository.tombstoneVirtualCollection(tombStonedvirtualCollection);
+		// When
+		repository.tombstoneVirtualCollection(tombStonedvirtualCollection);
 
-    // Then
-    var result = context.select(VIRTUAL_COLLECTION.TOMBSTONED)
-        .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombStonedvirtualCollection.getId())))
-        .fetchOne(VIRTUAL_COLLECTION.TOMBSTONED);
-    assertThat(result).isEqualTo(CREATED);
-  }
+		// Then
+		var result = context.select(VIRTUAL_COLLECTION.TOMBSTONED)
+			.from(VIRTUAL_COLLECTION)
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombStonedvirtualCollection.getId())))
+			.fetchOne(VIRTUAL_COLLECTION.TOMBSTONED);
+		assertThat(result).isEqualTo(CREATED);
+	}
 
-  @Test
-  void testUpdateVirtualCollection() {
-    // Given
-    populateTable();
-    var updatedRecord = givenVirtualCollection(HANDLE + ID, ORCID, "An updated name", 2);
+	@Test
+	void testUpdateVirtualCollection() {
+		// Given
+		populateTable();
+		var updatedRecord = givenVirtualCollection(HANDLE + ID, ORCID, "An updated name", 2);
 
-    // When
-    repository.updateVirtualCollection(updatedRecord);
+		// When
+		repository.updateVirtualCollection(updatedRecord);
 
-    // Then
-    var result = context.select(VIRTUAL_COLLECTION.DATA)
-        .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(updatedRecord.getId())))
-        .fetchOne(VIRTUAL_COLLECTION.DATA);
-    assertThat(MAPPER.readValue(result.data(), VirtualCollection.class)).isEqualTo(updatedRecord);
-  }
+		// Then
+		var result = context.select(VIRTUAL_COLLECTION.DATA)
+			.from(VIRTUAL_COLLECTION)
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(updatedRecord.getId())))
+			.fetchOne(VIRTUAL_COLLECTION.DATA);
+		assertThat(MAPPER.readValue(result.data(), VirtualCollection.class)).isEqualTo(updatedRecord);
+	}
 
-  private List<VirtualCollection> populateTable() {
-    var result = new ArrayList<VirtualCollection>();
-    var virtualCollectionDefault = givenVirtualCollection(HANDLE + ID, ORCID);
-    repository.createVirtualCollection(virtualCollectionDefault);
-    result.add(virtualCollectionDefault);
-    for (int i = 0; i < 10; i++) {
-      var virtualCollection = givenVirtualCollection(HANDLE + ID.substring(0, ID.length() - 1) + i,
-          ORCID.substring(0, ORCID.length() - 1) + i);
-      repository.createVirtualCollection(virtualCollection);
-      result.add(virtualCollection);
-    }
-    return result;
-  }
+	private List<VirtualCollection> populateTable() {
+		var result = new ArrayList<VirtualCollection>();
+		var virtualCollectionDefault = givenVirtualCollection(HANDLE + ID, ORCID);
+		repository.createVirtualCollection(virtualCollectionDefault);
+		result.add(virtualCollectionDefault);
+		for (int i = 0; i < 10; i++) {
+			var virtualCollection = givenVirtualCollection(HANDLE + ID.substring(0, ID.length() - 1) + i,
+					ORCID.substring(0, ORCID.length() - 1) + i);
+			repository.createVirtualCollection(virtualCollection);
+			result.add(virtualCollection);
+		}
+		return result;
+	}
 
 }

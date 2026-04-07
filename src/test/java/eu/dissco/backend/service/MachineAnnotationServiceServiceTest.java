@@ -41,120 +41,107 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MachineAnnotationServiceServiceTest {
 
-  @Mock
-  private MachineAnnotationServiceRepository repository;
-  @Mock
-  private MasClient masClient;
+	@Mock
+	private MachineAnnotationServiceRepository repository;
 
-  private MachineAnnotationServiceService service;
+	@Mock
+	private MasClient masClient;
 
-  private static Stream<Arguments> provideFilters() {
-    return Stream.of(
-        Arguments.of(List.of(
-            Pair.of("$['ods:fdoType']", List.of("Some Test value")))),
-        Arguments.of(List.of(
-            Pair.of("$['ods:format']", List.of("application/json")),
-            Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
-                List.of("The Netherlands", "Belgium")))),
-        Arguments.of(List.of(
-            Pair.of("$['ods:format']", List.of("application/json")),
-            Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['dwc:city']",
-                List.of("Rotterdam", "Amsterdam")))),
-        Arguments.of(List.of(Pair.of("$['omg:someRandomNonExistingKey']", List.of("whyKnows"))))
-    );
-  }
+	private MachineAnnotationServiceService service;
 
-  @BeforeEach
-  void setup() {
-    this.service = new MachineAnnotationServiceService(repository, MAPPER, masClient);
-  }
+	private static Stream<Arguments> provideFilters() {
+		return Stream.of(Arguments.of(List.of(Pair.of("$['ods:fdoType']", List.of("Some Test value")))),
+				Arguments.of(List.of(Pair.of("$['ods:format']", List.of("application/json")),
+						Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
+								List.of("The Netherlands", "Belgium")))),
+				Arguments.of(List.of(Pair.of("$['ods:format']", List.of("application/json")),
+						Pair.of("$['digitalSpecimen']['ods:hasEvents'][*]['dwc:city']",
+								List.of("Rotterdam", "Amsterdam")))),
+				Arguments.of(List.of(Pair.of("$['omg:someRandomNonExistingKey']", List.of("whyKnows")))));
+	}
 
-  @Test
-  void testGetMassForObject() {
-    // Given
-    var masRecord = givenMas(givenFiltersDigitalMedia(false));
-    given(repository.getAllMas()).willReturn(List.of(masRecord));
+	@BeforeEach
+	void setup() {
+		this.service = new MachineAnnotationServiceService(repository, MAPPER, masClient);
+	}
 
-    // When
-    var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
+	@Test
+	void testGetMassForObject() {
+		// Given
+		var masRecord = givenMas(givenFiltersDigitalMedia(false));
+		given(repository.getAllMas()).willReturn(List.of(masRecord));
 
-    // Then
-    assertThat(result).isEqualTo(givenMasResponse(masRecord, DIGITAL_MEDIA_PATH));
-  }
+		// When
+		var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
 
-  @ParameterizedTest
-  @MethodSource("provideFilters")
-  void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters) {
-    // Given
-    var masRecord = givenMas(givenFiltersDigitalMedia(filters));
-    given(repository.getAllMas()).willReturn(List.of(masRecord));
+		// Then
+		assertThat(result).isEqualTo(givenMasResponse(masRecord, DIGITAL_MEDIA_PATH));
+	}
 
-    // When
-    var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
+	@ParameterizedTest
+	@MethodSource("provideFilters")
+	void testGetMassForObjectNoFilterMatch(List<Pair<String, List<String>>> filters) {
+		// Given
+		var masRecord = givenMas(givenFiltersDigitalMedia(filters));
+		given(repository.getAllMas()).willReturn(List.of(masRecord));
 
-    // Then
-    assertThat(result.getData()).isEmpty();
-  }
+		// When
+		var result = service.getMassForObject(givenFlattenedDigitalMedia(), DIGITAL_MEDIA_PATH);
 
-  @Test
-  void testScheduleMass() throws Exception {
-    // Given
-    var expected = Set.of(new MasScheduleJobRequest(MAS_ID, DOI + ID, false, ORCID,
-        MjrTargetType.DIGITAL_SPECIMEN));
-    given(masClient.scheduleMas(expected)).willReturn(
-        MAPPER.readTree("""
-            [
-              {
-                "jobId" : "something"
-              }
-            ]
-            """));
+		// Then
+		assertThat(result.getData()).isEmpty();
+	}
 
-    // When
-    service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN,
-        SANDBOX_URI);
+	@Test
+	void testScheduleMass() throws Exception {
+		// Given
+		var expected = Set
+			.of(new MasScheduleJobRequest(MAS_ID, DOI + ID, false, ORCID, MjrTargetType.DIGITAL_SPECIMEN));
+		given(masClient.scheduleMas(expected)).willReturn(MAPPER.readTree("""
+				[
+				  {
+				    "jobId" : "something"
+				  }
+				]
+				"""));
 
-    // Then
-    then(masClient).should().scheduleMas(expected);
-  }
+		// When
+		service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN, SANDBOX_URI);
 
-  @Test
-  void testScheduleMasFailed() throws ProcessingFailedException {
-    // Given
-    doThrow(WebProcessingFailedException.class).when(masClient).scheduleMas(any());
+		// Then
+		then(masClient).should().scheduleMas(expected);
+	}
 
-    // When / Then
-    assertThrowsExactly(
-        WebProcessingFailedException.class,
-        () -> service.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID,
-            MjrTargetType.DIGITAL_SPECIMEN, SANDBOX_URI));
+	@Test
+	void testScheduleMasFailed() throws ProcessingFailedException {
+		// Given
+		doThrow(WebProcessingFailedException.class).when(masClient).scheduleMas(any());
 
-  }
+		// When / Then
+		assertThrowsExactly(WebProcessingFailedException.class, () -> service.scheduleMas(ID,
+				List.of(givenMasJobRequest()), ORCID, MjrTargetType.DIGITAL_SPECIMEN, SANDBOX_URI));
 
-  private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(
-      List<Pair<String, List<String>>> filters) {
-    var targetFilter = new OdsHasTargetDigitalObjectFilter();
-    for (var filter : filters) {
-      targetFilter.setAdditionalProperty(filter.getLeft(), filter.getRight());
-    }
-    return targetFilter;
-  }
+	}
 
-  private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
-    var filters = new OdsHasTargetDigitalObjectFilter()
-        .withAdditionalProperty("$['ods:fdoType']",
-            List.of("https://doi.org/21.T11148/bbad8c4e101e8af01115"))
-        .withAdditionalProperty("$['dwc:organisationName']",
-            List.of("Royal Botanic Garden Edinburgh Herbarium"))
-        .withAdditionalProperty(
-            "$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
-            List.of("*"));
-    if (unmatchedFilter) {
-      filters.withAdditionalProperty(
-          "$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:island']",
-          List.of("*"));
-    }
-    return filters;
-  }
+	private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(List<Pair<String, List<String>>> filters) {
+		var targetFilter = new OdsHasTargetDigitalObjectFilter();
+		for (var filter : filters) {
+			targetFilter.setAdditionalProperty(filter.getLeft(), filter.getRight());
+		}
+		return targetFilter;
+	}
+
+	private OdsHasTargetDigitalObjectFilter givenFiltersDigitalMedia(boolean unmatchedFilter) {
+		var filters = new OdsHasTargetDigitalObjectFilter()
+			.withAdditionalProperty("$['ods:fdoType']", List.of("https://doi.org/21.T11148/bbad8c4e101e8af01115"))
+			.withAdditionalProperty("$['dwc:organisationName']", List.of("Royal Botanic Garden Edinburgh Herbarium"))
+			.withAdditionalProperty("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:country']",
+					List.of("*"));
+		if (unmatchedFilter) {
+			filters.withAdditionalProperty("$['digitalSpecimen']['ods:hasEvents'][*]['ods:hasLocation']['dwc:island']",
+					List.of("*"));
+		}
+		return filters;
+	}
 
 }

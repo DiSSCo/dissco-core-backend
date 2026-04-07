@@ -27,173 +27,173 @@ import org.junit.jupiter.api.Test;
 
 class AnnotationRepositoryIT extends BaseRepositoryIT {
 
-  private AnnotationRepository repository;
+	private AnnotationRepository repository;
 
-  @BeforeEach
-  void setup() {
-    repository = new AnnotationRepository(context, MAPPER);
-  }
+	@BeforeEach
+	void setup() {
+		repository = new AnnotationRepository(context, MAPPER);
+	}
 
-  @AfterEach
-  void destroy() {
-    context.truncate(ANNOTATION).execute();
-  }
+	@AfterEach
+	void destroy() {
+		context.truncate(ANNOTATION).execute();
+	}
 
-  @Test
-  void testGetAnnotation() {
-    // Given
-    var expectedAnnotation = givenAnnotationResponse().withOdsBatchID(BATCH_ID);
-    postAnnotations(List.of(expectedAnnotation));
+	@Test
+	void testGetAnnotation() {
+		// Given
+		var expectedAnnotation = givenAnnotationResponse().withOdsBatchID(BATCH_ID);
+		postAnnotations(List.of(expectedAnnotation));
 
-    // When
-    var result = repository.getAnnotation(ID);
+		// When
+		var result = repository.getAnnotation(ID);
 
-    // Then
-    assertThat(result).isEqualTo(expectedAnnotation);
-  }
+		// Then
+		assertThat(result).isEqualTo(expectedAnnotation);
+	}
 
-  @Test
-  void testGetAnnotations() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 10;
+	@Test
+	void testGetAnnotations() {
+		// Given
+		int pageNumber = 1;
+		int pageSize = 10;
 
-    List<Annotation> annotationsAll = new ArrayList<>();
-    List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed()
-        .map(Object::toString).toList();
-    for (String annotationId : annotationIds) {
-      annotationsAll.add(givenAnnotationResponse(annotationId));
+		List<Annotation> annotationsAll = new ArrayList<>();
+		List<String> annotationIds = IntStream.rangeClosed(0, (pageSize - 1)).boxed().map(Object::toString).toList();
+		for (String annotationId : annotationIds) {
+			annotationsAll.add(givenAnnotationResponse(annotationId));
 
-    }
-    postAnnotations(annotationsAll);
+		}
+		postAnnotations(annotationsAll);
 
-    // When
-    var receivedResponse = repository.getAnnotations(pageNumber, pageSize);
+		// When
+		var receivedResponse = repository.getAnnotations(pageNumber, pageSize);
 
-    // Then
-    assertThat(receivedResponse).hasSameElementsAs(annotationsAll);
-  }
+		// Then
+		assertThat(receivedResponse).hasSameElementsAs(annotationsAll);
+	}
 
-  @Test
-  void testGetAnnotationsForTargets() {
-    // Given
-    var annotations = List.of(givenAnnotationResponse(), givenAnnotationResponse(ID_ALT, ORCID, "2"));
-    postAnnotations(annotations);
+	@Test
+	void testGetAnnotationsForTargets() {
+		// Given
+		var annotations = List.of(givenAnnotationResponse(), givenAnnotationResponse(ID_ALT, ORCID, "2"));
+		postAnnotations(annotations);
 
-    // When
-    var result = repository.getForTargets(List.of(TARGET_ID, "2"));
+		// When
+		var result = repository.getForTargets(List.of(TARGET_ID, "2"));
 
-    // Then
-    assertThat(result).hasSameElementsAs(annotations);
-  }
+		// Then
+		assertThat(result).hasSameElementsAs(annotations);
+	}
 
-  @Test
-  void testGetActiveAnnotationForUser() {
-    // Given
-    var annotations = List.of(givenAnnotationResponse(ID),
-			givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
-			givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
-    postAnnotations(annotations);
+	@Test
+	void testGetActiveAnnotationForUser() {
+		// Given
+		var annotations = List.of(givenAnnotationResponse(ID),
+				givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
+				givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
+		postAnnotations(annotations);
 
-    // When
-    var receivedResponse = repository.getActiveAnnotation(ID, ORCID);
+		// When
+		var receivedResponse = repository.getActiveAnnotation(ID, ORCID);
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
+	}
 
-  @Test
-  void testGetActiveAnnotation() {
-    // Given
-    var annotations = List.of(givenAnnotationResponse(ID),
-			givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
-			givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
-    postAnnotations(annotations);
+	@Test
+	void testGetActiveAnnotation() {
+		// Given
+		var annotations = List.of(givenAnnotationResponse(ID),
+				givenAnnotationResponse(ORCID_ALT, "AnotherUser", PREFIX + "/TAR-GET-002"),
+				givenAnnotationResponse(ORCID_ALT, "JamesBond", PREFIX + "/TAR-GET-007"));
+		postAnnotations(annotations);
 
-    // When
-    var receivedResponse = repository.getActiveAnnotation(ID, null);
+		// When
+		var receivedResponse = repository.getActiveAnnotation(ID, null);
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(Optional.of(annotations.getFirst()));
+	}
 
-  @Test
-  void testGetForTarget() {
-    // Given
-	var expectedResponse = givenAnnotationResponse(ID, ORCID_ALT, ID_ALT);
-    List<Annotation> annotations = List.of(expectedResponse,
-        givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
-        givenAnnotationResponse(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
-    postAnnotations(annotations);
+	@Test
+	void testGetForTarget() {
+		// Given
+		var expectedResponse = givenAnnotationResponse(ID, ORCID_ALT, ID_ALT);
+		List<Annotation> annotations = List.of(expectedResponse,
+				givenAnnotationResponse(PREFIX + "/XXX-XXX-XXX", PREFIX + "/TAR-GET-002"),
+				givenAnnotationResponse(PREFIX + "/YYY-YYY-YYY", PREFIX + "/TAR-GET-007"));
+		postAnnotations(annotations);
 
-    // When
-    var receivedResponse = repository.getForTarget(ID_ALT);
+		// When
+		var receivedResponse = repository.getForTarget(ID_ALT);
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
-  }
+		// Then
+		assertThat(receivedResponse).isEqualTo(List.of(expectedResponse));
+	}
 
-  @Test
-  void testNullResponse() {
-    // Given
-    var annotation = givenAnnotationResponse(ID);
-    var badTarget = MAPPER.readTree("""
-        {
-          "@id": {
-          "value": "incorrect"
-          }
-        }
-        """);
-    context.insertInto(ANNOTATION)
-        .set(ANNOTATION.ID, annotation.getId())
-        .set(ANNOTATION.VERSION, annotation.getOdsVersion())
-        .set(ANNOTATION.TYPE, annotation.getOdsFdoType())
-        .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
-        .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
-        .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
-        .set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
-        .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
-        .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
-        .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
-        .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
-        .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(badTarget)))
-        .execute();
+	@Test
+	void testNullResponse() {
+		// Given
+		var annotation = givenAnnotationResponse(ID);
+		var badTarget = MAPPER.readTree("""
+				{
+				  "@id": {
+				  "value": "incorrect"
+				  }
+				}
+				""");
+		context.insertInto(ANNOTATION)
+			.set(ANNOTATION.ID, annotation.getId())
+			.set(ANNOTATION.VERSION, annotation.getOdsVersion())
+			.set(ANNOTATION.TYPE, annotation.getOdsFdoType())
+			.set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+			.set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+			.set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+			.set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
+			.set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+			.set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+			.set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+			.set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+			.set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(badTarget)))
+			.execute();
 
-    // When / Then
-    assertThrows(DisscoJsonBMappingException.class, () -> repository.getAnnotation(ID));
-  }
+		// When / Then
+		assertThrows(DisscoJsonBMappingException.class, () -> repository.getAnnotation(ID));
+	}
 
-  private void postAnnotations(List<Annotation> annotations) {
-    List<Query> queryList = new ArrayList<>();
-    for (var annotation : annotations) {
-      var query = context.insertInto(ANNOTATION)
-          .set(ANNOTATION.ID, annotation.getId())
-          .set(ANNOTATION.VERSION, annotation.getOdsVersion())
-          .set(ANNOTATION.TYPE, annotation.getOdsFdoType())
-          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
-          .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
-          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
-          .set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
-          .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
-          .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
-          .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
-          .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)))
-          .onConflict(ANNOTATION.ID).doUpdate()
-          .set(ANNOTATION.VERSION, annotation.getOdsVersion())
-          .set(ANNOTATION.TYPE, annotation.getOdsFdoType())
-          .set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
-          .set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
-          .set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
-          .set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
-          .set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
-          .set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
-          .set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
-          .set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
-          .set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)));
-      queryList.add(query);
-    }
-    context.batch(queryList).execute();
-  }
+	private void postAnnotations(List<Annotation> annotations) {
+		List<Query> queryList = new ArrayList<>();
+		for (var annotation : annotations) {
+			var query = context.insertInto(ANNOTATION)
+				.set(ANNOTATION.ID, annotation.getId())
+				.set(ANNOTATION.VERSION, annotation.getOdsVersion())
+				.set(ANNOTATION.TYPE, annotation.getOdsFdoType())
+				.set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+				.set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+				.set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+				.set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
+				.set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+				.set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+				.set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+				.set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+				.set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)))
+				.onConflict(ANNOTATION.ID)
+				.doUpdate()
+				.set(ANNOTATION.VERSION, annotation.getOdsVersion())
+				.set(ANNOTATION.TYPE, annotation.getOdsFdoType())
+				.set(ANNOTATION.MOTIVATION, annotation.getOaMotivation().value())
+				.set(ANNOTATION.MJR_JOB_ID, annotation.getOdsJobID())
+				.set(ANNOTATION.BATCH_ID, annotation.getOdsBatchID())
+				.set(ANNOTATION.CREATOR, annotation.getDctermsCreator().getId())
+				.set(ANNOTATION.CREATED, annotation.getDctermsCreated().toInstant())
+				.set(ANNOTATION.MODIFIED, annotation.getDctermsModified().toInstant())
+				.set(ANNOTATION.LAST_CHECKED, annotation.getDctermsCreated().toInstant())
+				.set(ANNOTATION.TARGET_ID, annotation.getOaHasTarget().getId())
+				.set(ANNOTATION.DATA, JSONB.jsonb(MAPPER.writeValueAsString(annotation)));
+			queryList.add(query);
+		}
+		context.batch(queryList).execute();
+	}
 
 }

@@ -12,16 +12,16 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice(assignableTypes = ElvisController.class)
 public class ElvisRestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @ExceptionHandler(NotFoundException.class)
-  public ResponseEntity<Void> handleNotFoundElvis(NotFoundException e){
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-  }
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ExceptionHandler(NotFoundException.class)
+	public ResponseEntity<Void> handleNotFoundElvis(NotFoundException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	}
 
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(IOException.class)
-  public ResponseEntity<Void> handleIOExceptionElvis(IOException e){
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-  }
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(IOException.class)
+	public ResponseEntity<Void> handleIOExceptionElvis(IOException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	}
 
 }

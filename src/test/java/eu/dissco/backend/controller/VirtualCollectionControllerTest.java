@@ -54,209 +54,196 @@ import org.springframework.security.core.Authentication;
 @ExtendWith(MockitoExtension.class)
 class VirtualCollectionControllerTest {
 
+	@Mock
+	private VirtualCollectionService service;
 
-  @Mock
-  private VirtualCollectionService service;
-  @Mock
-  private Authentication authentication;
-  @Mock
-  private ApplicationProperties applicationProperties;
-  private VirtualCollectionController controller;
+	@Mock
+	private Authentication authentication;
 
-  private MockHttpServletRequest mockRequest;
+	@Mock
+	private ApplicationProperties applicationProperties;
 
-  static Stream<Arguments> sourceInvalidRequest() {
-    return Stream.of(
-        Arguments.of(FdoType.ANNOTATION, null),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
-                LtcBasisOfScheme.REFERENCE_COLLECTION, null)),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest("",
-            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest(null,
-            LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
-        Arguments.of(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME,
-                null, givenTargetFilter()))
-    );
-  }
+	private VirtualCollectionController controller;
 
-  static Stream<Arguments> sourceTestTombstoneVirtualCollection() {
-    return Stream.of(
-        Arguments.of(true, ResponseEntity.noContent().build()),
-        Arguments.of(false, ResponseEntity.status(HttpStatus.FORBIDDEN).build())
-    );
-  }
+	private MockHttpServletRequest mockRequest;
 
-  static Stream<Arguments> sourceTestUpdateVirtualCollection() {
-    var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
-    return Stream.of(
-        Arguments.of(expectedResponse, ResponseEntity.ok().body(expectedResponse)),
-        Arguments.of(null, ResponseEntity.ok().build())
-    );
-  }
+	static Stream<Arguments> sourceInvalidRequest() {
+		return Stream.of(Arguments.of(FdoType.ANNOTATION, null),
+				Arguments.of(FdoType.VIRTUAL_COLLECTION,
+						givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME, LtcBasisOfScheme.REFERENCE_COLLECTION,
+								null)),
+				Arguments.of(FdoType.VIRTUAL_COLLECTION,
+						givenVirtualCollectionRequest("", LtcBasisOfScheme.REFERENCE_COLLECTION, givenTargetFilter())),
+				Arguments.of(FdoType.VIRTUAL_COLLECTION,
+						givenVirtualCollectionRequest(null, LtcBasisOfScheme.REFERENCE_COLLECTION,
+								givenTargetFilter())),
+				Arguments.of(FdoType.VIRTUAL_COLLECTION,
+						givenVirtualCollectionRequest(VIRTUAL_COLLECTION_NAME, null, givenTargetFilter())));
+	}
 
-  @BeforeEach
-  void setup() {
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(VirtualCollectionUtils.VIRTUAL_COLLECTION_URI);
-    controller = new VirtualCollectionController(MAPPER, applicationProperties, service);
-  }
+	static Stream<Arguments> sourceTestTombstoneVirtualCollection() {
+		return Stream.of(Arguments.of(true, ResponseEntity.noContent().build()),
+				Arguments.of(false, ResponseEntity.status(HttpStatus.FORBIDDEN).build()));
+	}
 
-  @Test
-  void testGetVirtualCollectionById() throws NotFoundException {
-    // Given
-    var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
-    given(service.getVirtualCollectionById(ID, VIRTUAL_COLLECTION_PATH)).willReturn(
-        expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	static Stream<Arguments> sourceTestUpdateVirtualCollection() {
+		var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
+		return Stream.of(Arguments.of(expectedResponse, ResponseEntity.ok().body(expectedResponse)),
+				Arguments.of(null, ResponseEntity.ok().build()));
+	}
 
-    // When
-    var receivedResponse = controller.getVirtualCollectionById(PREFIX, SUFFIX, mockRequest);
+	@BeforeEach
+	void setup() {
+		mockRequest = new MockHttpServletRequest();
+		mockRequest.setRequestURI(VirtualCollectionUtils.VIRTUAL_COLLECTION_URI);
+		controller = new VirtualCollectionController(MAPPER, applicationProperties, service);
+	}
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
+	@Test
+	void testGetVirtualCollectionById() throws NotFoundException {
+		// Given
+		var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
+		given(service.getVirtualCollectionById(ID, VIRTUAL_COLLECTION_PATH)).willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetVirtualCollectionVersion() throws NotFoundException {
-    // Given
-    var version = 1;
-    var expectedResponse = ResponseEntity.ok(
-        givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH));
-    given(service.getVirtualCollectionByVersion(HANDLE + ID, version,
-        VIRTUAL_COLLECTION_PATH)).willReturn(expectedResponse.getBody());
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// When
+		var receivedResponse = controller.getVirtualCollectionById(PREFIX, SUFFIX, mockRequest);
 
-    // When
-    var receivedResponse = controller.getVirtualCollectionByVersion(PREFIX, SUFFIX, version,
-        mockRequest);
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+	}
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+	@Test
+	void testGetVirtualCollectionVersion() throws NotFoundException {
+		// Given
+		var version = 1;
+		var expectedResponse = ResponseEntity.ok(givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH));
+		given(service.getVirtualCollectionByVersion(HANDLE + ID, version, VIRTUAL_COLLECTION_PATH))
+			.willReturn(expectedResponse.getBody());
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetVirtualCollections() {
-    // Given
-    int pageNumber = 1;
-    int pageSize = 11;
-    var expectedJson = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, pageNumber,
-        pageSize,
-			ORCID_ALT, ID, true);
-    var expectedResponse = ResponseEntity.ok(expectedJson);
-    given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH,
-        List.of("Netherlands"))).willReturn(expectedJson);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// When
+		var receivedResponse = controller.getVirtualCollectionByVersion(PREFIX, SUFFIX, version, mockRequest);
 
-    // When
-    var receivedResponse = controller.getVirtualCollections(Optional.of(List.of("Netherlands")), pageNumber,
-        pageSize, mockRequest);
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+	@Test
+	void testGetVirtualCollections() {
+		// Given
+		int pageNumber = 1;
+		int pageSize = 11;
+		var expectedJson = givenVirtualCollectionJsonResponse(VIRTUAL_COLLECTION_PATH, pageNumber, pageSize, ORCID_ALT,
+				ID, true);
+		var expectedResponse = ResponseEntity.ok(expectedJson);
+		given(service.getVirtualCollections(pageNumber, pageSize, VIRTUAL_COLLECTION_PATH, List.of("Netherlands")))
+			.willReturn(expectedJson);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testGetVirtualCollectionsForUserJsonResponse() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
+		// When
+		var receivedResponse = controller.getVirtualCollections(Optional.of(List.of("Netherlands")), pageNumber,
+				pageSize, mockRequest);
 
-    // When
-    var receivedResponse = controller.getVirtualCollectionsForUser(1, 1, mockRequest,
-        authentication);
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetVirtualCollectionsForUserJsonResponse() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
 
-  @Test
-  void testGetVirtualCollectionVersions() throws NotFoundException {
-    // Given
+		// When
+		var receivedResponse = controller.getVirtualCollectionsForUser(1, 1, mockRequest, authentication);
 
-    // When
-    var receivedResponse = controller.getVirtualCollectionVersions(PREFIX, SUFFIX, mockRequest);
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    then(service).should().getVirtualCollectionVersions(eq(HANDLE + ID), anyString());
-  }
+	@Test
+	void testGetVirtualCollectionVersions() throws NotFoundException {
+		// Given
 
-  @Test
-  void testCreateAnnotation() throws Exception {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var virtualCollection = givenVirtualCollectionRequest();
+		// When
+		var receivedResponse = controller.getVirtualCollectionVersions(PREFIX, SUFFIX, mockRequest);
 
-    var request = new VirtualCollectionRequest(
-        new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest()));
-    var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
-    given(
-        service.persistVirtualCollection(virtualCollection,
-            givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), VIRTUAL_COLLECTION_PATH))
-        .willReturn(expectedResponse);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		then(service).should().getVirtualCollectionVersions(eq(HANDLE + ID), anyString());
+	}
 
-    // When
-    var receivedResponse = controller.createVirtualCollection(authentication, request, mockRequest);
+	@Test
+	void testCreateAnnotation() throws Exception {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var virtualCollection = givenVirtualCollectionRequest();
 
-    // Then
-    assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
-  }
+		var request = new VirtualCollectionRequest(
+				new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest()));
+		var expectedResponse = givenVirtualCollectionResponseWrapper(VIRTUAL_COLLECTION_PATH);
+		given(service.persistVirtualCollection(virtualCollection, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+				VIRTUAL_COLLECTION_PATH))
+			.willReturn(expectedResponse);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @ParameterizedTest
-  @MethodSource("sourceInvalidRequest")
-  void testCreateAnnotationWithInvalidRequest(FdoType fdoType,
-      eu.dissco.backend.schema.VirtualCollectionRequest virtualCollectionRequest) {
-    // Given
-    var request = new VirtualCollectionRequest(
-        new VirtualCollectionRequestData(fdoType, virtualCollectionRequest));
+		// When
+		var receivedResponse = controller.createVirtualCollection(authentication, request, mockRequest);
 
-    // When / Then
-    assertThrows(IllegalArgumentException.class,
-        () -> controller.createVirtualCollection(authentication, request, mockRequest));
-  }
+		// Then
+		assertThat(receivedResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(receivedResponse.getBody()).isEqualTo(expectedResponse);
+	}
 
-  @ParameterizedTest
-  @MethodSource("sourceTestTombstoneVirtualCollection")
-  void testTombstoneVirtualCollection(boolean success, ResponseEntity<Object> expectedResponse)
-      throws NotFoundException, ForbiddenException, ProcessingFailedException {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    given(service.tombstoneVirtualCollection(PREFIX, SUFFIX,
-        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION), false)).willReturn(
-        success);
+	@ParameterizedTest
+	@MethodSource("sourceInvalidRequest")
+	void testCreateAnnotationWithInvalidRequest(FdoType fdoType,
+			eu.dissco.backend.schema.VirtualCollectionRequest virtualCollectionRequest) {
+		// Given
+		var request = new VirtualCollectionRequest(new VirtualCollectionRequestData(fdoType, virtualCollectionRequest));
 
-    // When
-    var receivedResponse = controller.tombstoneVirtualCollection(authentication, PREFIX, SUFFIX);
+		// When / Then
+		assertThrows(IllegalArgumentException.class,
+				() -> controller.createVirtualCollection(authentication, request, mockRequest));
+	}
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+	@ParameterizedTest
+	@MethodSource("sourceTestTombstoneVirtualCollection")
+	void testTombstoneVirtualCollection(boolean success, ResponseEntity<Object> expectedResponse)
+			throws NotFoundException, ForbiddenException, ProcessingFailedException {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		given(service.tombstoneVirtualCollection(PREFIX, SUFFIX, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+				false))
+			.willReturn(success);
 
-  @ParameterizedTest
-  @MethodSource("sourceTestUpdateVirtualCollection")
-  void testUpdateVirtualCollection(JsonApiWrapper response, ResponseEntity<Object> expectedResponse)
-      throws NotFoundException, ForbiddenException, ProcessingFailedException {
-    // Given
-    givenAuthentication(authentication, givenClaims());
-    var virtualCollection = givenVirtualCollectionRequest();
-    var request = new VirtualCollectionRequest(
-        new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION,
-            givenVirtualCollectionRequest()));
-    given(service.updateVirtualCollection(ID, virtualCollection,
-        givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
-        VIRTUAL_COLLECTION_PATH)).willReturn(response);
-    given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		// When
+		var receivedResponse = controller.tombstoneVirtualCollection(authentication, PREFIX, SUFFIX);
 
-    // When
-    var receivedResponse = controller.updateVirtualCollection(authentication, request, PREFIX,
-        SUFFIX, mockRequest);
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
 
-    // Then
-    assertThat(receivedResponse).isEqualTo(expectedResponse);
-  }
+	@ParameterizedTest
+	@MethodSource("sourceTestUpdateVirtualCollection")
+	void testUpdateVirtualCollection(JsonApiWrapper response, ResponseEntity<Object> expectedResponse)
+			throws NotFoundException, ForbiddenException, ProcessingFailedException {
+		// Given
+		givenAuthentication(authentication, givenClaims());
+		var virtualCollection = givenVirtualCollectionRequest();
+		var request = new VirtualCollectionRequest(
+				new VirtualCollectionRequestData(FdoType.VIRTUAL_COLLECTION, givenVirtualCollectionRequest()));
+		given(service.updateVirtualCollection(ID, virtualCollection, givenAgent(ORCID, ROLE_NAME_VIRTUAL_COLLECTION),
+				VIRTUAL_COLLECTION_PATH))
+			.willReturn(response);
+		given(applicationProperties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+
+		// When
+		var receivedResponse = controller.updateVirtualCollection(authentication, request, PREFIX, SUFFIX, mockRequest);
+
+		// Then
+		assertThat(receivedResponse).isEqualTo(expectedResponse);
+	}
+
 }

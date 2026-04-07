@@ -8,24 +8,16 @@ import eu.dissco.backend.schema.DigitalSpecimen;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
-public record DigitalSpecimenResponseFull(
-    DigitalSpecimenResponseDataFull data,
-    @Schema(description = "Links object, for pagination") JsonApiLinksFull links,
-    @Schema(description = "Response metadata") JsonApiMeta meta
-) {
+public record DigitalSpecimenResponseFull(DigitalSpecimenResponseDataFull data,
+		@Schema(description = "Links object, for pagination") JsonApiLinksFull links,
+		@Schema(description = "Response metadata") JsonApiMeta meta) {
 
-  private record DigitalSpecimenResponseDataFull(
-      DigitalSpecimenResponseAttributesFull attributes
-  ) {
+	private record DigitalSpecimenResponseDataFull(DigitalSpecimenResponseAttributesFull attributes) {
 
-    private record DigitalSpecimenResponseAttributesFull(
-        DigitalSpecimen digitalSpecimen,
-        List<DigitalMedia> digitalMedia,
-        List<Annotation> annotations
-    ) {
+		private record DigitalSpecimenResponseAttributesFull(DigitalSpecimen digitalSpecimen,
+				List<DigitalMedia> digitalMedia, List<Annotation> annotations) {
 
-    }
-  }
-
+		}
+	}
 
 }

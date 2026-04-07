@@ -22,36 +22,39 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class DigitalSpecimenRepository {
 
-  private final DSLContext context;
-  private final JsonMapper mapper;
+	private final DSLContext context;
 
-  public DigitalSpecimen getLatestSpecimenById(String id) {
-    return context.select(DIGITAL_SPECIMEN.asterisk())
-        .from(DIGITAL_SPECIMEN)
-        .where(DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(this::mapToDigitalSpecimen);
-  }
+	private final JsonMapper mapper;
 
-  public JsonNode getSpecimenOriginalData(String id) {
-    return context.select(DIGITAL_SPECIMEN.ORIGINAL_DATA)
-        .from(DIGITAL_SPECIMEN)
-        .where(DIGITAL_SPECIMEN.ID.eq(id))
-        .fetchOne(data -> mapOriginalDataToJson(data, mapper));
-  }
+	public DigitalSpecimen getLatestSpecimenById(String id) {
+		return context.select(DIGITAL_SPECIMEN.asterisk())
+			.from(DIGITAL_SPECIMEN)
+			.where(DIGITAL_SPECIMEN.ID.eq(id))
+			.fetchOne(this::mapToDigitalSpecimen);
+	}
 
-  private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
-    try {
-      return mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
-          .withId(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
-          .withType(FdoType.DIGITAL_SPECIMEN.getName())
-          .withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
-          .withOdsFdoType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
-          .withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
-          .withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
-          .withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));
-    } catch (JacksonException e) {
-      throw new DisscoJsonBMappingException(
-          "Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), e);
-    }
-  }
+	public JsonNode getSpecimenOriginalData(String id) {
+		return context.select(DIGITAL_SPECIMEN.ORIGINAL_DATA)
+			.from(DIGITAL_SPECIMEN)
+			.where(DIGITAL_SPECIMEN.ID.eq(id))
+			.fetchOne(data -> mapOriginalDataToJson(data, mapper));
+	}
+
+	private DigitalSpecimen mapToDigitalSpecimen(Record dbRecord) {
+		try {
+			return mapper.readValue(dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), DigitalSpecimen.class)
+				.withId(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
+				.withType(FdoType.DIGITAL_SPECIMEN.getName())
+				.withDctermsIdentifier(DOI_PROXY + dbRecord.get(DIGITAL_SPECIMEN.ID))
+				.withOdsFdoType(dbRecord.get(DIGITAL_SPECIMEN.TYPE))
+				.withOdsMidsLevel(dbRecord.get(DIGITAL_SPECIMEN.MIDSLEVEL).intValue())
+				.withDctermsCreated(Date.from(dbRecord.get(DIGITAL_SPECIMEN.CREATED)))
+				.withOdsVersion(dbRecord.get(DIGITAL_SPECIMEN.VERSION));
+		}
+		catch (JacksonException e) {
+			throw new DisscoJsonBMappingException(
+					"Failed to parse jsonb field to json: " + dbRecord.get(DIGITAL_SPECIMEN.DATA).data(), e);
+		}
+	}
+
 }

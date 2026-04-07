@@ -6,18 +6,8 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import java.time.Instant;
 import tools.jackson.databind.JsonNode;
 
-public record MasJobRecordFull(
-    JobState state,
-    String masId,
-    String targetId,
-    MjrTargetType targetType,
-    String orcid,
-    String jobHandle,
-    Instant timeStarted,
-    Instant timeCompleted,
-    JsonNode annotations,
-    boolean batchingRequested,
-    Integer timeToLive,
-    ErrorCode errorCode) {
+public record MasJobRecordFull(JobState state, String masId, String targetId, MjrTargetType targetType, String orcid,
+		String jobHandle, Instant timeStarted, Instant timeCompleted, JsonNode annotations, boolean batchingRequested,
+		Integer timeToLive, ErrorCode errorCode) {
 
 }

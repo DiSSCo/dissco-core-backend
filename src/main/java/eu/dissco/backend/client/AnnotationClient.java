@@ -1,6 +1,5 @@
 package eu.dissco.backend.client;
 
-
 import eu.dissco.backend.domain.annotation.AnnotationTombstoneWrapper;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEvent;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
@@ -19,25 +18,22 @@ import tools.jackson.databind.JsonNode;
 
 public interface AnnotationClient {
 
-  @PostExchange(value = "")
-  JsonNode postAnnotation(@RequestBody Annotation annotation) throws WebProcessingFailedException;
+	@PostExchange(value = "")
+	JsonNode postAnnotation(@RequestBody Annotation annotation) throws WebProcessingFailedException;
 
-  @PostExchange(value = "/batch")
-  JsonNode postAnnotationBatch(@RequestBody AnnotationEvent event)
-      throws WebProcessingFailedException;
+	@PostExchange(value = "/batch")
+	JsonNode postAnnotationBatch(@RequestBody AnnotationEvent event) throws WebProcessingFailedException;
 
-  @PutExchange(value = "/{prefix}/{suffix}")
-  JsonNode updateAnnotation(@PathVariable String prefix, @PathVariable String suffix,
-      @RequestBody Annotation annotation) throws WebProcessingFailedException;
+	@PutExchange(value = "/{prefix}/{suffix}")
+	JsonNode updateAnnotation(@PathVariable String prefix, @PathVariable String suffix,
+			@RequestBody Annotation annotation) throws WebProcessingFailedException;
 
-  @PatchExchange(value = "/{prefix}/{suffix}")
-  Mono<Annotation> updateAnnotationMergingDecisionStatus(@PathVariable String prefix,
-      @PathVariable String suffix,
-      @RequestParam OdsMergingDecisionStatus mergingDecisionStatus,
-      @RequestBody Agent decisionAgent);
+	@PatchExchange(value = "/{prefix}/{suffix}")
+	Mono<Annotation> updateAnnotationMergingDecisionStatus(@PathVariable String prefix, @PathVariable String suffix,
+			@RequestParam OdsMergingDecisionStatus mergingDecisionStatus, @RequestBody Agent decisionAgent);
 
-  @DeleteExchange(value = "/{prefix}/{suffix}")
-  void tombstoneAnnotation(@PathVariable String prefix, @PathVariable String suffix,
-      @RequestBody AnnotationTombstoneWrapper annotationTombstoneWrapper)
-      throws WebProcessingFailedException;
+	@DeleteExchange(value = "/{prefix}/{suffix}")
+	void tombstoneAnnotation(@PathVariable String prefix, @PathVariable String suffix,
+			@RequestBody AnnotationTombstoneWrapper annotationTombstoneWrapper) throws WebProcessingFailedException;
+
 }

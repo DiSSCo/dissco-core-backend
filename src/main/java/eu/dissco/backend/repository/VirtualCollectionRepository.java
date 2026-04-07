@@ -26,134 +26,133 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class VirtualCollectionRepository {
 
-  private final JsonMapper mapper;
-  private final DSLContext context;
+	private final JsonMapper mapper;
 
-  private static CollectionType getLtcBasisOfScheme(VirtualCollection virtualCollection) {
-    return switch (virtualCollection.getLtcBasisOfScheme()) {
-      case LtcBasisOfScheme.REFERENCE_COLLECTION -> CollectionType.REFERENCE_COLLECTION;
-      case LtcBasisOfScheme.COMMUNITY_COLLECTION -> CollectionType.COMMUNITY_COLLECTION;
-    };
-  }
+	private final DSLContext context;
 
-  public void createVirtualCollection(VirtualCollection virtualCollection) {
-    var countries = extractCountries(virtualCollection);
-    context.insertInto(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.ID, removeHandleProxy(virtualCollection.getId()))
-        .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
-        .set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
-        .set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
-        .set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
-        .set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
-        .set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
-        .set(VIRTUAL_COLLECTION.COUNTRIES, countries)
-        .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
-        .execute();
-  }
+	private static CollectionType getLtcBasisOfScheme(VirtualCollection virtualCollection) {
+		return switch (virtualCollection.getLtcBasisOfScheme()) {
+			case LtcBasisOfScheme.REFERENCE_COLLECTION -> CollectionType.REFERENCE_COLLECTION;
+			case LtcBasisOfScheme.COMMUNITY_COLLECTION -> CollectionType.COMMUNITY_COLLECTION;
+		};
+	}
 
-  private static String[] extractCountries(VirtualCollection virtualCollection) {
-    if (virtualCollection.getOdsSignificanceForCountries() == null) {
-      return new String[0];
-    } else {
-      return virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]);
-    }
-  }
+	public void createVirtualCollection(VirtualCollection virtualCollection) {
+		var countries = extractCountries(virtualCollection);
+		context.insertInto(VIRTUAL_COLLECTION)
+			.set(VIRTUAL_COLLECTION.ID, removeHandleProxy(virtualCollection.getId()))
+			.set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
+			.set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
+			.set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
+			.set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
+			.set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
+			.set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
+			.set(VIRTUAL_COLLECTION.COUNTRIES, countries)
+			.set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
+			.execute();
+	}
 
-  private JSONB mapToJSONB(VirtualCollection virtualCollection) {
-    try {
-      return JSONB.valueOf(mapper.writeValueAsString(virtualCollection));
-    } catch (JacksonException e) {
-      throw new DisscoJsonBMappingException("Unable to map virtual collection to jsonb", e);
-    }
-  }
+	private static String[] extractCountries(VirtualCollection virtualCollection) {
+		if (virtualCollection.getOdsSignificanceForCountries() == null) {
+			return new String[0];
+		}
+		else {
+			return virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]);
+		}
+	}
 
-  public void rollbackVirtualCollectionCreate(String id) {
-    context.deleteFrom(Tables.VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
-        .execute();
-  }
+	private JSONB mapToJSONB(VirtualCollection virtualCollection) {
+		try {
+			return JSONB.valueOf(mapper.writeValueAsString(virtualCollection));
+		}
+		catch (JacksonException e) {
+			throw new DisscoJsonBMappingException("Unable to map virtual collection to jsonb", e);
+		}
+	}
 
-  public VirtualCollection getVirtualCollectionById(String id) {
-    return context.select(VIRTUAL_COLLECTION.DATA)
-        .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
-        .fetchOne(this::mapToVirtualCollection);
-  }
+	public void rollbackVirtualCollectionCreate(String id) {
+		context.deleteFrom(Tables.VIRTUAL_COLLECTION).where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id))).execute();
+	}
 
-  private VirtualCollection mapToVirtualCollection(Record record1) {
-    try {
-      return mapper.readValue(record1.get(VIRTUAL_COLLECTION.DATA).data(), VirtualCollection.class);
-    } catch (JacksonException e) {
-      throw new DisscoJsonBMappingException("Unable to convert jsonb to virtual collection", e);
-    }
-  }
+	public VirtualCollection getVirtualCollectionById(String id) {
+		return context.select(VIRTUAL_COLLECTION.DATA)
+			.from(VIRTUAL_COLLECTION)
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
+			.fetchOne(this::mapToVirtualCollection);
+	}
 
-  public List<VirtualCollection> getVirtualCollections(int pageNumber, int pageSize) {
-    return virtualCollectionQuery(pageNumber, pageSize, List.of(noCondition()));
-  }
+	private VirtualCollection mapToVirtualCollection(Record record1) {
+		try {
+			return mapper.readValue(record1.get(VIRTUAL_COLLECTION.DATA).data(), VirtualCollection.class);
+		}
+		catch (JacksonException e) {
+			throw new DisscoJsonBMappingException("Unable to convert jsonb to virtual collection", e);
+		}
+	}
 
-  private List<VirtualCollection> virtualCollectionQuery(int pageNumber, int pageSize,
-      List<Condition> conditions) {
-    int offset = getOffset(pageNumber, pageSize);
-    var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
-    return context.select(VIRTUAL_COLLECTION.DATA)
-        .from(VIRTUAL_COLLECTION)
-        .where(conditions)
-        .and(VIRTUAL_COLLECTION.TOMBSTONED.isNull())
-        .orderBy(VIRTUAL_COLLECTION.CREATED.desc())
-        .limit(pageSizePlusOne)
-        .offset(offset)
-        .fetch(this::mapToVirtualCollection);
-  }
+	public List<VirtualCollection> getVirtualCollections(int pageNumber, int pageSize) {
+		return virtualCollectionQuery(pageNumber, pageSize, List.of(noCondition()));
+	}
 
-  public List<VirtualCollection> getVirtualCollectionsForUser(String userId,
-      int pageNumber, int pageSize) {
-    var condition = VIRTUAL_COLLECTION.CREATOR.eq(userId);
-    return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
-  }
+	private List<VirtualCollection> virtualCollectionQuery(int pageNumber, int pageSize, List<Condition> conditions) {
+		int offset = getOffset(pageNumber, pageSize);
+		var pageSizePlusOne = pageSize + ONE_TO_CHECK_NEXT;
+		return context.select(VIRTUAL_COLLECTION.DATA)
+			.from(VIRTUAL_COLLECTION)
+			.where(conditions)
+			.and(VIRTUAL_COLLECTION.TOMBSTONED.isNull())
+			.orderBy(VIRTUAL_COLLECTION.CREATED.desc())
+			.limit(pageSizePlusOne)
+			.offset(offset)
+			.fetch(this::mapToVirtualCollection);
+	}
 
-  public Optional<VirtualCollection> getActiveVirtualCollection(String id, String userId) {
-    var query = context.select(VIRTUAL_COLLECTION.DATA)
-        .from(VIRTUAL_COLLECTION)
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
-        .and(VIRTUAL_COLLECTION.TOMBSTONED.isNull());
-    if (userId != null) {
-      query = query.and(VIRTUAL_COLLECTION.CREATOR.eq(userId));
-    }
-    return query.fetchOptional(this::mapToVirtualCollection);
-  }
+	public List<VirtualCollection> getVirtualCollectionsForUser(String userId, int pageNumber, int pageSize) {
+		var condition = VIRTUAL_COLLECTION.CREATOR.eq(userId);
+		return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
+	}
 
-  public void tombstoneVirtualCollection(VirtualCollection tombstoneVirtualCollection) {
-    context.update(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.TOMBSTONED,
-            tombstoneVirtualCollection.getOdsHasTombstoneMetadata().getOdsTombstoneDate()
-                .toInstant())
-        .set(VIRTUAL_COLLECTION.MODIFIED,
-            tombstoneVirtualCollection.getSchemaDateModified().toInstant())
-        .set(VIRTUAL_COLLECTION.VERSION, tombstoneVirtualCollection.getSchemaVersion())
-        .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(tombstoneVirtualCollection))
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombstoneVirtualCollection.getId())))
-        .execute();
-  }
+	public Optional<VirtualCollection> getActiveVirtualCollection(String id, String userId) {
+		var query = context.select(VIRTUAL_COLLECTION.DATA)
+			.from(VIRTUAL_COLLECTION)
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(id)))
+			.and(VIRTUAL_COLLECTION.TOMBSTONED.isNull());
+		if (userId != null) {
+			query = query.and(VIRTUAL_COLLECTION.CREATOR.eq(userId));
+		}
+		return query.fetchOptional(this::mapToVirtualCollection);
+	}
 
-  public void updateVirtualCollection(VirtualCollection virtualCollection) {
-    context.update(VIRTUAL_COLLECTION)
-        .set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
-        .set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
-        .set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
-        .set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
-        .set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
-        .set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
-        .set(VIRTUAL_COLLECTION.COUNTRIES,
-            virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]))
-        .set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
-        .where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(virtualCollection.getId())))
-        .execute();
-  }
+	public void tombstoneVirtualCollection(VirtualCollection tombstoneVirtualCollection) {
+		context.update(VIRTUAL_COLLECTION)
+			.set(VIRTUAL_COLLECTION.TOMBSTONED,
+					tombstoneVirtualCollection.getOdsHasTombstoneMetadata().getOdsTombstoneDate().toInstant())
+			.set(VIRTUAL_COLLECTION.MODIFIED, tombstoneVirtualCollection.getSchemaDateModified().toInstant())
+			.set(VIRTUAL_COLLECTION.VERSION, tombstoneVirtualCollection.getSchemaVersion())
+			.set(VIRTUAL_COLLECTION.DATA, mapToJSONB(tombstoneVirtualCollection))
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(tombstoneVirtualCollection.getId())))
+			.execute();
+	}
 
-  public List<VirtualCollection> getVirtualCollectionsForCountries(int pageNumber, int pageSize,
-      List<String> countries) {
-    var condition = VIRTUAL_COLLECTION.COUNTRIES.contains(countries.toArray(new String[0]));
-    return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
-  }
+	public void updateVirtualCollection(VirtualCollection virtualCollection) {
+		context.update(VIRTUAL_COLLECTION)
+			.set(VIRTUAL_COLLECTION.VERSION, virtualCollection.getSchemaVersion())
+			.set(VIRTUAL_COLLECTION.NAME, virtualCollection.getLtcCollectionName())
+			.set(VIRTUAL_COLLECTION.COLLECTION_TYPE, getLtcBasisOfScheme(virtualCollection))
+			.set(VIRTUAL_COLLECTION.CREATED, virtualCollection.getSchemaDateCreated().toInstant())
+			.set(VIRTUAL_COLLECTION.MODIFIED, virtualCollection.getSchemaDateModified().toInstant())
+			.set(VIRTUAL_COLLECTION.CREATOR, virtualCollection.getSchemaCreator().getId())
+			.set(VIRTUAL_COLLECTION.COUNTRIES,
+					virtualCollection.getOdsSignificanceForCountries().toArray(new String[0]))
+			.set(VIRTUAL_COLLECTION.DATA, mapToJSONB(virtualCollection))
+			.where(VIRTUAL_COLLECTION.ID.eq(removeHandleProxy(virtualCollection.getId())))
+			.execute();
+	}
+
+	public List<VirtualCollection> getVirtualCollectionsForCountries(int pageNumber, int pageSize,
+			List<String> countries) {
+		var condition = VIRTUAL_COLLECTION.COUNTRIES.contains(countries.toArray(new String[0]));
+		return virtualCollectionQuery(pageNumber, pageSize, List.of(condition));
+	}
+
 }

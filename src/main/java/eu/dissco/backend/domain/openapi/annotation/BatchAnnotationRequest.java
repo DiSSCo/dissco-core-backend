@@ -6,13 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema
 public record BatchAnnotationRequest(
-    eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest.BatchAnnotationRequestData data) {
+		eu.dissco.backend.domain.openapi.annotation.BatchAnnotationRequest.BatchAnnotationRequestData data) {
 
-  @Schema
-  public record BatchAnnotationRequestData(
-      @Schema(description = "Type of request, in this case \"ods:Annotation\"") FdoType type,
-      AnnotationEventRequest attributes) {
+	@Schema
+	public record BatchAnnotationRequestData(
+			@Schema(description = "Type of request, in this case \"ods:Annotation\"") FdoType type,
+			AnnotationEventRequest attributes) {
 
-  }
+	}
 
 }

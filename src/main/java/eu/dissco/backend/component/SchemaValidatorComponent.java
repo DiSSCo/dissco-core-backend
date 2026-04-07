@@ -11,34 +11,32 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SchemaValidatorComponent {
 
-  public void validateAnnotationEventRequest(AnnotationEventRequest event, boolean isNew)
-      throws InvalidAnnotationRequestException {
-    if (event.annotationRequests().size() != 1 || event.batchMetadata().size() != 1
-        || event.batchMetadata().getFirst().getSearchParams().isEmpty()) {
-      var searchParamSize = event.batchMetadata().isEmpty() ? 0
-          : event.batchMetadata().getFirst().getSearchParams().size();
-      log.error(
-          "Invalid annotationRequests event: contains {} annotationRequests (1 expected), {} batch metadata (1 expected), and {} searchParams (min 1)",
-          event.annotationRequests().size(), event.batchMetadata().size(),
-          searchParamSize);
-      throw new InvalidAnnotationRequestException(
-          "Event can only contain: 1 annotationRequests, 1 batch metadata, and minimum 1 search param");
-    }
-    validateId(event, isNew);
-  }
+	public void validateAnnotationEventRequest(AnnotationEventRequest event, boolean isNew)
+			throws InvalidAnnotationRequestException {
+		if (event.annotationRequests().size() != 1 || event.batchMetadata().size() != 1
+				|| event.batchMetadata().getFirst().getSearchParams().isEmpty()) {
+			var searchParamSize = event.batchMetadata().isEmpty() ? 0
+					: event.batchMetadata().getFirst().getSearchParams().size();
+			log.error(
+					"Invalid annotationRequests event: contains {} annotationRequests (1 expected), {} batch metadata (1 expected), and {} searchParams (min 1)",
+					event.annotationRequests().size(), event.batchMetadata().size(), searchParamSize);
+			throw new InvalidAnnotationRequestException(
+					"Event can only contain: 1 annotationRequests, 1 batch metadata, and minimum 1 search param");
+		}
+		validateId(event, isNew);
+	}
 
+	private void validateId(AnnotationEventRequest eventRequest, Boolean isNew)
+			throws InvalidAnnotationRequestException {
+		for (var annotation : eventRequest.annotationRequests()) {
+			if (Boolean.TRUE.equals(isNew) && annotation.getDctermsIdentifier() != null) {
+				throw new InvalidAnnotationRequestException(
+						"Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getDctermsIdentifier());
+			}
+			if (Boolean.FALSE.equals(isNew) && annotation.getDctermsIdentifier() == null) {
+				throw new InvalidAnnotationRequestException("\"ods:id\" not provided for annotationRequests update");
+			}
+		}
+	}
 
-  private void validateId(AnnotationEventRequest eventRequest, Boolean isNew)
-      throws InvalidAnnotationRequestException {
-    for (var annotation : eventRequest.annotationRequests() ){
-      if (Boolean.TRUE.equals(isNew) && annotation.getDctermsIdentifier() != null) {
-        throw new InvalidAnnotationRequestException(
-            "Attempting overwrite annotationRequests with \"ods:id\" " + annotation.getDctermsIdentifier());
-      }
-      if (Boolean.FALSE.equals(isNew) && annotation.getDctermsIdentifier() == null) {
-        throw new InvalidAnnotationRequestException(
-            "\"ods:id\" not provided for annotationRequests update");
-      }
-    }
-    }
 }

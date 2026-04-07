@@ -3,7 +3,6 @@
  */
 package eu.dissco.backend.database.jooq;
 
-
 import eu.dissco.backend.database.jooq.tables.Annotation;
 import eu.dissco.backend.database.jooq.tables.DigitalMediaObject;
 import eu.dissco.backend.database.jooq.tables.DigitalSpecimen;
@@ -11,40 +10,40 @@ import eu.dissco.backend.database.jooq.tables.MachineAnnotationService;
 import eu.dissco.backend.database.jooq.tables.MasJobRecord;
 import eu.dissco.backend.database.jooq.tables.VirtualCollection;
 
-
 /**
  * Convenience access to all tables in public.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
 
-    /**
-     * The table <code>public.annotation</code>.
-     */
-    public static final Annotation ANNOTATION = Annotation.ANNOTATION;
+	/**
+	 * The table <code>public.annotation</code>.
+	 */
+	public static final Annotation ANNOTATION = Annotation.ANNOTATION;
 
-    /**
-     * The table <code>public.digital_media_object</code>.
-     */
-    public static final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
+	/**
+	 * The table <code>public.digital_media_object</code>.
+	 */
+	public static final DigitalMediaObject DIGITAL_MEDIA_OBJECT = DigitalMediaObject.DIGITAL_MEDIA_OBJECT;
 
-    /**
-     * The table <code>public.digital_specimen</code>.
-     */
-    public static final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
+	/**
+	 * The table <code>public.digital_specimen</code>.
+	 */
+	public static final DigitalSpecimen DIGITAL_SPECIMEN = DigitalSpecimen.DIGITAL_SPECIMEN;
 
-    /**
-     * The table <code>public.machine_annotation_service</code>.
-     */
-    public static final MachineAnnotationService MACHINE_ANNOTATION_SERVICE = MachineAnnotationService.MACHINE_ANNOTATION_SERVICE;
+	/**
+	 * The table <code>public.machine_annotation_service</code>.
+	 */
+	public static final MachineAnnotationService MACHINE_ANNOTATION_SERVICE = MachineAnnotationService.MACHINE_ANNOTATION_SERVICE;
 
-    /**
-     * The table <code>public.mas_job_record</code>.
-     */
-    public static final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
+	/**
+	 * The table <code>public.mas_job_record</code>.
+	 */
+	public static final MasJobRecord MAS_JOB_RECORD = MasJobRecord.MAS_JOB_RECORD;
 
-    /**
-     * The table <code>public.virtual_collection</code>.
-     */
-    public static final VirtualCollection VIRTUAL_COLLECTION = VirtualCollection.VIRTUAL_COLLECTION;
+	/**
+	 * The table <code>public.virtual_collection</code>.
+	 */
+	public static final VirtualCollection VIRTUAL_COLLECTION = VirtualCollection.VIRTUAL_COLLECTION;
+
 }

@@ -18,75 +18,77 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class RabbitMqPublisherService {
 
-  private static final String SERIALISATION_ERROR = "Failed to serialize tombstone event: {}";
+	private static final String SERIALISATION_ERROR = "Failed to serialize tombstone event: {}";
 
-  private final JsonMapper mapper;
-  private final RabbitTemplate rabbitTemplate;
-  private final ProvenanceService provenanceService;
-  private final RabbitMqProperties rabbitMqProperties;
+	private final JsonMapper mapper;
 
+	private final RabbitTemplate rabbitTemplate;
 
-  public void publishMasRequestEvent(String routingKey, Object object) {
-    log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey,
-        object);
-    rabbitTemplate.convertAndSend(rabbitMqProperties.getMasExchangeName(), routingKey,
-        mapper.writeValueAsString(object));
-  }
+	private final ProvenanceService provenanceService;
 
-  public void publishCreateEvent(Object object, Agent agent)
-      throws ProcessingFailedException {
-    var event = provenanceService.generateCreateEvent(mapper.valueToTree(object), agent);
-    log.info("Publishing new create message to queue: {}", event);
-    try {
-      rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
-          assembleRoutingKey(object), mapper.writeValueAsString(event));
-    } catch (JacksonException e) {
-      log.error(SERIALISATION_ERROR, event, e);
-      throw new ProcessingFailedException("Failed to serialize create event", e);
-    }
-  }
+	private final RabbitMqProperties rabbitMqProperties;
 
-  public void publishUpdateEvent(Object object, Object currentObject, Agent agent)
-      throws ProcessingFailedException {
-    var event = provenanceService.generateUpdateEvent(mapper.valueToTree(object),
-        mapper.valueToTree(currentObject), agent);
-    log.info("Publishing new update message to queue: {}", event);
-    try {
-      rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
-          assembleRoutingKey(object), mapper.writeValueAsString(event));
-    } catch (JacksonException e) {
-      log.error(SERIALISATION_ERROR, event, e);
-      throw new ProcessingFailedException("Failed to serialize update event", e);
-    }
-  }
+	public void publishMasRequestEvent(String routingKey, Object object) {
+		log.debug("Publishing new mas request with routing key: {} and with object: {}", routingKey, object);
+		rabbitTemplate.convertAndSend(rabbitMqProperties.getMasExchangeName(), routingKey,
+				mapper.writeValueAsString(object));
+	}
 
-  public void publishTombstoneEvent(Object tombstoneObject, Object currentObject, Agent agent)
-      throws ProcessingFailedException {
-    var event = provenanceService.generateTombstoneEvent(mapper.valueToTree(tombstoneObject),
-        mapper.valueToTree(currentObject), agent);
-    log.info("Publishing new tombstone message to queue: {}", event);
-    try {
-      rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
-          assembleRoutingKey(tombstoneObject), mapper.writeValueAsString(event));
-    } catch (JacksonException e) {
-      log.error(SERIALISATION_ERROR, event, e);
-      throw new ProcessingFailedException("Failed to serialize tombstone event", e);
-    }
-  }
+	public void publishCreateEvent(Object object, Agent agent) throws ProcessingFailedException {
+		var event = provenanceService.generateCreateEvent(mapper.valueToTree(object), agent);
+		log.info("Publishing new create message to queue: {}", event);
+		try {
+			rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(), assembleRoutingKey(object),
+					mapper.writeValueAsString(event));
+		}
+		catch (JacksonException e) {
+			log.error(SERIALISATION_ERROR, event, e);
+			throw new ProcessingFailedException("Failed to serialize create event", e);
+		}
+	}
 
-  public void publishVirtualCollectionEvent(VirtualCollectionEvent event) {
-    log.info("Publishing {} virtual-collection to queue", event.action());
-    rabbitTemplate.convertAndSend(rabbitMqProperties.getVirtualCollectionExchange(),
-        rabbitMqProperties.getVirtualCollectionRoutingKey(),
-        mapper.writeValueAsString(event));
-  }
+	public void publishUpdateEvent(Object object, Object currentObject, Agent agent) throws ProcessingFailedException {
+		var event = provenanceService.generateUpdateEvent(mapper.valueToTree(object), mapper.valueToTree(currentObject),
+				agent);
+		log.info("Publishing new update message to queue: {}", event);
+		try {
+			rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(), assembleRoutingKey(object),
+					mapper.writeValueAsString(event));
+		}
+		catch (JacksonException e) {
+			log.error(SERIALISATION_ERROR, event, e);
+			throw new ProcessingFailedException("Failed to serialize update event", e);
+		}
+	}
 
-  private String assembleRoutingKey(Object object) throws ProcessingFailedException {
-    if (Objects.requireNonNull(object) instanceof VirtualCollection) {
-      return rabbitMqProperties.getProvenanceRoutingPrefix() + ".virtual-collection";
-    } else {
-      throw new ProcessingFailedException("Unsupported object type for routing key assembly");
-    }
-  }
+	public void publishTombstoneEvent(Object tombstoneObject, Object currentObject, Agent agent)
+			throws ProcessingFailedException {
+		var event = provenanceService.generateTombstoneEvent(mapper.valueToTree(tombstoneObject),
+				mapper.valueToTree(currentObject), agent);
+		log.info("Publishing new tombstone message to queue: {}", event);
+		try {
+			rabbitTemplate.convertAndSend(rabbitMqProperties.getProvenanceExchange(),
+					assembleRoutingKey(tombstoneObject), mapper.writeValueAsString(event));
+		}
+		catch (JacksonException e) {
+			log.error(SERIALISATION_ERROR, event, e);
+			throw new ProcessingFailedException("Failed to serialize tombstone event", e);
+		}
+	}
+
+	public void publishVirtualCollectionEvent(VirtualCollectionEvent event) {
+		log.info("Publishing {} virtual-collection to queue", event.action());
+		rabbitTemplate.convertAndSend(rabbitMqProperties.getVirtualCollectionExchange(),
+				rabbitMqProperties.getVirtualCollectionRoutingKey(), mapper.writeValueAsString(event));
+	}
+
+	private String assembleRoutingKey(Object object) throws ProcessingFailedException {
+		if (Objects.requireNonNull(object) instanceof VirtualCollection) {
+			return rabbitMqProperties.getProvenanceRoutingPrefix() + ".virtual-collection";
+		}
+		else {
+			throw new ProcessingFailedException("Unsupported object type for routing key assembly");
+		}
+	}
 
 }

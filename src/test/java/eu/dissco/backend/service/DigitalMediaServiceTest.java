@@ -61,335 +61,317 @@ import tools.jackson.databind.JsonNode;
 @ExtendWith(MockitoExtension.class)
 class DigitalMediaServiceTest {
 
-  @Mock
-  private DigitalMediaRepository repository;
-  @Mock
-  private AnnotationService annotationService;
-  @Mock
-  private MachineAnnotationServiceService masService;
-  @Mock
-  private MongoRepository mongoRepository;
-  @Mock
-  private DigitalSpecimenRepository digitalSpecimenRepository;
-  @Mock
-  private MasJobRecordService masJobRecordService;
-  @Mock
-  private S3Repository s3Repository;
+	@Mock
+	private DigitalMediaRepository repository;
 
-  private DigitalMediaService service;
+	@Mock
+	private AnnotationService annotationService;
 
-  static Stream<List<EntityRelationship>> missingSpecimenDoiAttributes() {
-    return Stream.of(List.of(), List.of(
-        new EntityRelationship().withDwcRelatedResourceID(SOURCE_SYSTEM_ID_1)
-            .withDwcRelationshipOfResource("hasSourceSystem")));
-  }
+	@Mock
+	private MachineAnnotationServiceService masService;
 
-  @BeforeEach
-  void setup() {
-    service = new DigitalMediaService(repository, annotationService, digitalSpecimenRepository,
-        masService, mongoRepository, MAPPER, masJobRecordService, s3Repository);
-  }
+	@Mock
+	private MongoRepository mongoRepository;
 
-  @ParameterizedTest
-  @ValueSource(ints = {1, 2})
-  void testGetDigitalMediaObjects(int pageNumber) {
-    // Given
-    int pageSize = 10;
+	@Mock
+	private DigitalSpecimenRepository digitalSpecimenRepository;
 
-    var repositoryResponse = Collections.nCopies(pageSize + 1, givenDigitalMediaObject(ID));
-    var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, true);
-    var dataNode = dataNodePlusOne.subList(0, pageSize);
-    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
+	@Mock
+	private MasJobRecordService masJobRecordService;
 
-    // When
-    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
+	@Mock
+	private S3Repository s3Repository;
 
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
+	private DigitalMediaService service;
 
-  @Test
-  void testGetDigitalMediaObjectsLastPage() {
-    // Given
-    int pageSize = 10;
-    int pageNumber = 1;
+	static Stream<List<EntityRelationship>> missingSpecimenDoiAttributes() {
+		return Stream.of(List.of(), List.of(new EntityRelationship().withDwcRelatedResourceID(SOURCE_SYSTEM_ID_1)
+			.withDwcRelationshipOfResource("hasSourceSystem")));
+	}
 
-    var repositoryResponse = Collections.nCopies(pageSize, givenDigitalMediaObject(ID));
-    var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
-    var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, false);
+	@BeforeEach
+	void setup() {
+		service = new DigitalMediaService(repository, annotationService, digitalSpecimenRepository, masService,
+				mongoRepository, MAPPER, masJobRecordService, s3Repository);
+	}
 
-    given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
+	@ParameterizedTest
+	@ValueSource(ints = { 1, 2 })
+	void testGetDigitalMediaObjects(int pageNumber) {
+		// Given
+		int pageSize = 10;
 
-    var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
+		var repositoryResponse = Collections.nCopies(pageSize + 1, givenDigitalMediaObject(ID));
+		var dataNodePlusOne = Collections.nCopies(pageSize + 1, givenDigitalMediaJsonApiData(ID));
+		var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, true);
+		var dataNode = dataNodePlusOne.subList(0, pageSize);
+		var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
+		given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
 
-    // When
-    var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
+		// When
+		var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
 
-    // Then
-    assertThat(responseReceived).isEqualTo(responseExpected);
-  }
+		// Then
+		assertThat(responseReceived).isEqualTo(responseExpected);
+	}
 
-  @Test
-  void testGetDigitalMediaById() throws NotFoundException {
-    // Given
-    var mediaObject = givenDigitalMediaObject(ID);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
-    var expected = new JsonApiWrapper(
-        new JsonApiData(mediaObject.getDctermsIdentifier(), FdoType.DIGITAL_MEDIA.getName(),
-            MAPPER.valueToTree(mediaObject)), new JsonApiLinks(DIGITAL_MEDIA_PATH));
+	@Test
+	void testGetDigitalMediaObjectsLastPage() {
+		// Given
+		int pageSize = 10;
+		int pageNumber = 1;
 
-    // When
-    var responseReceived = service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH);
+		var repositoryResponse = Collections.nCopies(pageSize, givenDigitalMediaObject(ID));
+		var dataNode = Collections.nCopies(pageSize, givenDigitalMediaJsonApiData(ID));
+		var linksNode = givenJsonApiLinksFull(DIGITAL_MEDIA_PATH, pageNumber, pageSize, false);
 
-    // Then
-    assertThat(responseReceived).isEqualTo(expected);
-  }
+		given(repository.getDigitalMediaObjects(pageNumber, pageSize)).willReturn(repositoryResponse);
 
-  @Test
-  void testGetDigitalMediaByIdNotFound() {
-    // Given
+		var responseExpected = new JsonApiListResponseWrapper(dataNode, linksNode);
 
-    // When / Then
-    assertThrows(NotFoundException.class,
-        () -> service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH));
-  }
+		// When
+		var responseReceived = service.getDigitalMediaObjects(pageNumber, pageSize, DIGITAL_MEDIA_PATH);
 
+		// Then
+		assertThat(responseReceived).isEqualTo(responseExpected);
+	}
 
-  @Test
-  void testGetAnnotationsOnDigitalMedia() {
-    // Given
-    var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
-    given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
+	@Test
+	void testGetDigitalMediaById() throws NotFoundException {
+		// Given
+		var mediaObject = givenDigitalMediaObject(ID);
+		given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(mediaObject);
+		var expected = new JsonApiWrapper(new JsonApiData(mediaObject.getDctermsIdentifier(),
+				FdoType.DIGITAL_MEDIA.getName(), MAPPER.valueToTree(mediaObject)),
+				new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
-    //
-    var result = service.getAnnotationsOnDigitalMedia(ID, ANNOTATION_PATH);
+		// When
+		var responseReceived = service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH);
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// Then
+		assertThat(responseReceived).isEqualTo(expected);
+	}
 
-  @Test
-  void testGetDigitalMediaVersions() throws NotFoundException {
-    // Given
-    List<Integer> versionsList = List.of(1, 2);
-    given(mongoRepository.getVersions(ID, MongoCollection.DIGITAL_MEDIA)).willReturn(versionsList);
-    var versionsNode = MAPPER.createObjectNode();
-    var arrayNode = versionsNode.putArray("versions");
-    arrayNode.add(1).add(2);
-    var dataNode = new JsonApiData(ID, "digitalMediaVersions", versionsNode);
-    var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(DIGITAL_MEDIA_PATH));
-    try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
-      mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
-          .thenReturn(versionsNode);
+	@Test
+	void testGetDigitalMediaByIdNotFound() {
+		// Given
 
-      // When
-      var responseReceived = service.getDigitalMediaVersions(ID, DIGITAL_MEDIA_PATH);
+		// When / Then
+		assertThrows(NotFoundException.class, () -> service.getDigitalMediaById(ID, DIGITAL_MEDIA_PATH));
+	}
 
-      // Then
-      assertThat(responseReceived).isEqualTo(responseExpected);
-    }
-  }
+	@Test
+	void testGetAnnotationsOnDigitalMedia() {
+		// Given
+		var expected = givenDigitalMediaJsonResponse(ANNOTATION_PATH, 1, 1, List.of(ID));
+		given(annotationService.getAnnotationForTarget(ID, ANNOTATION_PATH)).willReturn(expected);
 
-  @Test
-  void testGetDigitalMediaByVersion() throws NotFoundException {
-    // Given
-    int version = 1;
-    var mongoResponse = givenMongoDBMediaResponse();
-    given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_MEDIA)).willReturn(
-        mongoResponse);
+		//
+		var result = service.getAnnotationsOnDigitalMedia(ID, ANNOTATION_PATH);
 
-    var expectedResponse = new JsonApiWrapper(
-        new JsonApiData(DOI + ID, FdoType.DIGITAL_MEDIA.getName(),
-            MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))),
-        new JsonApiLinks(DIGITAL_MEDIA_PATH));
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-    // When
-    var responseReceived = service.getDigitalMediaObjectByVersion(ID, version, DIGITAL_MEDIA_PATH);
+	@Test
+	void testGetDigitalMediaVersions() throws NotFoundException {
+		// Given
+		List<Integer> versionsList = List.of(1, 2);
+		given(mongoRepository.getVersions(ID, MongoCollection.DIGITAL_MEDIA)).willReturn(versionsList);
+		var versionsNode = MAPPER.createObjectNode();
+		var arrayNode = versionsNode.putArray("versions");
+		arrayNode.add(1).add(2);
+		var dataNode = new JsonApiData(ID, "digitalMediaVersions", versionsNode);
+		var responseExpected = new JsonApiWrapper(dataNode, new JsonApiLinks(DIGITAL_MEDIA_PATH));
+		try (var mockedStatic = mockStatic(DigitalServiceUtils.class)) {
+			mockedStatic.when(() -> DigitalServiceUtils.createVersionNode(versionsList, MAPPER))
+				.thenReturn(versionsNode);
 
-    // Then
-    assertThat(responseReceived).isEqualTo(expectedResponse);
-  }
+			// When
+			var responseReceived = service.getDigitalMediaVersions(ID, DIGITAL_MEDIA_PATH);
 
-  @Test
-  void testGetFullDigitalMediaFromSpecimen() {
-    // Given
-    var firstId = "1";
-    var secondId = "2";
-    List<String> mediaIds = List.of(firstId, secondId);
-    List<DigitalMedia> mediaObjects = List.of(givenDigitalMediaObject(firstId),
-        givenDigitalMediaObject(secondId));
-    List<DigitalMediaFull> expected = List.of(
-        new DigitalMediaFull(givenDigitalMediaObject(firstId),
-            List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId))),
-        new DigitalMediaFull(givenDigitalMediaObject(secondId),
-            List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))));
-    var specimen = givenDigitalSpecimenWrapper(ID)
-        .withOdsHasEntityRelationships(
-            List.of(
-                new EntityRelationship()
-                    .withDwcRelationshipOfResource("hasDigitalMedia")
-                    .withDwcRelatedResourceID(firstId),
-                new EntityRelationship()
-                    .withDwcRelationshipOfResource("hasDigitalMedia")
-                    .withDwcRelatedResourceID(secondId))
-        );
-    given(annotationService.getAnnotationForTargetObjects(mediaIds)).willReturn(Map.of(
-        firstId, List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId)),
-        secondId, List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))
-    ));
-    given(repository.getLatestDigitalMediaObjectsById(List.of(firstId, secondId))).willReturn(
-        mediaObjects);
+			// Then
+			assertThat(responseReceived).isEqualTo(responseExpected);
+		}
+	}
 
-    // When
-    var received = service.getFullDigitalMediaFromSpecimen(specimen);
+	@Test
+	void testGetDigitalMediaByVersion() throws NotFoundException {
+		// Given
+		int version = 1;
+		var mongoResponse = givenMongoDBMediaResponse();
+		given(mongoRepository.getByVersion(ID, version, MongoCollection.DIGITAL_MEDIA)).willReturn(mongoResponse);
 
-    // Then
-    assertThat(received).isEqualTo(expected);
-  }
+		var expectedResponse = new JsonApiWrapper(new JsonApiData(DOI + ID, FdoType.DIGITAL_MEDIA.getName(),
+				MAPPER.valueToTree(givenDigitalMediaObject(DOI + ID))), new JsonApiLinks(DIGITAL_MEDIA_PATH));
 
-  @Test
-  void testGetMas() throws NotFoundException {
-    // Given
-    var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
-    var specimenId = DOI + ID_ALT;
-    var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
-    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
-    given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
-    given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
-        response);
+		// When
+		var responseReceived = service.getDigitalMediaObjectByVersion(ID, version, DIGITAL_MEDIA_PATH);
 
-    // When
-    var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
+		// Then
+		assertThat(responseReceived).isEqualTo(expectedResponse);
+	}
 
-    // Then
-    assertThat(result).isEqualTo(response);
-  }
+	@Test
+	void testGetFullDigitalMediaFromSpecimen() {
+		// Given
+		var firstId = "1";
+		var secondId = "2";
+		List<String> mediaIds = List.of(firstId, secondId);
+		List<DigitalMedia> mediaObjects = List.of(givenDigitalMediaObject(firstId), givenDigitalMediaObject(secondId));
+		List<DigitalMediaFull> expected = List.of(
+				new DigitalMediaFull(givenDigitalMediaObject(firstId),
+						List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId))),
+				new DigitalMediaFull(givenDigitalMediaObject(secondId),
+						List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))));
+		var specimen = givenDigitalSpecimenWrapper(ID).withOdsHasEntityRelationships(List.of(
+				new EntityRelationship().withDwcRelationshipOfResource("hasDigitalMedia")
+					.withDwcRelatedResourceID(firstId),
+				new EntityRelationship().withDwcRelationshipOfResource("hasDigitalMedia")
+					.withDwcRelatedResourceID(secondId)));
+		given(annotationService.getAnnotationForTargetObjects(mediaIds))
+			.willReturn(Map.of(firstId, List.of(givenAnnotationResponse(ID + firstId, ORCID, firstId)), secondId,
+					List.of(givenAnnotationResponse(ID + secondId, ORCID, secondId))));
+		given(repository.getLatestDigitalMediaObjectsById(List.of(firstId, secondId))).willReturn(mediaObjects);
 
-  @Test
-  void testGetMassNotFound() {
-    // Given
+		// When
+		var received = service.getFullDigitalMediaFromSpecimen(specimen);
 
-    // When / then
-    assertThrows(NotFoundException.class, () -> service.getMass(ID, ANNOTATION_PATH));
-  }
+		// Then
+		assertThat(received).isEqualTo(expected);
+	}
 
+	@Test
+	void testGetMas() throws NotFoundException {
+		// Given
+		var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
+		var specimenId = DOI + ID_ALT;
+		var digitalSpecimen = givenDigitalSpecimenWrapper(specimenId);
+		var response = givenMasResponse(DIGITAL_MEDIA_PATH);
+		given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+		given(digitalSpecimenRepository.getLatestSpecimenById(ID_ALT)).willReturn(digitalSpecimen);
+		given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(response);
 
-  @ParameterizedTest
-  @MethodSource("missingSpecimenDoiAttributes")
-  void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships)
-      throws NotFoundException {
-    // Given
-    var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
-    digitalMedia.setOdsHasEntityRelationships(entityRelationships);
-    var response = givenMasResponse(DIGITAL_MEDIA_PATH);
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
-    given(digitalSpecimenRepository.getLatestSpecimenById(null)).willReturn(null);
-    given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(
-        response);
+		// When
+		var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
 
-    // When
-    var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
+		// Then
+		assertThat(result).isEqualTo(response);
+	}
 
-    // Then
-    assertThat(result).isEqualTo(response);
-  }
+	@Test
+	void testGetMassNotFound() {
+		// Given
 
-  @Test
-  void testScheduleMas() throws Exception {
-    // Given
-    given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(givenDigitalMediaObject(ID));
-    given(
-        digitalSpecimenRepository.getLatestSpecimenById(any())).willReturn(
-        givenDigitalSpecimenWrapper(MAS_ID));
+		// When / then
+		assertThrows(NotFoundException.class, () -> service.getMass(ID, ANNOTATION_PATH));
+	}
 
-    // When
-    service.scheduleMass(ID, List.of(givenMasJobRequest()), SANDBOX_URI, ORCID);
+	@ParameterizedTest
+	@MethodSource("missingSpecimenDoiAttributes")
+	void testGetMasWithoutSpecimenId(List<EntityRelationship> entityRelationships) throws NotFoundException {
+		// Given
+		var digitalMedia = givenDigitalMediaObject(HANDLE + ID);
+		digitalMedia.setOdsHasEntityRelationships(entityRelationships);
+		var response = givenMasResponse(DIGITAL_MEDIA_PATH);
+		given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(digitalMedia);
+		given(digitalSpecimenRepository.getLatestSpecimenById(null)).willReturn(null);
+		given(masService.getMassForObject(any(JsonNode.class), eq(DIGITAL_MEDIA_PATH))).willReturn(response);
 
-    // Then
-    then(masService).should()
-        .scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.MEDIA_OBJECT,
-            SANDBOX_URI);
-  }
+		// When
+		var result = service.getMass(ID, DIGITAL_MEDIA_PATH);
 
-  @Test
-  void testGetOriginalDataForMedia() throws NotFoundException {
-    // Given
-    var expectedJson = givenMongoDBMediaResponse();
-    var expected = new JsonApiWrapper(
-        new JsonApiData(ID, FdoType.DIGITAL_MEDIA.getName(), expectedJson),
-        new JsonApiLinks(SANDBOX_URI));
-    given(repository.getMediaOriginalData(ID)).willReturn(expectedJson);
+		// Then
+		assertThat(result).isEqualTo(response);
+	}
 
-    // When
-    var result = service.getOriginalDataForMedia(ID, SANDBOX_URI);
+	@Test
+	void testScheduleMas() throws Exception {
+		// Given
+		given(repository.getLatestDigitalMediaObjectById(ID)).willReturn(givenDigitalMediaObject(ID));
+		given(digitalSpecimenRepository.getLatestSpecimenById(any())).willReturn(givenDigitalSpecimenWrapper(MAS_ID));
 
-    // Then
-    assertThat(result).isEqualTo(expected);
-  }
+		// When
+		service.scheduleMass(ID, List.of(givenMasJobRequest()), SANDBOX_URI, ORCID);
 
-  @Test
-  void testGetOriginalDataNotFound() {
-    // Given
+		// Then
+		then(masService).should()
+			.scheduleMas(ID, List.of(givenMasJobRequest()), ORCID, MjrTargetType.MEDIA_OBJECT, SANDBOX_URI);
+	}
 
-    // When / then
-    assertThrows(NotFoundException.class,
-        () -> service.getOriginalDataForMedia(ID, ANNOTATION_PATH));
-  }
+	@Test
+	void testGetOriginalDataForMedia() throws NotFoundException {
+		// Given
+		var expectedJson = givenMongoDBMediaResponse();
+		var expected = new JsonApiWrapper(new JsonApiData(ID, FdoType.DIGITAL_MEDIA.getName(), expectedJson),
+				new JsonApiLinks(SANDBOX_URI));
+		given(repository.getMediaOriginalData(ID)).willReturn(expectedJson);
 
-  @Test
-  void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
-    // Given
-    var bytea = new byte[]{0x1, 0x2, 0x3};
-    given(s3Repository.retrieveMediaFromStorage(SUFFIX, false)).willReturn(bytea);
+		// When
+		var result = service.getOriginalDataForMedia(ID, SANDBOX_URI);
 
-    // When
-    var result = service.getMediaDerivative(SUFFIX);
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
 
-    // Then
-    assertThat(result).isEqualTo(bytea);
-  }
+	@Test
+	void testGetOriginalDataNotFound() {
+		// Given
 
-  @Test
-  void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
-    // Given
-    var bytea = new byte[]{0x1, 0x2, 0x3};
-    given(s3Repository.retrieveMediaFromStorage(SUFFIX, true)).willReturn(bytea);
+		// When / then
+		assertThrows(NotFoundException.class, () -> service.getOriginalDataForMedia(ID, ANNOTATION_PATH));
+	}
 
-    // When
-    var result = service.getMediaThumbnail(SUFFIX);
+	@Test
+	void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
+		// Given
+		var bytea = new byte[] { 0x1, 0x2, 0x3 };
+		given(s3Repository.retrieveMediaFromStorage(SUFFIX, false)).willReturn(bytea);
 
-    // Then
-    assertThat(result).isEqualTo(bytea);
-  }
+		// When
+		var result = service.getMediaDerivative(SUFFIX);
 
-  private JsonNode givenMongoDBMediaResponse() {
-    return MAPPER.readValue(
-        """ 
-            {
-                   "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
-                   "@type": "ods:DigitalMedia",
-                   "dcterms:identifier": "https://doi.org/20.5000.1025/ABC-123-XYZ",
-                   "ods:version": 1,
-                   "ods:status": "Active",
-                   "dcterms:created": "2022-11-01T09:59:24.000Z",
-                   "ods:fdoType": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
-                   "dcterms:type": "StillImage",
-                   "ac:accessURI": "https://dissco.com",
-                   "dcterms:format":"image/jpeg",
-                   "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
-                   "ods:hasEntityRelationships": [
-                     {
-                       "@type": "ods:EntityRelationship",
-                       "dwc:relationshipOfResource": "hasDigitalSpecimen",
-                       "dwc:relatedResourceID": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
-                     }
-                   ],
-                   "ods:hasAgents": []
-                 }
-            """, JsonNode.class
-    );
-  }
+		// Then
+		assertThat(result).isEqualTo(bytea);
+	}
+
+	@Test
+	void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
+		// Given
+		var bytea = new byte[] { 0x1, 0x2, 0x3 };
+		given(s3Repository.retrieveMediaFromStorage(SUFFIX, true)).willReturn(bytea);
+
+		// When
+		var result = service.getMediaThumbnail(SUFFIX);
+
+		// Then
+		assertThat(result).isEqualTo(bytea);
+	}
+
+	private JsonNode givenMongoDBMediaResponse() {
+		return MAPPER.readValue("""
+				{
+				       "@id": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+				       "@type": "ods:DigitalMedia",
+				       "dcterms:identifier": "https://doi.org/20.5000.1025/ABC-123-XYZ",
+				       "ods:version": 1,
+				       "ods:status": "Active",
+				       "dcterms:created": "2022-11-01T09:59:24.000Z",
+				       "ods:fdoType": "https://doi.org/21.T11148/bbad8c4e101e8af01115",
+				       "dcterms:type": "StillImage",
+				       "ac:accessURI": "https://dissco.com",
+				       "dcterms:format":"image/jpeg",
+				       "ods:sourceSystemID": "https://hdl.handle.net/20.5000.1025/3XA-8PT-SAY",
+				       "ods:hasEntityRelationships": [
+				         {
+				           "@type": "ods:EntityRelationship",
+				           "dwc:relationshipOfResource": "hasDigitalSpecimen",
+				           "dwc:relatedResourceID": "https://doi.org/20.5000.1025/AAA-111-ZZZ"
+				         }
+				       ],
+				       "ods:hasAgents": []
+				     }
+				""", JsonNode.class);
+	}
+
 }

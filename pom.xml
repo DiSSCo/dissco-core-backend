@@ -28,6 +28,7 @@
     <springdoc.version>2.8.14</springdoc.version>
     <amazon.awssdk.version>2.42.12</amazon.awssdk.version>
     <testcontainers.version>2.0.3</testcontainers.version>
+    <spring-format.version>0.0.47</spring-format.version>
     <sonar.organization>dissco</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.coverage.jacoco.xmlReportPaths>../app-it/target/site/jacoco-aggregate/jacoco.xml
@@ -405,6 +406,11 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.spring.javaformat</groupId>
+        <artifactId>spring-javaformat-maven-plugin</artifactId>
+        <version>${spring-format.version}</version>
       </plugin>
     </plugins>
   </build>

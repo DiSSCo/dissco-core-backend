@@ -29,100 +29,88 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class ProvenanceService {
 
-  private final JsonMapper mapper;
-  private final ApplicationProperties properties;
+	private final JsonMapper mapper;
 
-  private static String getRdfsComment(ProvActivity.Type activityType) {
-    switch (activityType) {
-      case ODS_CREATE -> {
-        return "Object newly created";
-      }
-      case ODS_UPDATE -> {
-        return "Object updated";
-      }
-      case ODS_TOMBSTONE -> {
-        return "Object tombstoned";
-      }
-    }
-    return null;
-  }
+	private final ApplicationProperties properties;
 
-  public CreateUpdateTombstoneEvent generateCreateEvent(JsonNode digitalObject, Agent agent) {
-    return generateCreateUpdateTombStoneEvent(digitalObject, ProvActivity.Type.ODS_CREATE, null,
-        agent);
-  }
+	private static String getRdfsComment(ProvActivity.Type activityType) {
+		switch (activityType) {
+			case ODS_CREATE -> {
+				return "Object newly created";
+			}
+			case ODS_UPDATE -> {
+				return "Object updated";
+			}
+			case ODS_TOMBSTONE -> {
+				return "Object tombstoned";
+			}
+		}
+		return null;
+	}
 
-  public CreateUpdateTombstoneEvent generateTombstoneEvent(JsonNode tombstoneObject,
-      JsonNode currentObject, Agent agent) {
-    var patch = createJsonPatch(tombstoneObject, currentObject);
-    return generateCreateUpdateTombStoneEvent(tombstoneObject, ProvActivity.Type.ODS_TOMBSTONE,
-        patch, agent);
-  }
+	public CreateUpdateTombstoneEvent generateCreateEvent(JsonNode digitalObject, Agent agent) {
+		return generateCreateUpdateTombStoneEvent(digitalObject, ProvActivity.Type.ODS_CREATE, null, agent);
+	}
 
-  private CreateUpdateTombstoneEvent generateCreateUpdateTombStoneEvent(
-      JsonNode digitalObject, ProvActivity.Type activityType, JsonNode jsonPatch, Agent agent) {
-    var entityID =
-        digitalObject.get("@id").asString() + "/" + digitalObject.get("schema:version").asString();
-    var activityID = UUID.randomUUID().toString();
-    return new CreateUpdateTombstoneEvent()
-        .withId(entityID)
-        .withType("ods:CreateUpdateTombstoneEvent")
-        .withDctermsIdentifier(entityID)
-        .withOdsFdoType(properties.getCreateUpdateTombstoneEventType())
-        .withProvActivity(new ProvActivity()
-            .withId(activityID)
-            .withType(activityType)
-            .withOdsChangeValue(mapJsonPatch(jsonPatch))
-            .withProvEndedAtTime(Date.from(Instant.now()))
-            .withProvWasAssociatedWith(List.of(
-                new ProvWasAssociatedWith()
-                    .withId(agent.getId())
-                    .withProvHadRole(ProvHadRole.REQUESTOR),
-                new ProvWasAssociatedWith()
-                    .withId(agent.getId())
-                    .withProvHadRole(ProvHadRole.APPROVER),
-                new ProvWasAssociatedWith()
-                    .withId(properties.getPid())
-                    .withProvHadRole(ProvHadRole.GENERATOR)))
-            .withProvUsed(entityID)
-            .withRdfsComment(getRdfsComment(activityType)))
-        .withProvEntity(new ProvEntity()
-            .withId(entityID)
-            .withType(digitalObject.get("@type").asString())
-            .withProvValue(mapEntityToProvValue(digitalObject))
-            .withProvWasGeneratedBy(activityID))
-        .withOdsHasAgents(
-            List.of(
-                createAgent(agent.getSchemaName(), agent.getId(), "creator", "orcid", PROV_PERSON),
-                createServiceAgent(properties)));
-  }
+	public CreateUpdateTombstoneEvent generateTombstoneEvent(JsonNode tombstoneObject, JsonNode currentObject,
+			Agent agent) {
+		var patch = createJsonPatch(tombstoneObject, currentObject);
+		return generateCreateUpdateTombStoneEvent(tombstoneObject, ProvActivity.Type.ODS_TOMBSTONE, patch, agent);
+	}
 
-  private List<OdsChangeValue> mapJsonPatch(JsonNode jsonPatch) {
-    if (jsonPatch == null) {
-      return null;
-    }
-    return mapper.convertValue(jsonPatch, new TypeReference<>() {
-    });
-  }
+	private CreateUpdateTombstoneEvent generateCreateUpdateTombStoneEvent(JsonNode digitalObject,
+			ProvActivity.Type activityType, JsonNode jsonPatch, Agent agent) {
+		var entityID = digitalObject.get("@id").asString() + "/" + digitalObject.get("schema:version").asString();
+		var activityID = UUID.randomUUID().toString();
+		return new CreateUpdateTombstoneEvent().withId(entityID)
+			.withType("ods:CreateUpdateTombstoneEvent")
+			.withDctermsIdentifier(entityID)
+			.withOdsFdoType(properties.getCreateUpdateTombstoneEventType())
+			.withProvActivity(new ProvActivity().withId(activityID)
+				.withType(activityType)
+				.withOdsChangeValue(mapJsonPatch(jsonPatch))
+				.withProvEndedAtTime(Date.from(Instant.now()))
+				.withProvWasAssociatedWith(List.of(
+						new ProvWasAssociatedWith().withId(agent.getId()).withProvHadRole(ProvHadRole.REQUESTOR),
+						new ProvWasAssociatedWith().withId(agent.getId()).withProvHadRole(ProvHadRole.APPROVER),
+						new ProvWasAssociatedWith().withId(properties.getPid()).withProvHadRole(ProvHadRole.GENERATOR)))
+				.withProvUsed(entityID)
+				.withRdfsComment(getRdfsComment(activityType)))
+			.withProvEntity(new ProvEntity().withId(entityID)
+				.withType(digitalObject.get("@type").asString())
+				.withProvValue(mapEntityToProvValue(digitalObject))
+				.withProvWasGeneratedBy(activityID))
+			.withOdsHasAgents(
+					List.of(createAgent(agent.getSchemaName(), agent.getId(), "creator", "orcid", PROV_PERSON),
+							createServiceAgent(properties)));
+	}
 
-  public CreateUpdateTombstoneEvent generateUpdateEvent(JsonNode digitalObject,
-      JsonNode currentDigitalObject, Agent agent) {
-    var jsonPatch = createJsonPatch(digitalObject, currentDigitalObject);
-    return generateCreateUpdateTombStoneEvent(digitalObject, ProvActivity.Type.ODS_UPDATE,
-        jsonPatch, agent);
-  }
+	private List<OdsChangeValue> mapJsonPatch(JsonNode jsonPatch) {
+		if (jsonPatch == null) {
+			return null;
+		}
+		return mapper.convertValue(jsonPatch, new TypeReference<>() {
+		});
+	}
 
-  private ProvValue mapEntityToProvValue(JsonNode jsonNode) {
-    var provValue = new ProvValue();
-    var node = mapper.convertValue(jsonNode, new TypeReference<Map<String, Object>>() {
-    });
-    for (var entry : node.entrySet()) {
-      provValue.setAdditionalProperty(entry.getKey(), entry.getValue());
-    }
-    return provValue;
-  }
+	public CreateUpdateTombstoneEvent generateUpdateEvent(JsonNode digitalObject, JsonNode currentDigitalObject,
+			Agent agent) {
+		var jsonPatch = createJsonPatch(digitalObject, currentDigitalObject);
+		return generateCreateUpdateTombStoneEvent(digitalObject, ProvActivity.Type.ODS_UPDATE, jsonPatch, agent);
+	}
 
-  private JsonNode createJsonPatch(JsonNode digitalObject, JsonNode currentDigitalObject) {
-    return Jackson3JsonDiff.asJson(currentDigitalObject, digitalObject);
-  }
+	private ProvValue mapEntityToProvValue(JsonNode jsonNode) {
+		var provValue = new ProvValue();
+		var node = mapper.convertValue(jsonNode, new TypeReference<Map<String, Object>>() {
+		});
+		for (var entry : node.entrySet()) {
+			provValue.setAdditionalProperty(entry.getKey(), entry.getValue());
+		}
+		return provValue;
+	}
+
+	private JsonNode createJsonPatch(JsonNode digitalObject, JsonNode currentDigitalObject) {
+		return Jackson3JsonDiff.asJson(currentDigitalObject, digitalObject);
+	}
+
 }

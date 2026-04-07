@@ -7,6 +7,7 @@ import tools.jackson.databind.JsonNode;
 
 public interface ProcessorClient {
 
-  @PostExchange("/annotation")
-  Mono<Void> acceptAnnotation(@RequestBody JsonNode annotation);
+	@PostExchange("/annotation")
+	Mono<Void> acceptAnnotation(@RequestBody JsonNode annotation);
+
 }

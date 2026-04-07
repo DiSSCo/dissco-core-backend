@@ -6,24 +6,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema
-public record MasSchedulingRequest(
-    MasSchedulingData data
-) {
+public record MasSchedulingRequest(MasSchedulingData data) {
 
-  @Schema
-  public record MasSchedulingData(
-      @Parameter(description = "Type of request, in this case \"MasRequest\"")
-      String type,
-      MasSchedulingAttributes attributes
-  ) {
+	@Schema
+	public record MasSchedulingData(
+			@Parameter(description = "Type of request, in this case \"MasRequest\"") String type,
+			MasSchedulingAttributes attributes) {
 
-    @Schema
-    public record MasSchedulingAttributes(
-        List<MasJobRequest> mass
-    ) {
+		@Schema
+		public record MasSchedulingAttributes(List<MasJobRequest> mass) {
 
-    }
+		}
 
-  }
+	}
 
 }

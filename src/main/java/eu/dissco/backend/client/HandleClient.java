@@ -12,23 +12,21 @@ import tools.jackson.databind.JsonNode;
 
 public interface HandleClient {
 
-  @PostExchange("")
-  JsonNode postHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
+	@PostExchange("")
+	JsonNode postHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
 
-  @PostExchange("batch")
-  JsonNode postHandles(@RequestBody List<JsonNode> handleRequest)
-      throws WebProcessingFailedException;
+	@PostExchange("batch")
+	JsonNode postHandles(@RequestBody List<JsonNode> handleRequest) throws WebProcessingFailedException;
 
   @PatchExchange("{pid}")
   void updateHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
       throws WebProcessingFailedException;
 
-  @PutExchange("{pid}")
-  void tombstoneHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
-      throws WebProcessingFailedException;
+	@PutExchange("{pid}")
+	void tombstoneHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
+			throws WebProcessingFailedException;
 
-  @DeleteExchange("rollback/create")
-  void rollbackHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
-
+	@DeleteExchange("rollback/create")
+	void rollbackHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
 
 }

@@ -35,46 +35,41 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequiredArgsConstructor
 public class ElvisController {
 
-  private final ElvisService elvisService;
+	private final ElvisService elvisService;
 
-  @Operation(summary = "Get specimen from DiSSCo DOI", description = """
-      Given a DOI, retrieves specimen information according to ELViS parameters.  
-      """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = ElvisSpecimen.class))
-      })
-  })
-  @GetMapping(value = "/specimen/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<ElvisSpecimen> getSpecimenByDoi(
-      @Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) throws NotFoundException  {
-    var id = prefix + "/" + suffix;
-    return ResponseEntity.ok().body(elvisService.searchByDoi(id));
-  }
+	@Operation(summary = "Get specimen from DiSSCo DOI", description = """
+			Given a DOI, retrieves specimen information according to ELViS parameters.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = ElvisSpecimen.class)) }) })
+	@GetMapping(value = "/specimen/{prefix}/{suffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ElvisSpecimen> getSpecimenByDoi(
+			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix) throws NotFoundException {
+		var id = prefix + "/" + suffix;
+		return ResponseEntity.ok().body(elvisService.searchByDoi(id));
+	}
 
-  @Operation(summary = "Searches DiSSCo specimens for relevant identifiers", description = """
-      Searches DiSSCo specimens for relevant identifiers. The inputted searchValue is checked against the following ODS terms:
-      - ods:physicalSpecimenId, the local collection number, which is mapped to catalogNumber in the response
-      - dcterms:identifier, the DiSSCo DOI, which is mapped to inventoryNumber in the response
-      
-      This endpoint searches both above fields for desired inputted value. It accepts partial matches, implementing a wildcard search.
-      Note: When searching, do not include the DOI proxy (i.e. "https://doi.org/") in the input
-      """)
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved", content = {
-          @Content(mediaType = "application/json",
-              schema = @Schema(implementation = InventoryNumberSuggestionResponse.class))
-      })
-  })
-  @GetMapping(value = "/specimen/suggest/inventoryNumber", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<InventoryNumberSuggestionResponse> suggestInventoryNumber(
-      @Parameter(description = "searchValue") @RequestParam("searchValue") String searchValue,
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = "20") int pageSize
-  ) throws IOException, NotFoundException {
-    return ResponseEntity.ok()
-        .body(elvisService.suggestInventoryNumber(searchValue, pageNumber, pageSize));
-  }
+	@Operation(summary = "Searches DiSSCo specimens for relevant identifiers",
+			description = """
+					Searches DiSSCo specimens for relevant identifiers. The inputted searchValue is checked against the following ODS terms:
+					- ods:physicalSpecimenId, the local collection number, which is mapped to catalogNumber in the response
+					- dcterms:identifier, the DiSSCo DOI, which is mapped to inventoryNumber in the response
+
+					This endpoint searches both above fields for desired inputted value. It accepts partial matches, implementing a wildcard search.
+					Note: When searching, do not include the DOI proxy (i.e. "https://doi.org/") in the input
+					""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Specimen successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = InventoryNumberSuggestionResponse.class)) }) })
+	@GetMapping(value = "/specimen/suggest/inventoryNumber", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<InventoryNumberSuggestionResponse> suggestInventoryNumber(
+			@Parameter(description = "searchValue") @RequestParam("searchValue") String searchValue,
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = "20") int pageSize)
+			throws IOException, NotFoundException {
+		return ResponseEntity.ok().body(elvisService.suggestInventoryNumber(searchValue, pageNumber, pageSize));
+	}
 
 }

@@ -13,12 +13,12 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class MongoConfiguration {
 
-  private final MongoProperties properties;
+	private final MongoProperties properties;
 
-  @Bean
-  public MongoDatabase configureVersionDb() {
-    var client = MongoClients.create(properties.getConnectionString());
-    return client.getDatabase(properties.getDatabase());
-  }
+	@Bean
+	public MongoDatabase configureVersionDb() {
+		var client = MongoClients.create(properties.getConnectionString());
+		return client.getDatabase(properties.getDatabase());
+	}
 
 }

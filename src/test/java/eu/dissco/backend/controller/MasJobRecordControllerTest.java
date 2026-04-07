@@ -30,67 +30,72 @@ import org.springframework.security.oauth2.jwt.Jwt;
 @ExtendWith(MockitoExtension.class)
 class MasJobRecordControllerTest {
 
-  private static final String MJR_PATH = "https://sandbox.dissco.tech" + MJR_URI;
-  @Mock
-  ApplicationProperties properties;
-  @Mock
-  private MasJobRecordService masJobRecordService;
-  private MockHttpServletRequest mockRequest;
-  private MasJobRecordController controller;
-  @Mock
-  private Authentication authentication;
+	private static final String MJR_PATH = "https://sandbox.dissco.tech" + MJR_URI;
 
-  @BeforeEach
-  void setup() {
-    controller = new MasJobRecordController(MAPPER, properties, masJobRecordService);
-    mockRequest = new MockHttpServletRequest();
-    mockRequest.setRequestURI(MJR_URI);
-  }
+	@Mock
+	ApplicationProperties properties;
 
-  @Test
-  void testGetMasJobRecord() throws Exception {
-    // Given
-    given(masJobRecordService.getMasJobRecordById(JOB_ID, MJR_PATH)).willReturn(
-        new JsonApiWrapper(null, null));
-    given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+	@Mock
+	private MasJobRecordService masJobRecordService;
 
-    // When
-    var result = controller.getMasJobRecord(PREFIX, JOB_SUFFIX, mockRequest);
+	private MockHttpServletRequest mockRequest;
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	private MasJobRecordController controller;
 
-  @Test
-  void testGetMasJobRecordByCreatorId() throws Exception {
-    // Given
-    int pageNum = 1;
-    int pageSize = 1;
-    given(masJobRecordService.getMasJobRecordsByCreatorId(ORCID, MJR_PATH, pageNum, pageSize,
-        JobState.FAILED)).willReturn(new JsonApiListResponseWrapper(null, null));
-    given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
-    givenAuthentication();
+	@Mock
+	private Authentication authentication;
 
-    // When
-    var result = controller.getMasJobRecordsForCreator(pageNum, pageSize, JobState.FAILED,
-        mockRequest, authentication);
+	@BeforeEach
+	void setup() {
+		controller = new MasJobRecordController(MAPPER, properties, masJobRecordService);
+		mockRequest = new MockHttpServletRequest();
+		mockRequest.setRequestURI(MJR_URI);
+	}
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+	@Test
+	void testGetMasJobRecord() throws Exception {
+		// Given
+		given(masJobRecordService.getMasJobRecordById(JOB_ID, MJR_PATH)).willReturn(new JsonApiWrapper(null, null));
+		given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
 
-  @Test
-  void testMarkMjrAsRunning() throws Exception {
-    // When
-    var result = controller.markMjrAsRunning(PREFIX, SUFFIX, PREFIX, JOB_SUFFIX);
+		// When
+		var result = controller.getMasJobRecord(PREFIX, JOB_SUFFIX, mockRequest);
 
-    // Then
-    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 
-  private void givenAuthentication() {
-    var principal = mock(Jwt.class);
-    given(authentication.getPrincipal()).willReturn(principal);
-    given(principal.getClaims()).willReturn(givenClaims());
-  }
+	@Test
+	void testGetMasJobRecordByCreatorId() throws Exception {
+		// Given
+		int pageNum = 1;
+		int pageSize = 1;
+		given(masJobRecordService.getMasJobRecordsByCreatorId(ORCID, MJR_PATH, pageNum, pageSize, JobState.FAILED))
+			.willReturn(new JsonApiListResponseWrapper(null, null));
+		given(properties.getBaseUrl()).willReturn("https://sandbox.dissco.tech");
+		givenAuthentication();
+
+		// When
+		var result = controller.getMasJobRecordsForCreator(pageNum, pageSize, JobState.FAILED, mockRequest,
+				authentication);
+
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	void testMarkMjrAsRunning() throws Exception {
+		// When
+		var result = controller.markMjrAsRunning(PREFIX, SUFFIX, PREFIX, JOB_SUFFIX);
+
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	private void givenAuthentication() {
+		var principal = mock(Jwt.class);
+		given(authentication.getPrincipal()).willReturn(principal);
+		given(principal.getClaims()).willReturn(givenClaims());
+	}
+
 }

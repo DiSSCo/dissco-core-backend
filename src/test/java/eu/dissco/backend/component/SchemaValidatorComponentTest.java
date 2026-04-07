@@ -23,40 +23,36 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SchemaValidatorComponentTest {
 
-  private SchemaValidatorComponent schemaValidator;
+	private SchemaValidatorComponent schemaValidator;
 
-  @BeforeEach
-  void setup() {
-    schemaValidator = new SchemaValidatorComponent();
-  }
+	@BeforeEach
+	void setup() {
+		schemaValidator = new SchemaValidatorComponent();
+	}
 
-  @Test
-  void testValidateAnnotationEventRequest() {
-    // When Then
-    assertDoesNotThrow(
-        () -> schemaValidator.validateAnnotationEventRequest(givenAnnotationEventRequest(), true));
-  }
+	@Test
+	void testValidateAnnotationEventRequest() {
+		// When Then
+		assertDoesNotThrow(() -> schemaValidator.validateAnnotationEventRequest(givenAnnotationEventRequest(), true));
+	}
 
-  @ParameterizedTest
-  @MethodSource("invalidEvents")
-  void testValidateAnnotationEventRequestInvalid(AnnotationEventRequest event) {
-    // When Then
-    assertThrows(InvalidAnnotationRequestException.class,
-        () -> schemaValidator.validateAnnotationEventRequest(event, true));
-  }
+	@ParameterizedTest
+	@MethodSource("invalidEvents")
+	void testValidateAnnotationEventRequestInvalid(AnnotationEventRequest event) {
+		// When Then
+		assertThrows(InvalidAnnotationRequestException.class,
+				() -> schemaValidator.validateAnnotationEventRequest(event, true));
+	}
 
-  private static Stream<Arguments> invalidEvents() {
-    return Stream.of(
-        Arguments.of(new AnnotationEventRequest(Collections.nCopies(2, givenAnnotationRequest()),
-            List.of(givenBatchMetadata()))),
-        Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()),
-            Collections.nCopies(2, givenBatchMetadata()))),
-        Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()),
-            List.of(new BatchMetadata(Collections.emptyList())))),
-        Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()),
-            Collections.emptyList()))
-    );
-  }
-
+	private static Stream<Arguments> invalidEvents() {
+		return Stream.of(
+				Arguments.of(new AnnotationEventRequest(Collections.nCopies(2, givenAnnotationRequest()),
+						List.of(givenBatchMetadata()))),
+				Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()),
+						Collections.nCopies(2, givenBatchMetadata()))),
+				Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()),
+						List.of(new BatchMetadata(Collections.emptyList())))),
+				Arguments.of(new AnnotationEventRequest(List.of(givenAnnotationRequest()), Collections.emptyList())));
+	}
 
 }

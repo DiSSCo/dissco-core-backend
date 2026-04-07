@@ -36,77 +36,62 @@ import tools.jackson.databind.json.JsonMapper;
 @RequestMapping("/mjr/v1")
 public class MasJobRecordController extends BaseController {
 
-  private final MasJobRecordService service;
+	private final MasJobRecordService service;
 
-  public MasJobRecordController(JsonMapper mapper,
-      ApplicationProperties applicationProperties, MasJobRecordService service) {
-    super(mapper, applicationProperties);
-    this.service = service;
-  }
+	public MasJobRecordController(JsonMapper mapper, ApplicationProperties applicationProperties,
+			MasJobRecordService service) {
+		super(mapper, applicationProperties);
+		this.service = service;
+	}
 
-  @Operation(
-      summary = "Get MAS Job Record by ID",
-      description = """
-          Retrieves record of running, scheduled, or completed Machine Annotation Service job
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseSingle.class))
-      })
-  })
-  @GetMapping(value = "/{jobIdPrefix}/{jobIdSuffix}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiWrapper> getMasJobRecord(
-      @Parameter(description = PREFIX_OAS) @PathVariable("jobIdPrefix") String masJobHandlePrefix,
-      @Parameter(description = SUFFIX_OAS) @PathVariable("jobIdSuffix") String masJobHandleSuffix,
-      HttpServletRequest request) throws NotFoundException {
-    var masJobHandle = masJobHandlePrefix + "/" + masJobHandleSuffix;
-    return ResponseEntity.ok().body(service.getMasJobRecordById(masJobHandle, getPath(request)));
-  }
+	@Operation(summary = "Get MAS Job Record by ID", description = """
+			Retrieves record of running, scheduled, or completed Machine Annotation Service job
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseSingle.class)) }) })
+	@GetMapping(value = "/{jobIdPrefix}/{jobIdSuffix}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> getMasJobRecord(
+			@Parameter(description = PREFIX_OAS) @PathVariable("jobIdPrefix") String masJobHandlePrefix,
+			@Parameter(description = SUFFIX_OAS) @PathVariable("jobIdSuffix") String masJobHandleSuffix,
+			HttpServletRequest request) throws NotFoundException {
+		var masJobHandle = masJobHandlePrefix + "/" + masJobHandleSuffix;
+		return ResponseEntity.ok().body(service.getMasJobRecordById(masJobHandle, getPath(request)));
+	}
 
-  @Operation(
-      summary = "Get MAS Job Record by creator",
-      description = """
-          Retrieves record of running, scheduled, or completed Machine Annotation Service job
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = MjrResponseList.class))
-      })
-  })
-  @GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForCreator(
-      @Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
-      @Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
-      @Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
-      HttpServletRequest request, Authentication authentication) throws ForbiddenException {
-    var creatorId = getAgent(authentication, ROLE_NAME_ANNOTATOR).getSchemaIdentifier();
-    return ResponseEntity.ok().body(
-        service.getMasJobRecordsByCreatorId(creatorId, getPath(request), pageNumber, pageSize,
-            state));
-  }
+	@Operation(summary = "Get MAS Job Record by creator", description = """
+			Retrieves record of running, scheduled, or completed Machine Annotation Service job
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = MjrResponseList.class)) }) })
+	@GetMapping(value = "/creator", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiListResponseWrapper> getMasJobRecordsForCreator(
+			@Parameter(description = PAGE_NUM_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_NUM) int pageNumber,
+			@Parameter(description = PAGE_SIZE_OAS) @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int pageSize,
+			@Parameter(description = JOB_STATUS_OAS) @RequestParam(required = false) JobState state,
+			HttpServletRequest request, Authentication authentication) throws ForbiddenException {
+		var creatorId = getAgent(authentication, ROLE_NAME_ANNOTATOR).getSchemaIdentifier();
+		return ResponseEntity.ok()
+			.body(service.getMasJobRecordsByCreatorId(creatorId, getPath(request), pageNumber, pageSize, state));
+	}
 
-  @Operation(
-      summary = "Mark job as running",
-      description = """
-          Utility function for Machine Annotation Services to update job status to "running".
-          """
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved")
-  })
-  @GetMapping(value = "/{masIdPrefix}/{masIdSuffix}/{jobIdPrefix}/{jobIdSuffix}/running")
-  public ResponseEntity<Void> markMjrAsRunning(
-      @Parameter(description = "Prefix of ID of MAS") @PathVariable("masIdPrefix") String masIdPrefix,
-      @Parameter(description = "Suffix of ID of MAS") @PathVariable("masIdSuffix") String masIdSuffix,
-      @Parameter(description = "Prefix of ID of Job") @PathVariable("jobIdPrefix") String jobIdPrefix,
-      @Parameter(description = "Suffix of ID of Job") @PathVariable("jobIdSuffix") String jobIdSuffix)
-      throws NotFoundException {
-    var masId = masIdPrefix + "/" + masIdSuffix;
-    var jobId = jobIdPrefix + "/" + jobIdSuffix;
-    service.markMasJobRecordAsRunning(masId, jobId);
-    log.info("MAS Service {} successfully marked job {} as running", masId, jobId);
-    return ResponseEntity.ok().build();
-  }
+	@Operation(summary = "Mark job as running", description = """
+			Utility function for Machine Annotation Services to update job status to "running".
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "MAS Job Record successfully retrieved") })
+	@GetMapping(value = "/{masIdPrefix}/{masIdSuffix}/{jobIdPrefix}/{jobIdSuffix}/running")
+	public ResponseEntity<Void> markMjrAsRunning(
+			@Parameter(description = "Prefix of ID of MAS") @PathVariable("masIdPrefix") String masIdPrefix,
+			@Parameter(description = "Suffix of ID of MAS") @PathVariable("masIdSuffix") String masIdSuffix,
+			@Parameter(description = "Prefix of ID of Job") @PathVariable("jobIdPrefix") String jobIdPrefix,
+			@Parameter(description = "Suffix of ID of Job") @PathVariable("jobIdSuffix") String jobIdSuffix)
+			throws NotFoundException {
+		var masId = masIdPrefix + "/" + masIdSuffix;
+		var jobId = jobIdPrefix + "/" + jobIdSuffix;
+		service.markMasJobRecordAsRunning(masId, jobId);
+		log.info("MAS Service {} successfully marked job {} as running", masId, jobId);
+		return ResponseEntity.ok().build();
+	}
+
 }

@@ -9,8 +9,7 @@ import tools.jackson.databind.JsonNode;
 
 public interface MasClient {
 
-  @PostExchange(value = "/")
-  JsonNode scheduleMas(@RequestBody Set<MasScheduleJobRequest> masJobRequest)
-      throws WebProcessingFailedException;
+	@PostExchange(value = "/")
+	JsonNode scheduleMas(@RequestBody Set<MasScheduleJobRequest> masJobRequest) throws WebProcessingFailedException;
 
 }
