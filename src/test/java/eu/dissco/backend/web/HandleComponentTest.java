@@ -114,6 +114,6 @@ class HandleComponentTest {
     handleComponent.updateHandle(virtualCollection);
 
     // Then
-    then(handleClient).should().updateHandle(givenVirtualCollectionUpdateHandleRequest());
+    then(handleClient).should().updateHandle(ID, givenVirtualCollectionUpdateHandleRequest());
   }
 }

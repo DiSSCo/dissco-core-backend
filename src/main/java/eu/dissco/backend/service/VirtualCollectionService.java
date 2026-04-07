@@ -4,6 +4,7 @@ import static eu.dissco.backend.domain.FdoType.VIRTUAL_COLLECTION;
 import static eu.dissco.backend.domain.VirtualCollectionAction.DELETE;
 import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
+import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.TombstoneUtils.buildTombstoneMetadata;
 
 import eu.dissco.backend.domain.FdoType;
@@ -41,7 +42,6 @@ import tools.jackson.databind.json.JsonMapper;
 @AllArgsConstructor
 public class VirtualCollectionService {
 
-  private static final String HANDLE_PROXY = "https://hdl.handle.net/";
   private static final String VIRTUAL_COLLECTION_NOT_FOUND = "Unable to find virtual collection {}";
   private final VirtualCollectionRepository repository;
   private final RabbitMqPublisherService rabbitMqPublisherService;

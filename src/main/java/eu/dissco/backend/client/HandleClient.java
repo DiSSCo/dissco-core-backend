@@ -20,7 +20,8 @@ public interface HandleClient {
       throws WebProcessingFailedException;
 
   @PatchExchange("{pid}")
-  void updateHandle(@RequestBody JsonNode handleRequest) throws WebProcessingFailedException;
+  void updateHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
+      throws WebProcessingFailedException;
 
   @PutExchange("{pid}")
   void tombstoneHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
