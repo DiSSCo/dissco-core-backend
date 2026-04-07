@@ -18,9 +18,9 @@ public interface HandleClient {
 	@PostExchange("batch")
 	JsonNode postHandles(@RequestBody List<JsonNode> handleRequest) throws WebProcessingFailedException;
 
-  @PatchExchange("{pid}")
-  void updateHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
-      throws WebProcessingFailedException;
+	@PatchExchange("{pid}")
+	void updateHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)
+			throws WebProcessingFailedException;
 
 	@PutExchange("{pid}")
 	void tombstoneHandle(@PathVariable String pid, @RequestBody JsonNode handleRequest)

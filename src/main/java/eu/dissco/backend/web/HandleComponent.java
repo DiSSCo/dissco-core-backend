@@ -60,11 +60,10 @@ public class HandleComponent {
 		handleClient.tombstoneHandle(handle, request);
 	}
 
-  public void updateHandle(VirtualCollection virtualCollection)
-      throws WebProcessingFailedException {
-    var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
-    handleClient.updateHandle(removeHandleProxy(virtualCollection.getId()), request);
-  }
+	public void updateHandle(VirtualCollection virtualCollection) throws WebProcessingFailedException {
+		var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
+		handleClient.updateHandle(removeHandleProxy(virtualCollection.getId()), request);
+	}
 
 	public void rollbackVirtualCollection(String id) throws WebProcessingFailedException {
 		var request = fdoRecordComponent.getRollbackCreateRequest(id);

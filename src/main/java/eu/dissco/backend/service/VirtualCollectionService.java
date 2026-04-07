@@ -42,273 +42,262 @@ import tools.jackson.databind.json.JsonMapper;
 @AllArgsConstructor
 public class VirtualCollectionService {
 
-  private static final String VIRTUAL_COLLECTION_NOT_FOUND = "Unable to find virtual collection {}";
-  private final VirtualCollectionRepository repository;
-  private final RabbitMqPublisherService rabbitMqPublisherService;
-  private final MongoRepository mongoRepository;
-  private final HandleComponent handleComponent;
-  private final JsonMapper mapper;
+	private static final String VIRTUAL_COLLECTION_NOT_FOUND = "Unable to find virtual collection {}";
 
-  private static LtcBasisOfScheme getLtcBasisOfScheme(VirtualCollectionRequest virtualCollection) {
-    return LtcBasisOfScheme.fromValue(virtualCollection.getLtcBasisOfScheme().value());
-  }
+	private final VirtualCollectionRepository repository;
 
-  public JsonApiWrapper persistVirtualCollection(VirtualCollectionRequest virtualCollectionRequest,
-      Agent agent, String path) throws ProcessingFailedException {
-    log.info("Requesting handle for Virtual Collection: {}",
-        virtualCollectionRequest.getLtcCollectionName());
-    String handle = postHandle(virtualCollectionRequest);
-    var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle,
-        Date.from(Instant.now()));
-    repository.createVirtualCollection(virtualCollection);
-    publishCreateEvent(virtualCollection, agent);
-    publishVirtualCollectionEvent(new VirtualCollectionEvent(
-        VirtualCollectionAction.CREATE, virtualCollection));
-    var dataNode = new JsonApiData(virtualCollection.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
-        mapper.valueToTree(virtualCollection));
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	private final RabbitMqPublisherService rabbitMqPublisherService;
 
-  private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
-    rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
-  }
+	private final MongoRepository mongoRepository;
 
-  private String postHandle(VirtualCollectionRequest virtualCollectionRequest)
-      throws ProcessingFailedException {
-    try {
-      return handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
-    } catch (WebProcessingFailedException e) {
-      log.error("Failed to create handle for virtual collection request: {}",
-          virtualCollectionRequest, e);
-      throw new ProcessingFailedException("Failed to create new virtual collection", e);
-    }
-  }
+	private final HandleComponent handleComponent;
 
-  private void publishCreateEvent(VirtualCollection virtualCollection, Agent agent)
-      throws ProcessingFailedException {
-    try {
-      rabbitMqPublisherService.publishCreateEvent(virtualCollection, agent);
-    } catch (ProcessingFailedException e) {
-      log.error("Unable to publish message to RabbitMQ", e);
-      rollbackVirtualCollection(virtualCollection);
-      throw new ProcessingFailedException("Failed to create new virtual collection", e);
-    }
-  }
+	private final JsonMapper mapper;
 
-  private void rollbackVirtualCollection(VirtualCollection virtualCollection) {
-    try {
-      handleComponent.rollbackVirtualCollection(virtualCollection.getId());
-    } catch (WebProcessingFailedException e) {
-      log.error(
-          "Unable to rollback handle creation for virtual collection. Manually delete the following handle: {}. Cause of error: ",
-          virtualCollection.getId(), e);
-    }
-    repository.rollbackVirtualCollectionCreate(virtualCollection.getId());
-  }
+	private static LtcBasisOfScheme getLtcBasisOfScheme(VirtualCollectionRequest virtualCollection) {
+		return LtcBasisOfScheme.fromValue(virtualCollection.getLtcBasisOfScheme().value());
+	}
 
-  private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection,
-      int version,
-      Agent agent, String handle, Date createdTimestamp) {
-    var id = HANDLE_PROXY + handle;
-    return new VirtualCollection()
-        .withId(id)
-        .withDctermsIdentifier(id)
-        .withType("ods:VirtualCollection")
-        .withOdsFdoType("https://hdl.handle.net/21.T11148/2ac65a933b7a0361b651")
-        .withSchemaVersion(version)
-        .withOdsStatus(OdsStatus.ACTIVE)
-        .withLtcCollectionName(virtualCollection.getLtcCollectionName())
-        .withLtcDescription(virtualCollection.getLtcDescription())
-        .withLtcBasisOfScheme(getLtcBasisOfScheme(virtualCollection))
-        .withSchemaDateCreated(createdTimestamp)
-        .withSchemaDateModified(Date.from(Instant.now()))
-        .withSchemaCreator(agent)
-        .withOdsHasTargetDigitalObjectFilter(
-            virtualCollection.getOdsHasTargetDigitalObjectFilter())
-        .withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
-        .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships());
-  }
+	public JsonApiWrapper persistVirtualCollection(VirtualCollectionRequest virtualCollectionRequest, Agent agent,
+			String path) throws ProcessingFailedException {
+		log.info("Requesting handle for Virtual Collection: {}", virtualCollectionRequest.getLtcCollectionName());
+		String handle = postHandle(virtualCollectionRequest);
+		var virtualCollection = buildVirtualCollection(virtualCollectionRequest, 1, agent, handle,
+				Date.from(Instant.now()));
+		repository.createVirtualCollection(virtualCollection);
+		publishCreateEvent(virtualCollection, agent);
+		publishVirtualCollectionEvent(new VirtualCollectionEvent(VirtualCollectionAction.CREATE, virtualCollection));
+		var dataNode = new JsonApiData(virtualCollection.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
+				mapper.valueToTree(virtualCollection));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
+	private void publishVirtualCollectionEvent(VirtualCollectionEvent virtualCollectionEvent) {
+		rabbitMqPublisherService.publishVirtualCollectionEvent(virtualCollectionEvent);
+	}
 
-  public JsonApiWrapper getVirtualCollectionById(String id, String path) throws NotFoundException {
-    var virtualCollection = repository.getVirtualCollectionById(id);
-    if (virtualCollection != null) {
-      var dataNode = new JsonApiData(virtualCollection.getId(),
-          FdoType.VIRTUAL_COLLECTION.getName(), mapper.valueToTree(virtualCollection));
-      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    }
-    log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
-    throw new NotFoundException("Virtual collection with id " + id + " not found");
-  }
+	private String postHandle(VirtualCollectionRequest virtualCollectionRequest) throws ProcessingFailedException {
+		try {
+			return handleComponent.postHandleVirtualCollection(virtualCollectionRequest);
+		}
+		catch (WebProcessingFailedException e) {
+			log.error("Failed to create handle for virtual collection request: {}", virtualCollectionRequest, e);
+			throw new ProcessingFailedException("Failed to create new virtual collection", e);
+		}
+	}
 
-  public JsonApiListResponseWrapper getVirtualCollections(int pageNumber, int pageSize,
-      String path, List<String> countries) {
-    List<VirtualCollection> virtualCollections;
-    if (countries == null || countries.isEmpty()){
-      virtualCollections = repository.getVirtualCollections(pageNumber, pageSize);
-    } else {
-      virtualCollections = repository.getVirtualCollectionsForCountries(pageNumber, pageSize, countries);
-    }
-    var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
-    return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
-  }
+	private void publishCreateEvent(VirtualCollection virtualCollection, Agent agent) throws ProcessingFailedException {
+		try {
+			rabbitMqPublisherService.publishCreateEvent(virtualCollection, agent);
+		}
+		catch (ProcessingFailedException e) {
+			log.error("Unable to publish message to RabbitMQ", e);
+			rollbackVirtualCollection(virtualCollection);
+			throw new ProcessingFailedException("Failed to create new virtual collection", e);
+		}
+	}
 
-  private List<JsonApiData> mapToDataNodePlusOne(List<VirtualCollection> virtualCollections) {
-    return virtualCollections.stream()
-        .map(vc -> new JsonApiData(vc.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
-            mapper.valueToTree(vc)))
-        .toList();
-  }
+	private void rollbackVirtualCollection(VirtualCollection virtualCollection) {
+		try {
+			handleComponent.rollbackVirtualCollection(virtualCollection.getId());
+		}
+		catch (WebProcessingFailedException e) {
+			log.error(
+					"Unable to rollback handle creation for virtual collection. Manually delete the following handle: {}. Cause of error: ",
+					virtualCollection.getId(), e);
+		}
+		repository.rollbackVirtualCollectionCreate(virtualCollection.getId());
+	}
 
-  public JsonApiListResponseWrapper getVirtualCollectionsForUser(String orcid, int pageNumber,
-      int pageSize, String path) {
-    var virtualCollections = repository.getVirtualCollectionsForUser(orcid,
-        pageNumber, pageSize);
-    var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
-    return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
-  }
+	private VirtualCollection buildVirtualCollection(VirtualCollectionRequest virtualCollection, int version,
+			Agent agent, String handle, Date createdTimestamp) {
+		var id = HANDLE_PROXY + handle;
+		return new VirtualCollection().withId(id)
+			.withDctermsIdentifier(id)
+			.withType("ods:VirtualCollection")
+			.withOdsFdoType("https://hdl.handle.net/21.T11148/2ac65a933b7a0361b651")
+			.withSchemaVersion(version)
+			.withOdsStatus(OdsStatus.ACTIVE)
+			.withLtcCollectionName(virtualCollection.getLtcCollectionName())
+			.withLtcDescription(virtualCollection.getLtcDescription())
+			.withLtcBasisOfScheme(getLtcBasisOfScheme(virtualCollection))
+			.withSchemaDateCreated(createdTimestamp)
+			.withSchemaDateModified(Date.from(Instant.now()))
+			.withSchemaCreator(agent)
+			.withOdsHasTargetDigitalObjectFilter(virtualCollection.getOdsHasTargetDigitalObjectFilter())
+			.withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
+			.withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships());
+	}
 
-  public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path)
-      throws NotFoundException {
-    var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.VIRTUAL_COLLECTION);
-    var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	public JsonApiWrapper getVirtualCollectionById(String id, String path) throws NotFoundException {
+		var virtualCollection = repository.getVirtualCollectionById(id);
+		if (virtualCollection != null) {
+			var dataNode = new JsonApiData(virtualCollection.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
+					mapper.valueToTree(virtualCollection));
+			return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+		}
+		log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
+		throw new NotFoundException("Virtual collection with id " + id + " not found");
+	}
 
-  public JsonApiWrapper getVirtualCollectionVersions(String id, String path)
-      throws NotFoundException {
-    var versions = mongoRepository.getVersions(id, MongoCollection.VIRTUAL_COLLECTION);
-    var versionsNode = createVersionNode(versions, mapper);
-    var dataNode = new JsonApiData(id, "virtualCollectionVersions", versionsNode);
-    return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-  }
+	public JsonApiListResponseWrapper getVirtualCollections(int pageNumber, int pageSize, String path,
+			List<String> countries) {
+		List<VirtualCollection> virtualCollections;
+		if (countries == null || countries.isEmpty()) {
+			virtualCollections = repository.getVirtualCollections(pageNumber, pageSize);
+		}
+		else {
+			virtualCollections = repository.getVirtualCollectionsForCountries(pageNumber, pageSize, countries);
+		}
+		var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
+		return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
+	}
 
-  public boolean tombstoneVirtualCollection(String prefix, String suffix, Agent agent,
-      boolean isAdmin) throws NotFoundException, ProcessingFailedException {
-    var id = prefix + "/" + suffix;
-    var result = getActiveVirtualCollection(agent, isAdmin, id);
-    if (result.isPresent()) {
-      return tombstoneActiveVirtualCollection(agent, result.get(), id);
-    } else {
-      if (isAdmin) {
-        log.info("No active virtual collection with id: {}", id);
-      } else {
-        log.info("No active virtual collection with id: {} found for user: {}", id, agent.getId());
-      }
-      throw new NotFoundException(
-          "No active virtual collection with id: " + id + " was found for user: " + agent.getId());
-    }
-  }
+	private List<JsonApiData> mapToDataNodePlusOne(List<VirtualCollection> virtualCollections) {
+		return virtualCollections.stream()
+			.map(vc -> new JsonApiData(vc.getId(), FdoType.VIRTUAL_COLLECTION.getName(), mapper.valueToTree(vc)))
+			.toList();
+	}
 
-  private boolean tombstoneActiveVirtualCollection(Agent agent, VirtualCollection virtualCollection,
-      String id) throws ProcessingFailedException {
-    tombstoneHandle(id);
-    var timestamp = Instant.now();
-    var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent,
-        timestamp);
-    repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
-    rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection,
-        agent);
-    publishVirtualCollectionEvent(new VirtualCollectionEvent(DELETE, tombstoneVirtualCollection));
-    return true;
-  }
+	public JsonApiListResponseWrapper getVirtualCollectionsForUser(String orcid, int pageNumber, int pageSize,
+			String path) {
+		var virtualCollections = repository.getVirtualCollectionsForUser(orcid, pageNumber, pageSize);
+		var dataNodePlusOne = mapToDataNodePlusOne(virtualCollections);
+		return wrapListResponse(dataNodePlusOne, pageSize, pageNumber, path);
+	}
 
-  private void tombstoneHandle(String handle) throws WebProcessingFailedException {
-    handleComponent.tombstoneHandle(handle);
-  }
+	public JsonApiWrapper getVirtualCollectionByVersion(String id, int version, String path) throws NotFoundException {
+		var eventNode = mongoRepository.getByVersion(id, version, MongoCollection.VIRTUAL_COLLECTION);
+		var dataNode = new JsonApiData(HANDLE_PROXY + id, VIRTUAL_COLLECTION.getName(), eventNode);
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  private VirtualCollection buildTombstoneVirtualCollection(VirtualCollection virtualCollection,
-      Agent tombstoningAgent, Instant timestamp) {
-    return new VirtualCollection()
-        .withId(virtualCollection.getId())
-        .withType(virtualCollection.getType())
-        .withDctermsIdentifier(virtualCollection.getDctermsIdentifier())
-        .withOdsFdoType(virtualCollection.getOdsFdoType())
-        .withOdsStatus(OdsStatus.TOMBSTONE)
-        .withSchemaVersion(virtualCollection.getSchemaVersion() + 1)
-        .withLtcCollectionName(virtualCollection.getLtcCollectionName())
-        .withLtcDescription(virtualCollection.getLtcDescription())
-        .withLtcBasisOfScheme(virtualCollection.getLtcBasisOfScheme())
-        .withSchemaDateCreated(virtualCollection.getSchemaDateCreated())
-        .withSchemaDateModified(Date.from(timestamp))
-        .withSchemaCreator(tombstoningAgent)
-        .withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
-        .withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships())
-        .withOdsHasTargetDigitalObjectFilter(
-            virtualCollection.getOdsHasTargetDigitalObjectFilter())
-        .withOdsHasTombstoneMetadata(buildTombstoneMetadata(tombstoningAgent,
-            "Virtual Collection tombstoned by agent through the dissco backend", timestamp));
-  }
+	public JsonApiWrapper getVirtualCollectionVersions(String id, String path) throws NotFoundException {
+		var versions = mongoRepository.getVersions(id, MongoCollection.VIRTUAL_COLLECTION);
+		var versionsNode = createVersionNode(versions, mapper);
+		var dataNode = new JsonApiData(id, "virtualCollectionVersions", versionsNode);
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
 
-  private Optional<VirtualCollection> getActiveVirtualCollection(Agent agent, boolean isAdmin,
-      String id) {
-    Optional<VirtualCollection> result;
-    if (isAdmin) {
-      log.info("Admin tombstoning virtual collection {}", id);
-      result = repository.getActiveVirtualCollection(id, null);
-    } else {
-      log.info("Creator tombstoning virtual collection {}", id);
-      result = repository.getActiveVirtualCollection(id, agent.getId());
-    }
-    return result;
-  }
+	public boolean tombstoneVirtualCollection(String prefix, String suffix, Agent agent, boolean isAdmin)
+			throws NotFoundException, ProcessingFailedException {
+		var id = prefix + "/" + suffix;
+		var result = getActiveVirtualCollection(agent, isAdmin, id);
+		if (result.isPresent()) {
+			return tombstoneActiveVirtualCollection(agent, result.get(), id);
+		}
+		else {
+			if (isAdmin) {
+				log.info("No active virtual collection with id: {}", id);
+			}
+			else {
+				log.info("No active virtual collection with id: {} found for user: {}", id, agent.getId());
+			}
+			throw new NotFoundException(
+					"No active virtual collection with id: " + id + " was found for user: " + agent.getId());
+		}
+	}
 
-  public JsonApiWrapper updateVirtualCollection(String id,
-      VirtualCollectionRequest virtualCollectionRequest, Agent agent, String path)
-      throws NotFoundException, ForbiddenException, ProcessingFailedException {
-    var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
-    if (currentVirtualCollectionOptional.isEmpty()) {
-      log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
-      throw new NotFoundException("Virtual collection with id " + id + " not found");
-    }
-    var currentVirtualCollection = currentVirtualCollectionOptional.get();
-    var virtualCollection = buildVirtualCollection(virtualCollectionRequest,
-        currentVirtualCollection.getSchemaVersion() + 1, agent, id,
-        currentVirtualCollection.getSchemaDateCreated());
-    if (isEqual(currentVirtualCollection, virtualCollection)) {
-      log.info("Virtual collection with id {} is not modified, skipping update", id);
-      return null;
-    } else {
-      checkHandleUpdate(currentVirtualCollection, virtualCollection);
-      repository.updateVirtualCollection(virtualCollection);
-      rabbitMqPublisherService.publishUpdateEvent(virtualCollection, currentVirtualCollection,
-          agent);
-      var dataNode = new JsonApiData(virtualCollection.getId(),
-          FdoType.VIRTUAL_COLLECTION.getName(), mapper.valueToTree(virtualCollection));
-      return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
-    }
-  }
+	private boolean tombstoneActiveVirtualCollection(Agent agent, VirtualCollection virtualCollection, String id)
+			throws ProcessingFailedException {
+		tombstoneHandle(id);
+		var timestamp = Instant.now();
+		var tombstoneVirtualCollection = buildTombstoneVirtualCollection(virtualCollection, agent, timestamp);
+		repository.tombstoneVirtualCollection(tombstoneVirtualCollection);
+		rabbitMqPublisherService.publishTombstoneEvent(tombstoneVirtualCollection, virtualCollection, agent);
+		publishVirtualCollectionEvent(new VirtualCollectionEvent(DELETE, tombstoneVirtualCollection));
+		return true;
+	}
 
-  private void checkHandleUpdate(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) throws WebProcessingFailedException {
-    if (!Objects.equals(currentVirtualCollection.getLtcCollectionName(),
-        virtualCollection.getLtcCollectionName()) ||
-        !Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
-            virtualCollection.getLtcBasisOfScheme())) {
-      log.info("Handle update is required for virtual collection with id {}",
-          currentVirtualCollection.getId());
-      handleComponent.updateHandle(virtualCollection);
-    }
-  }
+	private void tombstoneHandle(String handle) throws WebProcessingFailedException {
+		handleComponent.tombstoneHandle(handle);
+	}
 
-  private boolean isEqual(VirtualCollection currentVirtualCollection,
-      VirtualCollection virtualCollection) throws ForbiddenException {
-    if (!Objects.equals(currentVirtualCollection.getOdsHasTargetDigitalObjectFilter(),
-        virtualCollection.getOdsHasTargetDigitalObjectFilter())) {
-      log.warn(
-          "OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id {}",
-          currentVirtualCollection.getId());
-      throw new ForbiddenException(
-          "OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id "
-              + currentVirtualCollection.getId());
-    }
-    return Objects.equals(currentVirtualCollection.getLtcCollectionName(),
-        virtualCollection.getLtcCollectionName()) &&
-        Objects.equals(currentVirtualCollection.getLtcDescription(),
-            virtualCollection.getLtcDescription()) &&
-        Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
-            virtualCollection.getLtcBasisOfScheme()) &&
-        Objects.equals(currentVirtualCollection.getSchemaContentURL(),
-            virtualCollection.getSchemaContentURL());
-  }
+	private VirtualCollection buildTombstoneVirtualCollection(VirtualCollection virtualCollection,
+			Agent tombstoningAgent, Instant timestamp) {
+		return new VirtualCollection().withId(virtualCollection.getId())
+			.withType(virtualCollection.getType())
+			.withDctermsIdentifier(virtualCollection.getDctermsIdentifier())
+			.withOdsFdoType(virtualCollection.getOdsFdoType())
+			.withOdsStatus(OdsStatus.TOMBSTONE)
+			.withSchemaVersion(virtualCollection.getSchemaVersion() + 1)
+			.withLtcCollectionName(virtualCollection.getLtcCollectionName())
+			.withLtcDescription(virtualCollection.getLtcDescription())
+			.withLtcBasisOfScheme(virtualCollection.getLtcBasisOfScheme())
+			.withSchemaDateCreated(virtualCollection.getSchemaDateCreated())
+			.withSchemaDateModified(Date.from(timestamp))
+			.withSchemaCreator(tombstoningAgent)
+			.withOdsSignificanceForCountries(virtualCollection.getOdsSignificanceForCountries())
+			.withOdsHasEntityRelationships(virtualCollection.getOdsHasEntityRelationships())
+			.withOdsHasTargetDigitalObjectFilter(virtualCollection.getOdsHasTargetDigitalObjectFilter())
+			.withOdsHasTombstoneMetadata(buildTombstoneMetadata(tombstoningAgent,
+					"Virtual Collection tombstoned by agent through the dissco backend", timestamp));
+	}
+
+	private Optional<VirtualCollection> getActiveVirtualCollection(Agent agent, boolean isAdmin, String id) {
+		Optional<VirtualCollection> result;
+		if (isAdmin) {
+			log.info("Admin tombstoning virtual collection {}", id);
+			result = repository.getActiveVirtualCollection(id, null);
+		}
+		else {
+			log.info("Creator tombstoning virtual collection {}", id);
+			result = repository.getActiveVirtualCollection(id, agent.getId());
+		}
+		return result;
+	}
+
+	public JsonApiWrapper updateVirtualCollection(String id, VirtualCollectionRequest virtualCollectionRequest,
+			Agent agent, String path) throws NotFoundException, ForbiddenException, ProcessingFailedException {
+		var currentVirtualCollectionOptional = repository.getActiveVirtualCollection(id, agent.getId());
+		if (currentVirtualCollectionOptional.isEmpty()) {
+			log.warn(VIRTUAL_COLLECTION_NOT_FOUND, id);
+			throw new NotFoundException("Virtual collection with id " + id + " not found");
+		}
+		var currentVirtualCollection = currentVirtualCollectionOptional.get();
+		var virtualCollection = buildVirtualCollection(virtualCollectionRequest,
+				currentVirtualCollection.getSchemaVersion() + 1, agent, id,
+				currentVirtualCollection.getSchemaDateCreated());
+		if (isEqual(currentVirtualCollection, virtualCollection)) {
+			log.info("Virtual collection with id {} is not modified, skipping update", id);
+			return null;
+		}
+		else {
+			checkHandleUpdate(currentVirtualCollection, virtualCollection);
+			repository.updateVirtualCollection(virtualCollection);
+			rabbitMqPublisherService.publishUpdateEvent(virtualCollection, currentVirtualCollection, agent);
+			var dataNode = new JsonApiData(virtualCollection.getId(), FdoType.VIRTUAL_COLLECTION.getName(),
+					mapper.valueToTree(virtualCollection));
+			return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+		}
+	}
+
+	private void checkHandleUpdate(VirtualCollection currentVirtualCollection, VirtualCollection virtualCollection)
+			throws WebProcessingFailedException {
+		if (!Objects.equals(currentVirtualCollection.getLtcCollectionName(), virtualCollection.getLtcCollectionName())
+				|| !Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
+						virtualCollection.getLtcBasisOfScheme())) {
+			log.info("Handle update is required for virtual collection with id {}", currentVirtualCollection.getId());
+			handleComponent.updateHandle(virtualCollection);
+		}
+	}
+
+	private boolean isEqual(VirtualCollection currentVirtualCollection, VirtualCollection virtualCollection)
+			throws ForbiddenException {
+		if (!Objects.equals(currentVirtualCollection.getOdsHasTargetDigitalObjectFilter(),
+				virtualCollection.getOdsHasTargetDigitalObjectFilter())) {
+			log.warn("OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id {}",
+					currentVirtualCollection.getId());
+			throw new ForbiddenException(
+					"OdsHasTargetDigitalObjectFilter is not allowed to be modified for virtual collection with id "
+							+ currentVirtualCollection.getId());
+		}
+		return Objects.equals(currentVirtualCollection.getLtcCollectionName(), virtualCollection.getLtcCollectionName())
+				&& Objects.equals(currentVirtualCollection.getLtcDescription(), virtualCollection.getLtcDescription())
+				&& Objects.equals(currentVirtualCollection.getLtcBasisOfScheme(),
+						virtualCollection.getLtcBasisOfScheme())
+				&& Objects.equals(currentVirtualCollection.getSchemaContentURL(),
+						virtualCollection.getSchemaContentURL());
+	}
+
 }
