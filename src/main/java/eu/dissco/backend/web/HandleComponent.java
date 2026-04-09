@@ -1,5 +1,7 @@
 package eu.dissco.backend.web;
 
+import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
+
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
@@ -60,7 +62,7 @@ public class HandleComponent {
 
 	public void updateHandle(VirtualCollection virtualCollection) throws WebProcessingFailedException {
 		var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
-		handleClient.updateHandle(request);
+		handleClient.updateHandle(removeHandleProxy(virtualCollection.getId()), request);
 	}
 
 	public void rollbackVirtualCollection(String id) throws WebProcessingFailedException {
