@@ -7,12 +7,10 @@ import static eu.dissco.backend.TestUtils.ORCID;
 import static eu.dissco.backend.TestUtils.TARGET_ID;
 import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
 import static eu.dissco.backend.utils.AnnotationUtils.givenOaTarget;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
 import static eu.dissco.backend.utils.MasJobRecordUtils.JOB_ID;
 import static eu.dissco.backend.utils.MasJobRecordUtils.MJR_URI;
 import static eu.dissco.backend.utils.MasJobRecordUtils.TTL_DEFAULT;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordFullScheduled;
-import static eu.dissco.backend.utils.MasJobRecordUtils.givenMasJobRecordIdMap;
 import static eu.dissco.backend.utils.MasJobRecordUtils.givenMjrListResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,13 +28,10 @@ import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
-import eu.dissco.backend.utils.MachineAnnotationServiceUtils;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,21 +114,6 @@ class MasJobRecordServiceTest {
 	}
 
 	@Test
-	void testCreateMasJobRecord() throws ProcessingFailedException {
-		// Given
-		var masRecord = MachineAnnotationServiceUtils.givenMas();
-		var expected = givenMasJobRecordIdMap(masRecord.getId());
-		given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
-
-		// When
-		var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-				MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest()));
-
-		// Then
-		assertThat(result).isEqualTo(expected);
-	}
-
-	@Test
 	void testCreateMasJobRecordForDissco() throws ProcessingFailedException {
 		// Given
 		var masRecord = new MasJobRecord(JOB_ID, JobState.RUNNING, "DISSCOVER", TARGET_ID,
@@ -163,21 +143,6 @@ class MasJobRecordServiceTest {
 		// Then
 		assertThat(result).isEqualTo(JOB_ID);
 		then(masJobRecordRepository).should().createNewMasJobRecord(List.of(masRecord));
-	}
-
-	@Test
-	void testCreateMasJobRecordCustomTTL() throws ProcessingFailedException {
-		// Given
-		var masRecord = MachineAnnotationServiceUtils.givenMas();
-		var expected = givenMasJobRecordIdMap(masRecord.getId());
-		given(handleComponent.postHandleMjr(1)).willReturn(List.of(JOB_ID));
-
-		// When
-		var result = masJobRecordService.createMasJobRecord(Set.of(masRecord), ID_ALT, ORCID,
-				MjrTargetType.DIGITAL_SPECIMEN, Map.of(masRecord.getId(), givenMasJobRequest(false)));
-
-		// Then
-		assertThat(result).isEqualTo(expected);
 	}
 
 	@Test

@@ -1,31 +1,37 @@
 package eu.dissco.backend.configuration;
 
+import static lombok.Lombok.sneakyThrow;
+
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.client.MasClient;
 import eu.dissco.backend.client.ProcessorClient;
+import eu.dissco.backend.exceptions.WebAuthenticationException;
+import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.properties.WebConnectionProperties;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.support.WebClientAdapter;
+import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
-import reactor.netty.http.client.HttpClient;
 
 @Configuration
 @RequiredArgsConstructor
-public class WebClientConfiguration {
+@Slf4j
+public class RestClientConfiguration {
 
 	private final WebConnectionProperties properties;
 
@@ -45,7 +51,7 @@ public class WebClientConfiguration {
 	@Bean
 	public HandleClient handleClient(OAuth2AuthorizedClientManager authorizedClientManager) {
 		// Error Exchange filtering
-		var proxyFactory = createProxyFactory("Handle", properties.getAnnotationEndpoint(), authorizedClientManager);
+		var proxyFactory = createProxyFactory("Handle", properties.getHandleEndpoint(), authorizedClientManager);
 		// Create client proxy
 		return proxyFactory.createClient(HandleClient.class);
 	}
@@ -73,28 +79,32 @@ public class WebClientConfiguration {
 
 	private HttpServiceProxyFactory createProxyFactory(String serviceName, String endpoint,
 			OAuth2AuthorizedClientManager authorizedClientManager) {
-		var errorResponseFilter = ExchangeFilterFunction
-			.ofResponseProcessor(r -> WebClientErrorHandling.exchangeFilterResponseProcessor(r, serviceName));
-		var webClientBuilder = WebClient.builder()
-			.filter(errorResponseFilter)
-			.clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true)))
+		// Create RestClient
+		var restClientBuilder = RestClient.builder()
+			// On status error, log the response and throw a WebProcessingFailedException
+			.defaultStatusHandler(HttpStatusCode::isError, (request, response) -> {
+				var body = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
+				if (HttpStatus.UNAUTHORIZED.equals(response.getStatusCode())) {
+					log.error("Unable to authenticate with the {} Service: {}", serviceName, body);
+					throw sneakyThrow(
+							new WebAuthenticationException("Unable to authenticate with " + serviceName + " service"));
+				}
+				log.error("Unable to communicate with the {} service. Status: {}, Body: {}", serviceName,
+						response.getStatusCode(), body);
+				throw sneakyThrow(new WebProcessingFailedException(
+						"An error has occurred communicating with an external service"));
+			})
 			.baseUrl(endpoint)
 			.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 		if (authorizedClientManager != null) {
-			webClientBuilder.apply(createOauth2Client(authorizedClientManager).oauth2Configuration());
+			var interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
+			interceptor.setClientRegistrationIdResolver(_ -> "dissco");
+			restClientBuilder.requestInterceptor(interceptor);
 		}
 		// Create factory for client proxies
 		return HttpServiceProxyFactory.builder()
-			.exchangeAdapter(WebClientAdapter.create(webClientBuilder.build()))
+			.exchangeAdapter(RestClientAdapter.create(restClientBuilder.build()))
 			.build();
-	}
-
-	private static ServletOAuth2AuthorizedClientExchangeFilterFunction createOauth2Client(
-			OAuth2AuthorizedClientManager authorizedClientManager) {
-		// Set up Oauth2
-		var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-		oauth2Client.setDefaultClientRegistrationId("dissco");
-		return oauth2Client;
 	}
 
 }
