@@ -5,7 +5,6 @@ import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MasJobRecord;
 import eu.dissco.backend.domain.MasJobRecordFull;
-import eu.dissco.backend.domain.MasJobRequest;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -16,13 +15,8 @@ import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
 import eu.dissco.backend.repository.MasJobRecordRepository;
 import eu.dissco.backend.schema.Annotation;
-import eu.dissco.backend.schema.MachineAnnotationService;
 import eu.dissco.backend.web.HandleComponent;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -83,25 +77,6 @@ public class MasJobRecordService {
 			linksNode = new JsonApiLinksFull(pageNum, pageSize, hasNext, path);
 		}
 		return new JsonApiListResponseWrapper(dataList, linksNode);
-	}
-
-	public Map<String, MasJobRecord> createMasJobRecord(Set<MachineAnnotationService> masRecords, String targetId,
-			String orcid, MjrTargetType targetType, Map<String, MasJobRequest> masRequests)
-			throws WebProcessingFailedException {
-		log.info("Requesting {} handles from API", masRecords.size());
-		var handles = postHandleMjr(masRecords);
-		var handleItr = handles.iterator();
-		var masJobRecordList = masRecords.stream().map(masRecord -> {
-			var request = masRequests.get(masRecord.getId());
-			return new MasJobRecord(handleItr.next(), JobState.SCHEDULED, masRecord.getId(), targetId, targetType,
-					orcid, request.batching(), masRecord.getOdsTimeToLive());
-		}).toList();
-		masJobRecordRepository.createNewMasJobRecord(masJobRecordList);
-		return masJobRecordList.stream().collect(Collectors.toMap(MasJobRecord::masId, Function.identity()));
-	}
-
-	private List<String> postHandleMjr(Set<MachineAnnotationService> masRecords) throws WebProcessingFailedException {
-		return handleComponent.postHandleMjr(masRecords.size());
 	}
 
 	public String createJobRecordForDisscover(Annotation annotation, String orcid) throws WebProcessingFailedException {
