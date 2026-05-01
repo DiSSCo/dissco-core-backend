@@ -26,7 +26,7 @@ public enum AnnotationTargetType {
 		if (DIGITAL_MEDIA.getName().equals(type)) {
 			return DIGITAL_MEDIA;
 		}
-		log.error("Invalid annotation target type {}", type);
+		log.warn("Invalid annotation target type {}", type);
 		throw new IllegalStateException();
 	}
 
