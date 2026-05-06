@@ -1,3 +1,13 @@
 # May 6, 2026
 # Issue with postgresql, spring boot should update version
 CVE-2026-42198
+
+# May 6, 2026
+# Tomcat
+CVE-2026-34483
+CVE-2026-34487
+
+# May 6, 2026
+# Spring security
+CVE-2026-22753
+CVE-2026-22754
