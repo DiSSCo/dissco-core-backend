@@ -242,7 +242,7 @@ public class DigitalSpecimenService {
 			}
 		}
 		catch (NumberFormatException ex) {
-			log.error("Param: {} cannot be parsed to a number, falling back to default", paramName, ex);
+			log.warn("Param: {} cannot be parsed to a number, falling back to default", paramName, ex);
 			return Integer.parseInt(defaultValue);
 		}
 	}

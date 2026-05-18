@@ -82,7 +82,7 @@ public abstract class BaseController {
 					.withOdsGupriLevel(GLOBALLY_UNIQUE_STABLE_PERSISTENT_RESOLVABLE)));
 		}
 		else {
-			log.error("Missing ORCID in token");
+			log.warn("Missing ORCID in token");
 			throw new ForbiddenException("Missing ORCID in token");
 		}
 	}
