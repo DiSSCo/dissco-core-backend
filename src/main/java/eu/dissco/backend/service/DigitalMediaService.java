@@ -181,12 +181,12 @@ public class DigitalMediaService {
 			String orcid) throws NotFoundException, WebProcessingFailedException {
 		var digitalMedia = repository.getLatestDigitalMediaObjectById(id);
 		if (digitalMedia == null) {
-			log.error("Unable to find media with id {}", id);
+			log.warn("Unable to find media with id {}", id);
 			throw new NotFoundException("Media " + id + " not found");
 		}
 		var digitalSpecimen = digitalSpecimenRepository.getLatestSpecimenById(getDsDoiFromDmo(digitalMedia));
 		if (digitalSpecimen == null) {
-			log.error("Unable to find specimen for media with id {}", id);
+			log.warn("Unable to find specimen for media with id {}", id);
 			throw new NotFoundException("Unable to find related specimen for media with id " + id);
 		}
 		return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.MEDIA_OBJECT, path);
