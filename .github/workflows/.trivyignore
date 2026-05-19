@@ -1,3 +1,7 @@
+# May 6, 2026
+# Issue with postgresql, spring boot should update version
+CVE-2026-42198
+
 # May 18, 2026
 # Netty issues -- spring boot needs to update
 CVE-2026-42583
