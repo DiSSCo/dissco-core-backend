@@ -15,7 +15,9 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobR
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
 import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -38,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
@@ -55,13 +58,16 @@ class DigitalMediaControllerTest {
 	@Mock
 	private Authentication authentication;
 
+	@Mock
+	private Environment environment;
+
 	private DigitalMediaController controller;
 
 	private MockHttpServletRequest mockRequest;
 
 	@BeforeEach
 	void setup() {
-		controller = new DigitalMediaController(applicationProperties, MAPPER, service);
+		controller = new DigitalMediaController(applicationProperties, MAPPER, service, environment);
 		mockRequest = new MockHttpServletRequest();
 		mockRequest.setRequestURI(DIGITAL_MEDIA_URI);
 	}
@@ -196,12 +202,24 @@ class DigitalMediaControllerTest {
 
 	@Test
 	void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
+		// Given
+		given(environment.matchesProfiles(any())).willReturn(true);
+
 		// When
 		var result = controller.getMediaDerivative(PREFIX, SUFFIX);
 
 		// Then
 		then(service).should().getMediaDerivative(SUFFIX);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	void testGetMediaDerivativeUnsupported() {
+		// Given
+		given(environment.matchesProfiles(any())).willReturn(false);
+
+		// When / Then
+		assertThrows(UnsupportedOperationException.class, () -> controller.getMediaDerivative(PREFIX, SUFFIX));
 	}
 
 	@Test

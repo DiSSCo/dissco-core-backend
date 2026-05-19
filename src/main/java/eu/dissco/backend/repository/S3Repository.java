@@ -1,5 +1,6 @@
 package eu.dissco.backend.repository;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.properties.S3Properties;
@@ -8,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -17,6 +19,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
+@Profile(Profiles.MEDIA_DERIVATIVES)
 public class S3Repository {
 
 	private final S3AsyncClient s3Client;

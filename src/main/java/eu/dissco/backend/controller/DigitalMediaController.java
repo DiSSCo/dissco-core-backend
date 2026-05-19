@@ -3,6 +3,7 @@ package eu.dissco.backend.controller;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -27,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,10 +52,13 @@ public class DigitalMediaController extends BaseController {
 
 	private final DigitalMediaService service;
 
+	private final Environment environment;
+
 	public DigitalMediaController(ApplicationProperties applicationProperties, JsonMapper mapper,
-			DigitalMediaService service) {
+			DigitalMediaService service, Environment environment) {
 		super(mapper, applicationProperties);
 		this.service = service;
+		this.environment = environment;
 	}
 
 	@Operation(summary = "Get paginated digital media")
@@ -204,6 +209,10 @@ public class DigitalMediaController extends BaseController {
 			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
 			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
 			throws NotFoundException, ProcessingFailedException {
+		if (!environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)) {
+			log.warn("User attempting to to retrieve media derivatives, but media derivatives are not enabled");
+			throw new UnsupportedOperationException("Media derivatives are not supported");
+		}
 		return ResponseEntity.ok(service.getMediaDerivative(suffix));
 	}
 

@@ -1,9 +1,11 @@
 package eu.dissco.backend.configuration;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.properties.S3Properties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -11,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 @Configuration
 @RequiredArgsConstructor
+@Profile(Profiles.MEDIA_DERIVATIVES)
 public class S3Configuration {
 
 	private final S3Properties s3Properties;
