@@ -67,7 +67,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 class AnnotationServiceTest {
@@ -430,8 +429,7 @@ class AnnotationServiceTest {
 		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
 		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
 				agent))
-			.willReturn(Mono.just(givenAnnotationResponse()));
-		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse()))).willReturn(Mono.empty());
+			.willReturn(MAPPER.valueToTree(givenAnnotationResponse()));
 
 		// When
 		service.acceptAnnotation(PREFIX, SUFFIX, agent);
@@ -441,34 +439,17 @@ class AnnotationServiceTest {
 	}
 
 	@Test
-	void testAcceptAnnotationFailsWebException() {
+	void testAcceptAnnotationFailsWebException() throws Exception {
 		// Given
 		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
 		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
 				agent))
-			.willReturn(Mono.just(givenAnnotationResponse()));
+			.willReturn(MAPPER.valueToTree(givenAnnotationResponse()));
 		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.PENDING,
 				createServiceAgent(new ApplicationProperties())))
-			.willReturn(Mono.just(givenAnnotationResponse()));
+			.willReturn(MAPPER.valueToTree(givenAnnotationResponse()));
 		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
-			.willReturn(Mono.error(new WebProcessingFailedException("Failed")));
-
-		// When / Then
-		assertThrows(InvalidAnnotationRequestException.class, () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
-	}
-
-	@Test
-	void testAcceptAnnotationFailsRuntimeException() {
-		// Given
-		var agent = givenAgent(ORCID, ROLE_NAME_ANNOTATION_ACCEPTOR);
-		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.APPROVED,
-				agent))
-			.willReturn(Mono.just(givenAnnotationResponse()));
-		given(annotationClient.updateAnnotationMergingDecisionStatus(PREFIX, SUFFIX, OdsMergingDecisionStatus.PENDING,
-				createServiceAgent(new ApplicationProperties())))
-			.willReturn(Mono.just(givenAnnotationResponse()));
-		given(processorClient.acceptAnnotation(MAPPER.valueToTree(givenAnnotationResponse())))
-			.willReturn(Mono.error(new Exception("Failed")));
+			.willThrow(new WebProcessingFailedException("Failed"));
 
 		// When / Then
 		assertThrows(InvalidAnnotationRequestException.class, () -> service.acceptAnnotation(PREFIX, SUFFIX, agent));
