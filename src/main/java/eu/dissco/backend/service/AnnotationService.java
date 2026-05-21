@@ -5,7 +5,6 @@ import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
 import static eu.dissco.backend.utils.AgentUtils.createServiceAgent;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 import static eu.dissco.backend.utils.ProxyUtils.getFullId;
-import static eu.dissco.backend.utils.WebClientUtils.blockAndUnwrap;
 
 import eu.dissco.backend.client.AnnotationClient;
 import eu.dissco.backend.client.ProcessorClient;
@@ -140,16 +139,16 @@ public class AnnotationService {
 	}
 
 	public void acceptAnnotation(String prefix, String suffix, Agent acceptingAgent)
-			throws WebProcessingFailedException, InvalidAnnotationRequestException {
-		var annotation = blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
+			throws InvalidAnnotationRequestException, WebProcessingFailedException {
+		var annotation = parseToAnnotation(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
 				OdsMergingDecisionStatus.APPROVED, acceptingAgent));
 		try {
-			blockAndUnwrap(processorClient.acceptAnnotation(mapper.valueToTree(annotation)));
+			processorClient.acceptAnnotation(mapper.valueToTree(annotation));
 		}
 		catch (WebProcessingFailedException e) {
 			log.error("Unable to accept annotation. Rolling back accepted status", e);
-			blockAndUnwrap(annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix,
-					OdsMergingDecisionStatus.PENDING, createServiceAgent(properties)));
+			annotationClient.updateAnnotationMergingDecisionStatus(prefix, suffix, OdsMergingDecisionStatus.PENDING,
+					createServiceAgent(properties));
 			throw new InvalidAnnotationRequestException("Unable to accept annotation");
 		}
 		log.info("Successfully accepted annotation {} and updated target {}", annotation.getId(),
