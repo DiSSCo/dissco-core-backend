@@ -224,12 +224,24 @@ class DigitalMediaControllerTest {
 
 	@Test
 	void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
+		// Given
+		given(environment.matchesProfiles(any())).willReturn(true);
+
 		// When
 		var result = controller.getMediaThumbnail(PREFIX, SUFFIX);
 
 		// Then
 		then(service).should().getMediaThumbnail(SUFFIX);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	void testGetMediaThumbnailUnsupported() {
+		// Given
+		given(environment.matchesProfiles(any())).willReturn(false);
+
+		// When / Then
+		assertThrows(UnsupportedOperationException.class, () -> controller.getMediaThumbnail(PREFIX, SUFFIX));
 	}
 
 	private void givenAuthentication() {
