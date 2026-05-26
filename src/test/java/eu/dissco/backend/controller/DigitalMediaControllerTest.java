@@ -17,13 +17,13 @@ import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResp
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest;
 import eu.dissco.backend.domain.openapi.shared.MasSchedulingRequest.MasSchedulingData;
@@ -203,7 +203,7 @@ class DigitalMediaControllerTest {
 	@Test
 	void testGetMediaDerivative() throws NotFoundException, ProcessingFailedException {
 		// Given
-		given(environment.matchesProfiles(any())).willReturn(true);
+		given(environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)).willReturn(true);
 
 		// When
 		var result = controller.getMediaDerivative(PREFIX, SUFFIX);
@@ -216,7 +216,7 @@ class DigitalMediaControllerTest {
 	@Test
 	void testGetMediaDerivativeUnsupported() {
 		// Given
-		given(environment.matchesProfiles(any())).willReturn(false);
+		given(environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)).willReturn(false);
 
 		// When / Then
 		assertThrows(UnsupportedOperationException.class, () -> controller.getMediaDerivative(PREFIX, SUFFIX));
@@ -225,7 +225,7 @@ class DigitalMediaControllerTest {
 	@Test
 	void testGetMediaThumbnail() throws NotFoundException, ProcessingFailedException {
 		// Given
-		given(environment.matchesProfiles(any())).willReturn(true);
+		given(environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)).willReturn(true);
 
 		// When
 		var result = controller.getMediaThumbnail(PREFIX, SUFFIX);
@@ -238,7 +238,7 @@ class DigitalMediaControllerTest {
 	@Test
 	void testGetMediaThumbnailUnsupported() {
 		// Given
-		given(environment.matchesProfiles(any())).willReturn(false);
+		given(environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)).willReturn(false);
 
 		// When / Then
 		assertThrows(UnsupportedOperationException.class, () -> controller.getMediaThumbnail(PREFIX, SUFFIX));

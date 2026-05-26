@@ -5,6 +5,7 @@ import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATION_ACCEPTOR;
 import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
 import static eu.dissco.backend.utils.ProxyUtils.HANDLE_PROXY;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.annotation.batch.AnnotationEventRequest;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,11 +64,14 @@ public class AnnotationController extends BaseController {
 
 	private final SchemaValidatorComponent schemaValidator;
 
+	private final Environment environment;
+
 	public AnnotationController(ApplicationProperties applicationProperties, JsonMapper mapper,
-			AnnotationService service, SchemaValidatorComponent schemaValidator) {
+			AnnotationService service, SchemaValidatorComponent schemaValidator, Environment environment) {
 		super(mapper, applicationProperties);
 		this.service = service;
 		this.schemaValidator = schemaValidator;
+		this.environment = environment;
 	}
 
 	@Operation(summary = "Get annotation by id")
@@ -296,7 +301,7 @@ public class AnnotationController extends BaseController {
 			@Parameter(description = PREFIX_OAS) @PathVariable String prefix,
 			@Parameter(description = SUFFIX_OAS) @PathVariable String suffix)
 			throws ForbiddenException, WebProcessingFailedException, InvalidAnnotationRequestException {
-		if (!applicationProperties.isAcceptingAnnotations()) {
+		if (!environment.matchesProfiles(Profiles.ACCEPT_ANNOTATIONS)) {
 			throw new UnsupportedOperationException("Accepting annotations is not permitted");
 		}
 		var agent = getAgent(authentication, ROLE_NAME_ANNOTATION_ACCEPTOR);

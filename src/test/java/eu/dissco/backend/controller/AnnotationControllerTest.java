@@ -28,6 +28,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
+import eu.dissco.backend.Profiles;
 import eu.dissco.backend.component.SchemaValidatorComponent;
 import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
@@ -54,6 +55,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -75,13 +77,16 @@ class AnnotationControllerTest {
 	@Mock
 	private SchemaValidatorComponent validatorComponent;
 
+	@Mock
+	private Environment environment;
+
 	private AnnotationController controller;
 
 	private MockHttpServletRequest mockRequest;
 
 	@BeforeEach
 	void setup() {
-		controller = new AnnotationController(applicationProperties, MAPPER, service, validatorComponent);
+		controller = new AnnotationController(applicationProperties, MAPPER, service, validatorComponent, environment);
 		mockRequest = new MockHttpServletRequest();
 		mockRequest.setRequestURI(ANNOTATION_URI);
 	}
@@ -320,7 +325,7 @@ class AnnotationControllerTest {
 	@Test
 	void testAcceptAnnotationsUnsupported() {
 		// Given
-		given(applicationProperties.isAcceptingAnnotations()).willReturn(false);
+		given(environment.matchesProfiles(Profiles.ACCEPT_ANNOTATIONS)).willReturn(false);
 
 		// When / Then
 		assertThrowsExactly(UnsupportedOperationException.class,
@@ -331,7 +336,7 @@ class AnnotationControllerTest {
 	void testAcceptAnnotations() throws Exception {
 		// Given
 		givenAuthentication(authentication, givenAdminClaims());
-		given(applicationProperties.isAcceptingAnnotations()).willReturn(true);
+		given(environment.matchesProfiles(Profiles.ACCEPT_ANNOTATIONS)).willReturn(true);
 
 		// When
 		var result = controller.acceptAnnotation(authentication, PREFIX, SUFFIX);
