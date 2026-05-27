@@ -227,6 +227,10 @@ public class DigitalMediaController extends BaseController {
 			@Parameter(description = PREFIX_OAS) @PathVariable("prefix") String prefix,
 			@Parameter(description = SUFFIX_OAS) @PathVariable("suffix") String suffix)
 			throws NotFoundException, ProcessingFailedException {
+		if (!environment.matchesProfiles(Profiles.MEDIA_DERIVATIVES)) {
+			log.warn("User attempting to to retrieve media thumbnail, but media thumbnail are not enabled");
+			throw new UnsupportedOperationException("Media thumbnails are not supported");
+		}
 		return ResponseEntity.ok(service.getMediaThumbnail(suffix));
 	}
 

@@ -26,6 +26,7 @@ import eu.dissco.backend.schema.DigitalSpecimen;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -50,6 +51,8 @@ public class DigitalMediaService {
 
 	private final MasJobRecordService masJobRecordService;
 
+	// Nullable outside the MEDIA_DERIVATIVE profile.
+	@Nullable
 	private final S3Repository s3Repository;
 
 	// Controller Functions
