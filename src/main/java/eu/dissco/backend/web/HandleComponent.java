@@ -1,7 +1,5 @@
 package eu.dissco.backend.web;
 
-import static eu.dissco.backend.utils.ProxyUtils.removeHandleProxy;
-
 import eu.dissco.backend.client.HandleClient;
 import eu.dissco.backend.component.FdoRecordComponent;
 import eu.dissco.backend.exceptions.WebProcessingFailedException;
@@ -10,9 +8,13 @@ import eu.dissco.backend.schema.VirtualCollectionRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import eu.dissco.backend.utils.ProxyUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import static eu.dissco.backend.utils.ProxyUtils.*;
 
 @Component
 @RequiredArgsConstructor
@@ -57,12 +59,14 @@ public class HandleComponent {
 
 	public void tombstoneHandle(String handle) throws WebProcessingFailedException {
 		var request = fdoRecordComponent.getTombstoneRequest(handle);
-		handleClient.tombstoneHandle(handle, request);
+		var splitHandle = splitHandle(handle);
+		handleClient.tombstoneHandle(splitHandle.getLeft(), splitHandle.getRight(), request);
 	}
 
 	public void updateHandle(VirtualCollection virtualCollection) throws WebProcessingFailedException {
 		var request = fdoRecordComponent.getPatchHandleRequest(virtualCollection);
-		handleClient.updateHandle(removeHandleProxy(virtualCollection.getId()), request);
+		var splitHandle = splitHandle(removeHandleProxy(virtualCollection.getId()));
+		handleClient.updateHandle(splitHandle.getLeft(), splitHandle.getRight(), request);
 	}
 
 	public void rollbackVirtualCollection(String id) throws WebProcessingFailedException {
