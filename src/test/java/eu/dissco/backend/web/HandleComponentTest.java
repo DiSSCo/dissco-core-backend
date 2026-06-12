@@ -1,8 +1,6 @@
 package eu.dissco.backend.web;
 
-import static eu.dissco.backend.TestUtils.HANDLE;
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.MAPPER;
+import static eu.dissco.backend.TestUtils.*;
 import static eu.dissco.backend.utils.HandleUtils.givenPostHandleResponse;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollection;
 import static eu.dissco.backend.utils.VirtualCollectionUtils.givenVirtualCollectionHandleRollbackRequest;
@@ -103,7 +101,7 @@ class HandleComponentTest {
 		handleComponent.tombstoneHandle(ID);
 
 		// Then
-		then(handleClient).should().tombstoneHandle(ID, request);
+		then(handleClient).should().tombstoneHandle(PREFIX, SUFFIX, request);
 	}
 
 	@Test
@@ -117,7 +115,7 @@ class HandleComponentTest {
 		handleComponent.updateHandle(virtualCollection);
 
 		// Then
-		then(handleClient).should().updateHandle(ID, givenVirtualCollectionUpdateHandleRequest());
+		then(handleClient).should().updateHandle(PREFIX, SUFFIX, givenVirtualCollectionUpdateHandleRequest());
 	}
 
 }
