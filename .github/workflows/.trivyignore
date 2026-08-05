@@ -1,3 +1,7 @@
+## July 2, 2026
+## Issue with p11-kit
+CVE-2026-2100
+
 # July 27, 2026
 # Issue with libexpat, alpine to update
 CVE-2026-56131
