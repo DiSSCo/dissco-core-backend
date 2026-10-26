@@ -1,28 +1,5 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.HANDLE;
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.ID_ALT;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID_ALT;
-import static eu.dissco.backend.TestUtils.PHYSICAL_ID;
-import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_2;
-import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
-import static eu.dissco.backend.TestUtils.SPECIMEN_NAME_2;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimenAltCountry;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSourceSystem;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimenSpecimenName;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_ID;
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.SOURCE_SYSTEM_NAME;
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getAggregationSet;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
-import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -30,6 +7,7 @@ import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import eu.dissco.backend.TestUtils;
 import eu.dissco.backend.domain.annotation.AnnotationTargetType;
 import eu.dissco.backend.domain.annotation.batch.BatchMetadata;
 import eu.dissco.backend.domain.annotation.batch.SearchParam;
@@ -38,28 +16,11 @@ import eu.dissco.backend.domain.elastic.MappingTerm;
 import eu.dissco.backend.domain.elastic.MissingMappingTerms;
 import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
 import eu.dissco.backend.properties.ElasticSearchProperties;
-import eu.dissco.backend.schema.Annotation;
-import eu.dissco.backend.schema.DigitalSpecimen;
-import eu.dissco.backend.schema.Identification;
-import eu.dissco.backend.schema.TaxonIdentification;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import eu.dissco.backend.schema.*;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -68,6 +29,18 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static eu.dissco.backend.TestUtils.*;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.*;
+import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
+import static eu.dissco.backend.utils.AnnotationUtils.givenSearchParam;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 class ElasticSearchRepositoryIT {
@@ -357,6 +330,104 @@ class ElasticSearchRepositoryIT {
 	}
 
 	@Test
+	void testSearchOrWithinTermAndAcrossTerms() throws IOException {
+		// Given
+		var specimenNetherlands = givenDigitalSpecimenCountries(DOI + PREFIX + "/0", 1, "Netherlands");
+		var specimenFinland = givenDigitalSpecimenCountries(DOI + PREFIX + "/1", 1, "Finland");
+		var specimenFinlandMidsZero = givenDigitalSpecimenCountries(DOI + PREFIX + "/2", 0, "Finland");
+		var specimenBothMidsZero = givenDigitalSpecimenCountries(DOI + PREFIX + "/3", 0, "Netherlands", "Finland");
+		postDigitalSpecimens(parseToElasticFormat(
+				List.of(specimenNetherlands, specimenFinland, specimenFinlandMidsZero, specimenBothMidsZero)));
+		var params = Map.of(DefaultMappingTerms.COUNTRY, List.of("Netherlands", "Finland"),
+				DefaultMappingTerms.MIDS_LEVEL, List.of("1"));
+
+		// When
+		var responseReceived = repository.search(params, 1, 10);
+
+		// Then
+		assertThat(responseReceived.getLeft()).isEqualTo(2L);
+		assertThat(responseReceived.getRight()).containsExactlyInAnyOrder(specimenNetherlands, specimenFinland);
+	}
+
+	@Test
+	void testGetAggregationsOrWithinTermAndAcrossTerms() throws IOException {
+		// Given
+		var specimenNetherlands = givenDigitalSpecimenCountries(DOI + PREFIX + "/0", 1, "Netherlands");
+		var specimenFinland = givenDigitalSpecimenCountries(DOI + PREFIX + "/1", 1, "Finland");
+		var specimenFinlandMidsZero = givenDigitalSpecimenCountries(DOI + PREFIX + "/2", 0, "Finland");
+		var specimenBothMidsZero = givenDigitalSpecimenCountries(DOI + PREFIX + "/3", 0, "Netherlands", "Finland");
+		postDigitalSpecimens(parseToElasticFormat(
+				List.of(specimenNetherlands, specimenFinland, specimenFinlandMidsZero, specimenBothMidsZero)));
+		var params = Map.of(DefaultMappingTerms.COUNTRY, List.of("Netherlands", "Finland"),
+				DefaultMappingTerms.MIDS_LEVEL, List.of("1"));
+
+		// When
+		var responseReceived = repository.getAggregations(params, Set.of(DefaultMappingTerms.COUNTRY), false);
+
+		// Then
+		assertThat(responseReceived).containsValue(Map.of("Netherlands", 1L, "Finland", 1L))
+			.containsOnlyKeys("country");
+	}
+
+	private static Stream<Arguments> provideTermAggregationPrefix() {
+		var midsLevelOne = Map.of(DefaultMappingTerms.MIDS_LEVEL, List.of("1"));
+		return Stream.of(Arguments.of(Map.of(), "neth", Map.of("Netherlands", 3L)),
+				Arguments.of(midsLevelOne, "NETH", Map.of("Netherlands", 2L)),
+				Arguments.of(Map.of(), "st.", Map.of("St. Helena", 2L)), Arguments.of(midsLevelOne, null,
+						Map.of("Netherlands", 2L, "Finland", 2L, "St. Helena", 2L, "Stateless", 1L)));
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideTermAggregationPrefix")
+	void testGetTermAggregation(Map<MappingTerm, List<String>> params, String prefix, Map<String, Long> expected)
+			throws IOException {
+		// Given
+		postDigitalSpecimens(
+				parseToElasticFormat(List.of(givenDigitalSpecimenCountries(DOI + PREFIX + "/0", 1, "Netherlands"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/1", 1, "Finland"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/2", 1, "Netherlands", "Finland"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/3", 0, "Netherlands"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/4", 1, "St. Helena"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/5", 1, "St. Helena", "Stateless"))));
+
+		// When
+		var responseReceived = repository.getTermAggregation(params, DefaultMappingTerms.COUNTRY, prefix, false);
+
+		// Then
+		assertThat(responseReceived).containsValue(expected).containsOnlyKeys("country");
+	}
+
+	private static Stream<Arguments> provideNonKeywordTermAggregation() {
+		return Stream.of(Arguments.of(DefaultMappingTerms.HAS_MEDIA, Map.of("true", 2L, "false", 1L)),
+				Arguments.of(DefaultMappingTerms.MIDS_LEVEL, Map.of("1", 2L, "0", 1L)));
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideNonKeywordTermAggregation")
+	void testGetTermAggregationNonKeywordTerm(MappingTerm aggregationTerm, Map<String, Long> expected)
+			throws IOException {
+		// Given
+		postDigitalSpecimens(
+				parseToElasticFormat(List.of(givenDigitalSpecimenCountries(DOI + PREFIX + "/0", 1, "Netherlands"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/1", 1, "Netherlands"),
+						givenDigitalSpecimenCountries(DOI + PREFIX + "/2", 0, "Netherlands")
+							.withOdsIsKnownToContainMedia(false))));
+
+		// When
+		var responseReceived = repository.getTermAggregation(Map.of(), aggregationTerm, null, false);
+
+		// Then
+		assertThat(responseReceived).containsValue(expected).containsOnlyKeys(aggregationTerm.requestName());
+	}
+
+	private static DigitalSpecimen givenDigitalSpecimenCountries(String id, int midsLevel, String... countries) {
+		var events = Stream.of(countries)
+			.map(country -> new Event().withOdsHasLocation(new Location().withDwcCountry(country)))
+			.toList();
+		return givenDigitalSpecimenWrapper(id).withOdsMidsLevel(midsLevel).withOdsHasEvents(events);
+	}
+
+	@Test
 	void testSearchTermValue() throws IOException {
 		// Given
 		List<DigitalSpecimen> specimenTestRecords = new ArrayList<>();
@@ -374,8 +445,7 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.aggregateTermValue(SOURCE_SYSTEM_ID.requestName(),
-				SOURCE_SYSTEM_ID.fullName(), SOURCE_SYSTEM_ID_2, false);
+		var responseReceived = repository.getTermAggregation(Map.of(), SOURCE_SYSTEM_ID, SOURCE_SYSTEM_ID_2, false);
 
 		// Then
 		assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
@@ -390,7 +460,7 @@ class ElasticSearchRepositoryIT {
 		for (int i = 0; i < 10; i++) {
 			DigitalSpecimen specimen;
 			if (i < 9) {
-				specimen = givenDigitalSpecimenSpecimenName(DOI + PREFIX + "/" + i, SPECIMEN_NAME);
+				specimen = givenDigitalSpecimenSpecimenName(DOI + PREFIX + "/" + i, TestUtils.SPECIMEN_NAME);
 			}
 			else {
 				specimen = givenDigitalSpecimenSpecimenName(DOI + PREFIX + "/" + i, SPECIMEN_NAME_2);
@@ -401,13 +471,12 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.aggregateTermValue(DefaultMappingTerms.SPECIMEN_NAME.requestName(),
-				DefaultMappingTerms.SPECIMEN_NAME.fullName(), "A", true);
+		var responseReceived = repository.getTermAggregation(Map.of(), DefaultMappingTerms.SPECIMEN_NAME, "A", true);
 
 		// Then
 		var iterator = responseReceived.get("specimenName").keySet().iterator();
 		assertThat(iterator.next()).isEqualTo(SPECIMEN_NAME_2);
-		assertThat(iterator.next()).isEqualTo(SPECIMEN_NAME);
+		assertThat(iterator.next()).isEqualTo(TestUtils.SPECIMEN_NAME);
 	}
 
 	@Test

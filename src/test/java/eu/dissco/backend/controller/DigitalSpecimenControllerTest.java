@@ -204,6 +204,22 @@ class DigitalSpecimenControllerTest {
 	}
 
 	@Test
+	void testTermAggregation() throws Exception {
+		// Given
+		var paramMap = new MultiValueMapAdapter(Map.of("midsLevel", List.of("1"), "prefix", List.of("Neth")));
+		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
+		given(service.termAggregations(eq("country"), eq("Neth"), eq(paramMap), anyString()))
+			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
+
+		// When
+		var result = controller.termAggregation("country", "Neth", paramMap, mockRequest);
+
+		// Then
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(((JsonApiWrapper) result.getBody()).getData()).isEqualTo(data);
+	}
+
+	@Test
 	void testDiscipline() throws Exception {
 		// Given
 		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));

@@ -1,8 +1,5 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
-import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
-
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
 import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
@@ -15,11 +12,7 @@ import eu.dissco.backend.domain.openapi.specimen.AggregationResponse;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseFull;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseList;
 import eu.dissco.backend.domain.openapi.specimen.DigitalSpecimenResponseSingle;
-import eu.dissco.backend.exceptions.ConflictException;
-import eu.dissco.backend.exceptions.ForbiddenException;
-import eu.dissco.backend.exceptions.NotFoundException;
-import eu.dissco.backend.exceptions.ProcessingFailedException;
-import eu.dissco.backend.exceptions.UnknownParameterException;
+import eu.dissco.backend.exceptions.*;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,23 +22,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.json.JsonMapper;
+
+import java.io.IOException;
+
+import static eu.dissco.backend.utils.AgentUtils.ROLE_NAME_ANNOTATOR;
+import static eu.dissco.backend.utils.ProxyUtils.DOI_PROXY;
 
 @Slf4j
 @RestControllerAdvice
@@ -301,6 +290,28 @@ public class DigitalSpecimenController extends BaseController {
 			HttpServletRequest request) throws IOException, UnknownParameterException {
 		log.info("Request for aggregations");
 		var aggregations = service.aggregations(params, getPath(request));
+		return ResponseEntity.ok(aggregations);
+	}
+
+	@Operation(summary = "Aggregate digital specimens per term", description = """
+			Retrieve aggregations for a specific terms.
+			Accepts key-value pairs of terns to aggregate on. If no aggregation term is set, returns
+			aggregations on all aggregatable terms.
+			It will ignore any filters set for itself.
+			""")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Aggregations successfully retrieved",
+			content = { @Content(mediaType = "application/json",
+					schema = @Schema(implementation = AggregationResponse.class)) }) })
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping(value = "/aggregation/{term}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<JsonApiWrapper> termAggregation(
+			@Parameter(description = "Term to retrieve aggregation for") @PathVariable("term") String term,
+			@Parameter(description = "Only return buckets starting with this value (case-insensitive)") @RequestParam(
+					required = false) String prefix,
+			@Parameter(description = "Aggregation terms") @RequestParam MultiValueMap<String, String> params,
+			HttpServletRequest request) throws IOException, UnknownParameterException {
+		log.info("Request for aggregations for term: {}", term);
+		var aggregations = service.termAggregations(term, prefix, params, getPath(request));
 		return ResponseEntity.ok(aggregations);
 	}
 

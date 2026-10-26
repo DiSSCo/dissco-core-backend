@@ -3,18 +3,13 @@
 CVE-2026-66046
 CVE-2026-76641
 
-# Sep 3, 2026
-# Issue with libcrypto3/libssl3
-CVE-2026-14456
+# Oct 26, 2026
+# Issue with brotli-libs
+CVE-2026-111497
 
 # Sep 3, 2026
 # Issue with Rabbitmq client, spring to update
 CVE-2026-63337
 CVE-2026-69219
 CVE-2026-69220
-
-# Sep 3, 2026
-# Issue with tomcat, spring boot to update
-CVE-2026-65182
-CVE-2026-65905
-CVE-2026-68525
+CVE-2026-75516

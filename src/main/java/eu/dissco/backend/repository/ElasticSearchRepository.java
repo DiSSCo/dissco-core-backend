@@ -1,17 +1,8 @@
 package eu.dissco.backend.repository;
 
-import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
-import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
-import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
-import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.LongTermsBucket;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.*;
 import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.CountRequest;
@@ -27,14 +18,6 @@ import eu.dissco.backend.exceptions.DiSSCoElasticMappingException;
 import eu.dissco.backend.properties.ElasticSearchProperties;
 import eu.dissco.backend.schema.Annotation;
 import eu.dissco.backend.schema.DigitalSpecimen;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,12 +26,20 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
+import java.util.*;
+
+import static eu.dissco.backend.repository.RepositoryUtils.ONE_TO_CHECK_NEXT;
+import static eu.dissco.backend.repository.RepositoryUtils.getOffset;
+
 @Repository
 @Slf4j
 @RequiredArgsConstructor
 public class ElasticSearchRepository {
 
 	private static final String FIELD_CREATED = "dcterms:created";
+
+	private static final String LUCENE_REGEX_RESERVED = ".?+*|{}[]()\"\\#@&<>~";
 
 	private final ElasticsearchClient client;
 
@@ -67,26 +58,26 @@ public class ElasticSearchRepository {
 	private <T extends MappingTerm> List<Query> generateQueries(Map<T, List<String>> params) {
 		var queries = new ArrayList<Query>();
 		for (var entry : params.entrySet()) {
-			for (var value : entry.getValue()) {
-				Query query;
-				if (entry.getKey() instanceof MissingMappingTerms) {
-					query = generateExistsQuery(entry.getKey().fullName(), Boolean.parseBoolean(value));
-				}
-				else if (Objects.equals(entry.getKey(), DefaultMappingTerms.QUERY)) {
-					query = generateStringQuery(value);
-				}
-				else {
-					if (value.contains("*")) {
-						query = generateWildcardQuery(entry.getKey().fullName(), value);
-					}
-					else {
-						query = generateTermQuery(entry.getKey().fullName(), value);
-					}
-				}
-				queries.add(query);
-			}
+			var valueQueries = new ArrayList<Query>();
+			entry.getValue().forEach(value -> valueQueries.add(generateValueQuery(entry.getKey(), value)));
+			queries.add(new Query.Builder().bool(b -> b.should(valueQueries).minimumShouldMatch("1")).build());
 		}
 		return queries;
+	}
+
+	private static <T extends MappingTerm> Query generateValueQuery(T mappedTerm, String value) {
+		if (mappedTerm instanceof MissingMappingTerms) {
+			return generateExistsQuery(mappedTerm.fullName(), Boolean.parseBoolean(value));
+		}
+		else if (Objects.equals(mappedTerm, DefaultMappingTerms.QUERY)) {
+			return generateStringQuery(value);
+		}
+		else if (value.contains("*")) {
+			return generateWildcardQuery(mappedTerm.fullName(), value);
+		}
+		else {
+			return generateTermQuery(mappedTerm.fullName(), value);
+		}
 	}
 
 	private static Query generateStringQuery(String value) {
@@ -213,6 +204,46 @@ public class ElasticSearchRepository {
 		}
 	}
 
+	public <T extends MappingTerm> Map<String, Map<String, Long>> getTermAggregation(Map<T, List<String>> params,
+			MappingTerm aggregationTerm, String prefix, boolean sort) throws IOException {
+		var queries = generateQueries(params);
+		if (prefix != null) {
+			queries.add(new Query.Builder()
+				.prefix(p -> p.field(aggregationTerm.fullName()).value(prefix).caseInsensitive(Boolean.TRUE))
+				.build());
+		}
+		var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
+			.query(q -> q.bool(b -> b.must(queries)))
+			.size(0)
+			.trackTotalHits(t -> t.enabled(Boolean.FALSE))
+			.aggregations(aggregationTerm.requestName(), agg -> agg.terms(t -> {
+				getTerm(aggregationTerm.fullName(), t, sort).size(10);
+				if (prefix != null) {
+					t.include(i -> i.regexp(toCaseInsensitivePrefixRegex(prefix)));
+				}
+				return t;
+			}))
+			.build();
+		var aggregations = client.search(aggregationRequest, JsonNode.class).aggregations();
+		return collectResult(aggregations);
+	}
+
+	private static String toCaseInsensitivePrefixRegex(String prefix) {
+		var regex = new StringBuilder();
+		for (var c : prefix.toCharArray()) {
+			if (Character.isLetter(c)) {
+				regex.append('[').append(Character.toLowerCase(c)).append(Character.toUpperCase(c)).append(']');
+			}
+			else if (LUCENE_REGEX_RESERVED.indexOf(c) >= 0) {
+				regex.append('\\').append(c);
+			}
+			else {
+				regex.append(c);
+			}
+		}
+		return regex.append(".*").toString();
+	}
+
 	public <T extends MappingTerm> Map<String, Map<String, Long>> getAggregations(Map<T, List<String>> params,
 			Set<MappingTerm> aggregationTerms, boolean isTaxonomyOnly) throws IOException {
 		var aggregationQueries = new HashMap<String, Aggregation>();
@@ -223,7 +254,7 @@ public class ElasticSearchRepository {
 					AggregationBuilders.terms().field(aggregationTerm.fullName()).size(size).build()._toAggregation());
 		}
 		var aggregationRequest = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
-			.query(q -> q.bool(b -> b.should(queries).minimumShouldMatch(String.valueOf(params.size()))))
+			.query(q -> q.bool(b -> b.must(queries)))
 			.size(0)
 			.trackTotalHits(t -> t.enabled(Boolean.FALSE))
 			.aggregations(aggregationQueries)
@@ -243,8 +274,11 @@ public class ElasticSearchRepository {
 				mapped.put(entry.getKey(), aggregation);
 			}
 			else if (entry.getValue()._get() instanceof LongTermsAggregate value) {
-				for (LongTermsBucket stringTermsBucket : value.buckets().array()) {
-					aggregation.put(String.valueOf(stringTermsBucket.key()), stringTermsBucket.docCount());
+				for (LongTermsBucket longTermsBucket : value.buckets().array()) {
+					// Boolean fields are returned as 1/0 with "true"/"false" as key_as_string
+					var key = longTermsBucket.keyAsString() != null ? longTermsBucket.keyAsString()
+							: String.valueOf(longTermsBucket.key());
+					aggregation.put(key, longTermsBucket.docCount());
 				}
 				mapped.put(entry.getKey(), aggregation);
 			}
@@ -264,18 +298,6 @@ public class ElasticSearchRepository {
 		var totalRecords = aggregation.hits().total().value();
 		var aggregationResult = collectResult(aggregation.aggregations());
 		return Pair.of(totalRecords, aggregationResult);
-	}
-
-	public Map<String, Map<String, Long>> aggregateTermValue(String name, String field, String value, boolean sort)
-			throws IOException {
-		var searchQuery = new SearchRequest.Builder().index(properties.getDigitalSpecimenIndex())
-			.query(q -> q.prefix(m -> m.field(field).value(value).caseInsensitive(Boolean.TRUE)))
-			.aggregations(name, agg -> agg.terms(t -> getTerm(field, t, sort)))
-			.size(0)
-			.trackTotalHits(t -> t.enabled(Boolean.FALSE))
-			.build();
-		var aggregation = client.search(searchQuery, JsonNode.class);
-		return collectResult(aggregation.aggregations());
 	}
 
 	public long getCountForBatchAnnotations(BatchMetadata batchMetadata, AnnotationTargetType targetType)
