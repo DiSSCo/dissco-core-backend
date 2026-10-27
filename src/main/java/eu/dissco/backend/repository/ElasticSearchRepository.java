@@ -205,7 +205,7 @@ public class ElasticSearchRepository {
 	}
 
 	public <T extends MappingTerm> Map<String, Map<String, Long>> getTermAggregation(Map<T, List<String>> params,
-			MappingTerm aggregationTerm, String prefix, boolean sort) throws IOException {
+			MappingTerm aggregationTerm, String prefix, int size, boolean sort) throws IOException {
 		var queries = generateQueries(params);
 		if (prefix != null) {
 			queries.add(new Query.Builder()
@@ -217,7 +217,7 @@ public class ElasticSearchRepository {
 			.size(0)
 			.trackTotalHits(t -> t.enabled(Boolean.FALSE))
 			.aggregations(aggregationTerm.requestName(), agg -> agg.terms(t -> {
-				getTerm(aggregationTerm.fullName(), t, sort).size(10);
+				getTerm(aggregationTerm.fullName(), t, sort).size(size);
 				if (prefix != null) {
 					t.include(i -> i.regexp(toCaseInsensitivePrefixRegex(prefix)));
 				}
@@ -245,10 +245,9 @@ public class ElasticSearchRepository {
 	}
 
 	public <T extends MappingTerm> Map<String, Map<String, Long>> getAggregations(Map<T, List<String>> params,
-			Set<MappingTerm> aggregationTerms, boolean isTaxonomyOnly) throws IOException {
+			Set<MappingTerm> aggregationTerms, int size) throws IOException {
 		var aggregationQueries = new HashMap<String, Aggregation>();
 		var queries = generateQueries(params);
-		var size = isTaxonomyOnly ? Integer.MAX_VALUE : 10;
 		for (var aggregationTerm : aggregationTerms) {
 			aggregationQueries.put(aggregationTerm.requestName(),
 					AggregationBuilders.terms().field(aggregationTerm.fullName()).size(size).build()._toAggregation());

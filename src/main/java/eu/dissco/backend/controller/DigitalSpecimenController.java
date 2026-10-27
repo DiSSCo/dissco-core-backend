@@ -286,10 +286,12 @@ public class DigitalSpecimenController extends BaseController {
 	@ResponseStatus(HttpStatus.OK)
 	@GetMapping(value = "/aggregation", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<JsonApiWrapper> aggregation(
+			@Parameter(description = "Amount of results that will be returned, value needs to be between 1 and 100") @RequestParam(
+					defaultValue = "10") int size,
 			@Parameter(description = "Aggregation terms") @RequestParam MultiValueMap<String, String> params,
 			HttpServletRequest request) throws IOException, UnknownParameterException {
 		log.info("Request for aggregations");
-		var aggregations = service.aggregations(params, getPath(request));
+		var aggregations = service.aggregations(params, size, getPath(request));
 		return ResponseEntity.ok(aggregations);
 	}
 
@@ -308,10 +310,13 @@ public class DigitalSpecimenController extends BaseController {
 			@Parameter(description = "Term to retrieve aggregation for") @PathVariable("term") String term,
 			@Parameter(description = "Only return buckets starting with this value (case-insensitive)") @RequestParam(
 					required = false) String prefix,
+			@Parameter(
+					description = "Amount of results that will be returned, value needs to be between 1 and 100") @RequestParam(
+							defaultValue = "10") int size,
 			@Parameter(description = "Aggregation terms") @RequestParam MultiValueMap<String, String> params,
 			HttpServletRequest request) throws IOException, UnknownParameterException {
 		log.info("Request for aggregations for term: {}", term);
-		var aggregations = service.termAggregations(term, prefix, params, getPath(request));
+		var aggregations = service.termAggregations(term, prefix, size, params, getPath(request));
 		return ResponseEntity.ok(aggregations);
 	}
 
@@ -353,10 +358,12 @@ public class DigitalSpecimenController extends BaseController {
 	public ResponseEntity<JsonApiWrapper> searchTermValue(
 			@Parameter(description = "Term to search on") @RequestParam String term,
 			@Parameter(description = "Value of term") @RequestParam String value,
+			@Parameter(description = "Amount of results that will be returned, value needs to be between 1 and 100") @RequestParam(
+					defaultValue = "10") int size,
 			@Parameter(description = "Whether or not to sort") @RequestParam(defaultValue = "false") boolean sort,
 			HttpServletRequest request) throws IOException, UnknownParameterException {
 		log.info("Request text search for term value of term: {} with value: {}", term, value);
-		var result = service.searchTermValue(term, value, getPath(request), sort);
+		var result = service.searchTermValue(term, value, size, getPath(request), sort);
 		return ResponseEntity.ok(result);
 	}
 

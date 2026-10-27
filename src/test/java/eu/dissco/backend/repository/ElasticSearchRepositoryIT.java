@@ -254,7 +254,7 @@ class ElasticSearchRepositoryIT {
 
 		// When
 		var responseReceived = repository.getAggregations(Map.of(SOURCE_SYSTEM_NAME, List.of(anotherSourceSystemName)),
-				getAggregationSet(), false);
+				getAggregationSet(), DEFAULT_SIZE);
 
 		// Then
 		assertThat(responseReceived.get("country")).containsEntry("Scotland", 5L);
@@ -273,7 +273,7 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.getAggregations(Map.of(), getAggregationSet(), false);
+		var responseReceived = repository.getAggregations(Map.of(), getAggregationSet(), DEFAULT_SIZE);
 
 		// Then
 		assertThat(responseReceived.get("country")).containsEntry("Scotland", 10L);
@@ -294,7 +294,8 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.getAggregations(Map.of(), Set.of(TaxonMappingTerms.KINGDOM), true);
+		var responseReceived = repository.getAggregations(Map.of(), Set.of(TaxonMappingTerms.KINGDOM),
+				Integer.MAX_VALUE);
 
 		// Then
 		assertThat(responseReceived.get("kingdom")).containsEntry("Plantae", 5L);
@@ -362,7 +363,7 @@ class ElasticSearchRepositoryIT {
 				DefaultMappingTerms.MIDS_LEVEL, List.of("1"));
 
 		// When
-		var responseReceived = repository.getAggregations(params, Set.of(DefaultMappingTerms.COUNTRY), false);
+		var responseReceived = repository.getAggregations(params, Set.of(DefaultMappingTerms.COUNTRY), DEFAULT_SIZE);
 
 		// Then
 		assertThat(responseReceived).containsValue(Map.of("Netherlands", 1L, "Finland", 1L))
@@ -391,7 +392,8 @@ class ElasticSearchRepositoryIT {
 						givenDigitalSpecimenCountries(DOI + PREFIX + "/5", 1, "St. Helena", "Stateless"))));
 
 		// When
-		var responseReceived = repository.getTermAggregation(params, DefaultMappingTerms.COUNTRY, prefix, false);
+		var responseReceived = repository.getTermAggregation(params, DefaultMappingTerms.COUNTRY, prefix, DEFAULT_SIZE,
+				false);
 
 		// Then
 		assertThat(responseReceived).containsValue(expected).containsOnlyKeys("country");
@@ -414,7 +416,7 @@ class ElasticSearchRepositoryIT {
 							.withOdsIsKnownToContainMedia(false))));
 
 		// When
-		var responseReceived = repository.getTermAggregation(Map.of(), aggregationTerm, null, false);
+		var responseReceived = repository.getTermAggregation(Map.of(), aggregationTerm, null, DEFAULT_SIZE, false);
 
 		// Then
 		assertThat(responseReceived).containsValue(expected).containsOnlyKeys(aggregationTerm.requestName());
@@ -445,7 +447,8 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.getTermAggregation(Map.of(), SOURCE_SYSTEM_ID, SOURCE_SYSTEM_ID_2, false);
+		var responseReceived = repository.getTermAggregation(Map.of(), SOURCE_SYSTEM_ID, SOURCE_SYSTEM_ID_2,
+				DEFAULT_SIZE, false);
 
 		// Then
 		assertThat(responseReceived.get("sourceSystemID")).containsEntry(SOURCE_SYSTEM_ID_2, 5L);
@@ -471,7 +474,8 @@ class ElasticSearchRepositoryIT {
 		postDigitalSpecimens(parseToElasticFormat(specimenTestRecords));
 
 		// When
-		var responseReceived = repository.getTermAggregation(Map.of(), DefaultMappingTerms.SPECIMEN_NAME, "A", true);
+		var responseReceived = repository.getTermAggregation(Map.of(), DefaultMappingTerms.SPECIMEN_NAME, "A",
+				DEFAULT_SIZE, true);
 
 		// Then
 		var iterator = responseReceived.get("specimenName").keySet().iterator();

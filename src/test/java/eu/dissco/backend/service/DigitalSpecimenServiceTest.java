@@ -460,14 +460,14 @@ class DigitalSpecimenServiceTest {
 		params.put("sourceSystemID", List.of(SOURCE_SYSTEM_ID_1));
 		var map = new MultiValueMapAdapter<>(params);
 		var aggregationMap = givenAggregationMap();
-		given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(aggregationMap);
+		given(elasticRepository.getAggregations(anyMap(), anySet(), eq(DEFAULT_SIZE))).willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
 		var linksNode = new JsonApiLinks(SPECIMEN_PATH);
 		var expected = new JsonApiWrapper(dataNode, linksNode);
 
 		// When
-		var result = service.aggregations(map, SPECIMEN_PATH);
+		var result = service.aggregations(map, DEFAULT_SIZE, SPECIMEN_PATH);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -481,7 +481,7 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(params);
 		var aggregationMap = givenTaxonAggregationMap();
 		given(elasticRepository.getAggregations(Map.of(TaxonMappingTerms.KINGDOM, List.of("animalia")),
-				Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true))
+				Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), Integer.MAX_VALUE))
 			.willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
@@ -505,14 +505,14 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(params);
 		var aggregationMap = Map.of("country", Map.of("Netherlands", 1L));
 		given(elasticRepository.getTermAggregation(Map.of(DefaultMappingTerms.MIDS_LEVEL, List.of("1")),
-				DefaultMappingTerms.COUNTRY, "neth", false))
+				DefaultMappingTerms.COUNTRY, "neth", DEFAULT_SIZE, false))
 			.willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(("country" + map).hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
 		var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(SPECIMEN_PATH));
 
 		// When
-		var result = service.termAggregations("country", "neth", map, SPECIMEN_PATH);
+		var result = service.termAggregations("country", "neth", DEFAULT_SIZE, map, SPECIMEN_PATH);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -525,7 +525,7 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
 
 		// When / Then
-		assertThatThrownBy(() -> service.termAggregations(term, null, map, SPECIMEN_PATH))
+		assertThatThrownBy(() -> service.termAggregations(term, null, DEFAULT_SIZE, map, SPECIMEN_PATH))
 			.isInstanceOf(UnknownParameterException.class);
 		then(elasticRepository).shouldHaveNoInteractions();
 	}
@@ -537,7 +537,7 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
 
 		// When / Then
-		assertThatThrownBy(() -> service.termAggregations(term, "1", map, SPECIMEN_PATH))
+		assertThatThrownBy(() -> service.termAggregations(term, "1", DEFAULT_SIZE, map, SPECIMEN_PATH))
 			.isInstanceOf(UnknownParameterException.class);
 		then(elasticRepository).shouldHaveNoInteractions();
 	}
@@ -550,8 +550,34 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(params);
 
 		// When / Then
-		assertThatThrownBy(() -> service.termAggregations("country", "neth,fin", map, SPECIMEN_PATH))
+		assertThatThrownBy(() -> service.termAggregations("country", "neth,fin", DEFAULT_SIZE, map, SPECIMEN_PATH))
 			.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationMultipleSizes() {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("size", List.of("DEFAULT_SIZE", "25"));
+		var map = new MultiValueMapAdapter<>(params);
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations("country", "fin", 25, map, SPECIMEN_PATH))
+				.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationSizeTooBig() {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("size", List.of("120"));
+		var map = new MultiValueMapAdapter<>(params);
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations("country", "neth", 120, map, SPECIMEN_PATH))
+				.isInstanceOf(UnknownParameterException.class);
 		then(elasticRepository).shouldHaveNoInteractions();
 	}
 
@@ -560,14 +586,14 @@ class DigitalSpecimenServiceTest {
 		// Given
 		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
 		var aggregationMap = Map.of("hasMedia", Map.of("true", 2L, "false", 1L));
-		given(elasticRepository.getTermAggregation(Map.of(), DefaultMappingTerms.HAS_MEDIA, null, false))
+		given(elasticRepository.getTermAggregation(Map.of(), DefaultMappingTerms.HAS_MEDIA, null, DEFAULT_SIZE, false))
 			.willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(("hasMedia" + map).hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
 		var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(SPECIMEN_PATH));
 
 		// When
-		var result = service.termAggregations("hasMedia", null, map, SPECIMEN_PATH);
+		var result = service.termAggregations("hasMedia", null, DEFAULT_SIZE, map, SPECIMEN_PATH);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -595,14 +621,14 @@ class DigitalSpecimenServiceTest {
 	void testSearchTermValue() throws IOException, UnknownParameterException {
 		// Given
 		var aggregation = Map.of("topicDiscipline", Map.of("Zoology", 349555L));
-		given(elasticRepository.getTermAggregation(Map.of(), TOPIC_DISCIPLINE, "Z", false)).willReturn(aggregation);
+		given(elasticRepository.getTermAggregation(Map.of(), TOPIC_DISCIPLINE, "Z", DEFAULT_SIZE, false)).willReturn(aggregation);
 		var dataNode = new JsonApiData(String.valueOf(("topicDiscipline" + "Z").hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregation));
 		var linksNode = new JsonApiLinks(SPECIMEN_PATH);
 		var expected = new JsonApiWrapper(dataNode, linksNode);
 
 		// When
-		var result = service.searchTermValue("topicDiscipline", "Z", SPECIMEN_PATH, false);
+		var result = service.searchTermValue("topicDiscipline", "Z", DEFAULT_SIZE, SPECIMEN_PATH, false);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -612,7 +638,7 @@ class DigitalSpecimenServiceTest {
 	@ValueSource(strings = { "unknownTerm", "q", "latitude", "hasCountry", "midsLevel", "hasMedia" })
 	void testSearchTermNotSupported(String term) {
 		// When / Then
-		assertThatThrownBy(() -> service.searchTermValue(term, "Z", SPECIMEN_PATH, false))
+		assertThatThrownBy(() -> service.searchTermValue(term, "Z", DEFAULT_SIZE, SPECIMEN_PATH, false))
 			.isInstanceOf(UnknownParameterException.class);
 		then(elasticRepository).shouldHaveNoInteractions();
 	}

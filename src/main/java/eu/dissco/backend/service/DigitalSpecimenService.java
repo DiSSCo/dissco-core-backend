@@ -271,17 +271,18 @@ public class DigitalSpecimenService {
 			throws UnknownParameterException, IOException {
 		var mappedParams = mapParamsKeyword(params, TaxonMappingTerms.getTaxonMapping());
 		var aggregateTerm = retrieveTaxRanks(mappedParams);
-		var aggregations = elasticRepository.getAggregations(mappedParams, aggregateTerm, true);
+		var aggregations = elasticRepository.getAggregations(mappedParams, aggregateTerm, Integer.MAX_VALUE);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
 				mapper.valueToTree(aggregations));
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
 	}
 
-	public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
+	public JsonApiWrapper aggregations(MultiValueMap<String, String> params, int size, String path)
 			throws IOException, UnknownParameterException {
+		validateSize(params);
 		var mappedParams = mapParamsKeyword(params, getParamMapping());
 		var aggregations = elasticRepository.getAggregations(mappedParams, DefaultMappingTerms.getAggregationSet(),
-				false);
+				size);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
 				mapper.valueToTree(aggregations));
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -294,10 +295,11 @@ public class DigitalSpecimenService {
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
 	}
 
-	public JsonApiWrapper searchTermValue(String name, String value, String path, boolean sort)
+	public JsonApiWrapper searchTermValue(String name, String value, int size, String path, boolean sort)
 			throws UnknownParameterException, IOException {
 		var mappedTerm = getAggregationTerm(name, true);
-		var aggregations = elasticRepository.getTermAggregation(Map.of(), mappedTerm, value, sort);
+		validateSizeBoundary(size);
+		var aggregations = elasticRepository.getTermAggregation(Map.of(), mappedTerm, value, size, sort);
 		var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
 				mapper.valueToTree(aggregations));
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -334,19 +336,40 @@ public class DigitalSpecimenService {
 		return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN, path);
 	}
 
-	public JsonApiWrapper termAggregations(String term, String prefix, MultiValueMap<String, String> params, String path)
+	public JsonApiWrapper termAggregations(String term, String prefix, int size, MultiValueMap<String, String> params, String path)
 			throws UnknownParameterException, IOException {
 		var aggregationTerm = getAggregationTerm(term, prefix != null);
 		var responseId = String.valueOf((term + params).hashCode());
+		validatePrefix(params);
+		validateSize(params);
+		var mappedParams = mapParamsKeyword(params, getParamMapping());
+		mappedParams.keySet().removeIf(param -> param.fullName().equals(aggregationTerm.fullName()));
+		var aggregations = elasticRepository.getTermAggregation(mappedParams, aggregationTerm, prefix, size, false);
+		var dataNode = new JsonApiData(responseId, AGGREGATIONS_TYPE, mapper.valueToTree(aggregations));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
+
+	private void validatePrefix(MultiValueMap<String, String> params) throws UnknownParameterException {
 		var prefixValues = params.remove("prefix");
 		if (prefixValues != null && prefixValues.size() > 1) {
 			throw new UnknownParameterException("Parameter: prefix accepts at most 1 value");
 		}
-		var mappedParams = mapParamsKeyword(params, getParamMapping());
-		mappedParams.keySet().removeIf(param -> param.fullName().equals(aggregationTerm.fullName()));
-		var aggregations = elasticRepository.getTermAggregation(mappedParams, aggregationTerm, prefix, false);
-		var dataNode = new JsonApiData(responseId, AGGREGATIONS_TYPE, mapper.valueToTree(aggregations));
-		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
+
+	private void validateSize(MultiValueMap<String, String> params) throws UnknownParameterException {
+		var sizeValues = params.remove("size");
+		if (sizeValues != null && sizeValues.size() > 1) {
+			throw new UnknownParameterException("Parameter: size accepts at most 1 value");
+		} else if (sizeValues != null && sizeValues.size() == 1) {
+			int size = Integer.parseInt(sizeValues.getFirst());
+			validateSizeBoundary(size);
+		}
+	}
+
+	private static void validateSizeBoundary(int size) throws UnknownParameterException {
+		if (size < 1 || size > 100){
+			throw new UnknownParameterException("Parameter: size must lay within 1 and 100, current value is: " + size);
+		}
 	}
 
 }

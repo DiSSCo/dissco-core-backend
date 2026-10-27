@@ -1,28 +1,5 @@
 package eu.dissco.backend.controller;
 
-import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.PREFIX;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.SUFFIX;
-import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.TestUtils.givenClaims;
-import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
-import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
-import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_URI;
-import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
-
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.domain.jsonapi.JsonApiData;
 import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
@@ -35,8 +12,6 @@ import eu.dissco.backend.exceptions.ConflictException;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.properties.ApplicationProperties;
 import eu.dissco.backend.service.DigitalSpecimenService;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +22,20 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.MultiValueMapAdapter;
+
+import java.util.List;
+import java.util.Map;
+
+import static eu.dissco.backend.TestUtils.*;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.*;
+import static eu.dissco.backend.utils.SpecimenUtils.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalSpecimenControllerTest {
@@ -176,11 +165,11 @@ class DigitalSpecimenControllerTest {
 		// Given
 		var paramMap = new MultiValueMapAdapter(Map.of("SourceSystemId", List.of(SOURCE_SYSTEM_ID_1)));
 		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-		given(service.aggregations(eq(paramMap), anyString()))
+		given(service.aggregations(eq(paramMap), eq(DEFAULT_SIZE), anyString()))
 			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
 		// When
-		var result = controller.aggregation(paramMap, mockRequest);
+		var result = controller.aggregation(DEFAULT_SIZE, paramMap, mockRequest);
 
 		// Then
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -208,11 +197,11 @@ class DigitalSpecimenControllerTest {
 		// Given
 		var paramMap = new MultiValueMapAdapter(Map.of("midsLevel", List.of("1"), "prefix", List.of("Neth")));
 		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-		given(service.termAggregations(eq("country"), eq("Neth"), eq(paramMap), anyString()))
+		given(service.termAggregations(eq("country"), eq("Neth"), eq(DEFAULT_SIZE), eq(paramMap), anyString()))
 			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
 		// When
-		var result = controller.termAggregation("country", "Neth", paramMap, mockRequest);
+		var result = controller.termAggregation("country", "Neth", DEFAULT_SIZE, paramMap, mockRequest);
 
 		// Then
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -247,11 +236,11 @@ class DigitalSpecimenControllerTest {
 	void testSearchTermValue() throws Exception {
 		// Given
 		var data = new JsonApiData("id", "aggregations", MAPPER.valueToTree(givenAggregationMap()));
-		given(service.searchTermValue(anyString(), anyString(), anyString(), eq(false)))
+		given(service.searchTermValue(anyString(), anyString(), eq(DEFAULT_SIZE), anyString(), eq(false)))
 			.willReturn(new JsonApiWrapper(data, new JsonApiLinks("test")));
 
 		// When
-		var result = controller.searchTermValue("sourceSystem", "20.500", false, mockRequest);
+		var result = controller.searchTermValue("sourceSystem", "20.500", DEFAULT_SIZE, false, mockRequest);
 
 		// Then
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
