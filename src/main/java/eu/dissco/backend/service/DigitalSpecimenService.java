@@ -308,7 +308,7 @@ public class DigitalSpecimenService {
 	private MappingTerm getAggregationTerm(String term, boolean isPrefixSearch) throws UnknownParameterException {
 		var mappedTerm = getParamMapping().get(term);
 		if (mappedTerm == null || !DefaultMappingTerms.isAggregatableTerm(mappedTerm)) {
-			throw new UnknownParameterException("Parameter: " + term + " is not an aggregatable term");
+			throw new UnknownParameterException("Parameter: " + term + " cannot be aggregated on");
 		}
 		if (isPrefixSearch && !DefaultMappingTerms.isKeywordTerm(mappedTerm)) {
 			throw new UnknownParameterException("Parameter: " + term + " does not support prefix search");
