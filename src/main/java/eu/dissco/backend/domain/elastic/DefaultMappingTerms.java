@@ -38,6 +38,12 @@ public enum DefaultMappingTerms implements MappingTerm {
 
 	private static final Map<String, MappingTerm> paramMapping = fillParamMapping();
 
+	// Not a field, or a float field (DoubleTermsAggregate is not supported)
+	private static final Set<MappingTerm> nonAggregatableTerms = Set.of(QUERY, LATITUDE, LONGITUDE);
+
+	// Aggregatable, but not a keyword field, so no prefix query or include regex
+	private static final Set<MappingTerm> nonKeywordTerms = Set.of(MIDS_LEVEL, HAS_MEDIA);
+
 	private final String requestName;
 
 	private final String fullName;
@@ -53,6 +59,14 @@ public enum DefaultMappingTerms implements MappingTerm {
 
 	public static Map<String, MappingTerm> getParamMapping() {
 		return paramMapping;
+	}
+
+	public static boolean isAggregatableTerm(MappingTerm term) {
+		return !(term instanceof MissingMappingTerms) && !nonAggregatableTerms.contains(term);
+	}
+
+	public static boolean isKeywordTerm(MappingTerm term) {
+		return isAggregatableTerm(term) && !nonKeywordTerms.contains(term);
 	}
 
 	private static Set<MappingTerm> fillAggregationList() {

@@ -71,6 +71,8 @@ public class TestUtils {
 
 	public static final String SPECIMEN_NAME_2 = "Aackia Yosii, 1966";
 
+	public static final int DEFAULT_SIZE = 10;
+
 	public static final JsonMapper MAPPER = JsonMapper.builder()
 		.findAndAddModules()
 		.defaultDateFormat(new SimpleDateFormat(DATE_STRING))

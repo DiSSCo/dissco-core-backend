@@ -1,39 +1,5 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.TestUtils.DOI;
-import static eu.dissco.backend.TestUtils.ID;
-import static eu.dissco.backend.TestUtils.ID_ALT;
-import static eu.dissco.backend.TestUtils.MAPPER;
-import static eu.dissco.backend.TestUtils.ORCID;
-import static eu.dissco.backend.TestUtils.ORCID_ALT;
-import static eu.dissco.backend.TestUtils.SANDBOX_URI;
-import static eu.dissco.backend.TestUtils.SOURCE_SYSTEM_ID_1;
-import static eu.dissco.backend.TestUtils.SPECIMEN_NAME;
-import static eu.dissco.backend.TestUtils.givenAggregationMap;
-import static eu.dissco.backend.TestUtils.givenDigitalSpecimenWrapper;
-import static eu.dissco.backend.TestUtils.givenTaxonAggregationMap;
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
-import static eu.dissco.backend.utils.AnnotationUtils.ANNOTATION_PATH;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationJsonResponseNoPagination;
-import static eu.dissco.backend.utils.AnnotationUtils.givenAnnotationResponse;
-import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
-import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
-import static eu.dissco.backend.utils.SpecimenUtils.SPECIMEN_PATH;
-import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiData;
-import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenJsonApiDataList;
-import static eu.dissco.backend.utils.SpecimenUtils.givenDigitalSpecimenList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mockStatic;
-
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalMediaFull;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
@@ -41,32 +7,40 @@ import eu.dissco.backend.domain.FdoType;
 import eu.dissco.backend.domain.MongoCollection;
 import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
-import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.*;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
 import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.util.MultiValueMapAdapter;
 import tools.jackson.databind.JsonNode;
+
+import java.io.IOException;
+import java.util.*;
+
+import static eu.dissco.backend.TestUtils.*;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.utils.AnnotationUtils.*;
+import static eu.dissco.backend.utils.DigitalMediaObjectUtils.givenDigitalMediaObject;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasJobRequest;
+import static eu.dissco.backend.utils.MachineAnnotationServiceUtils.givenMasResponse;
+import static eu.dissco.backend.utils.SpecimenUtils.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class DigitalSpecimenServiceTest {
@@ -486,14 +460,14 @@ class DigitalSpecimenServiceTest {
 		params.put("sourceSystemID", List.of(SOURCE_SYSTEM_ID_1));
 		var map = new MultiValueMapAdapter<>(params);
 		var aggregationMap = givenAggregationMap();
-		given(elasticRepository.getAggregations(anyMap(), anySet(), eq(false))).willReturn(aggregationMap);
+		given(elasticRepository.getAggregations(anyMap(), anySet(), eq(DEFAULT_SIZE))).willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
 		var linksNode = new JsonApiLinks(SPECIMEN_PATH);
 		var expected = new JsonApiWrapper(dataNode, linksNode);
 
 		// When
-		var result = service.aggregations(map, SPECIMEN_PATH);
+		var result = service.aggregations(map, DEFAULT_SIZE, SPECIMEN_PATH);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -507,7 +481,7 @@ class DigitalSpecimenServiceTest {
 		var map = new MultiValueMapAdapter<>(params);
 		var aggregationMap = givenTaxonAggregationMap();
 		given(elasticRepository.getAggregations(Map.of(TaxonMappingTerms.KINGDOM, List.of("animalia")),
-				Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), true))
+				Set.of(TaxonMappingTerms.KINGDOM, TaxonMappingTerms.PHYLUM), Integer.MAX_VALUE))
 			.willReturn(aggregationMap);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregationMap));
@@ -516,6 +490,110 @@ class DigitalSpecimenServiceTest {
 
 		// When
 		var result = service.taxonAggregations(map, SPECIMEN_PATH);
+
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@Test
+	void testTermAggregation() throws IOException, UnknownParameterException {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("country", List.of("Netherlands"));
+		params.put("midsLevel", List.of("1"));
+		params.put("prefix", List.of("neth"));
+		var map = new MultiValueMapAdapter<>(params);
+		var aggregationMap = Map.of("country", Map.of("Netherlands", 1L));
+		given(elasticRepository.getTermAggregation(Map.of(DefaultMappingTerms.MIDS_LEVEL, List.of("1")),
+				DefaultMappingTerms.COUNTRY, "neth", DEFAULT_SIZE, false))
+			.willReturn(aggregationMap);
+		var dataNode = new JsonApiData(String.valueOf(("country" + map).hashCode()), "aggregations",
+				MAPPER.valueToTree(aggregationMap));
+		var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(SPECIMEN_PATH));
+
+		// When
+		var result = service.termAggregations("country", "neth", DEFAULT_SIZE, map, SPECIMEN_PATH);
+
+		// Then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "unknownTerm", "q", "latitude", "longitude", "hasCountry" })
+	void testTermAggregationNotAggregatable(String term) {
+		// Given
+		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations(term, null, DEFAULT_SIZE, map, SPECIMEN_PATH))
+			.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "midsLevel", "hasMedia" })
+	void testTermAggregationPrefixOnNonKeywordTerm(String term) {
+		// Given
+		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations(term, "1", DEFAULT_SIZE, map, SPECIMEN_PATH))
+			.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationMultiplePrefixes() {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("prefix", List.of("neth", "fin"));
+		var map = new MultiValueMapAdapter<>(params);
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations("country", "neth,fin", DEFAULT_SIZE, map, SPECIMEN_PATH))
+			.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationMultipleSizes() {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("size", List.of("DEFAULT_SIZE", "25"));
+		var map = new MultiValueMapAdapter<>(params);
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations("country", "fin", 25, map, SPECIMEN_PATH))
+				.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationSizeTooBig() {
+		// Given
+		var params = new HashMap<String, List<String>>();
+		params.put("size", List.of("120"));
+		var map = new MultiValueMapAdapter<>(params);
+
+		// When / Then
+		assertThatThrownBy(() -> service.termAggregations("country", "neth", 120, map, SPECIMEN_PATH))
+				.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
+	}
+
+	@Test
+	void testTermAggregationNonKeywordTerm() throws IOException, UnknownParameterException {
+		// Given
+		var map = new MultiValueMapAdapter<>(new HashMap<String, List<String>>());
+		var aggregationMap = Map.of("hasMedia", Map.of("true", 2L, "false", 1L));
+		given(elasticRepository.getTermAggregation(Map.of(), DefaultMappingTerms.HAS_MEDIA, null, DEFAULT_SIZE, false))
+			.willReturn(aggregationMap);
+		var dataNode = new JsonApiData(String.valueOf(("hasMedia" + map).hashCode()), "aggregations",
+				MAPPER.valueToTree(aggregationMap));
+		var expected = new JsonApiWrapper(dataNode, new JsonApiLinks(SPECIMEN_PATH));
+
+		// When
+		var result = service.termAggregations("hasMedia", null, DEFAULT_SIZE, map, SPECIMEN_PATH);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
@@ -543,26 +621,26 @@ class DigitalSpecimenServiceTest {
 	void testSearchTermValue() throws IOException, UnknownParameterException {
 		// Given
 		var aggregation = Map.of("topicDiscipline", Map.of("Zoology", 349555L));
-		given(elasticRepository.aggregateTermValue(TOPIC_DISCIPLINE.requestName(), TOPIC_DISCIPLINE.fullName(), "Z",
-				false))
-			.willReturn(aggregation);
+		given(elasticRepository.getTermAggregation(Map.of(), TOPIC_DISCIPLINE, "Z", DEFAULT_SIZE, false)).willReturn(aggregation);
 		var dataNode = new JsonApiData(String.valueOf(("topicDiscipline" + "Z").hashCode()), "aggregations",
 				MAPPER.valueToTree(aggregation));
 		var linksNode = new JsonApiLinks(SPECIMEN_PATH);
 		var expected = new JsonApiWrapper(dataNode, linksNode);
 
 		// When
-		var result = service.searchTermValue("topicDiscipline", "Z", SPECIMEN_PATH, false);
+		var result = service.searchTermValue("topicDiscipline", "Z", DEFAULT_SIZE, SPECIMEN_PATH, false);
 
 		// Then
 		assertThat(result).isEqualTo(expected);
 	}
 
-	@Test
-	void testSearchTermUnknown() {
+	@ParameterizedTest
+	@ValueSource(strings = { "unknownTerm", "q", "latitude", "hasCountry", "midsLevel", "hasMedia" })
+	void testSearchTermNotSupported(String term) {
 		// When / Then
-		assertThatThrownBy(() -> service.searchTermValue("unknownTerm", "Z", SPECIMEN_PATH, false))
+		assertThatThrownBy(() -> service.searchTermValue(term, "Z", DEFAULT_SIZE, SPECIMEN_PATH, false))
 			.isInstanceOf(UnknownParameterException.class);
+		then(elasticRepository).shouldHaveNoInteractions();
 	}
 
 	@Test

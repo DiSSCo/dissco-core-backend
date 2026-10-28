@@ -1,11 +1,5 @@
 package eu.dissco.backend.service;
 
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
-import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getParamMapping;
-import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
-import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
-import static java.util.Comparator.comparing;
-
 import eu.dissco.backend.database.jooq.enums.JobState;
 import eu.dissco.backend.database.jooq.enums.MjrTargetType;
 import eu.dissco.backend.domain.DigitalSpecimenFull;
@@ -16,12 +10,7 @@ import eu.dissco.backend.domain.elastic.DefaultMappingTerms;
 import eu.dissco.backend.domain.elastic.MappingTerm;
 import eu.dissco.backend.domain.elastic.MissingMappingTerms;
 import eu.dissco.backend.domain.elastic.TaxonMappingTerms;
-import eu.dissco.backend.domain.jsonapi.JsonApiData;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinks;
-import eu.dissco.backend.domain.jsonapi.JsonApiLinksFull;
-import eu.dissco.backend.domain.jsonapi.JsonApiListResponseWrapper;
-import eu.dissco.backend.domain.jsonapi.JsonApiMeta;
-import eu.dissco.backend.domain.jsonapi.JsonApiWrapper;
+import eu.dissco.backend.domain.jsonapi.*;
 import eu.dissco.backend.exceptions.NotFoundException;
 import eu.dissco.backend.exceptions.ProcessingFailedException;
 import eu.dissco.backend.exceptions.UnknownParameterException;
@@ -29,12 +18,6 @@ import eu.dissco.backend.repository.DigitalSpecimenRepository;
 import eu.dissco.backend.repository.ElasticSearchRepository;
 import eu.dissco.backend.repository.MongoRepository;
 import eu.dissco.backend.schema.DigitalSpecimen;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -42,6 +25,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+
+import java.io.IOException;
+import java.util.*;
+
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.TOPIC_DISCIPLINE;
+import static eu.dissco.backend.domain.elastic.DefaultMappingTerms.getParamMapping;
+import static eu.dissco.backend.service.DigitalServiceUtils.createVersionNode;
+import static eu.dissco.backend.utils.JsonApiUtils.wrapListResponse;
+import static java.util.Comparator.comparing;
 
 @Slf4j
 @Service
@@ -279,17 +271,18 @@ public class DigitalSpecimenService {
 			throws UnknownParameterException, IOException {
 		var mappedParams = mapParamsKeyword(params, TaxonMappingTerms.getTaxonMapping());
 		var aggregateTerm = retrieveTaxRanks(mappedParams);
-		var aggregations = elasticRepository.getAggregations(mappedParams, aggregateTerm, true);
+		var aggregations = elasticRepository.getAggregations(mappedParams, aggregateTerm, Integer.MAX_VALUE);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
 				mapper.valueToTree(aggregations));
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
 	}
 
-	public JsonApiWrapper aggregations(MultiValueMap<String, String> params, String path)
+	public JsonApiWrapper aggregations(MultiValueMap<String, String> params, int size, String path)
 			throws IOException, UnknownParameterException {
+		validateSize(params);
 		var mappedParams = mapParamsKeyword(params, getParamMapping());
 		var aggregations = elasticRepository.getAggregations(mappedParams, DefaultMappingTerms.getAggregationSet(),
-				false);
+				size);
 		var dataNode = new JsonApiData(String.valueOf(params.hashCode()), AGGREGATIONS_TYPE,
 				mapper.valueToTree(aggregations));
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
@@ -302,18 +295,25 @@ public class DigitalSpecimenService {
 		return new JsonApiWrapper(dataNode, new JsonApiLinks(path), new JsonApiMeta(disciplineResult.getLeft()));
 	}
 
-	public JsonApiWrapper searchTermValue(String name, String value, String path, boolean sort)
+	public JsonApiWrapper searchTermValue(String name, String value, int size, String path, boolean sort)
 			throws UnknownParameterException, IOException {
-		var mappedTerm = getParamMapping().get(name);
-		if (mappedTerm != null) {
-			var aggregations = elasticRepository.aggregateTermValue(name, mappedTerm.fullName(), value, sort);
-			var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
-					mapper.valueToTree(aggregations));
-			return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+		var mappedTerm = getAggregationTerm(name, true);
+		validateSizeBoundary(size);
+		var aggregations = elasticRepository.getTermAggregation(Map.of(), mappedTerm, value, size, sort);
+		var dataNode = new JsonApiData(String.valueOf((name + value).hashCode()), AGGREGATIONS_TYPE,
+				mapper.valueToTree(aggregations));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
+
+	private MappingTerm getAggregationTerm(String term, boolean isPrefixSearch) throws UnknownParameterException {
+		var mappedTerm = getParamMapping().get(term);
+		if (mappedTerm == null || !DefaultMappingTerms.isAggregatableTerm(mappedTerm)) {
+			throw new UnknownParameterException("Parameter: " + term + " cannot be aggregated on");
 		}
-		else {
-			throw new UnknownParameterException("Parameter: " + name + " is not recognised");
+		if (isPrefixSearch && !DefaultMappingTerms.isKeywordTerm(mappedTerm)) {
+			throw new UnknownParameterException("Parameter: " + term + " does not support prefix search");
 		}
+		return mappedTerm;
 	}
 
 	public JsonApiListResponseWrapper getMass(String id, String path) throws NotFoundException {
@@ -334,6 +334,42 @@ public class DigitalSpecimenService {
 	public JsonApiListResponseWrapper scheduleMass(String id, List<MasJobRequest> masRequests, String orcid,
 			String path) throws ProcessingFailedException {
 		return masService.scheduleMas(id, masRequests, orcid, MjrTargetType.DIGITAL_SPECIMEN, path);
+	}
+
+	public JsonApiWrapper termAggregations(String term, String prefix, int size, MultiValueMap<String, String> params, String path)
+			throws UnknownParameterException, IOException {
+		var aggregationTerm = getAggregationTerm(term, prefix != null);
+		var responseId = String.valueOf((term + params).hashCode());
+		validatePrefix(params);
+		validateSize(params);
+		var mappedParams = mapParamsKeyword(params, getParamMapping());
+		mappedParams.keySet().removeIf(param -> param.fullName().equals(aggregationTerm.fullName()));
+		var aggregations = elasticRepository.getTermAggregation(mappedParams, aggregationTerm, prefix, size, false);
+		var dataNode = new JsonApiData(responseId, AGGREGATIONS_TYPE, mapper.valueToTree(aggregations));
+		return new JsonApiWrapper(dataNode, new JsonApiLinks(path));
+	}
+
+	private void validatePrefix(MultiValueMap<String, String> params) throws UnknownParameterException {
+		var prefixValues = params.remove("prefix");
+		if (prefixValues != null && prefixValues.size() > 1) {
+			throw new UnknownParameterException("Parameter: prefix accepts at most 1 value");
+		}
+	}
+
+	private void validateSize(MultiValueMap<String, String> params) throws UnknownParameterException {
+		var sizeValues = params.remove("size");
+		if (sizeValues != null && sizeValues.size() > 1) {
+			throw new UnknownParameterException("Parameter: size accepts at most 1 value");
+		} else if (sizeValues != null && sizeValues.size() == 1) {
+			int size = Integer.parseInt(sizeValues.getFirst());
+			validateSizeBoundary(size);
+		}
+	}
+
+	private static void validateSizeBoundary(int size) throws UnknownParameterException {
+		if (size < 1 || size > 100){
+			throw new UnknownParameterException("Parameter: size must lay within 1 and 100, current value is: " + size);
+		}
 	}
 
 }
